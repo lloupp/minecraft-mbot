@@ -409,10 +409,14 @@ async function main() {
     console.log('Bot desconectado:', reason)
   })
 
-  bot.on('end', () => {
+  // Queda inesperada (servidor reiniciou, rede caiu, kick): sai com erro para o
+  // supervisor (systemd ou `npm run sempre`) reconectar. !parar sai com código 0.
+  let quitRequested = false
+  bot.on('end', (reason) => {
     colony.stop()
     botManager.stopAll()
-    console.log('Conexão encerrada.')
+    console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
+    setTimeout(() => process.exit(quitRequested ? 0 : 1), 500)
   })
 
   bot.on('error', (err) => {
@@ -765,6 +769,7 @@ async function main() {
       case '!parar':
         console.log(`Comando !parar recebido de ${username}. Encerrando bot e colônia...`)
         botManager.stopAll()
+        quitRequested = true
         bot.quit()
         break
       case '!seguir':

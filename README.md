@@ -46,6 +46,11 @@ npm install
 node index.js
 ```
 
+## Servidor 24h
+
+Para deixar o bot jogando sempre, num servidor dedicado na rede local (com
+reconexão automática e serviços do systemd), veja [deploy/README.md](deploy/README.md).
+
 ## Estrutura
 
 ```
