@@ -112,6 +112,10 @@ class StorageManager {
   }
 
   async withContainer(bot, fn) {
+    // Anda até o baú antes de entrar na fila: a trava só cobre abrir e mexer
+    // nos itens, para um bot longe não segurar os outros enquanto caminha.
+    await this.goNear(bot, this.block(bot).position)
+
     const previous = this._lock
     let release
     this._lock = new Promise((resolve) => { release = resolve })
@@ -119,9 +123,7 @@ class StorageManager {
 
     let container
     try {
-      const block = this.block(bot)
-      await this.goNear(bot, block.position)
-      container = await bot.openContainer(block)
+      container = await bot.openContainer(this.block(bot))
       return await fn(container)
     } finally {
       try { container?.close() } catch {}
