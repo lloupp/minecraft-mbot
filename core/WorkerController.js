@@ -73,7 +73,7 @@ class WorkerController {
   cancel() {
     this.taskVersion++
     this.currentTask = null
-    if (this.bot.targetDigBlock) this.bot.stopDigging().catch?.(() => {})
+    if (this.bot.targetDigBlock) this.bot.stopDigging()?.catch?.(() => {})
     this.bot.pathfinder?.setGoal(null)
     if (this.state !== 'desconectado') this.state = this.bot.entity ? 'ocioso' : 'conectando'
   }
