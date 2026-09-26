@@ -24,6 +24,7 @@ const gather = require('./lib/gather')
 const combat = require('./lib/combat')
 const equipment = require('./lib/equipment')
 const night = require('./lib/night')
+const husbandry = require('./lib/husbandry')
 const { Autonomy } = require('./lib/autonomy')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
@@ -1148,6 +1149,83 @@ async function main() {
     }
   })
 
+  commandRouter.register('animais', async (_context, args) => {
+    const radius = Math.max(4, Math.min(64, Number.parseInt(args[0], 10) || 24))
+    const nearby = husbandry.counts(bot, radius)
+    const entries = Object.entries(nearby).sort((a, b) => b[1] - a[1])
+    if (!entries.length) {
+      bot.chat(`Não vejo animais suportados num raio de ${radius} blocos.`)
+      return
+    }
+    bot.chat(`Animais (${radius} blocos): ${entries.map(([name, count]) => `${name}x${count}`).join(', ')}`)
+  })
+
+  commandRouter.register(['reproduzir', 'criaranimais'], async (_context, args) => {
+    const species = husbandry.normalizeSpecies(args[0])
+    const pairs = Math.max(1, Math.min(16, Number.parseInt(args[1], 10) || 1))
+    if (!species) {
+      bot.chat('Uso: !reproduzir <vaca|ovelha|porco|galinha|coelho|cabra|mooshroom|lhama> [pares]')
+      return
+    }
+
+    const farmers = botManager.byRole('fazendeiro')
+    if (farmers.length) {
+      try {
+        const result = await colony.breedAnimals(species, pairs)
+        bot.chat(`${result.name} vai tentar reproduzir ${pairs} par(es) de ${species}.`)
+      } catch (err) {
+        bot.chat(`Não consegui delegar a reprodução: ${err.message}`)
+      }
+      return
+    }
+
+    autonomous = false
+    clearPatrolState()
+    persistSoon()
+    bot.chat(`Vou tentar reproduzir ${pairs} par(es) de ${species}.`)
+    runTask(`reproduzir ${species}`, async (isCancelled) => {
+      const result = await husbandry.breed(bot, species, pairs, isCancelled, { storage })
+      if (isCancelled()) return
+      if (result.ok) {
+        bot.chat(`Alimentei ${result.fed} ${species}; tentei ${result.pairsAttempted} par(es).`)
+      } else if (result.reason === 'sem_alimento') {
+        bot.chat(`Não tenho alimento adequado. Aceito: ${result.feed.join(', ')}.`)
+      } else {
+        bot.chat(`Não há animais suficientes: encontrei ${result.nearby} ${species}.`)
+      }
+    })
+  })
+
+  commandRouter.register(['tosquiar', 'tosquia'], async (_context, args) => {
+    const count = Math.max(1, Math.min(32, Number.parseInt(args[0], 10) || 1))
+    const farmers = botManager.byRole('fazendeiro')
+
+    if (farmers.length) {
+      try {
+        const result = await colony.shearSheep(count)
+        bot.chat(`${result.name} vai tentar tosquiar até ${result.count} ovelha(s).`)
+      } catch (err) {
+        bot.chat(`Não consegui delegar a tosquia: ${err.message}`)
+      }
+      return
+    }
+
+    autonomous = false
+    clearPatrolState()
+    persistSoon()
+    runTask('tosquiar ovelhas', async (isCancelled) => {
+      const result = await husbandry.shearSheep(bot, count, isCancelled, {
+        storage,
+        production
+      })
+      if (isCancelled()) return
+      if (result.ok) bot.chat(`Tentei tosquiar ${result.sheared} ovelha(s); recolhi os drops disponíveis.`)
+      else bot.chat(result.reason === 'sem_tesoura'
+        ? 'Não consegui uma tesoura.'
+        : 'Não encontrei ovelhas disponíveis por perto.')
+    })
+  })
+
   commandRouter.register('smoke', async () => {
     bot.chat('Executando smoke test da colônia...')
     const result = await smokeTest.run()
@@ -1495,7 +1573,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !reproduzir, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
         break
     }

@@ -131,6 +131,9 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!patrulha off` | Encerra a patrulha |
 | `!enviar <bot> <local>` | Manda um worker específico até um local |
 | `!explorar <local> [raio]` | Manda um explorador reconhecer a região de um local |
+| `!animais [raio]` | Conta animais suportados próximos |
+| `!reproduzir <animal> [pares]` | Alimenta pares para tentar reprodução |
+| `!tosquiar [qtd]` | Tenta tosquiar ovelhas próximas |
 
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
@@ -624,3 +627,53 @@ O orquestrador escolhe um worker com papel `explorador` e faz a exploração em 
 ### Dimensões
 
 Cada local registra a dimensão em que foi salvo quando essa informação está disponível. O bot recusa navegação direta para um waypoint de outra dimensão; atravessar portais será tratado por uma camada específica de Nether/End em uma evolução posterior.
+
+
+## Criação de animais
+
+O EduardoBot e os fazendeiros agora conseguem trabalhar com criação animal de forma explícita.
+
+Comandos:
+
+```text
+!animais
+!animais 32
+
+!reproduzir vaca 2
+!reproduzir ovelha 2
+!reproduzir porco 1
+!reproduzir galinha 3
+
+!tosquiar 5
+```
+
+Espécies suportadas:
+
+```text
+vaca / cow
+ovelha / sheep
+porco / pig
+galinha / chicken
+coelho / rabbit
+cabra / goat
+mooshroom
+lhama / llama
+```
+
+O alimento usado depende da espécie:
+
+```text
+vaca, ovelha, cabra, mooshroom -> wheat
+porco -> carrot / potato / beetroot
+galinha -> sementes
+coelho -> carrot / golden_carrot / dandelion
+lhama -> hay_block
+```
+
+Se houver um worker `fazendeiro`, o orquestrador delega a tarefa a ele. Sem fazendeiro, o próprio EduardoBot executa.
+
+O sistema reporta quantos animais foram **alimentados** e quantos pares foram tentados. Isso é intencional: o servidor ainda decide se a reprodução acontece de fato, pois animais jovens ou em cooldown podem aceitar/interagir de forma diferente.
+
+Para tosquia, o bot procura `shears` no inventário, depois no estoque central e, se necessário, tenta fabricar uma tesoura usando a cadeia de produção. A lã coletada é enviada de volta ao estoque quando possível.
+
+A reprodução ainda não roda automaticamente no projeto de fazenda. Ela permanece sob comando explícito até existir uma camada de curral/cercado que impeça dispersão dos animais e consumo descontrolado de alimento.

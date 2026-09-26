@@ -3,6 +3,7 @@ const { Vec3 } = require('vec3')
 const food = require('../lib/food')
 const gather = require('../lib/gather')
 const combat = require('../lib/combat')
+const husbandry = require('../lib/husbandry')
 const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -196,6 +197,12 @@ class WorkerController {
         case 'fazenda':
           result = await this.farm(task.count || 1, isCancelled)
           break
+        case 'reproduzir_animais':
+          result = await this.breedAnimals(task.species, task.pairs || 1, isCancelled)
+          break
+        case 'tosquiar':
+          result = await this.shearSheep(task.count || 1, isCancelled)
+          break
         case 'explorar':
           result = await this.explore(task.radius || 64, isCancelled, task.center || null)
           break
@@ -295,6 +302,19 @@ class WorkerController {
       ? await this.storage.depositCargo(this.bot).catch(() => ({}))
       : {}
     return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count, deposited }
+  }
+
+  async breedAnimals(species, pairs, isCancelled) {
+    return husbandry.breed(this.bot, species, pairs, isCancelled, {
+      storage: this.storage
+    })
+  }
+
+  async shearSheep(count, isCancelled) {
+    return husbandry.shearSheep(this.bot, count, isCancelled, {
+      storage: this.storage,
+      production: this.production
+    })
   }
 
   async explore(radius, isCancelled, center = null) {
