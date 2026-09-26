@@ -149,6 +149,26 @@ class ColonyOrchestrator {
     return this.runRoleTask('minerador', { type: 'construir_mina', length }, 'mina')
   }
 
+  async exploreAt(position, radius = 64) {
+    const normalizedRadius = Math.max(16, Math.min(256, Number.parseInt(radius, 10) || 64))
+    const name = this.runRoleTask(
+      'explorador',
+      { type: 'explorar', center: { ...position }, radius: normalizedRadius },
+      'exploração dirigida'
+    )
+    return { name, radius: normalizedRadius }
+  }
+
+  async sendTo(workerName, position) {
+    const worker = this.botManager.get(workerName)
+    if (!worker?.bot?.colonyController) throw new Error(`bot não encontrado: ${workerName}`)
+    const task = { type: 'ir_local', position: { ...position } }
+    worker.bot.colonyController.run(task)
+      .then((result) => this.logger.log(`[navegação] ${workerName} chegou ao local:`, result))
+      .catch((err) => this.logger.log(`[navegação] ${workerName} falhou: ${err.message}`))
+    return task
+  }
+
   async craft(item, count = 1) {
     const artisans = this.controllers('artesao')
     if (!artisans.length) throw new Error('não há artesão na colônia')
