@@ -124,3 +124,32 @@ test('clear removes all events', () => {
   assert.equal(log.size, 0)
   assert.equal(log.getEvents().length, 0)
 })
+
+test('falha ao gravar no disco não interrompe o chamador', () => {
+  const dir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'event-log-failure-'))
+  const blocker = path.join(dir, 'not-a-directory')
+  fs.writeFileSync(blocker, 'x')
+  const log = new EventLog(path.join(blocker, 'events.jsonl'))
+  const event = log.log('runtime_event', { worker: 'from-data' }, 'worker_02')
+  assert.equal(event.type, 'runtime_event')
+  assert.equal(event.worker, 'worker_02')
+  assert.equal(log.getRecent(1)[0].type, 'runtime_event')
+  assert.ok(log.lastError)
+  fs.rmSync(dir, { recursive: true, force: true })
+})
+
+test('limita payload e remove campos sensíveis', () => {
+  try { fs.unlinkSync(testLogPath) } catch {}
+  const log = new EventLog(testLogPath)
+  const redacted = log.log('safe_event', {
+    password: 'do-not-store',
+    nested: { api_key: 'also-secret' }
+  })
+  assert.equal(redacted.password, '[redacted]')
+  assert.equal(redacted.nested.api_key, '[redacted]')
+  assert.equal(JSON.stringify(redacted).includes('do-not-store'), false)
+  assert.equal(JSON.stringify(redacted).includes('also-secret'), false)
+
+  const oversized = log.log('large_event', { payload: 'x'.repeat(20 * 1024) })
+  assert.equal(oversized.truncated, true)
+})
