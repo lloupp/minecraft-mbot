@@ -170,6 +170,9 @@ async function main() {
   let colonyHomeDimension = savedState.homeDimension || null
   if (savedState.storage) storage.setPosition(savedState.storage)
   const waypointManager = new WaypointManager(savedState.waypoints)
+  if (savedState.home && !waypointManager.get('base')) {
+    waypointManager.save('base', savedState.home, savedState.homeDimension)
+  }
   const projectManager = new ProjectManager({
     storage,
     homeProvider: () => colonyHome
@@ -320,15 +323,17 @@ async function main() {
     return String(value)
   }
 
-  // Lugar da memória no formato de waypoint ({ name, position, dimension }).
+  // A memória referencia um waypoint, mas suas coordenadas vivem somente no WaypointManager.
   function memoryPlace(name) {
-    const item = memory.lugar(name)
-    return item ? { name: item.nome, position: { ...item.posicao }, dimension: item.dimensao, origem: item.origem } : null
+    const metadata = memory.lugar(name)
+    const entry = waypointManager.get(metadata?.waypoint || name)
+    return entry ? { ...entry, origem: metadata?.origem, contexto: metadata?.contexto } : null
   }
 
   function waypointOrBase(name) {
     if (String(name || '').toLowerCase() === 'base') {
-      if (colonyHome) return { name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension }
+      const base = waypointManager.get('base')
+      if (base) return base
       // Sem base da colônia, a "casa" lembrada serve de destino padrão.
       return memoryPlace('base') || memoryPlace('casa')
     }
@@ -342,9 +347,11 @@ async function main() {
       const key = normalizeWaypointName(entry?.name)
       if (key && !byKey.has(key)) byKey.set(key, entry)
     }
-    for (const item of memory.lugares()) add(memoryPlace(item.chave))
-    if (colonyHome) add({ name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension })
-    for (const entry of waypointManager.list()) add(entry)
+    for (const entry of waypointManager.list()) {
+      const metadata = memory.lugar(entry.name)
+      add({ ...entry, origem: metadata?.origem, contexto: metadata?.contexto })
+    }
+    if (colonyHome && !waypointManager.get('base')) add({ name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension })
     return [...byKey.values()]
   }
 
@@ -740,7 +747,21 @@ async function main() {
   // ========== EVENTOS ==========
   let restoredWorkers = false
   bot.once('spawn', () => startWebViews(bot))
-  bot.once('spawn', () => attachMemoryCapture(bot, memory, { log: (msg) => console.log(msg) }))
+  let memoryCapture = null
+  bot.once('spawn', () => {
+    memoryCapture = attachMemoryCapture(bot, memory, {
+      log: (msg) => console.log(msg),
+      rememberWaypoint: (name, position, dimension, context, provenance) => {
+        try {
+          waypointManager.save(name, position, dimension)
+          memory.lembrarLugar(name, provenance, context)
+          persistSoon()
+        } catch (err) {
+          console.log(`[memória] não consegui registrar waypoint automático: ${err.message}`)
+        }
+      }
+    })
+  })
   bot.on('spawn', async () => {
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
@@ -891,6 +912,7 @@ async function main() {
     colony.stop()
     try { await persistState() } catch {}
     try { await memory.save() } catch {}
+    memoryCapture?.stop()
     botManager.stopAll()
     statusServer.stop()
     stopLan()
@@ -1275,7 +1297,8 @@ async function main() {
     if (action === 'limpar' || action === 'remover') {
       colonyHome = null
       colonyHomeDimension = null
-      memory.esquecer('base')
+      waypointManager.remove('base')
+      memory.esquecerLugar('base')
       colony.setAuto(false)
       if (projectManager.isActive()) projectManager.cancel()
       persistSoon()
@@ -1297,8 +1320,9 @@ async function main() {
 
     colonyHome = source.clone()
     colonyHomeDimension = currentDimension()
+    waypointManager.save('base', colonyHome, colonyHomeDimension)
     persistSoon()
-    memory.lembrarLugar('base', colonyHome, colonyHomeDimension, dito(context.username))
+    memory.lembrarLugar('base', dito(context.username), 'base definida pelo jogador')
     bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
   })
 
@@ -1333,6 +1357,7 @@ async function main() {
       }
       try {
         const entry = waypointManager.save(name, source, currentDimension())
+        memory.lembrarLugar(entry.name, dito(context.username), 'local salvo pelo jogador')
         persistSoon()
         bot.chat(`Local ${entry.name} salvo em X=${Math.floor(entry.position.x)}, Y=${Math.floor(entry.position.y)}, Z=${Math.floor(entry.position.z)}.`)
       } catch (err) {
@@ -1348,7 +1373,10 @@ async function main() {
         return
       }
       const removed = waypointManager.remove(name)
-      if (removed) persistSoon()
+      if (removed) {
+        memory.esquecerLugar(name)
+        persistSoon()
+      }
       bot.chat(removed ? `Local ${name} removido.` : `Não encontrei o local ${name}.`)
       return
     }
@@ -1943,17 +1971,19 @@ async function main() {
       return
     }
 
-    // Lugar: "!lembrar casa aqui" (posição de quem falou).
-    if (args.length >= 2 && args.at(-1).toLowerCase() === 'aqui') {
-      const name = args.slice(0, -1).join(' ')
+    // Lugar: "!lembrar casa" (ou a forma antiga "!lembrar casa aqui").
+    if (args.length >= 1 && (args.length === 1 || args.at(-1).toLowerCase() === 'aqui')) {
+      const name = args.at(-1).toLowerCase() === 'aqui' ? args.slice(0, -1).join(' ') : args.join(' ')
       const source = bot.players[context.username]?.entity?.position || bot.entity?.position
       if (!source) {
         bot.chat('Não consigo determinar sua posição agora.')
         return
       }
       try {
-        const item = memory.lembrarLugar(name, source, currentDimension(), dito(context.username))
-        bot.chat(`Vou lembrar: ${item.nome} ${fmtPos(item.posicao)}.`)
+        const entry = waypointManager.save(name, source, currentDimension())
+        const item = memory.lembrarLugar(entry.name, dito(context.username), 'local lembrado pelo jogador')
+        persistSoon()
+        bot.chat(`Vou lembrar: ${entry.name} ${fmtPos(entry.position)} ${fmtOrigem(item.origem)}.`)
       } catch (err) {
         bot.chat(`Não consegui lembrar: ${err.message}`)
       }

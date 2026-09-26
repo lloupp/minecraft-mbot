@@ -9,6 +9,8 @@ const { Memory, dito, visto, inferido, parseValor, tipoDe, formatar } = require(
 const { resolveReference, blockVariants, searchTerms } = require('../core/References')
 const { Clarifier } = require('../core/Clarifier')
 const { attachMemoryCapture } = require('../lib/memoryCapture')
+const { WaypointManager } = require('../core/WaypointManager')
+const { StateStore } = require('../core/StateStore')
 
 function tmpFile() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'minecraft-mbot-memoria-'))
@@ -19,23 +21,28 @@ function newMemory(extra = {}) {
   return new Memory({ filePath: tmpFile(), autoSave: false, ...extra })
 }
 
-test('Memory adiciona e lista itens com origem', () => {
+test('Memory referencia o waypoint sem duplicar coordenadas', () => {
   const memory = newMemory()
-  memory.lembrarLugar('Casa', { x: -300.4, y: 64, z: -520.7 }, 'overworld', dito('eduardo'))
+  const waypoints = new WaypointManager()
+  const savedCasa = waypoints.save('Casa', { x: -300.4, y: 64, z: -520.7 }, 'overworld')
+  memory.lembrarLugar(savedCasa.name, dito('eduardo'), 'casa definida pelo Eduardo')
   memory.definirPreferencia('tochas.quantidade', 64, dito('eduardo'))
   memory.prometer('fazer 64 tochas', { para: 'eduardo' }, inferido())
   memory.registrarFato('vi diamond_ore em 1,12,2', { assunto: 'minerio:diamond_ore', posicao: { x: 1, y: 12, z: 2 } }, visto())
 
   const [casa] = memory.listar('lugar')
-  assert.equal(casa.nome, 'Casa')
+  assert.equal(casa.nome, 'casa')
   assert.equal(casa.chave, 'casa')
-  assert.deepEqual(casa.posicao, { x: -301, y: 64, z: -521 })
-  assert.equal(casa.dimensao, 'overworld')
+  assert.equal(casa.waypoint, 'casa')
+  assert.equal(Object.hasOwn(casa, 'posicao'), false)
+  assert.equal(Object.hasOwn(casa, 'dimensao'), false)
+  assert.deepEqual(waypoints.get('casa').position, { x: -300.4, y: 64, z: -520.7 })
+  assert.equal(waypoints.get('casa').dimension, 'overworld')
   assert.equal(casa.origem.tipo, 'dito')
   assert.equal(casa.origem.quem, 'eduardo')
   assert.equal(casa.origem.confianca, 1)
   assert.ok(casa.origem.em)
-  assert.equal(memory.formatar(casa), 'Casa (-301,64,-521) [dito por eduardo]')
+  assert.equal(memory.formatar(casa), 'casa [dito por eduardo]')
 
   assert.equal(memory.preferencia('tochas.quantidade'), 64)
   assert.equal(memory.preferencia('nao.existe', 7), 7)
@@ -44,16 +51,28 @@ test('Memory adiciona e lista itens com origem', () => {
   assert.equal(memory.listar().length, 4)
 })
 
+test('esquecer local remove waypoint canônico e metadados', () => {
+  const memory = newMemory()
+  const waypoints = new WaypointManager()
+  const entry = waypoints.save('casa', { x: 1, y: 64, z: 2 }, 'overworld')
+  memory.lembrarLugar(entry.name, dito('eduardo'))
+  assert.equal(memory.esquecer('casa'), 1)
+  assert.equal(waypoints.remove('casa'), true)
+  assert.equal(memory.lugar('casa'), null)
+  assert.equal(waypoints.get('casa'), null)
+})
+
 test('Memory atualiza sem duplicar e não deixa o visto sobrescrever o dito', () => {
   const memory = newMemory()
-  memory.lembrarLugar('baú', { x: 1, y: 64, z: 1 }, null, dito('eduardo'))
-  memory.lembrarLugar('baú', { x: 9, y: 64, z: 9 }, null, visto())
+  memory.lembrarLugar('baú', dito('eduardo'))
+  memory.lembrarLugar('bau', visto())
   assert.equal(memory.lugares().length, 1)
-  assert.equal(memory.lugar('bau').posicao.x, 1)
+  assert.equal(memory.lugar('bau').origem.tipo, 'dito')
+  assert.equal(Object.hasOwn(memory.lugar('bau'), 'posicao'), false)
 
-  memory.lembrarLugar('cama', { x: 1, y: 64, z: 1 }, null, visto())
-  memory.lembrarLugar('cama', { x: 5, y: 64, z: 5 }, null, visto())
-  assert.equal(memory.lugar('cama').posicao.x, 5)
+  memory.lembrarLugar('cama', visto())
+  memory.lembrarLugar('cama', visto(), 'cama atualizada')
+  assert.equal(memory.lugar('cama').contexto, 'cama atualizada')
 
   memory.definirPreferencia('seguir.distancia', 3, dito('eduardo'))
   memory.definirPreferencia('Seguir.Distancia', 4, dito('eduardo'))
@@ -64,7 +83,7 @@ test('Memory atualiza sem duplicar e não deixa o visto sobrescrever o dito', ()
 
 test('Memory esquece por nome e encerra compromissos', () => {
   const memory = newMemory()
-  memory.lembrarLugar('casa velha', { x: 1, y: 2, z: 3 }, null, dito('eduardo'))
+  memory.lembrarLugar('casa velha', dito('eduardo'))
   memory.definirPreferencia('comida.preferida', 'cooked_beef', dito('eduardo'))
   assert.equal(memory.esquecer('Casa Velha'), 1)
   assert.equal(memory.esquecer('comida.preferida'), 1)
@@ -79,7 +98,7 @@ test('Memory esquece por nome e encerra compromissos', () => {
 test('Memory respeita limite descartando os fatos mais antigos', () => {
   let clock = Date.parse('2026-01-01T00:00:00Z')
   const memory = newMemory({ maxItems: 10, now: () => clock })
-  memory.lembrarLugar('casa', { x: 0, y: 64, z: 0 }, null, dito('eduardo'))
+  memory.lembrarLugar('casa', dito('eduardo'))
   memory.definirPreferencia('tochas.quantidade', 32, dito('eduardo'))
   for (let i = 0; i < 20; i++) {
     clock += 1000
@@ -109,13 +128,17 @@ test('Memory faz fatos expirarem', () => {
 test('Memory salva e carrega do disco', async () => {
   const file = tmpFile()
   const memory = new Memory({ filePath: file, autoSave: false })
-  memory.lembrarLugar('mina', { x: 8, y: 20, z: -5 }, 'overworld', dito('eduardo'))
+  const waypoints = new WaypointManager()
+  waypoints.save('mina', { x: 8, y: 20, z: -5 }, 'overworld')
+  memory.lembrarLugar('mina', dito('eduardo'))
   memory.definirPreferencia('comida.preferida', 'cooked_beef', dito('eduardo'))
   memory.registrarFato('morri em 1,2,3 por creeper', { assunto: 'morte', posicao: { x: 1, y: 2, z: 3 } }, visto())
   await memory.save()
 
   const loaded = await new Memory({ filePath: file, autoSave: false }).load()
   assert.equal(loaded.lugar('mina').origem.quem, 'eduardo')
+  assert.equal(Object.hasOwn(loaded.lugar('mina'), 'posicao'), false)
+  assert.equal(new WaypointManager(waypoints.exportState()).get('mina').position.y, 20)
   assert.equal(loaded.preferencia('comida.preferida'), 'cooked_beef')
   assert.equal(loaded.buscarFatos('morte')[0].posicao.z, 3)
   const next = loaded.registrarFato('outro', {}, visto())
@@ -125,6 +148,26 @@ test('Memory salva e carrega do disco', async () => {
   const broken = await new Memory({ filePath: file, autoSave: false }).load()
   assert.ok(broken.lastLoadError)
   assert.equal(broken.items.length, 0)
+})
+
+test('reinício restaura coordenadas pelo StateStore e metadados sem coordenadas', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'minecraft-mbot-restart-'))
+  const memoryPath = path.join(dir, 'memory.json')
+  const statePath = path.join(dir, 'state.json')
+  const waypoints = new WaypointManager()
+  const entry = waypoints.save('casa', { x: -20, y: 70, z: 4 }, 'overworld')
+  const memory = new Memory({ filePath: memoryPath, autoSave: false })
+  memory.lembrarLugar(entry.name, dito('eduardo'), 'local principal')
+  await memory.save()
+  await new StateStore(statePath).save({ waypoints: waypoints.exportState() })
+
+  const restartedState = await new StateStore(statePath).load()
+  const restartedWaypoints = new WaypointManager(restartedState.waypoints)
+  const restartedMemory = await new Memory({ filePath: memoryPath, autoSave: false }).load()
+  assert.deepEqual(restartedWaypoints.get('casa').position, { x: -20, y: 70, z: 4 })
+  assert.equal(restartedMemory.lugar('casa').origem.quem, 'eduardo')
+  assert.equal(Object.hasOwn(restartedMemory.lugar('casa'), 'posicao'), false)
+  assert.equal(Object.hasOwn(restartedMemory.lugar('casa'), 'dimensao'), false)
 })
 
 test('parseValor e tipoDe interpretam o chat', () => {
@@ -272,7 +315,14 @@ function put(bot, name, x, y, z) {
 test('captura: morte com causa, minérios, cama e estações', async () => {
   const bot = fakeBot()
   const memory = newMemory()
-  const capture = attachMemoryCapture(bot, memory, { scanMs: 0 })
+  const waypoints = new WaypointManager()
+  const capture = attachMemoryCapture(bot, memory, {
+    scanMs: 0,
+    rememberWaypoint: (name, position, dimension, context, provenance) => {
+      waypoints.save(name, position, dimension)
+      memory.lembrarLugar(name, provenance, context)
+    }
+  })
 
   bot.emit('entityHurt', bot.entity, { name: 'creeper' })
   bot.emit('death')
@@ -294,13 +344,15 @@ test('captura: morte com causa, minérios, cama e estações', async () => {
   assert.equal(memory.buscarFatos('diamond').length, 0, 'minério minerado some da memória')
 
   bot.emit('sleep')
-  assert.deepEqual(memory.lugar('cama').posicao, { x: 11, y: 64, z: -4 })
-  assert.equal(memory.lugar('cama').origem.tipo, 'visto')
+  assert.deepEqual(waypoints.get('auto-cama').position, { x: 11, y: 64, z: -4 })
+  assert.equal(memory.lugar('auto-cama').origem.tipo, 'visto')
+  assert.equal(Object.hasOwn(memory.lugar('auto-cama'), 'posicao'), false)
 
   await bot.activateBlock({ name: 'chest', position: { x: 3, y: 64, z: 3 } })
   await bot.activateBlock({ name: 'stone', position: { x: 3, y: 64, z: 3 } })
   assert.deepEqual(bot.activated, ['chest', 'stone'], 'a chamada original continua acontecendo')
-  assert.equal(memory.lugar('baú').posicao.x, 3)
-  assert.equal(memory.lugar('baú').dimensao, 'overworld')
+  assert.equal(waypoints.get('auto-estacao-bau').position.x, 3)
+  assert.equal(memory.lugar('auto-estacao-bau').dimensao, undefined)
+  assert.equal(memory.lugar('auto-estacao-bau').contexto, 'baú utilizado')
   capture.stop()
 })

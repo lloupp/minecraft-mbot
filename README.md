@@ -130,12 +130,12 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
-| `!local salvar <nome>` | Salva sua posição atual como local persistente |
+| `!local salvar <nome>` | Salva sua posição atual como waypoint persistente e registra proveniência |
 | `!local listar` | Lista os locais salvos |
 | `!local remover <nome>` | Remove um local salvo |
 | `!ir <local>` | Manda o EduardoBot até um local (memória, base ou local salvo) e ficar lá; pergunta se o nome for ambíguo |
 | `!voltar [local]` | Volta para `base` por padrão (ou para a `casa` lembrada, se não houver base) |
-| `!lembrar <nome> aqui` | Lembra a sua posição atual como lugar, ex.: `!lembrar casa aqui` |
+| `!lembrar <nome>` | Salva a posição atual como waypoint canônico e registra a proveniência; `... aqui` também é aceito |
 | `!lembrar <chave> = <valor>` | Guarda uma preferência, ex.: `!lembrar tochas.quantidade = 64` |
 | `!lembrar <anotação>` | Guarda uma anotação livre, ex.: `!lembrar a vila fica ao norte` |
 | `!esquecer <nome>` | Esquece um lugar, preferência ou local salvo |
@@ -167,9 +167,9 @@ com HP baixo, foge de mobs hostis próximos antes de apanhar.
 O bot mantém uma memória tipada em `.data/memory.json` (fora do git; mude com
 `MEMORY_FILE`). Cada item guarda a **origem** — `visto` (percepção do bot),
 `dito` (e por quem) ou `inferido` — com data e confiança, e `!memoria` mostra
-isso, ex.: `casa (-300,64,-520) [dito por eduardo]`.
+isso, ex.: `casa [dito por eduardo]`. Coordenadas e dimensão de lugares são lidas exclusivamente do `WaypointManager`.
 
-- **lugar**: nome, posição e dimensão (`!lembrar casa aqui`, `!base aqui`, cama, baú, mesa, fornalha);
+- **lugar**: referência e proveniência. Nome, posição, dimensão e persistência pertencem ao `WaypointManager`; capturas automáticas limitadas criam waypoints `auto-*`.
 - **preferencia**: chave → valor. Usadas hoje: `tochas.quantidade` (`!fabricar tocha` sem número),
   `seguir.distancia` (1–16), `comida.preferida` (come essa primeiro), e as escolhas
   salvas `ref.lugar.<nome>` / `minerar.<palavra>`;
@@ -179,8 +179,9 @@ isso, ex.: `casa (-300,64,-520) [dito por eduardo]`.
 
 Captura automática, sem falar no chat: onde e por quem morreu; minérios valiosos
 num raio de 16 blocos (diamante, esmeralda, ouro, ferro, ancient debris; varredura a cada
-10 s, sem repetir o mesmo veio e esquecendo o que foi minerado); a cama onde dormiu;
-o último baú/barril/mesa/fornalha usado. O limite é de 500 itens (os fatos mais antigos saem primeiro).
+10 s, sem repetir o mesmo veio e esquecendo o que foi minerado); cama e estações utilizadas.
+Esses locais usam waypoints `auto-*` limitados por tipo e cooldown; Memory guarda apenas metadados.
+O limite é de 500 itens (os fatos mais antigos saem primeiro).
 
 Quando a ordem é ambígua, o bot pergunta com opções numeradas e espera 60 s:
 
