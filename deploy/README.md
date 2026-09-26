@@ -4,6 +4,9 @@ Servidor vanilla 26.3 em `~/minecraft-server` e o bot como serviços do systemd
 de usuário: o mundo fica sempre ligado na porta fixa 25565, o bot reconecta
 sozinho se cair, e outros PCs da rede (ex.: Windows) entram pelo IP deste PC.
 
+Para um servidor de **teste** vanilla 1.20.1 separado (porta 25566), veja
+[teste-1201/README.md](teste-1201/README.md).
+
 ## 1. Servidor
 
 ```bash
