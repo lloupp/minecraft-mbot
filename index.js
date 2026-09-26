@@ -986,8 +986,9 @@ async function main() {
     switch (cmd) {
       case '!parar':
         console.log(`Comando !parar recebido de ${username}. Encerrando bot e colônia...`)
-        botManager.stopAll()
         quitRequested = true
+        await persistState().catch(() => {})
+        botManager.stopAll()
         bot.quit()
         break
       case '!seguir':
@@ -1085,7 +1086,7 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir casa, !todos voltar, !tarefas')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
         break
     }
   })
