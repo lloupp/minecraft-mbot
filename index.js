@@ -23,6 +23,9 @@ const { BotManager } = require('./core/BotManager')
 const craft = require('./lib/craft')
 const gather = require('./lib/gather')
 const combat = require('./lib/combat')
+const equipment = require('./lib/equipment')
+const night = require('./lib/night')
+const { Autonomy } = require('./lib/autonomy')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
@@ -40,6 +43,9 @@ const FLEE_DISTANCE = 16    // distância que tenta manter do agressor
 const FLEE_MS = 4000        // tempo fugindo depois de tomar dano
 const DEFEND_RANGE = 5      // hostil mais perto que isso: o bot reage (luta ou foge)
 const CREEPER_RANGE = 6     // creeper mais perto que isso: foge antes que exploda
+const OWNER_NEAR = 32       // dono mais perto que isso: à noite o bot fica com ele
+const GEAR_CHECK_MS = 15000 // intervalo para revisar armadura e ferramentas
+const NIGHT_RETRY_MS = 60000
 const HUNGRY = 14           // abaixo disso come (ou vai buscar comida)
 const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram certo
 
@@ -187,6 +193,12 @@ async function main() {
   let followMoves, workMoves
   let resolvedOwner = OWNER
   let fightTarget = null     // mob com quem está lutando
+  let autonomous = false     // !autonomo: escolhe as próprias metas
+  let sheltered = false      // dentro do abrigo à noite (não sai para lutar)
+  let lastNightTry = 0
+  let lastGearCheck = 0
+  let checkingGear = false
+  const autonomy = new Autonomy(bot)
   let fightResume = 'seguir' // modo para voltar depois da luta
 
   function ownerName() {
@@ -255,8 +267,68 @@ async function main() {
     if (isCancelled()) return
     taskName = null
     mode = resume
-    if (resume === 'seguir') follow()
+    if (resume === 'seguir' && !autonomous) follow()
     else bot.pathfinder.setGoal(null)
+  }
+
+  // Próxima meta do modo autônomo.
+  function autonomyStep() {
+    const goal = autonomy.next()
+    if (!goal) return false
+    console.log(`[autônomo] meta: ${goal.name}`)
+    runTask(goal.name, async (isCancelled) => {
+      try {
+        const result = await goal.run(bot, isCancelled)
+        if (result && !isCancelled()) console.log(`[autônomo] ${goal.name}: ${result}`)
+      } catch (err) {
+        if (isCancelled()) return
+        autonomy.failed(goal)
+        throw err
+      }
+    })
+    return true
+  }
+
+  function ownerNearby() {
+    const owner = ownerEntity()
+    return Boolean(owner) && owner.position.distanceTo(bot.entity.position) <= OWNER_NEAR
+  }
+
+  // Noite sem o dono por perto (ou no modo autônomo): dormir ou se abrigar.
+  function spendNight() {
+    lastNightTry = Date.now()
+    runTask('passar a noite', async (isCancelled) => {
+      const how = await night.spendNight(bot, isCancelled, {
+        onShelter: (inside) => { sheltered = inside },
+        say: (text) => bot.chat(text)
+      })
+      if (how && !isCancelled()) bot.chat(how === 'dormi' ? 'Bom dia! Dormi bem.' : 'Amanheceu, saindo do abrigo.')
+    })
+  }
+
+  // Veste a melhor armadura e fabrica ferramentas melhores quando já tem material.
+  async function checkGear() {
+    lastGearCheck = Date.now()
+    if (checkingGear) return
+    checkingGear = true
+    try {
+      const worn = await equipment.equipBestArmor(bot)
+      if (worn.length) console.log(`Vesti ${worn.join(', ')}`)
+      const upgrades = equipment.pendingUpgrades(bot)
+      if (upgrades.length && mode === 'seguir') {
+        bot.chat(`Tenho material: vou fazer ${upgrades.join(' e ')}.`)
+        runTask('melhorar equipamento', async (isCancelled) => {
+          for (const item of upgrades) {
+            if (isCancelled()) return
+            await craft.craftItem(bot, item, craft.countItem(bot, bot.registry.itemsByName[item].id) + 1, isCancelled)
+          }
+        })
+      }
+    } catch (err) {
+      console.log(`Equipamento: ${err.message}`)
+    } finally {
+      checkingGear = false
+    }
   }
 
   const isLiving = (entity) => entity && entity !== bot.entity && entity.isValid !== false
@@ -373,6 +445,7 @@ async function main() {
   bot.on('death', () => {
     console.log('O bot morreu.')
     cancelTask()
+    sheltered = false
     lastHealth = null
     fleeingUntil = 0
   })
@@ -385,8 +458,8 @@ async function main() {
       fleeingUntil = 0
       if (mode === 'ficar') bot.pathfinder.setGoal(null)
     }
-    // Defesa: foge de creepers e reage a hostis que chegam perto.
-    if (taskName !== 'lutar') {
+    // Defesa: foge de creepers e reage a hostis que chegam perto (no abrigo, não).
+    if (taskName !== 'lutar' && !sheltered) {
       const creeper = bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
         e.position.distanceTo(bot.entity.position) <= CREEPER_RANGE)
       if (creeper) {
@@ -416,10 +489,22 @@ async function main() {
       if (!warnedNoFood) bot.chat('Estou com fome e não acho comida por perto. Me leve até animais ou plantações, ou me dê comida.')
       warnedNoFood = true
     }
-    if (mode === 'seguir') {
-      const owner = ownerEntity()
-      if (owner && bot.pathfinder.goal?.entity !== owner) follow()
+    if (mode !== 'seguir' || eating) return
+
+    // Noite: com o dono por perto, fica com ele; sozinho (ou autônomo), se protege.
+    if (night.isNight(bot) && (autonomous || !ownerNearby()) && Date.now() - lastNightTry > NIGHT_RETRY_MS) {
+      spendNight()
+      return
     }
+    if (Date.now() - lastGearCheck > GEAR_CHECK_MS) checkGear()
+    if (mode !== 'seguir') return
+
+    if (autonomous) {
+      if (!autonomyStep()) bot.pathfinder.setGoal(null)
+      return
+    }
+    const owner = ownerEntity()
+    if (owner && bot.pathfinder.goal?.entity !== owner) follow()
   }, 500)
 
   bot.on('kicked', (reason) => {
@@ -894,6 +979,7 @@ async function main() {
         bot.quit()
         break
       case '!seguir':
+        autonomous = false
         cancelTask()
         mode = 'seguir'
         if (ownerEntity()) {
@@ -929,12 +1015,31 @@ async function main() {
         defend(target)
         break
       }
+      case '!autonomo':
+      case '!autônomo':
+        if (args[0] === 'off' || args[0] === 'parar') {
+          autonomous = false
+          cancelTask()
+          mode = 'seguir'
+          bot.chat('Modo autônomo desligado. Voltando a te seguir.')
+          return
+        }
+        autonomous = true
+        cancelTask()
+        mode = 'seguir'
+        bot.chat(`Modo autônomo ligado! ${autonomy.progress()}`)
+        break
+      case '!metas':
+        bot.chat(autonomy.progress())
+        break
       case '!ficar':
+        autonomous = false
         cancelTask()
         mode = 'ficar'
         bot.chat('Ok, fico aqui.')
         break
       case '!cancelar':
+        autonomous = false
         cancelTask()
         mode = 'seguir'
         bot.chat('Tarefa cancelada. Voltando a te seguir.')
@@ -987,7 +1092,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir casa, !todos voltar, !tarefas')
         break
     }

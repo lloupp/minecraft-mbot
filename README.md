@@ -61,6 +61,9 @@ minecraft-mbot/
 │   ├── craft.js      # Fabricar (com mesa) e usar a fornalha
 │   ├── gather.js     # Coletar blocos (pula os inalcançáveis)
 │   ├── combat.js     # Lutar ou fugir, arma e recarga do golpe
+│   ├── equipment.js  # Armadura e ferramentas melhores
+│   ├── night.js      # Dormir ou se abrigar à noite
+│   ├── autonomy.js   # Metas do modo autônomo
 │   └── perception.js # Reconhecer blocos e entidades em volta
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
@@ -98,6 +101,8 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!fabricar <item> [qtd]` | Fabrica o item, coletando madeira/pedra e fazendo a mesa se precisar, ex.: `!fabricar wooden_pickaxe` |
 | `!cozinhar [item] [qtd]` | Sem item: cozinha a comida crua. Com item: usa a fornalha, ex.: `!cozinhar raw_iron` |
 | `!atacar [mob]` | Ataca o monstro mais próximo (ou o mob indicado, ex.: `!atacar zombie`) |
+| `!autonomo [off]` | Joga sozinho seguindo metas: comida → ferramentas de pedra → fornalha → carvão/tochas → ferro → equipamento de ferro |
+| `!metas` | Mostra quantas metas do modo autônomo já foram cumpridas e a próxima |
 | `!comer` | Come a melhor comida do inventário |
 | `!comida` | Sai para buscar comida |
 | `!ver` | Descreve o que vê: bloco sob os pés, recursos e mobs por perto |
@@ -129,6 +134,12 @@ ou com pouca vida); avança sobre esqueletos e strays, porque fugir de flechas
 não adianta; nos demais casos luta com a melhor arma do inventário, respeitando
 o tempo de recarga do golpe, e recua se a vida cair a 6 ou menos. Depois da
 luta, recolhe os drops e volta ao que fazia (seguir ou ficar).
+
+### Equipamento e noite
+A cada 15s o bot veste a melhor armadura do inventário e, se já tiver material,
+fabrica uma espada/picareta melhor. À noite, se você não estiver a até 32 blocos
+(ou no modo autônomo), ele dorme numa cama por perto ou, sem cama, cava um
+buraco de 3 blocos em lugar seguro, tampa e espera amanhecer.
 
 ### Fome
 Com fome (≤ 14), o bot come a melhor comida que tiver (evita carne podre, frango
