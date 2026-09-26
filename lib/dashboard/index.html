@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel do mbot</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/dashboard/style.css">
+  <script src="/dashboard/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>mbot</strong>
+      <span class="muted" id="profile">—</span>
+    </div>
+    <div class="conn" id="conn" data-state="loading">
+      <span class="dot"></span><span id="conn-text">conectando ao painel…</span>
+    </div>
+    <div class="muted small" id="updated">—</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel view3d" aria-label="Visualizador 3D">
+      <div class="panel-head">
+        <h2>Mundo (3D)</h2>
+        <span class="muted small" id="viewer-status">—</span>
+      </div>
+      <div class="view3d-body" id="viewer-slot">
+        <p class="placeholder" id="viewer-placeholder">Aguardando o bot…</p>
+      </div>
+    </section>
+
+    <section class="panel test" aria-label="Teste atual">
+      <div class="panel-head"><h2>Teste atual</h2><span class="badge" id="current-status">—</span></div>
+      <div id="current" class="current"><p class="muted">Nenhum cenário em execução.</p></div>
+      <h3>Cenários</h3>
+      <ul class="scenarios" id="scenarios"></ul>
+      <p class="error small" id="scenario-error" hidden></p>
+    </section>
+
+    <section class="panel bot" aria-label="Bot principal">
+      <div class="panel-head"><h2 id="bot-name">Bot</h2><span class="badge" id="bot-status">—</span></div>
+      <dl class="facts" id="bot-facts"></dl>
+      <div class="bars">
+        <div class="bar"><span>Vida</span><meter id="hp" min="0" max="20" low="7" high="14" optimum="20" value="0"></meter><b id="hp-v">—</b></div>
+        <div class="bar"><span>Fome</span><meter id="food" min="0" max="20" low="7" high="14" optimum="20" value="0"></meter><b id="food-v">—</b></div>
+      </div>
+    </section>
+
+    <section class="panel inventory" aria-label="Inventário">
+      <div class="panel-head">
+        <h2>Inventário <span class="muted small" id="inv-owner"></span></h2>
+        <div class="tabs" role="tablist">
+          <button role="tab" id="tab-list" aria-selected="true">Lista</button>
+          <button role="tab" id="tab-web" aria-selected="false" disabled>Web</button>
+        </div>
+      </div>
+      <ul class="inv" id="inv-list"></ul>
+      <div id="inv-web" class="inv-web" hidden></div>
+    </section>
+
+    <section class="panel workers" aria-label="Workers">
+      <div class="panel-head"><h2>Workers</h2><span class="muted small" id="workers-count">0</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>Papel</th><th>Estado</th><th>Tarefa</th><th>Posição</th><th>Vida</th></tr></thead>
+          <tbody id="workers"></tbody>
+        </table>
+      </div>
+      <h3>Projeto</h3>
+      <div id="project" class="muted">Nenhum projeto ativo.</div>
+    </section>
+
+    <section class="panel history" aria-label="Histórico">
+      <div class="panel-head"><h2>Histórico da sessão</h2></div>
+      <ul class="runs" id="history"></ul>
+      <div class="run-detail" id="run-detail" hidden></div>
+    </section>
+
+    <section class="panel logs" aria-label="Logs">
+      <div class="panel-head">
+        <h2>Logs e eventos</h2>
+        <div class="filters">
+          <select id="log-source" aria-label="Origem">
+            <option value="all">Tudo</option>
+            <option value="console">Console</option>
+            <option value="events">Eventos</option>
+          </select>
+          <select id="log-level" aria-label="Nível">
+            <option value="all">Todos os níveis</option>
+            <option value="error">Só erros</option>
+            <option value="warn">Avisos e erros</option>
+          </select>
+          <input id="log-text" type="search" placeholder="Filtrar texto…" aria-label="Filtrar texto">
+        </div>
+      </div>
+      <ol class="loglines" id="logs"></ol>
+    </section>
+  </main>
+</body>
+</html>

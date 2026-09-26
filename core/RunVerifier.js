@@ -13,17 +13,198 @@
 const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
-const { getEventLog } = require('../lib/event-log')
+const { getEventLog, redact } = require('../lib/event-log')
+const { SCENARIOS } = require('./scenarios')
 
 const PROOF_FILE = process.env.COLONY_PROOF_FILE || '.data/colony-proof.json'
 
+// Estados de um cenário. PASS só com evidência completa e validada.
+const SCENARIO_STATUS = Object.freeze({
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  PASS: 'PASS',
+  FAIL: 'FAIL',
+  SKIPPED: 'SKIPPED',
+  BLOCKED: 'BLOCKED'
+})
+const MAX_SCENARIO_HISTORY = 50
+const MAX_EVIDENCE_BYTES = 8 * 1024
+
+class ScenarioError extends Error {
+  constructor(code, message) {
+    super(message)
+    this.code = code
+  }
+}
+
+// Evidência vai para o navegador e para o log: sem campos sensíveis e com tamanho limitado.
+function safeEvidence(value) {
+  const cleaned = redact(value && typeof value === 'object' ? value : { value })
+  let json
+  try {
+    json = JSON.stringify(cleaned)
+  } catch {
+    return { error: 'evidência não serializável' }
+  }
+  if (Buffer.byteLength(json) > MAX_EVIDENCE_BYTES) return { truncated: true, bytes: Buffer.byteLength(json) }
+  return JSON.parse(json)
+}
+
 class RunVerifier {
-  constructor({ eventLog = null, storage = null, botManager = null, projectManager = null } = {}) {
+  constructor({ eventLog = null, storage = null, botManager = null, projectManager = null, scenarios = SCENARIOS } = {}) {
     this.eventLog = eventLog || getEventLog()
     this.storage = storage
     this.botManager = botManager
     this.projectManager = projectManager
     this.proof = null
+    // Cenários ao vivo: catálogo fixo, histórico só desta sessão (memória).
+    this.scenarios = new Map(scenarios.map((scenario) => [scenario.id, scenario]))
+    this.scenarioContext = null
+    this.scenarioRuns = []
+    this.currentRun = null
+    this._runSeq = 0
+  }
+
+  setScenarioContext(context) {
+    this.scenarioContext = context
+  }
+
+  listScenarios() {
+    return [...this.scenarios.values()].map((scenario) => {
+      const last = this.scenarioRuns.find((run) => run.scenarioId === scenario.id)
+      return {
+        id: scenario.id,
+        title: scenario.title,
+        action: scenario.action,
+        status: last ? last.status : SCENARIO_STATUS.PENDING,
+        lastRunId: last ? last.runId : null
+      }
+    })
+  }
+
+  scenarioState() {
+    return {
+      catalog: this.listScenarios(),
+      current: this.currentRun ? this._publicRun(this.currentRun) : null,
+      history: this.scenarioRuns.map((run) => this._publicRun(run))
+    }
+  }
+
+  getScenarioRun(runId) {
+    const run = this.scenarioRuns.find((item) => item.runId === runId)
+    return run ? this._publicRun(run) : null
+  }
+
+  /**
+   * Inicia um cenário do catálogo. Só aceita ids conhecidos; um por vez.
+   * Devolve o registro já em RUNNING (ou BLOCKED/SKIPPED); o resultado chega
+   * depois em scenarioState().
+   */
+  startScenario(id) {
+    const scenario = typeof id === 'string' && this.scenarios.has(id) ? this.scenarios.get(id) : null
+    if (!scenario) throw new ScenarioError('unknown', 'cenário desconhecido')
+    if (this.currentRun) throw new ScenarioError('busy', `cenário ${this.currentRun.scenarioId} em andamento`)
+    if (!this.scenarioContext) throw new ScenarioError('unavailable', 'contexto de teste indisponível')
+
+    const context = this.scenarioContext
+    const run = {
+      runId: `run-${Date.now()}-${++this._runSeq}`,
+      scenarioId: scenario.id,
+      title: scenario.title,
+      action: scenario.action,
+      bot: context.bot?.username || null,
+      status: SCENARIO_STATUS.PENDING,
+      preconditions: [],
+      evidence: null,
+      reasons: [],
+      createdAt: new Date().toISOString(),
+      startedAt: null,
+      finishedAt: null,
+      durationMs: null
+    }
+    this.scenarioRuns.unshift(run)
+    if (this.scenarioRuns.length > MAX_SCENARIO_HISTORY) this.scenarioRuns.length = MAX_SCENARIO_HISTORY
+    this._logScenario(run)
+
+    let preconditions
+    try {
+      preconditions = (scenario.preconditions?.(context) || []).map((check) => ({
+        name: String(check.name),
+        ok: Boolean(check.ok),
+        skip: Boolean(check.skip),
+        detail: check.detail == null ? '' : String(check.detail)
+      }))
+    } catch (err) {
+      preconditions = [{ name: 'pré-condições', ok: false, skip: false, detail: err.message }]
+    }
+    run.preconditions = preconditions
+    const unmet = preconditions.filter((check) => !check.ok)
+    if (unmet.length) {
+      const skip = unmet.every((check) => check.skip)
+      this._finish(run, skip ? SCENARIO_STATUS.SKIPPED : SCENARIO_STATUS.BLOCKED, unmet.map((check) => `${check.name}: ${check.detail}`))
+      return this._publicRun(run)
+    }
+
+    run.status = SCENARIO_STATUS.RUNNING
+    run.startedAt = new Date().toISOString()
+    this.currentRun = run
+    this._logScenario(run)
+    run.promise = this._execute(scenario, run, context)
+    return this._publicRun(run)
+  }
+
+  async _execute(scenario, run, context) {
+    let cancelled = false
+    const isCancelled = () => cancelled
+    let timer
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        cancelled = true
+        reject(new Error(`tempo esgotado (${scenario.timeoutMs} ms)`))
+      }, scenario.timeoutMs || 30000)
+    })
+    try {
+      const evidence = await Promise.race([Promise.resolve().then(() => scenario.run(context, isCancelled)), timeout])
+      run.evidence = safeEvidence(evidence)
+      const missing = (scenario.required || []).filter((field) => run.evidence?.[field] === undefined || run.evidence?.[field] === null)
+      if (run.evidence?.truncated) {
+        this._finish(run, SCENARIO_STATUS.FAIL, ['evidência grande demais para validar'])
+      } else if (missing.length) {
+        this._finish(run, SCENARIO_STATUS.FAIL, missing.map((field) => `evidência ausente: ${field}`))
+      } else {
+        const reasons = (scenario.validate?.(run.evidence) || []).map(String)
+        this._finish(run, reasons.length ? SCENARIO_STATUS.FAIL : SCENARIO_STATUS.PASS, reasons)
+      }
+    } catch (err) {
+      this._finish(run, SCENARIO_STATUS.FAIL, [err.message || String(err)])
+    } finally {
+      clearTimeout(timer)
+      cancelled = true
+      if (this.currentRun === run) this.currentRun = null
+    }
+  }
+
+  _finish(run, status, reasons = []) {
+    run.status = status
+    run.reasons = reasons.slice(0, 20).map((reason) => String(reason).slice(0, 300))
+    run.finishedAt = new Date().toISOString()
+    run.durationMs = run.startedAt ? Date.parse(run.finishedAt) - Date.parse(run.startedAt) : 0
+    this._logScenario(run)
+  }
+
+  _logScenario(run) {
+    this.eventLog.log('scenario_status', {
+      runId: run.runId,
+      scenarioId: run.scenarioId,
+      status: run.status,
+      reasons: run.reasons,
+      durationMs: run.durationMs
+    }, run.bot)
+  }
+
+  _publicRun(run) {
+    const { promise, ...data } = run
+    return JSON.parse(JSON.stringify(data))
   }
 
   /**
@@ -162,4 +343,4 @@ class RunVerifier {
   }
 }
 
-module.exports = { RunVerifier, PROOF_FILE }
+module.exports = { RunVerifier, PROOF_FILE, SCENARIO_STATUS, ScenarioError }
