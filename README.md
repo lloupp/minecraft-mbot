@@ -63,7 +63,10 @@ minecraft-mbot/
 │   ├── craft.js      # Fabricar (com mesa) e usar a fornalha
 │   ├── gather.js     # Coletar blocos (pula os inalcançáveis)
 │   ├── combat.js     # Lutar ou fugir, arma e recarga do golpe
-│   └── perception.js # Reconhecer blocos e entidades em volta
+│   ├── perception.js # Reconhecer blocos e entidades em volta
+│   ├── blueprint.js  # Ler plantas, materiais, ordem e divisão entre construtores
+│   └── blueprintBuilder.js # Construir a planta e conferir bloco a bloco
+├── plantas/          # Plantas de exemplo (.schem) e gerador
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
 └── README.md         # Este arquivo
@@ -137,6 +140,12 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!produto <la|leite|ovos> [qtd]` | Coleta produto animal não letal usando um fazendeiro |
 | `!manejo <animal> [alvo]` | Tenta elevar a população até uma meta limitada |
 | `!construir curral [animal]` | Constrói um curral físico 7x7 para a espécie |
+| `!plantas [nome]` | Lista as plantas; com nome mostra tamanho e materiais |
+| `!construir planta <nome> [aqui]` | Constrói uma planta em survival se o bot tiver os materiais |
+| `!projeto planta <nome> [construtores]` | A colônia divide a planta entre construtores e abastece pelo estoque |
+
+### Plantas (.schem / .litematic / .schematic / .nbt)
+Arquivos ficam em `plantas/`. O bot lê Sponge `.schem` v2/v3, MCEdit `.schematic`, Litematica `.litematic` e structure `.nbt`. A construção é feita em survival: calcula materiais, respeita orientação, limpa apenas terreno natural, preserva obstruções e verifica os blocos no final. Em projetos de colônia, materiais faltantes entram no planejamento de demanda.
 
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
