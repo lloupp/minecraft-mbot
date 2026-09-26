@@ -24,6 +24,7 @@ class StateStore {
       storage: null,
       auto: false,
       companionAuto: false,
+      waypoints: {},
       workers: {},
       project: null,
       updatedAt: null
@@ -39,6 +40,9 @@ class StateStore {
         ...parsed,
         home: point(parsed.home),
         storage: point(parsed.storage),
+        waypoints: parsed.waypoints && typeof parsed.waypoints === 'object' && !Array.isArray(parsed.waypoints)
+          ? parsed.waypoints
+          : {},
         workers: parsed.workers && typeof parsed.workers === 'object' ? parsed.workers : {}
       }
     } catch (err) {
