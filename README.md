@@ -63,7 +63,10 @@ minecraft-mbot/
 │   ├── craft.js      # Fabricar (com mesa) e usar a fornalha
 │   ├── gather.js     # Coletar blocos (pula os inalcançáveis)
 │   ├── combat.js     # Lutar ou fugir, arma e recarga do golpe
-│   └── perception.js # Reconhecer blocos e entidades em volta
+│   ├── perception.js # Reconhecer blocos e entidades em volta
+│   ├── blueprint.js  # Ler plantas, materiais, ordem e divisão entre construtores
+│   └── blueprintBuilder.js # Construir a planta no mundo e conferir bloco a bloco
+├── plantas/          # Plantas de exemplo (.schem) e o gerador
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
 └── README.md         # Este arquivo
@@ -136,6 +139,32 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!tosquiar [qtd]` | Tenta tosquiar ovelhas próximas |
 | `!manejo <animal> [alvo]` | Tenta elevar a população até uma meta limitada |
 | `!construir curral [animal]` | Constrói um curral físico 7x7 para a espécie |
+| `!plantas [nome]` | Lista as plantas da pasta `plantas/`; com nome, mostra tamanho e materiais |
+| `!construir planta <nome> [aqui]` | O bot principal constrói a planta onde o dono está (ou onde o bot está, com `aqui`), se tiver todo o material; senão diz o que falta |
+| `!projeto planta <nome> [construtores]` | A colônia constrói a planta: divide em fatias entre construtores (padrão 2, máx. 4) usando o estoque central |
+
+### Plantas (.schem / .litematic / .schematic / .nbt)
+Coloque o arquivo em `plantas/` (o nome do arquivo sem extensão é o nome da
+planta). Formatos lidos: Sponge `.schem` v2 e v3 (WorldEdit), `.schematic`
+legado (MCEdit), `.litematic` (Litematica) e `.nbt` (bloco de estrutura).
+Há dois exemplos, `marco` e `cabana`, gerados por `node plantas/gerar.js`.
+
+- A origem (canto de menor x/y/z da planta) é a posição dos pés do dono; saia
+  da área antes de o bot começar.
+- A ordem é de baixo para cima: em cada camada os blocos sólidos crescem a
+  partir do que tem apoio, escadas/lajes/cercas vêm no fim da camada, e
+  tochas, portas, escadas de mão, placas etc. só depois de toda a estrutura.
+- Escadas, portas, tochas de parede, troncos, lajes e alçapões saem com a
+  orientação da planta.
+- Para abrir espaço o bot só quebra terreno natural (terra, grama, pedra,
+  areia, cascalho, folhas, flores/grama alta...). Qualquer outro bloco no
+  caminho é pulado e relatado.
+- Se a planta ficar sobre um buraco, o bot ergue uma coluna de fundação
+  (terra/pedregulho do inventário, até 6 blocos) e o resto da camada encosta nela.
+- Na colônia (`!projeto planta`), cada fatia só começa quando o estoque tem o
+  material dela; o material pendente entra no planejamento de demanda
+  (mineradores, lenhadores e artesão buscam/fabricam o que falta) e
+  `!projeto status` mostra o que ainda falta no estoque.
 
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;

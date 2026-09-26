@@ -336,6 +336,26 @@ test('construtor relata material faltante e não trava', async () => {
   assert.deepEqual(report.missing, { stone_bricks: 6, torch: 1 })
 })
 
+test('planta sobre um buraco ganha uma coluna de fundação e o resto encosta nela', async () => {
+  const world = {}
+  // Chão só 3 blocos abaixo da origem, e só num ponto.
+  world[new Vec3(0, 61, 0).toString()] = { name: 'stone' }
+  const { bot } = fakeBuilderBot({ world, items: { stone_bricks: 11, torch: 1, dirt: 5 } })
+  const marco = await bp.loadBlueprint('marco', { dir: PLANTAS })
+  const steps = bp.buildOrder(marco)
+  const report = await buildBlueprint(bot, steps, { x: 0, y: 64, z: 0 }, { movements: false })
+  assert.equal(report.foundation, 2)
+  assert.equal(report.placed, 12)
+  assert.equal(world[new Vec3(0, 62, 0).toString()].name, 'dirt')
+  assert.equal(world[new Vec3(0, 63, 0).toString()].name, 'dirt')
+
+  // Sem fundação permitida, relata sem apoio em vez de inventar.
+  const again = fakeBuilderBot({ world: { [new Vec3(0, 61, 0).toString()]: { name: 'stone' } }, items: { stone_bricks: 11, torch: 1, dirt: 5 } })
+  const blocked = await buildBlueprint(again.bot, steps, { x: 0, y: 64, z: 0 }, { movements: false, foundation: false })
+  assert.equal(blocked.placed, 0)
+  assert.ok(blocked.failed.every((f) => f.reason === 'sem_apoio'))
+})
+
 test('orientação: tocha de parede encosta na parede certa e escada olha para o lado da planta', async () => {
   assert.deepEqual(placementHint({ name: 'wall_torch', properties: { facing: 'north' } }).refs, [{ x: -0, y: -0, z: 1 }])
   const stairsHint = placementHint({ name: 'oak_stairs', properties: { facing: 'east', half: 'top' } })
