@@ -4,6 +4,9 @@ Bot para Minecraft Forge 26.3 usando **mineflayer**.
 
 ## Status Atual
 
+O `eduardo_bot` agora também funciona como **orquestrador da colônia**. Ele pode criar e remover bots auxiliares, consultar o registro de itens/blocos do Minecraft e montar planos simples de crafting a partir das receitas disponíveis no Mineflayer.
+
+
 | Item | Status |
 |------|--------|
 | **Versão do jogo** | Forge 26.3 (Protocolo 777) ✅ |
@@ -90,7 +93,12 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!cancelar` | Cancela a tarefa e volta a seguir |
 | `!status` / `!pos` | Mostra vida, fome, itens e posição |
 | `!ajuda` | Lista os comandos |
-| `!parar` | Desconecta o bot |
+| `!parar` | Desconecta o orquestrador e encerra os bots auxiliares |
+| `!bot criar [papel] [qtd]` | Cria bots auxiliares, ex.: `!bot criar minerador 3` |
+| `!bot remover <nome>` | Remove um bot da colônia |
+| `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
+| `!item <nome>` | Consulta item/bloco no registro do Minecraft |
+| `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
 
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
@@ -102,3 +110,56 @@ cru etc., salvo em emergência). Sem comida, busca a fonte mais próxima num rai
 de 48 blocos: caça vacas, porcos, ovelhas, galinhas e coelhos (poupando os 2
 últimos de cada espécie para se reproduzirem), colhe cenoura, batata e beterraba
 maduras (replantando) e frutas de arbustos. Se não achar nada, avisa uma vez no chat.
+
+
+## Colônia de bots
+
+Papéis disponíveis nesta primeira versão:
+
+- `minerador`
+- `lenhador`
+- `fazendeiro`
+- `construtor`
+- `explorador`
+- `guarda`
+- `ajudante`
+
+Exemplos:
+
+```text
+!bot criar minerador 3
+!bot criar fazendeiro 2
+!bots
+!item iron_pickaxe
+!receita iron_pickaxe 2
+!bot remover minerador_01
+```
+
+O limite padrão é de **12 bots contando o orquestrador**. Pode ser alterado com:
+
+```bash
+MAX_COLONY_BOTS=8 node index.js
+```
+
+Nesta etapa os bots auxiliares já entram no mundo, recebem um papel e são gerenciados pelo `BotManager`. A execução autônoma específica de cada profissão será construída sobre essa base.
+
+## Arquitetura do orquestrador
+
+```text
+Você
+  ↓
+eduardo_bot
+  ├── CommandRouter
+  ├── MinecraftKnowledge
+  ├── Planner
+  └── BotManager
+        ├── minerador_01
+        ├── lenhador_01
+        ├── fazendeiro_01
+        └── ...
+```
+
+- **CommandRouter**: interpreta os novos comandos da colônia.
+- **MinecraftKnowledge**: consulta itens, blocos, alimentos e receitas do registro carregado pelo Minecraft.
+- **Planner**: calcula o que já pode ser fabricado e quais ingredientes ainda faltam.
+- **BotManager**: cria, acompanha e encerra os bots auxiliares.
