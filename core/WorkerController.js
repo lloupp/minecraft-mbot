@@ -8,6 +8,8 @@ const animalProducts = require('../lib/animalProducts')
 const stateMachineExplore = require('../lib/stateMachineExplore')
 const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
+const blueprint = require('../lib/blueprint')
+const { buildBlueprint } = require('../lib/blueprintBuilder')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -311,6 +313,9 @@ class WorkerController {
           break
         case 'construir_mina':
           result = await this.buildMine(isCancelled, task.length || 12)
+          break
+        case 'construir_planta':
+          result = await this.buildBlueprintRegion(isCancelled, task)
           break
         case 'retirar_estoque':
           result = await this.withdrawFromStorage(task.item, task.count || 1)
