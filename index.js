@@ -19,6 +19,8 @@ const { CommandRouter } = require('./core/CommandRouter')
 const { MinecraftKnowledge } = require('./core/MinecraftKnowledge')
 const { Planner } = require('./core/Planner')
 const { BotManager } = require('./core/BotManager')
+const { WorkerController } = require('./core/WorkerController')
+const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -104,19 +106,22 @@ async function main() {
   const knowledge = new MinecraftKnowledge(bot)
   const planner = new Planner(bot, knowledge)
   const commandRouter = new CommandRouter()
+  let colonyHome = null
 
   function createWorker({ name, role }) {
     const worker = mineflayer.createBot({ ...CONFIG, username: name })
     autoVersionForge(worker._client)
     fixEntityMovement(worker._client)
     worker.loadPlugin(pathfinder)
+    worker.colonyController = new WorkerController({
+      bot: worker,
+      name,
+      role,
+      homeProvider: () => colonyHome || bot.entity?.position,
+      ownerProvider: () => ownerEntity()
+    })
 
     worker.once('spawn', () => {
-      const moves = new Movements(worker)
-      moves.canDig = false
-      moves.allow1by1towers = false
-      worker.pathfinder.setMovements(moves)
-      worker.pathfinder.setGoal(null)
       console.log(`[colônia] ${name} conectado como ${role}`)
     })
     worker.on('kicked', (reason) => console.log(`[colônia] ${name} expulso:`, reason))
@@ -130,6 +135,12 @@ async function main() {
     orchestratorName: CONFIG.username,
     maxBots: maxColonyBots
   })
+  const colony = new ColonyOrchestrator({
+    botManager,
+    homeProvider: () => colonyHome || bot.entity?.position,
+    ownerProvider: () => ownerEntity()
+  })
+  colony.start()
 
   // ========== ESTADO ==========
   let mode = 'seguir'       // 'seguir' | 'ficar' | 'tarefa'
@@ -277,6 +288,7 @@ async function main() {
 
   // ========== EVENTOS ==========
   bot.on('spawn', () => {
+    if (!colonyHome) colonyHome = bot.entity.position.clone()
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
     console.log(`Posição: X=${bot.entity.position.x.toFixed(1)}, Y=${bot.entity.position.y.toFixed(1)}, Z=${bot.entity.position.z.toFixed(1)}`)
@@ -350,6 +362,7 @@ async function main() {
   })
 
   bot.on('end', () => {
+    colony.stop()
     botManager.stopAll()
     console.log('Conexão encerrada.')
   })
@@ -368,15 +381,90 @@ async function main() {
     const roles = {}
     for (const worker of workers) roles[worker.role] = (roles[worker.role] || 0) + 1
     const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ')
-    const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | ${roleText}`]
+    const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | auto: ${colony.auto ? 'ON' : 'OFF'} | ${roleText}`]
     for (let i = 0; i < workers.length; i += 4) {
-      lines.push(workers.slice(i, i + 4).map((w) => `${w.name}(${w.status})`).join(', '))
+      lines.push(workers.slice(i, i + 4).map((w) => {
+        const task = w.task ? `:${w.task}${w.resource ? '/' + w.resource : ''}` : ''
+        return `${w.name}(${w.status}${task})`
+      }).join(', '))
     }
     return lines
   }
 
-  commandRouter.register(['bots', 'colonia'], async () => {
+  commandRouter.register('bots', async () => {
     for (const line of colonySummary()) bot.chat(line)
+  })
+
+  commandRouter.register('colonia', async (_context, args) => {
+    const action = String(args[0] || '').toLowerCase()
+    if (action === 'auto') {
+      const value = String(args[1] || 'on').toLowerCase()
+      const enabled = !['off', '0', 'nao', 'não', 'false'].includes(value)
+      colony.setAuto(enabled)
+      bot.chat(`Modo automático da colônia: ${enabled ? 'ATIVADO' : 'DESATIVADO'}.`)
+      return
+    }
+    for (const line of colonySummary()) bot.chat(line)
+  })
+
+  commandRouter.register('ordem', async (_context, args) => {
+    if (args.length < 2) {
+      bot.chat('Uso: !ordem <papel> <recurso> [qtd]. Ex.: !ordem mineradores ferro 64')
+      return
+    }
+    const role = args[0]
+    const resource = args[1]
+    const count = Math.max(1, Number.parseInt(args[2], 10) || 1)
+    try {
+      const assignments = await colony.assign(role, resource, count)
+      bot.chat(`Ordem enviada a ${assignments.length} bot(s): ${resource} x${count}.`)
+    } catch (err) {
+      bot.chat(`Não consegui distribuir a ordem: ${err.message}`)
+    }
+  })
+
+  commandRouter.register('todos', async (_context, args) => {
+    if (String(args[0] || '').toLowerCase() !== 'voltar') {
+      bot.chat('Uso: !todos voltar')
+      return
+    }
+    const names = await colony.returnAll()
+    bot.chat(names.length ? `Chamando ${names.length} bot(s) de volta para a base.` : 'Não há bots auxiliares.')
+  })
+
+  commandRouter.register('construir', async (_context, args) => {
+    if (!['casa', 'abrigo'].includes(String(args[0] || '').toLowerCase())) {
+      bot.chat('Uso: !construir casa')
+      return
+    }
+    try {
+      const name = await colony.buildHouse()
+      bot.chat(`${name} recebeu a ordem de construir um abrigo 3x3.`)
+    } catch (err) {
+      bot.chat(`Não consegui iniciar a construção: ${err.message}`)
+    }
+  })
+
+  commandRouter.register('base', async (_context, args) => {
+    if (String(args[0] || '').toLowerCase() !== 'aqui' || !bot.entity) {
+      bot.chat('Uso: !base aqui')
+      return
+    }
+    colonyHome = bot.entity.position.clone()
+    bot.chat(`Base definida em X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
+  })
+
+  commandRouter.register('tarefas', async () => {
+    const tasks = colony.taskSummary()
+    if (!tasks.length) {
+      bot.chat('Nenhum bot auxiliar na colônia.')
+      return
+    }
+    for (let i = 0; i < tasks.length; i += 4) {
+      bot.chat(tasks.slice(i, i + 4).map((entry) =>
+        `${entry.name}:${entry.state}${entry.task ? '/' + entry.task : ''}${entry.resource ? '/' + entry.resource : ''}`
+      ).join(', '))
+    }
   })
 
   commandRouter.register('bot', async (_context, args) => {
@@ -525,7 +613,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !minerar, !comer, !comida, !ver, !status, !bot, !bots, !item, !receita, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !minerar, !bot, !bots, !ordem, !todos voltar, !construir casa, !colonia auto, !base aqui, !tarefas, !item, !receita, !parar')
         break
     }
   })
