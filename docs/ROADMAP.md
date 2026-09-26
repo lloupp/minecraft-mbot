@@ -94,7 +94,7 @@ Critérios do spike:
 
 ### Riscos
 
-A versão publicada `mineflayer-statemachine 1.7.0` é de 23/01/2023 e declara dependências antigas, incluindo Mineflayer 4.x e pathfinder. O minecraft-mbot usa um fork de Mineflayer.
+A versão publicada `mineflayer-statemachine 1.7.0` é de 23/01/2023 e declara dependências antigas, incluindo Mineflayer 4.x e pathfinder. O repositório tem backlog aberto e há uma issue de 2024 questionando sua manutenção. O minecraft-mbot usa um fork de Mineflayer.
 
 Antes de promover:
 
