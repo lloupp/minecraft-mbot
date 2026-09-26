@@ -10,11 +10,10 @@
 const { execFileSync } = require('child_process')
 const mineflayer = require('mineflayer')
 const { ping } = require('minecraft-protocol')
-const { autoVersionForge } = require('minecraft-protocol-forge')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const food = require('./lib/food')
 const perception = require('./lib/perception')
-const { fixEntityMovement, fixOutgoingPackets } = require('./lib/protocol')
+const { detectProfile, configureClient, describeProfile } = require('./lib/serverProfile')
 const { announceLan, motdText } = require('./lib/lan')
 const { CommandRouter } = require('./core/CommandRouter')
 const { MinecraftKnowledge } = require('./core/MinecraftKnowledge')
@@ -23,6 +22,9 @@ const { BotManager } = require('./core/BotManager')
 const craft = require('./lib/craft')
 const gather = require('./lib/gather')
 const combat = require('./lib/combat')
+const equipment = require('./lib/equipment')
+const night = require('./lib/night')
+const { Autonomy } = require('./lib/autonomy')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
@@ -44,6 +46,9 @@ const DEFEND_RANGE = 5      // hostil mais perto que isso: o bot reage (luta ou 
 const CREEPER_RANGE = 6     // creeper mais perto que isso: foge antes que exploda
 const HUNGRY = 14           // abaixo disso come (ou vai buscar comida)
 const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram certo
+const OWNER_NEAR = 32
+const GEAR_CHECK_MS = 15000
+const NIGHT_RETRY_MS = 60000
 
 function envPort(value) {
   const port = Number(value)
@@ -93,22 +98,22 @@ async function main() {
   }
 
   // ========== CONFIGURAÇÃO ==========
+  const requestedVersion = process.env.MINECRAFT_VERSION || server.version
+  const serverProfile = detectProfile(requestedVersion)
   const CONFIG = {
     host: HOST,
     port: server.port,
     username: process.env.MINECRAFT_BOT_NAME || 'eduardo_bot',
     password: '',
-    // version: false trava na detecção automática; usa a versão do ping.
-    version: process.env.MINECRAFT_VERSION || server.version,
-    // O 26.3 ainda tem pacotes que a biblioteca não lê (ex.: partículas); não são
-    // fatais, só enchem o console. DEBUG_PROTOCOL=1 mostra esses erros.
+    version: serverProfile.id === 'vanilla1201' ? '1.20.1' : requestedVersion,
     hideErrors: !process.env.DEBUG_PROTOCOL
   }
   console.log(`Conectando a ${CONFIG.host}:${CONFIG.port} (versão ${CONFIG.version})...`)
+  console.log(`Perfil: ${describeProfile(serverProfile)}`)
 
   // ========== CRIAÇÃO DO BOT ==========
   const bot = mineflayer.createBot(CONFIG)
-  autoVersionForge(bot._client)
+  configureClient(bot, serverProfile)
 
   // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
   let stopLan = () => {}
@@ -119,8 +124,6 @@ async function main() {
       console.log('[lan] anúncio só funciona para servidor neste PC (MINECRAFT_HOST local)')
     }
   }
-  fixEntityMovement(bot._client)
-  fixOutgoingPackets(bot._client)
   bot.loadPlugin(pathfinder)
 
   // ========== ORQUESTRAÇÃO ==========
@@ -145,9 +148,7 @@ async function main() {
 
   function createWorker({ name, role }) {
     const worker = mineflayer.createBot({ ...CONFIG, username: name })
-    autoVersionForge(worker._client)
-    fixEntityMovement(worker._client)
-    fixOutgoingPackets(worker._client)
+    configureClient(worker, serverProfile)
     worker.loadPlugin(pathfinder)
     worker.colonyController = new WorkerController({
       bot: worker,
@@ -186,7 +187,8 @@ async function main() {
     storage,
     botManager,
     homeProvider: () => colonyHome,
-    projectManager
+    projectManager,
+    serverProfile
   })
 
   function workerRoleCounts() {
@@ -200,6 +202,7 @@ async function main() {
       home: colonyHome,
       storage: storage.getPosition(),
       auto: colony.auto,
+      companionAuto: autonomous,
       workers: workerRoleCounts(),
       project: projectManager.exportState()
     })
@@ -232,6 +235,12 @@ async function main() {
   let resolvedOwner = OWNER
   let fightTarget = null     // mob com quem está lutando
   let fightResume = 'seguir' // modo para voltar depois da luta
+  let autonomous = Boolean(savedState.companionAuto)
+  let sheltered = false
+  let lastNightTry = 0
+  let lastGearCheck = 0
+  let checkingGear = false
+  const autonomy = new Autonomy(bot)
 
   function ownerName() {
     if (resolvedOwner) return resolvedOwner
@@ -299,8 +308,71 @@ async function main() {
     if (isCancelled()) return
     taskName = null
     mode = resume
-    if (resume === 'seguir') follow()
+    if (resume === 'seguir' && !autonomous) follow()
     else bot.pathfinder.setGoal(null)
+  }
+
+  function autonomyStep() {
+    const goal = autonomy.next()
+    if (!goal) return false
+    console.log(`[autônomo] meta: ${goal.name}`)
+    runTask(goal.name, async (isCancelled) => {
+      try {
+        const result = await goal.run(bot, isCancelled)
+        if (result && !isCancelled()) console.log(`[autônomo] ${goal.name}: ${result}`)
+      } catch (err) {
+        if (isCancelled()) return
+        autonomy.failed(goal)
+        throw err
+      }
+    })
+    return true
+  }
+
+  function ownerNearby() {
+    const owner = ownerEntity()
+    return Boolean(owner) && owner.position.distanceTo(bot.entity.position) <= OWNER_NEAR
+  }
+
+  function spendNight() {
+    lastNightTry = Date.now()
+    runTask('passar a noite', async (isCancelled) => {
+      const how = await night.spendNight(bot, isCancelled, {
+        onShelter: (inside) => { sheltered = inside },
+        say: (text) => bot.chat(text)
+      })
+      if (how && !isCancelled()) {
+        bot.chat(how === 'dormi' ? 'Bom dia! Dormi bem.' : 'Amanheceu, saindo do abrigo.')
+      }
+    })
+  }
+
+  async function checkGear() {
+    lastGearCheck = Date.now()
+    if (checkingGear) return
+    checkingGear = true
+    try {
+      const worn = await equipment.equipBestArmor(bot)
+      if (worn.length) console.log(`Vesti ${worn.join(', ')}`)
+      const upgrades = equipment.pendingUpgrades(bot)
+      if (upgrades.length && mode === 'seguir') {
+        runTask('melhorar equipamento', async (isCancelled) => {
+          for (const item of upgrades) {
+            if (isCancelled()) return
+            await craft.craftItem(
+              bot,
+              item,
+              craft.countItem(bot, bot.registry.itemsByName[item].id) + 1,
+              isCancelled
+            )
+          }
+        })
+      }
+    } catch (err) {
+      console.log(`Equipamento: ${err.message}`)
+    } finally {
+      checkingGear = false
+    }
   }
 
   const isLiving = (entity) => entity && entity !== bot.entity && entity.isValid !== false
@@ -447,6 +519,7 @@ async function main() {
   bot.on('death', () => {
     console.log('O bot morreu.')
     cancelTask()
+    sheltered = false
     lastHealth = null
     fleeingUntil = 0
   })
@@ -460,7 +533,7 @@ async function main() {
       if (mode === 'ficar') bot.pathfinder.setGoal(null)
     }
     // Defesa: foge de creepers e reage a hostis que chegam perto.
-    if (taskName !== 'lutar') {
+    if (taskName !== 'lutar' && !sheltered) {
       const creeper = bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
         e.position.distanceTo(bot.entity.position) <= CREEPER_RANGE)
       if (creeper) {
@@ -490,10 +563,26 @@ async function main() {
       if (!warnedNoFood) bot.chat('Estou com fome e não acho comida por perto. Me leve até animais ou plantações, ou me dê comida.')
       warnedNoFood = true
     }
-    if (mode === 'seguir') {
-      const owner = ownerEntity()
-      if (owner && bot.pathfinder.goal?.entity !== owner) follow()
+    if (mode !== 'seguir' || eating) return
+
+    if (night.isNight(bot) && (autonomous || !ownerNearby()) &&
+        Date.now() - lastNightTry > NIGHT_RETRY_MS) {
+      spendNight()
+      return
     }
+
+    if (Date.now() - lastGearCheck > GEAR_CHECK_MS) {
+      checkGear()
+      if (mode !== 'seguir') return
+    }
+
+    if (autonomous) {
+      if (!autonomyStep()) bot.pathfinder.setGoal(null)
+      return
+    }
+
+    const owner = ownerEntity()
+    if (owner && bot.pathfinder.goal?.entity !== owner) follow()
   }, 500)
 
   bot.on('kicked', (reason) => {
@@ -1003,6 +1092,8 @@ async function main() {
         bot.quit()
         break
       case '!seguir':
+        autonomous = false
+        persistSoon()
         cancelTask()
         mode = 'seguir'
         if (ownerEntity()) {
@@ -1038,12 +1129,38 @@ async function main() {
         defend(target)
         break
       }
+      case '!autonomo':
+      case '!autônomo':
+        if (args[0] === 'off' || args[0] === 'parar') {
+          autonomous = false
+          cancelTask()
+          mode = 'seguir'
+          persistSoon()
+          bot.chat('Modo autônomo desligado. Voltando a te seguir.')
+          break
+        }
+        autonomous = true
+        cancelTask()
+        mode = 'seguir'
+        persistSoon()
+        bot.chat(`Modo autônomo ligado! ${autonomy.progress()}`)
+        break
+      case '!metas':
+        bot.chat(autonomy.progress())
+        break
+      case '!servidor':
+        bot.chat(`Servidor: ${CONFIG.host}:${CONFIG.port} | ${describeProfile(serverProfile)} | protocolo ${bot._client?.protocolVersion ?? 'N/A'}`)
+        break
       case '!ficar':
+        autonomous = false
+        persistSoon()
         cancelTask()
         mode = 'ficar'
         bot.chat('Ok, fico aqui.')
         break
       case '!cancelar':
+        autonomous = false
+        persistSoon()
         cancelTask()
         mode = 'seguir'
         bot.chat('Tarefa cancelada. Voltando a te seguir.')
@@ -1096,7 +1213,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
         break
     }
