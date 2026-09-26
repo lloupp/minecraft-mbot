@@ -1,7 +1,8 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 
-const { animalPenPlan, SPECIES_OFFSETS } = require('../core/AnimalPen')
+const { Vec3 } = require('vec3')
+const { animalPenPlan, SPECIES_OFFSETS, pointInsidePen, inspectAnimalPen } = require('../core/AnimalPen')
 const husbandry = require('../lib/husbandry')
 const { ColonyOrchestrator } = require('../core/ColonyOrchestrator')
 
@@ -87,4 +88,60 @@ test('ColonyOrchestrator delega curral ao construtor e manejo ao fazendeiro', as
   assert.equal(population.name, 'fazendeiro_01')
   assert.deepEqual(tasks[0].task, { type: 'construir_curral', species: 'cow', offset: null })
   assert.deepEqual(tasks[1].task, { type: 'manejar_populacao', species: 'cow', target: 8 })
+})
+
+
+test('pointInsidePen distingue interior, borda e exterior', () => {
+  const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
+  assert.equal(pointInsidePen(new Vec3(15, 64, 11), plan), true)
+  assert.equal(pointInsidePen(new Vec3(12, 64, 8), plan), false)
+  assert.equal(pointInsidePen(new Vec3(30, 64, 30), plan), false)
+})
+
+test('inspectAnimalPen exige todas as cercas e um portão', () => {
+  const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
+  const blocks = new Map()
+  for (const point of plan.fences) {
+    blocks.set(new Vec3(point.x, point.y, point.z).toString(), {
+      name: 'oak_fence',
+      getProperties: () => ({})
+    })
+  }
+  blocks.set(new Vec3(plan.gate.x, plan.gate.y, plan.gate.z).toString(), {
+    name: 'oak_fence_gate',
+    getProperties: () => ({ open: false })
+  })
+  const bot = { blockAt: (pos) => blocks.get(pos.toString()) || { name: 'air' } }
+
+  const complete = inspectAnimalPen(bot, plan)
+  assert.equal(complete.built, true)
+  assert.equal(complete.gateOpen, false)
+
+  blocks.delete(new Vec3(plan.fences[0].x, plan.fences[0].y, plan.fences[0].z).toString())
+  const incomplete = inspectAnimalPen(bot, plan)
+  assert.equal(incomplete.built, false)
+  assert.equal(incomplete.fencesPresent, plan.fenceCount - 1)
+})
+
+test('ColonyOrchestrator delega captura ao fazendeiro', async () => {
+  const tasks = []
+  const controller = {
+    state: 'ocioso',
+    currentTask: null,
+    isIdle: () => true,
+    run: async (task) => { tasks.push(task); return { ok: true } }
+  }
+  const worker = { name: 'fazendeiro_01', role: 'fazendeiro', bot: { colonyController: controller } }
+  const manager = {
+    workers: new Map([[worker.name, worker]]),
+    normalizeRole: (role) => role
+  }
+  const colony = new ColonyOrchestrator({ botManager: manager, logger: silent })
+
+  const result = await colony.captureAnimals('cow', 3)
+  await new Promise((resolve) => setImmediate(resolve))
+
+  assert.equal(result.name, 'fazendeiro_01')
+  assert.equal(result.count, 3)
+  assert.deepEqual(tasks[0], { type: 'capturar_animais', species: 'cow', count: 3 })
 })

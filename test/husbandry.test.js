@@ -109,3 +109,35 @@ test('husbandry prefere alimento com quantidade suficiente entre alternativas', 
   assert.equal(result.feed, 'potato')
   assert.equal(bot.equipped[0][0], 'potato')
 })
+
+
+test('selectAnimals permite limitar por centro e filtro de curral', () => {
+  const bot = fakeBot({ species: 'cow', animalCount: 0 })
+  bot.entities = {
+    1: { id: 1, name: 'cow', isValid: true, position: new Vec3(2, 64, 2) },
+    2: { id: 2, name: 'cow', isValid: true, position: new Vec3(6, 64, 2) },
+    3: { id: 3, name: 'sheep', isValid: true, position: new Vec3(2, 64, 2) }
+  }
+  const center = new Vec3(0, 64, 0)
+  const selected = husbandry.selectAnimals(bot, 'cow', {
+    center,
+    range: 10,
+    filter: (entity) => entity.position.x < 5
+  })
+
+  assert.deepEqual(selected.map((entry) => entry.id), [1])
+})
+
+test('managePopulation usa somente animais aprovados pelo filtro', async () => {
+  const wheat = { name: 'wheat', count: 4, type: 1 }
+  const bot = fakeBot({ species: 'cow', animalCount: 4, items: [wheat] })
+  const result = await husbandry.managePopulation(bot, 'cow', 4, () => false, {
+    center: new Vec3(0, 64, 0),
+    range: 32,
+    filter: (entity) => entity.id <= 2
+  })
+
+  assert.equal(result.current, 2)
+  assert.equal(result.target, 4)
+  assert.equal(result.plannedPairs, 1)
+})

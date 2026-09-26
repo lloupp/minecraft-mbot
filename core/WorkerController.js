@@ -4,7 +4,7 @@ const food = require('../lib/food')
 const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const husbandry = require('../lib/husbandry')
-const { animalPenPlan } = require('./AnimalPen')
+const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -210,6 +210,9 @@ class WorkerController {
         case 'construir_curral':
           result = await this.buildAnimalPen(isCancelled, task.species || 'cow', task.offset || null)
           break
+        case 'capturar_animais':
+          result = await this.captureAnimals(task.species, task.count || 1, isCancelled)
+          break
         case 'explorar':
           result = await this.explore(task.radius || 64, isCancelled, task.center || null)
           break
@@ -311,10 +314,52 @@ class WorkerController {
     return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count, deposited }
   }
 
+  penContext(species) {
+    const canonical = husbandry.normalizeSpecies(species) || species
+    const home = this.homeProvider?.()
+    if (!home) return null
+    const plan = animalPenPlan(home, canonical)
+    const status = inspectAnimalPen(this.bot, plan)
+    return { canonical, plan, status }
+  }
+
+  penPopulation(species) {
+    const pen = this.penContext(species)
+    if (!pen) return { species, built: false, inside: 0, status: null }
+    const center = new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z)
+    const inside = husbandry.selectAnimals(this.bot, pen.canonical, {
+      center,
+      range: pen.plan.size + 2,
+      filter: (entity) => pointInsidePen(entity.position, pen.plan)
+    }).length
+    return {
+      species: pen.canonical,
+      built: pen.status.built,
+      inside,
+      status: pen.status
+    }
+  }
+
   async breedAnimals(species, pairs, isCancelled) {
-    return husbandry.breed(this.bot, species, pairs, isCancelled, {
-      storage: this.storage
-    })
+    const pen = this.penContext(species)
+    if (!pen?.status?.built) {
+      return husbandry.breed(this.bot, species, pairs, isCancelled, {
+        storage: this.storage
+      })
+    }
+
+    return this.withAnimalPen(pen, isCancelled, () => husbandry.breed(
+      this.bot,
+      species,
+      pairs,
+      isCancelled,
+      {
+        storage: this.storage,
+        center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
+        range: pen.plan.size + 2,
+        filter: (entity) => pointInsidePen(entity.position, pen.plan)
+      }
+    ))
   }
 
   async shearSheep(count, isCancelled) {
@@ -325,9 +370,27 @@ class WorkerController {
   }
 
   async manageAnimalPopulation(species, target, isCancelled) {
-    return husbandry.managePopulation(this.bot, species, target, isCancelled, {
-      storage: this.storage
-    })
+    const pen = this.penContext(species)
+    if (!pen?.status?.built) {
+      const result = await husbandry.managePopulation(this.bot, species, target, isCancelled, {
+        storage: this.storage
+      })
+      return { ...result, penScoped: false }
+    }
+
+    const result = await this.withAnimalPen(pen, isCancelled, () => husbandry.managePopulation(
+      this.bot,
+      species,
+      target,
+      isCancelled,
+      {
+        storage: this.storage,
+        center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
+        range: pen.plan.size + 2,
+        filter: (entity) => pointInsidePen(entity.position, pen.plan)
+      }
+    ))
+    return { ...result, penScoped: true }
   }
 
   inventoryCountByName(name) {
@@ -436,6 +499,171 @@ class WorkerController {
       offset: plan.offset,
       fenceItem: kit.fence,
       gateItem: kit.gate
+    }
+  }
+
+  async enterAnimalPen(plan, isCancelled) {
+    await this.bot.unequip?.('hand').catch?.(() => {})
+    if (!(await this.setPenGate(plan, true, isCancelled))) return false
+    try {
+      const entry = plan.insideEntry
+      await this.goTo(new goals.GoalNear(entry.x, entry.y, entry.z, 1), 12000)
+    } finally {
+      await this.setPenGate(plan, false, () => false).catch(() => {})
+    }
+    return !isCancelled() && pointInsidePen(this.bot.entity?.position, plan)
+  }
+
+  async withAnimalPen(pen, isCancelled, work) {
+    const entered = await this.enterAnimalPen(pen.plan, isCancelled)
+    if (!entered) throw new Error(`não consegui entrar no curral de ${pen.canonical}`)
+    try {
+      return await work()
+    } finally {
+      if (!this.defending && this.bot.entity && pointInsidePen(this.bot.entity.position, pen.plan)) {
+        await this.leaveAnimalPen(pen.plan, () => false).catch(() => {})
+      } else {
+        await this.setPenGate(pen.plan, false, () => false).catch(() => {})
+      }
+    }
+  }
+
+  async lureFeed(species) {
+    const canonical = husbandry.normalizeSpecies(species) || species
+    const config = husbandry.SPECIES[canonical]
+    if (!config) throw new Error(`animal não suportado: ${species}`)
+
+    let item = this.bot.inventory.items().find((entry) => config.feed.includes(entry.name))
+    if (item) return item
+
+    if (this.storage?.configured()) {
+      for (const name of config.feed) {
+        const amount = await this.storage.withdraw(this.bot, name, 1).catch(() => 0)
+        if (amount > 0) {
+          item = this.bot.inventory.items().find((entry) => entry.name === name)
+          if (item) return item
+        }
+      }
+    }
+    return null
+  }
+
+  async setPenGate(plan, open, isCancelled = () => false) {
+    const position = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z)
+    let gate = this.bot.blockAt(position)
+    if (!gate?.name?.endsWith('_fence_gate')) throw new Error('portão do curral não encontrado')
+
+    const current = gate.getProperties?.().open
+    if (typeof current === 'boolean' && current === open) return true
+
+    await this.goTo(new goals.GoalNear(position.x, position.y, position.z, 3), 10000)
+    if (isCancelled()) return false
+    await this.bot.activateBlock(gate)
+    await sleep(350)
+    gate = this.bot.blockAt(position)
+    const updated = gate?.getProperties?.().open
+    return typeof updated === 'boolean' ? updated === open : true
+  }
+
+  async leaveAnimalPen(plan, isCancelled) {
+    await this.bot.unequip?.('hand').catch?.(() => {})
+    if (!(await this.setPenGate(plan, true, isCancelled))) return false
+    try {
+      const out = plan.outside
+      await this.goTo(new goals.GoalNear(out.x, out.y, out.z, 1), 12000)
+      return !isCancelled()
+    } finally {
+      await this.setPenGate(plan, false, () => false).catch(() => {})
+    }
+  }
+
+  async captureAnimals(species, count, isCancelled) {
+    const pen = this.penContext(species)
+    if (!pen) throw new Error('base da colônia ainda não definida')
+    if (!pen.status.built) {
+      throw new Error(`curral de ${pen.canonical} incompleto: ${pen.status.fencesPresent}/${pen.status.fencesExpected} cercas, portão=${pen.status.gatePresent ? 'ok' : 'ausente'}`)
+    }
+
+    const wanted = Math.max(1, Math.min(16, Number.parseInt(count, 10) || 1))
+    const feed = await this.lureFeed(pen.canonical)
+    if (!feed) {
+      return {
+        ok: false,
+        species: pen.canonical,
+        requested: wanted,
+        captured: 0,
+        reason: 'sem_alimento',
+        feed: husbandry.SPECIES[pen.canonical].feed
+      }
+    }
+
+    const center = new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z)
+    const candidates = husbandry.selectAnimals(this.bot, pen.canonical, {
+      center,
+      range: 40,
+      filter: (entity) => !pointInsidePen(entity.position, pen.plan)
+    })
+
+    let captured = 0
+    let attempted = 0
+    for (const entity of candidates) {
+      if (captured >= wanted || isCancelled()) break
+      if (entity.isValid === false) continue
+      attempted++
+
+      const currentFeed = this.bot.inventory.items().find((entry) => entry.name === feed.name)
+      if (!currentFeed) break
+      await this.bot.equip(currentFeed, 'hand').catch(() => {})
+
+      await this.goTo(
+        new goals.GoalNear(
+          Math.floor(entity.position.x),
+          Math.floor(entity.position.y),
+          Math.floor(entity.position.z),
+          3
+        ),
+        15000
+      ).catch(() => {})
+      if (isCancelled() || entity.isValid === false) break
+      if (entity.position.distanceTo(this.bot.entity.position) > 6) continue
+
+      const outside = pen.plan.outside
+      await this.goTo(new goals.GoalNear(outside.x, outside.y, outside.z, 1), 20000).catch(() => {})
+      await sleep(650)
+      if (isCancelled()) break
+
+      let inside = false
+      try {
+        await this.setPenGate(pen.plan, true, isCancelled)
+        if (isCancelled()) break
+
+        const entry = pen.plan.insideEntry
+        await this.bot.equip(currentFeed, 'hand').catch(() => {})
+        await this.goTo(new goals.GoalNear(entry.x, entry.y, entry.z, 1), 12000).catch(() => {})
+        await sleep(1200)
+        inside = entity.isValid !== false && pointInsidePen(entity.position, pen.plan)
+      } finally {
+        await this.setPenGate(pen.plan, false, () => false).catch(() => {})
+      }
+
+      if (inside) captured++
+      if (!isCancelled()) await this.leaveAnimalPen(pen.plan, isCancelled).catch(() => {})
+    }
+
+    const insideNow = husbandry.selectAnimals(this.bot, pen.canonical, {
+      center,
+      range: pen.plan.size + 2,
+      filter: (entity) => pointInsidePen(entity.position, pen.plan)
+    }).length
+
+    return {
+      ok: captured >= wanted,
+      species: pen.canonical,
+      requested: wanted,
+      attempted,
+      captured,
+      inside: insideNow,
+      feed: feed.name
     }
   }
 

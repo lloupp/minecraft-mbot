@@ -11,6 +11,7 @@ const { execFileSync } = require('child_process')
 const mineflayer = require('mineflayer')
 const { ping } = require('minecraft-protocol')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
+const { Vec3 } = require('vec3')
 const food = require('./lib/food')
 const perception = require('./lib/perception')
 const { detectProfile, configureClient, describeProfile } = require('./lib/serverProfile')
@@ -36,6 +37,7 @@ const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
 const { WaypointManager } = require('./core/WaypointManager')
+const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -189,6 +191,8 @@ async function main() {
     demandPlanner,
     projectManager
   })
+  colony.restoreAnimalTargets(savedState.animalTargets)
+
   const smokeTest = new SmokeTest({
     bot,
     storage,
@@ -213,7 +217,8 @@ async function main() {
       companionAuto: autonomous,
       waypoints: waypointManager.exportState(),
       workers: workerRoleCounts(),
-      project: projectManager.exportState()
+      project: projectManager.exportState(),
+      animalTargets: colony.animalTargetsSnapshot()
     })
   }
 
@@ -1181,6 +1186,90 @@ async function main() {
     bot.chat(`Animais (${radius} blocos): ${entries.map(([name, count]) => `${name}x${count}`).join(', ')}`)
   })
 
+  commandRouter.register('curral', async (_context, args) => {
+    const action = String(args[0] || 'vaca').toLowerCase()
+
+    if (action === 'metas') {
+      const targets = colony.animalTargetsSnapshot()
+      const entries = Object.entries(targets)
+      bot.chat(entries.length
+        ? `Metas de animais: ${entries.map(([species, target]) => `${species}=${target}`).join(', ')}.`
+        : 'Nenhuma meta persistente de animais configurada.')
+      return
+    }
+
+    if (action === 'meta') {
+      const species = husbandry.normalizeSpecies(args[1])
+      const rawTarget = String(args[2] || '').toLowerCase()
+      if (!species) {
+        bot.chat('Uso: !curral meta <animal> <2-32|off>')
+        return
+      }
+      if (['off', 'remover', 'apagar'].includes(rawTarget)) {
+        const removed = colony.clearAnimalTarget(species)
+        persistSoon()
+        bot.chat(removed
+          ? `Meta automática de ${species} removida.`
+          : `Não havia meta automática para ${species}.`)
+        return
+      }
+
+      const target = Number.parseInt(rawTarget, 10)
+      if (!Number.isInteger(target) || target < 2 || target > 32) {
+        bot.chat('Uso: !curral meta <animal> <2-32|off>')
+        return
+      }
+      colony.setAnimalTarget(species, target)
+      persistSoon()
+      bot.chat(`Meta automática de ${species}: ${target}. Ela é mantida quando !colonia auto estiver ativo.`)
+      return
+    }
+
+    const species = husbandry.normalizeSpecies(action)
+    if (!species) {
+      bot.chat('Uso: !curral <animal> | !curral metas | !curral meta <animal> <2-32|off>')
+      return
+    }
+    if (!colonyHome) {
+      bot.chat('Base ainda não definida. Use !base aqui.')
+      return
+    }
+
+    const plan = animalPenPlan(colonyHome, species)
+    const status = inspectAnimalPen(bot, plan)
+    const center = new Vec3(plan.center.x, plan.center.y, plan.center.z)
+    const inside = husbandry.selectAnimals(bot, species, {
+      center,
+      range: plan.size + 2,
+      filter: (entity) => pointInsidePen(entity.position, plan)
+    }).length
+    const target = colony.animalTargetsSnapshot()[species]
+
+    bot.chat(
+      `Curral ${species}: ${status.built ? 'pronto' : 'incompleto'} | cercas ${status.fencesPresent}/${status.fencesExpected} | portão ${status.gatePresent ? (status.gateOpen ? 'aberto' : 'fechado') : 'ausente'} | animais dentro ${inside}${target ? ` | meta ${target}` : ''}.`
+    )
+  })
+
+  commandRouter.register(['capturar', 'recolheranimais'], async (_context, args) => {
+    const species = husbandry.normalizeSpecies(args[0])
+    const count = Math.max(1, Math.min(16, Number.parseInt(args[1], 10) || 1))
+    if (!species) {
+      bot.chat('Uso: !capturar <vaca|ovelha|porco|galinha|coelho|cabra|mooshroom|lhama> [qtd]')
+      return
+    }
+    if (!colonyHome) {
+      bot.chat('Base ainda não definida. Use !base aqui.')
+      return
+    }
+
+    try {
+      const result = await colony.captureAnimals(species, count)
+      bot.chat(`${result.name} vai levar até ${result.count} ${species} para o curral.`)
+    } catch (err) {
+      bot.chat(`Não consegui iniciar a captura: ${err.message}`)
+    }
+  })
+
   commandRouter.register(['reproduzir', 'criaranimais'], async (_context, args) => {
     const species = husbandry.normalizeSpecies(args[0])
     const pairs = Math.max(1, Math.min(16, Number.parseInt(args[1], 10) || 1))
@@ -1633,7 +1722,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !reproduzir, !manejo, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral>, !todos voltar, !tarefas')
         break
     }
