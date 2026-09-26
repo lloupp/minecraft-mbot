@@ -119,6 +119,8 @@ class DemandPlanner {
     report.materialDeficits = { ...lacking }
     const targets = report.targets
     const m = { ...report.metrics }
+    // Insumos disponíveis: produção futura não pode alimentar tarefas deste ciclo.
+    const available = { ...report.metrics }
     const d = () => deficits(m, targets)
     const idle = workers.filter((entry) => entry.controller?.isIdle?.())
     const priority = {
@@ -164,24 +166,33 @@ class DemandPlanner {
         task = { type: 'fazenda', resource: 'comida', count, reason: 'estoque_baixo_comida' }
         m.food += count
       } else if (role === 'artesao') {
-        const hasStickMaterial = m.logs >= 1 || m.planks >= 2
-        if (need.ironIngot > 0 && m.rawIron > 0 && m.fuel > 0) {
-          const count = Math.min(8, need.ironIngot, m.rawIron)
+        const hasStickMaterial = available.logs >= 1 || available.planks >= 2
+        if (need.ironIngot > 0 && available.rawIron > 0 && available.fuel > 0) {
+          const count = Math.min(8, need.ironIngot, available.rawIron, available.fuel * 8)
           task = { type: 'fabricar', item: 'iron_ingot', count, reason: 'converter_ferro_bruto' }
+          available.rawIron -= count
+          available.fuel -= Math.ceil(count / 8)
           m.rawIron -= count
           m.ironIngot += count
-        } else if (need.ironPickaxe > 0 && m.ironIngot >= 3 && hasStickMaterial) {
+        } else if (need.ironPickaxe > 0 && available.ironIngot >= 3 && hasStickMaterial) {
           task = { type: 'fabricar', item: 'iron_pickaxe', count: 1, reason: 'reserva_picaretas' }
           m.ironPickaxe += 1
+          available.ironIngot -= 3
           m.ironIngot -= 3
-        } else if (need.ironAxe > 0 && m.ironIngot >= 3 && hasStickMaterial) {
+        } else if (need.ironAxe > 0 && available.ironIngot >= 3 && hasStickMaterial) {
           task = { type: 'fabricar', item: 'iron_axe', count: 1, reason: 'reserva_machados' }
           m.ironAxe += 1
+          available.ironIngot -= 3
           m.ironIngot -= 3
-        } else if (need.ironSword > 0 && m.ironIngot >= 2 && hasStickMaterial) {
+        } else if (need.ironSword > 0 && available.ironIngot >= 2 && hasStickMaterial) {
           task = { type: 'fabricar', item: 'iron_sword', count: 1, reason: 'reserva_espadas' }
           m.ironSword += 1
+          available.ironIngot -= 2
           m.ironIngot -= 2
+        }
+        if (task && task.item !== 'iron_ingot') {
+          if (available.planks >= 2) available.planks -= 2
+          else available.logs -= 1
         }
       } else if (role === 'guarda') {
         task = { type: 'guardar', durationMs: 15000, reason: 'proteger_dono' }
