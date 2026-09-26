@@ -132,6 +132,9 @@ async function main() {
   const demandPlanner = new DemandPlanner()
   const stateStore = new StateStore()
   const savedState = await stateStore.load()
+  if (stateStore.lastLoadError) {
+    console.log('[estado] arquivo local inválido; iniciando com estado vazio')
+  }
   let colonyHome = savedState.home
   if (savedState.storage) storage.setPosition(savedState.storage)
   const projectManager = new ProjectManager({
@@ -405,6 +408,14 @@ async function main() {
           restored.push(...workers.map((worker) => worker.name))
         } catch (err) {
           console.log(`[estado] não consegui restaurar ${role}: ${err.message}`)
+        }
+      }
+      if (projectManager.isActive()) {
+        try {
+          const extra = await ensureProjectWorkers(projectManager.active.type)
+          restored.push(...extra)
+        } catch (err) {
+          console.log(`[estado] projeto restaurado, mas faltam workers: ${err.message}`)
         }
       }
       if (savedState.auto && colony.autoReadiness().ready) colony.setAuto(true)
