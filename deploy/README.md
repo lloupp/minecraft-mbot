@@ -50,7 +50,13 @@ node -e "const h=require('crypto').createHash('md5').update('OfflinePlayer:eduar
 sudo ufw allow from 192.168.0.0/24 to any port 25565 proto tcp
 ```
 
-## 3. Serviços
+## 3. Whitelist
+
+No 26.3 o `server.properties` vem com `white-list=true` por padrão e a lista vazia.
+Adicione o dono, o bot e os nomes da colônia (`<papel>_01`..`_12`) em `whitelist.json`
+(com UUID offline) ou, como op no jogo, use `/whitelist add <nome>`.
+
+## 4. Serviços
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -65,7 +71,7 @@ Parar tudo: `systemctl --user stop minecraft-mbot minecraft-server`.
 
 Sem systemd, `npm run sempre` roda o bot reconectando a cada 15s.
 
-## 4. Entrar do Windows
+## 5. Entrar do Windows
 
 Minecraft **26.3** (vanilla ou Forge pelo TLauncher) → Multijogador → Conexão
 direta → `<IP deste PC>:25565` (veja o IP com `hostname -I`).
