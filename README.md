@@ -96,6 +96,10 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!parar` | Desconecta o orquestrador e encerra os bots auxiliares |
 | `!bot criar [papel] [qtd]` | Cria bots auxiliares, ex.: `!bot criar minerador 3` |
 | `!bot remover <nome>` | Remove um bot da colônia |
+| `!base aqui` | Define a posição atual do jogador como base da colônia |
+| `!base status` | Mostra as coordenadas da base |
+| `!base limpar` | Remove a base e desativa o modo automático |
+| `!colonia necessidades` | Mostra os déficits atuais calculados a partir do estoque |
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
@@ -197,7 +201,9 @@ Comandos principais:
 - **construtor**: executa o blueprint inicial de um abrigo 3x3;
 - **ajudante**: pode retornar à base e receber futuras tarefas genéricas.
 
-O modo `!colonia auto` distribui tarefas padrão apenas para workers ociosos. Ordens manuais substituem a tarefa atual do worker.
+A base é definida explicitamente pelo jogador com `!base aqui`. O comando usa a posição do jogador que enviou a ordem, não a posição do bot. A base pode ser consultada com `!base status` e removida com `!base limpar`.
+
+O modo `!colonia auto` agora é orientado por demanda real. Ele exige **base + estoque central** configurados e distribui tarefas apenas a workers ociosos. Ordens manuais continuam disponíveis e substituem a tarefa atual do worker.
 
 ### Construção
 
@@ -285,4 +291,33 @@ WORKERS / CONSTRUTORES
 NOVOS RECURSOS
 ```
 
-A próxima evolução natural é o orquestrador passar a observar níveis mínimos do estoque e abrir ordens automaticamente por demanda, por exemplo: detectar falta de ferro, carvão, comida ou ferramentas e acionar a profissão necessária sem comando manual.
+## Autonomia por demanda
+
+Com base e estoque definidos:
+
+```text
+!base aqui
+!estoque aqui
+!colonia auto
+```
+
+O orquestrador mantém metas mínimas para comida, madeira, combustível, ferro, materiais de construção e reserva de ferramentas. Ele lê o estoque central e escolhe tarefas conforme o déficit:
+
+```text
+pouco carvão      -> minerador busca carvão
+pouco ferro       -> minerador busca ferro
+pouca madeira     -> lenhador busca madeira
+pouca comida      -> fazendeiro produz comida
+raw_iron sobrando -> artesão funde iron_ingot
+faltam ferramentas -> artesão fabrica reposição
+estoque estável   -> explorador pode explorar
+guarda            -> protege o dono
+```
+
+Para consultar a demanda atual:
+
+```text
+!colonia necessidades
+```
+
+O estoque é sincronizado periodicamente. Se um worker falhar em uma tarefa automática, recebe um pequeno período de espera antes de nova tentativa para evitar loops de erro.
