@@ -36,17 +36,17 @@ test('start and stop work', () => {
   assert.equal(sync._timer, null)
 })
 
-test('sync calls storage updateSnapshot', () => {
-  const updateSnapshot = { called: false }
+test('sync mantém snapshot local e não sobrescreve o estoque central', () => {
+  let storageWrites = 0
   const sync = new InventorySync({
     storage: {
       setPosition: () => {},
-      updateSnapshot: () => { updateSnapshot.called = true },
-      cachedSummary: () => ({})
+      updateSnapshot: () => { storageWrites++ },
+      cachedSummary: () => ({ diamond: 64 })
     },
     bot: {
       entity: { position: { x: 0, y: 64, z: 0 } },
-      inventory: { items: () => [], selectedItem: null },
+      inventory: { items: () => [{ name: 'coal', count: 3 }], selectedItem: null },
       heldItem: null,
       closeWindow: () => {},
       waitForTicks: () => {}
@@ -55,7 +55,9 @@ test('sync calls storage updateSnapshot', () => {
     logger: { log: () => {} }
   })
   sync.sync()
-  assert.equal(updateSnapshot.called, true)
+  assert.equal(storageWrites, 0)
+  assert.deepEqual(sync.snapshot(), { coal: 3 })
+  assert.equal(sync.verify().consistent, true)
 })
 
 test('stop clears timer', () => {
