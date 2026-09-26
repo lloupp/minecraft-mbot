@@ -1,3 +1,5 @@
+const husbandry = require('../lib/husbandry')
+
 class ColonyOrchestrator {
   constructor({
     botManager,
@@ -27,6 +29,7 @@ class ColonyOrchestrator {
     // Espécies com tarefa de manejo em andamento: o backoff só é gravado no fim,
     // sem isso o tick seguinte mandaria outro fazendeiro para o mesmo curral.
     this.animalInFlight = new Set()
+    this.animalFailures = new Map()
   }
 
   start() {
@@ -71,8 +74,10 @@ class ColonyOrchestrator {
     this.animalTargets.clear()
     for (const [species, target] of Object.entries(targets || {})) {
       const value = Number.parseInt(target, 10)
-      if (!species || !Number.isInteger(value)) continue
-      this.animalTargets.set(String(species).toLowerCase(), Math.max(2, Math.min(32, value)))
+      // Estado salvo pode ter nome antigo/inválido: guarda só a espécie canônica.
+      const canonical = husbandry.normalizeSpecies(species)
+      if (!canonical || !Number.isInteger(value)) continue
+      this.animalTargets.set(canonical, Math.max(2, Math.min(32, value)))
     }
     return this.animalTargetsSnapshot()
   }
@@ -98,6 +103,8 @@ class ColonyOrchestrator {
       if (!chosen) break
 
       const snapshot = chosen.controller.penPopulation(species)
+      // Chunk do curral não carregado: não dá para saber se existe; tenta depois.
+      if (snapshot?.status?.unknown) continue
       if (!snapshot?.built) {
         plan.push({
           ...chosen,
@@ -361,6 +368,14 @@ class ColonyOrchestrator {
     )
   }
 
+  // Falhas seguidas no manejo de uma espécie (sem ração, sem animais por perto...)
+  // dobram a espera: 30 s, 1 min, 2 min... até 10 min. Um sucesso zera.
+  animalFailureDelay(species) {
+    const failures = (this.animalFailures.get(species) || 0) + 1
+    this.animalFailures.set(species, failures)
+    return Math.min(30000 * 2 ** (failures - 1), 600000)
+  }
+
   runAuto(worker, controller, task) {
     const animalTask = task.species &&
       ['manejar_populacao', 'capturar_animais', 'construir_curral'].includes(task.type)
@@ -376,13 +391,11 @@ class ColonyOrchestrator {
           this.autoBackoff.delete(worker.name)
         }
 
-        if (task.species && task.type === 'manejar_populacao') {
-          this.animalBackoff.set(
-            task.species,
-            Date.now() + (result?.ok === false ? 30000 : 300000)
-          )
-        } else if (task.species && ['capturar_animais', 'construir_curral'].includes(task.type)) {
-          if (result?.ok === false) this.animalBackoff.set(task.species, Date.now() + 30000)
+        if (animalTask && result?.ok === false) {
+          this.animalBackoff.set(task.species, Date.now() + this.animalFailureDelay(task.species))
+        } else if (animalTask) {
+          this.animalFailures.delete(task.species)
+          if (task.type === 'manejar_populacao') this.animalBackoff.set(task.species, Date.now() + 300000)
           else this.animalBackoff.delete(task.species)
         }
         if (task.projectActionId) {
@@ -397,8 +410,8 @@ class ColonyOrchestrator {
       .catch((err) => {
         if (task.projectActionId) this.projectManager?.failAction?.(task.projectActionId, err)
         this.autoBackoff.set(worker.name, Date.now() + 20000)
-        if (task.species && ['manejar_populacao', 'capturar_animais', 'construir_curral'].includes(task.type)) {
-          this.animalBackoff.set(task.species, Date.now() + 30000)
+        if (animalTask) {
+          this.animalBackoff.set(task.species, Date.now() + this.animalFailureDelay(task.species))
         }
         this.logger.log(`[auto] ${worker.name}: ${err.message}`)
       })

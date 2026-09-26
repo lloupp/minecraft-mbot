@@ -55,28 +55,38 @@ function animalPenPlan(home, species = 'cow', offset = null) {
   }
 }
 
-function pointInsidePen(position, plan, margin = 0.35) {
+// Interior = blocos de origin+1 a origin+size-2 (a borda é cerca), igual nos
+// dois lados; e no mesmo nível do curral (±2), não num túnel embaixo dele.
+function pointInsidePen(position, plan, margin = 0) {
   if (!position || !plan?.origin) return false
   const x = Number(position.x)
   const z = Number(position.z)
   if (![x, z].every(Number.isFinite)) return false
-  const minX = plan.origin.x + margin
+  const y = Number(position.y)
+  if (Number.isFinite(y) && Number.isFinite(plan.origin.y) && Math.abs(y - plan.origin.y) > 2) return false
+  const minX = plan.origin.x + 1 + margin
   const maxX = plan.origin.x + plan.size - 1 - margin
-  const minZ = plan.origin.z + margin
+  const minZ = plan.origin.z + 1 + margin
   const maxZ = plan.origin.z + plan.size - 1 - margin
   return x > minX && x < maxX && z > minZ && z < maxZ
 }
 
 function inspectAnimalPen(bot, plan) {
+  // blockAt null = chunk não carregado: "desconhecido", não "sem curral"
+  // (senão o modo automático mandaria construir outro por cima).
+  let unknown = false
   const gateBlock = bot.blockAt?.(new Vec3(plan.gate.x, plan.gate.y, plan.gate.z))
+  if (!gateBlock) unknown = true
   const gatePresent = Boolean(gateBlock?.name?.endsWith('_fence_gate'))
   let fencesPresent = 0
   for (const position of plan.fences) {
     const block = bot.blockAt?.(new Vec3(position.x, position.y, position.z))
+    if (!block) unknown = true
     if (block?.name?.endsWith('_fence') && !block.name.endsWith('_fence_gate')) fencesPresent++
   }
   return {
     species: plan.species,
+    unknown,
     built: gatePresent && fencesPresent === plan.fenceCount,
     gatePresent,
     gateOpen: Boolean(gatePresent && gateBlock.getProperties?.().open),
