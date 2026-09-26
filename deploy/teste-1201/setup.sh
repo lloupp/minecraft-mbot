@@ -24,6 +24,7 @@ echo "eula=true" > "$DEST/eula.txt"
 # Só as chaves que diferem do padrão; o servidor completa o resto na 1ª subida.
 if [ ! -f "$DEST/server.properties" ]; then
   cat > "$DEST/server.properties" <<'PROPS'
+server-ip=127.0.0.1
 server-port=25566
 online-mode=false
 enforce-secure-profile=false
@@ -38,7 +39,7 @@ PROPS
 fi
 
 # Whitelist com UUID offline: dono, orquestrador e os papéis da colônia _01.._12.
-# Ops: dono e orquestrador.
+# Ops: apenas o dono; mantém permissões já configuradas.
 OWNER="$OWNER" DEST="$DEST" node -e '
 const crypto = require("crypto");
 const fs = require("fs");
@@ -58,8 +59,20 @@ for (const role of roles) {
 }
 const entry = (name) => ({ uuid: offlineUuid(name), name });
 const write = (file, data) => fs.writeFileSync(path.join(process.env.DEST, file), JSON.stringify(data, null, 2) + "\n");
-write("whitelist.json", names.map(entry));
-write("ops.json", [owner, "eduardo_bot"].map((name) => ({ ...entry(name), level: 4, bypassesPlayerLimit: false })));
+function merge(file, additions) {
+  const target = path.join(process.env.DEST, file);
+  const existing = fs.existsSync(target) ? JSON.parse(fs.readFileSync(target, "utf8")) : [];
+  if (!Array.isArray(existing)) throw new Error(`${file} deve conter uma lista`);
+  const merged = [...existing];
+  for (const value of additions) {
+    if (!merged.some(old => old.uuid === value.uuid || old.name === value.name)) merged.push(value);
+  }
+  return merged;
+}
+const whitelist = merge("whitelist.json", names.map(entry));
+const ops = merge("ops.json", [{ ...entry(owner), level: 4, bypassesPlayerLimit: false }]);
+write("whitelist.json", whitelist);
+write("ops.json", ops);
 '
 
 echo "Servidor de teste pronto em $DEST (porta 25566)."

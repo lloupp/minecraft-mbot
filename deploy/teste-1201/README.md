@@ -21,13 +21,15 @@ O script:
 - baixa o `server.jar` 1.20.1 oficial e confere o SHA1;
 - grava `eula.txt` (aceite da EULA: https://aka.ms/MinecraftEULA);
 - cria o `server.properties` só se ainda não existir: porta 25566,
-  `online-mode=false`, whitelist ligada, `spawn-protection=0`, seed `mbot-teste`;
+  `server-ip=127.0.0.1`, `online-mode=false`, whitelist ligada, `spawn-protection=0`, seed `mbot-teste`;
 - gera `whitelist.json` com UUID offline para o dono (`MINECRAFT_OWNER`, padrão
   `eduardo`), `eduardo_bot` e os papéis da colônia `_01`..`_12`, e `ops.json`
-  com o dono e o `eduardo_bot`.
+  apenas com o dono. O bot e os workers entram sem OP.
 
-Rodar de novo é seguro: mantém o `server.properties` e o mundo, e regrava a
-whitelist e os ops.
+Rodar de novo é seguro: mantém o `server.properties` e o mundo, e atualiza a
+whitelist e os ops preservando entradas existentes e adicionando as que faltam.
+Permissões de OP já existentes não são removidas; retire-as explicitamente para
+validar bots sem privilégios.
 
 ## Subir e parar
 
