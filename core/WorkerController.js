@@ -8,6 +8,8 @@ const animalProducts = require('../lib/animalProducts')
 const stateMachineExplore = require('../lib/stateMachineExplore')
 const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
+const blueprint = require('../lib/blueprint')
+const { buildBlueprint } = require('../lib/blueprintBuilder')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -311,6 +313,9 @@ class WorkerController {
           break
         case 'construir_mina':
           result = await this.buildMine(isCancelled, task.length || 12)
+          break
+        case 'construir_planta':
+          result = await this.buildBlueprintRegion(isCancelled, task)
           break
         case 'retirar_estoque':
           result = await this.withdrawFromStorage(task.item, task.count || 1)
@@ -1465,6 +1470,60 @@ class WorkerController {
       offset: { x: dx, z: dz }
     }
   }
+  async buildBlueprintRegion(isCancelled, task) {
+    if (!task.planta || !task.origin) throw new Error('ordem de planta sem nome ou origem')
+    const plan = await blueprint.loadBlueprint(task.planta, { version: this.bot.version || blueprint.DEFAULT_VERSION })
+    const region = task.region || null
+    const steps = blueprint.stepsForRegion(plan, region)
+    const needed = blueprint.materialList(steps).materials
+    const origin = { x: Math.floor(task.origin.x), y: Math.floor(task.origin.y), z: Math.floor(task.origin.z) }
+
+    const withdrawn = {}
+    const take = async (item, count) => {
+      if (!this.storage?.configured() || count <= 0) return 0
+      const got = await this.storage.withdraw(this.bot, item, count).catch(() => 0)
+      if (got) withdrawn[item] = (withdrawn[item] || 0) + got
+      return got
+    }
+
+    const inventory = blueprint.inventoryCounts(this.bot.inventory.items())
+    for (const [item, count] of Object.entries(blueprint.missingMaterials(needed, inventory))) {
+      if (isCancelled()) break
+      await take(item, Math.min(count, 128))
+    }
+
+    const report = await buildBlueprint(this.bot, steps, origin, {
+      isCancelled,
+      clear: blueprint.clearForRegion(plan, region),
+      acquire: async (item) => (await take(item, Math.min(64, needed[item] || 1))) > 0,
+      log: (msg) => this.logger.log('[planta] ' + this.name + ' ' + msg)
+    })
+
+    const deposited = this.storage?.configured()
+      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      : {}
+
+    const obstructed = new Set(report.obstructed.map((o) => [o.x, o.y, o.z].join(',')))
+    const remainingSteps = steps.filter((step) =>
+      !obstructed.has([origin.x + step.x, origin.y + step.y, origin.z + step.z].join(',')) &&
+      !this.blockMatches(origin, step))
+    const remaining = blueprint.materialList(remainingSteps).materials
+    const missingCount = Object.values(report.missing).reduce((a, b) => a + b, 0)
+
+    return {
+      ok: !report.cancelled && report.failed.length === 0 && missingCount === 0,
+      planta: task.planta, region, total: report.total, alreadyOk: report.alreadyOk,
+      placed: report.placed, cleared: report.cleared, wrongOrientation: report.wrongOrientation,
+      obstructed: report.obstructed, failed: report.failed.length, missing: report.missing,
+      remaining, withdrawn, deposited, durationMs: report.durationMs
+    }
+  }
+
+  blockMatches(origin, step) {
+    const block = this.bot.blockAt(new Vec3(origin.x + step.x, origin.y + step.y, origin.z + step.z))
+    return block?.name === step.name
+  }
+
 }
 
 module.exports = { WorkerController, protectPenBlocks }

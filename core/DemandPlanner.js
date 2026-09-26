@@ -63,6 +63,32 @@ function deficits(metrics, targets = DEFAULT_TARGETS) {
   return out
 }
 
+// Quem consegue material específico de uma planta: blocos que se coletam do
+// chão vão para minerador/lenhador; o resto o artesão tenta fabricar.
+const MINED_MATERIALS = {
+  cobblestone: 'pedra',
+  cobbled_deepslate: 'deepslate',
+  dirt: 'dirt',
+  sand: 'sand',
+  red_sand: 'red_sand',
+  gravel: 'gravel'
+}
+
+function materialSource(name) {
+  if (MINED_MATERIALS[name]) return { role: 'minerador', resource: MINED_MATERIALS[name] }
+  if (/_(log|stem)$/.test(name)) return { role: 'lenhador', resource: name }
+  return { role: 'artesao', item: name }
+}
+
+function materialTask(role, name, count) {
+  const source = materialSource(name)
+  if (source.role !== role) return null
+  if (role === 'artesao') {
+    return { type: 'fabricar', item: name, count: Math.min(16, count), reason: `planta_${name}` }
+  }
+  return { type: 'coletar_blocos', resource: source.resource, count: Math.min(12, count), reason: `planta_${name}` }
+}
+
 class DemandPlanner {
   constructor({ targets = {} } = {}) {
     this.targets = { ...DEFAULT_TARGETS, ...targets }
@@ -79,11 +105,18 @@ class DemandPlanner {
   report(stock, extraTargets = {}) {
     const metrics = stockMetrics(stock)
     const targets = this.effectiveTargets(extraTargets)
-    return { metrics, deficits: deficits(metrics, targets), targets }
+    return { metrics, deficits: deficits(metrics, targets), targets, stock: { ...(stock || {}) } }
   }
 
-  buildPlan(workers, stock, extraTargets = {}) {
+  // `materials`: item -> quantidade pedida por uma planta (além das categorias).
+  buildPlan(workers, stock, extraTargets = {}, materials = {}) {
     const report = this.report(stock, extraTargets)
+    const lacking = {}
+    for (const [name, count] of Object.entries(materials || {})) {
+      const lack = Number(count || 0) - Number(stock?.[name] || 0)
+      if (lack > 0) lacking[name] = lack
+    }
+    report.materialDeficits = { ...lacking }
     const targets = report.targets
     const m = { ...report.metrics }
     const d = () => deficits(m, targets)
@@ -157,6 +190,18 @@ class DemandPlanner {
         if (critical === 0) task = { type: 'explorar', radius: 96, reason: 'estoque_estavel' }
       }
 
+      // Sem demanda de categoria: ajuda com o material específico da planta.
+      if (!task && ['minerador', 'lenhador', 'artesao'].includes(role)) {
+        for (const [name, lack] of Object.entries(lacking)) {
+          task = materialTask(role, name, lack)
+          if (task) {
+            lacking[name] = Math.max(0, lack - task.count)
+            if (!lacking[name]) delete lacking[name]
+            break
+          }
+        }
+      }
+
       if (task) plan.push({ ...entry, task })
     }
 
@@ -166,6 +211,8 @@ class DemandPlanner {
 
 module.exports = {
   DemandPlanner,
+  materialSource,
+  materialTask,
   DEFAULT_TARGETS,
   FOOD_NAMES,
   stockMetrics,
