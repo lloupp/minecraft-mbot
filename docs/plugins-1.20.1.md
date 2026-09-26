@@ -146,7 +146,7 @@ Pontos positivos para o minecraft-mbot:
 
 Riscos:
 
-- versão publicada 1.7.0;
+- versão publicada 1.7.0, de 23/01/2023;
 - dependências declaradas antigas em relação ao stack atual;
 - precisa ser validado com Node 22 e o fork @wp2508/mineflayer;
 - não deve criar uma segunda cópia efetiva de Mineflayer;
@@ -158,7 +158,7 @@ Decisão: spike de alta prioridade atrás de MBOT_STATEMACHINE=1, migrando um ú
 
 Fonte oficial: https://github.com/PrismarineJS/mineflayer-builder
 
-Apesar de aparecer entre os projetos que usam Mineflayer para construir schematics, o README atual do próprio projeto declara que ele ainda é work in progress e não é um pacote utilizável completo.
+Apesar de aparecer entre os projetos que usam Mineflayer para construir schematics, a última release publicada é 1.0.1 de 11/04/2022. Há um PR de release 1.1.0 aberto em 2026, mas não publicado. O README atual do próprio projeto declara que ele ainda é work in progress e não é um pacote utilizável completo.
 
 O exemplo/código atual:
 
