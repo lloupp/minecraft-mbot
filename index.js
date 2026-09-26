@@ -232,8 +232,7 @@ async function main() {
   eventLog.log('colony_start', {
     version: serverProfile.version,
     profile: serverProfile.id,
-    bots: maxColonyBots,
-    home: colonyHome
+    bots: maxColonyBots
   })
 
   const smokeTest = new SmokeTest({
