@@ -142,9 +142,15 @@ async function main() {
   let lastAttacker = null
   let taskId = 0            // incrementado para cancelar a tarefa em andamento
   let followMoves, workMoves
+  let resolvedOwner = OWNER
 
   function ownerName() {
-    return OWNER || Object.keys(bot.players).find((name) => name !== bot.username)
+    if (resolvedOwner) return resolvedOwner
+    const candidate = Object.keys(bot.players).find((name) =>
+      name !== bot.username && !botManager.get(name)
+    )
+    if (candidate) resolvedOwner = candidate
+    return resolvedOwner
   }
 
   function ownerEntity() {
