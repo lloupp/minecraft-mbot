@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "sempre": "while true; do node index.js && break; echo 'Reconectando em 15s...'; sleep 15; done",
-    "check": "for f in index.js core/*.js lib/*.js; do node --check \"$f\" || exit 1; done",
+    "check": "for f in index.js core/*.js lib/*.js; do node --check \"$f\" || exit 1; done && node --check lib/animalProducts.js",
     "test": "node --test"
   },
   "keywords": [
