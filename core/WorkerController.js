@@ -50,7 +50,9 @@ class WorkerController {
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
       this.workMoves.canDig = true
-      this.workMoves.allow1by1towers = false
+      // Subir empilhando blocos (terra/pedregulho do próprio inventário) é o único
+      // jeito de sair de um poço 1x1 que o worker cavou minerando para baixo.
+      this.workMoves.allow1by1towers = true
       bot.pathfinder.setMovements(this.workMoves)
       bot.pathfinder.tickTimeout = PATH_TICK_MS
       this.state = 'ocioso'
