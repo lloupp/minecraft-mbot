@@ -288,6 +288,16 @@ class ColonyOrchestrator {
     return { name, species, pairs: normalizedPairs }
   }
 
+  async collectAnimalProduct(product, count = 1) {
+    const normalizedCount = Math.max(1, Math.min(32, Number.parseInt(count, 10) || 1))
+    const name = this.runRoleTask(
+      'fazendeiro',
+      { type: 'produto_animal', product, count: normalizedCount },
+      `produto animal ${product}`
+    )
+    return { name, product, count: normalizedCount }
+  }
+
   async shearSheep(count = 1) {
     const normalizedCount = Math.max(1, Math.min(32, Number.parseInt(count, 10) || 1))
     const name = this.runRoleTask(
