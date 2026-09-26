@@ -197,7 +197,10 @@ class WorkerController {
           result = await this.farm(task.count || 1, isCancelled)
           break
         case 'explorar':
-          result = await this.explore(task.radius || 64, isCancelled)
+          result = await this.explore(task.radius || 64, isCancelled, task.center || null)
+          break
+        case 'ir_local':
+          result = await this.goToPoint(task.position, isCancelled)
           break
         case 'guardar':
           result = await this.guard(task.durationMs || 20000, isCancelled)
@@ -294,9 +297,9 @@ class WorkerController {
     return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count, deposited }
   }
 
-  async explore(radius, isCancelled) {
-    const home = this.homeProvider?.()
-    if (!home) throw new Error('base da colônia ainda não definida')
+  async explore(radius, isCancelled, center = null) {
+    const home = center || this.homeProvider?.()
+    if (!home) throw new Error('base/centro de exploração ainda não definido')
 
     const directions = [
       [1, 0], [1, 1], [0, 1], [-1, 1],
@@ -308,11 +311,27 @@ class WorkerController {
     const distance = Math.min(radius, 16 * ring)
     const x = Math.floor(home.x + direction[0] * distance)
     const z = Math.floor(home.z + direction[1] * distance)
-    const y = Math.floor(this.bot.entity.position.y)
+    const y = Number.isFinite(Number(home.y))
+      ? Math.floor(Number(home.y))
+      : Math.floor(this.bot.entity.position.y)
 
     await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
     if (isCancelled()) return { ok: false, cancelled: true }
     return { ok: true, x, y, z, radius: distance }
+  }
+
+  async goToPoint(position, isCancelled) {
+    const x = Number(position?.x)
+    const y = Number(position?.y)
+    const z = Number(position?.z)
+    if (![x, y, z].every(Number.isFinite)) throw new Error('posição de destino inválida')
+    await this.goTo(new goals.GoalNear(Math.floor(x), Math.floor(y), Math.floor(z), 2), 45000)
+    return {
+      ok: !isCancelled(),
+      x: Math.floor(x),
+      y: Math.floor(y),
+      z: Math.floor(z)
+    }
   }
 
   async guard(durationMs, isCancelled) {
