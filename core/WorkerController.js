@@ -713,6 +713,17 @@ class WorkerController {
       if (await this.placeGroundItem(position, kit.fence, isCancelled)) fencesPlaced++
     }
 
+    // Acesso ao portão no nível do curral: com a célula da frente 1 bloco mais
+    // alta o fazendeiro não conseguia entrar e o portão ficava aberto até o
+    // tempo acabar, soltando os animais (visto no 1.20.1).
+    const approach = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z - 1)
+    for (const pos of [approach, approach.offset(0, 1, 0)]) {
+      const block = this.bot.blockAt(pos)
+      if (isCancelled() || !NATURAL_TERRAIN.test(block?.name || '')) continue
+      await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 8000).catch(() => {})
+      await this.bot.dig(block).catch(() => {})
+    }
+
     let gatePlaced = false
     if (!isCancelled()) {
       gatePlaced = await this.placePenGate(plan, kit.gate, isCancelled)
