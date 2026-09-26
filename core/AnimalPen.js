@@ -1,3 +1,5 @@
+const { Vec3 } = require('vec3')
+
 const PEN_SIZE = 7
 
 const SPECIES_OFFSETS = {
@@ -62,11 +64,11 @@ function pointInsidePen(position, plan, margin = 0.35) {
 }
 
 function inspectAnimalPen(bot, plan) {
-  const gateBlock = bot.blockAt?.(plan.gate)
+  const gateBlock = bot.blockAt?.(new Vec3(plan.gate.x, plan.gate.y, plan.gate.z))
   const gatePresent = Boolean(gateBlock?.name?.endsWith('_fence_gate'))
   let fencesPresent = 0
   for (const position of plan.fences) {
-    const block = bot.blockAt?.(position)
+    const block = bot.blockAt?.(new Vec3(position.x, position.y, position.z))
     if (block?.name?.endsWith('_fence') && !block.name.endsWith('_fence_gate')) fencesPresent++
   }
   return {
