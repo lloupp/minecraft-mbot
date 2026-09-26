@@ -228,6 +228,7 @@ class WorkerController {
   }
 
   async guard(durationMs, isCancelled) {
+    await this.ensureRoleTool()
     const deadline = Date.now() + durationMs
     while (Date.now() < deadline && !isCancelled()) {
       const owner = this.ownerProvider?.()
@@ -261,12 +262,39 @@ class WorkerController {
   }
 
   async ensureRoleTool() {
-    if (!this.storage?.configured()) return null
-    const kind = this.role === 'minerador' ? 'pickaxe' : this.role === 'lenhador' ? 'axe' : null
+    const kind = this.role === 'minerador'
+      ? 'pickaxe'
+      : this.role === 'lenhador'
+        ? 'axe'
+        : this.role === 'guarda'
+          ? 'sword'
+          : null
     if (!kind) return null
+
     const hasTool = this.bot.inventory.items().some((item) => item.name.endsWith(`_${kind}`))
     if (hasTool) return null
-    return this.storage.withdrawBestTool(this.bot, kind)
+
+    if (this.storage?.configured()) {
+      const withdrawn = await this.storage.withdrawBestTool(this.bot, kind)
+      if (withdrawn) return withdrawn
+    }
+
+    if (this.production) {
+      const candidates = kind === 'sword'
+        ? ['iron_sword', 'stone_sword', 'wooden_sword']
+        : kind === 'pickaxe'
+          ? ['iron_pickaxe', 'stone_pickaxe', 'wooden_pickaxe']
+          : ['iron_axe', 'stone_axe', 'wooden_axe']
+
+      for (const item of candidates) {
+        try {
+          const made = await this.production.craftInternal(this.bot, item, 1)
+          if (made) return { name: item, count: 1, crafted: true }
+        } catch {}
+      }
+    }
+
+    return null
   }
 
   async withdrawFromStorage(item, count) {
