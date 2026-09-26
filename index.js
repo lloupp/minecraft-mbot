@@ -24,6 +24,9 @@ const gather = require('./lib/gather')
 const combat = require('./lib/combat')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
+const { StorageManager } = require('./core/StorageManager')
+const { ProductionManager, normalizeItemName } = require('./core/ProductionManager')
+const { DemandPlanner } = require('./core/DemandPlanner')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -110,6 +113,9 @@ async function main() {
   const knowledge = new MinecraftKnowledge(bot)
   const planner = new Planner(bot, knowledge)
   const commandRouter = new CommandRouter()
+  const storage = new StorageManager()
+  const production = new ProductionManager({ storage })
+  const demandPlanner = new DemandPlanner()
   let colonyHome = null
 
   function createWorker({ name, role }) {
@@ -122,8 +128,10 @@ async function main() {
       bot: worker,
       name,
       role,
-      homeProvider: () => colonyHome || bot.entity?.position,
-      ownerProvider: () => ownerEntity()
+      homeProvider: () => colonyHome,
+      ownerProvider: () => ownerEntity(),
+      storage,
+      production
     })
 
     worker.once('spawn', () => {
@@ -142,8 +150,10 @@ async function main() {
   })
   const colony = new ColonyOrchestrator({
     botManager,
-    homeProvider: () => colonyHome || bot.entity?.position,
-    ownerProvider: () => ownerEntity()
+    homeProvider: () => colonyHome,
+    ownerProvider: () => ownerEntity(),
+    storage,
+    demandPlanner
   })
   colony.start()
 
@@ -312,7 +322,6 @@ async function main() {
 
   // ========== EVENTOS ==========
   bot.on('spawn', () => {
-    if (!colonyHome) colonyHome = bot.entity.position.clone()
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
     console.log(`Posição: X=${bot.entity.position.x.toFixed(1)}, Y=${bot.entity.position.y.toFixed(1)}, Z=${bot.entity.position.z.toFixed(1)}`)
@@ -418,14 +427,17 @@ async function main() {
   // ========== COMANDOS VIA CHAT ==========
   function colonySummary() {
     const workers = botManager.list()
-    if (!workers.length) return [`Colônia: 1/${maxColonyBots} (somente ${bot.username}).`]
     const roles = {}
     for (const worker of workers) roles[worker.role] = (roles[worker.role] || 0) + 1
-    const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ')
-    const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | auto: ${colony.auto ? 'ON' : 'OFF'} | ${roleText}`]
+    const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ') || 'sem workers'
+    const baseText = colonyHome
+      ? `${Math.floor(colonyHome.x)},${Math.floor(colonyHome.y)},${Math.floor(colonyHome.z)}`
+      : 'NÃO'
+    const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | auto: ${colony.auto ? 'ON' : 'OFF'} | base: ${baseText} | estoque: ${storage.configured() ? 'OK' : 'NÃO'} | ${roleText}`]
     for (let i = 0; i < workers.length; i += 4) {
       lines.push(workers.slice(i, i + 4).map((w) => {
-        const task = w.task ? `:${w.task}${w.resource ? '/' + w.resource : ''}` : ''
+        const detail = w.resource || w.item || ''
+        const task = w.task ? `:${w.task}${detail ? '/' + detail : ''}` : ''
         return `${w.name}(${w.status}${task})`
       }).join(', '))
     }
@@ -441,10 +453,41 @@ async function main() {
     if (action === 'auto') {
       const value = String(args[1] || 'on').toLowerCase()
       const enabled = !['off', '0', 'nao', 'não', 'false'].includes(value)
-      colony.setAuto(enabled)
-      bot.chat(`Modo automático da colônia: ${enabled ? 'ATIVADO' : 'DESATIVADO'}.`)
+
+      if (!enabled) {
+        colony.setAuto(false)
+        bot.chat('Modo automático da colônia: DESATIVADO.')
+        return
+      }
+
+      const readiness = colony.autoReadiness()
+      if (!readiness.ready) {
+        bot.chat(`Não posso ativar o automático. Falta definir: ${readiness.missing.join(', ')}.`)
+        return
+      }
+
+      colony.setAuto(true)
+      bot.chat('Modo automático por demanda: ATIVADO.')
       return
     }
+
+    if (action === 'necessidades' || action === 'demanda') {
+      if (!storage.configured()) {
+        bot.chat('Defina primeiro o estoque com !estoque aqui.')
+        return
+      }
+      try {
+        if (!storage.snapshotFresh(5000)) await storage.summary(bot)
+        const report = colony.demandReport()
+        const d = report?.deficits || {}
+        bot.chat(`Faltas: comida ${d.food || 0}, madeira ${d.wood || 0}, combustível ${d.fuel || 0}, ferro ${d.ironTotal || 0}, construção ${d.building || 0}.`)
+        bot.chat(`Reserva: lingotes ${d.ironIngot || 0}, picaretas ${d.ironPickaxe || 0}, machados ${d.ironAxe || 0}, espadas ${d.ironSword || 0}.`)
+      } catch (err) {
+        bot.chat(`Não consegui analisar a demanda: ${err.message}`)
+      }
+      return
+    }
+
     for (const line of colonySummary()) bot.chat(line)
   })
 
@@ -486,13 +529,39 @@ async function main() {
     }
   })
 
-  commandRouter.register('base', async (_context, args) => {
-    if (String(args[0] || '').toLowerCase() !== 'aqui' || !bot.entity) {
-      bot.chat('Uso: !base aqui')
+  commandRouter.register('base', async (context, args) => {
+    const action = String(args[0] || 'status').toLowerCase()
+
+    if (action === 'status') {
+      if (!colonyHome) {
+        bot.chat('Base ainda não definida. Vá ao local desejado e use !base aqui.')
+        return
+      }
+      bot.chat(`Base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
       return
     }
-    colonyHome = bot.entity.position.clone()
-    bot.chat(`Base definida em X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
+
+    if (action === 'limpar' || action === 'remover') {
+      colonyHome = null
+      colony.setAuto(false)
+      bot.chat('Base removida. O modo automático foi desativado.')
+      return
+    }
+
+    if (action !== 'aqui') {
+      bot.chat('Uso: !base aqui | !base status | !base limpar')
+      return
+    }
+
+    const player = bot.players[context.username]?.entity
+    const source = player?.position || bot.entity?.position
+    if (!source) {
+      bot.chat('Não consigo determinar sua posição agora.')
+      return
+    }
+
+    colonyHome = source.clone()
+    bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
   })
 
   commandRouter.register('tarefas', async () => {
@@ -503,8 +572,111 @@ async function main() {
     }
     for (let i = 0; i < tasks.length; i += 4) {
       bot.chat(tasks.slice(i, i + 4).map((entry) =>
-        `${entry.name}:${entry.state}${entry.task ? '/' + entry.task : ''}${entry.resource ? '/' + entry.resource : ''}`
+        `${entry.name}:${entry.state}${entry.task ? '/' + entry.task : ''}${entry.resource || entry.item ? '/' + (entry.resource || entry.item) : ''}`
       ).join(', '))
+    }
+  })
+
+  commandRouter.register('estoque', async (_context, args) => {
+    const action = String(args[0] || 'status').toLowerCase()
+
+    if (action === 'aqui' || action === 'definir') {
+      try {
+        const block = storage.configureNearest(bot, 8)
+        await storage.summary(bot)
+        bot.chat(`Estoque central definido: ${block.name} em X=${block.position.x}, Y=${block.position.y}, Z=${block.position.z}.`)
+      } catch (err) {
+        bot.chat(`Não consegui definir o estoque: ${err.message}`)
+      }
+      return
+    }
+
+    if (action === 'guardar' || action === 'recolher') {
+      if (!storage.configured()) {
+        bot.chat('Defina primeiro o estoque com !estoque aqui.')
+        return
+      }
+      const names = await colony.depositAll()
+      bot.chat(names.length ? `Mandando ${names.length} bot(s) ociosos descarregar no estoque.` : 'Nenhum bot ocioso para descarregar.')
+      return
+    }
+
+    if (action === 'limpar') {
+      storage.setPosition(null)
+      colony.setAuto(false)
+      bot.chat('Estoque central removido. O modo automático foi desativado.')
+      return
+    }
+
+    if (!storage.configured()) {
+      bot.chat('Estoque não configurado. Fique perto de um baú/barrel e use !estoque aqui.')
+      return
+    }
+
+    try {
+      const counts = await storage.summary(bot)
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
+      if (!entries.length) {
+        bot.chat('Estoque central está vazio.')
+        return
+      }
+      for (let i = 0; i < Math.min(entries.length, 20); i += 5) {
+        bot.chat(entries.slice(i, i + 5).map(([name, count]) => `${name}x${count}`).join(', '))
+      }
+    } catch (err) {
+      bot.chat(`Não consegui ler o estoque: ${err.message}`)
+    }
+  })
+
+  // O próprio bot fabrica (coletando madeira/pedra e usando a mesa se precisar).
+  function craftSelf(itemName, count) {
+    const item = bot.registry.itemsByName[itemName]
+    if (!item) {
+      bot.chat(`Não conheço o item "${itemName}".`)
+      return
+    }
+    const target = craft.countItem(bot, item.id) + count
+    bot.chat(`Fabricando ${count}x ${item.name}...`)
+    runTask('fabricar', async (isCancelled) => {
+      await craft.craftItem(bot, item.name, target, isCancelled)
+      if (!isCancelled()) bot.chat(`Pronto! Tenho ${craft.countItem(bot, item.id)}x ${item.name}.`)
+    })
+  }
+
+  commandRouter.register('fabricar', async (_context, args) => {
+    if (!args.length) {
+      bot.chat('Uso: !fabricar <item> [qtd]. Ex.: !fabricar picareta_ferro 2')
+      return
+    }
+    let count = 1
+    if (/^\d+$/.test(args.at(-1))) count = Math.max(1, Number.parseInt(args.pop(), 10))
+    const item = normalizeItemName(args.join('_'))
+    // Sem estoque central da colônia, o próprio bot fabrica para si.
+    if (!storage.configured()) {
+      craftSelf(item, count)
+      return
+    }
+    try {
+      const assignment = await colony.craft(item, count)
+      bot.chat(`${assignment.name} vai fabricar ${count}x ${item} e guardar no estoque.`)
+    } catch (err) {
+      bot.chat(`Não consegui iniciar a fabricação: ${err.message}`)
+    }
+  })
+
+  commandRouter.register('abastecer', async (_context, args) => {
+    if (args.length < 2) {
+      bot.chat('Uso: !abastecer <bot> <item> [qtd]')
+      return
+    }
+    const name = String(args[0]).toLowerCase()
+    const item = normalizeItemName(args[1])
+    const count = Math.max(1, Number.parseInt(args[2], 10) || 1)
+    try {
+      await colony.supply(name, item, count)
+      bot.chat(`${name} vai retirar ${count}x ${item} do estoque.`)
+    } catch (err) {
+      bot.chat(`Não consegui abastecer: ${err.message}`)
     }
   })
 
@@ -582,8 +754,10 @@ async function main() {
   })
 
   bot.on('chat', async (username, message) => {
-    if (username === bot.username) return
-    if (OWNER && username !== OWNER) return
+    if (username === bot.username || botManager.get(username)) return
+    const owner = ownerName()
+    if (owner && username !== owner) return
+    if (!resolvedOwner) resolvedOwner = username
     if (await commandRouter.dispatch({ bot, username }, message)) return
     const [cmd, ...args] = message.toLowerCase().trim().split(/\s+/)
 
@@ -647,20 +821,6 @@ async function main() {
         mine(args[0], parseCount(args[1]))
         break
       }
-      case '!fabricar': {
-        const item = bot.registry.itemsByName[args[0]]
-        if (!item) {
-          bot.chat('Uso: !fabricar <item> [quantidade]  ex.: !fabricar wooden_pickaxe (nome em inglês)')
-          return
-        }
-        const target = craft.countItem(bot, item.id) + parseCount(args[1])
-        bot.chat(`Fabricando ${item.name}...`)
-        runTask('fabricar', async (isCancelled) => {
-          await craft.craftItem(bot, item.name, target, isCancelled)
-          if (!isCancelled()) bot.chat(`Pronto! Tenho ${craft.countItem(bot, item.id)}x ${item.name}.`)
-        })
-        break
-      }
       case '!cozinhar': {
         // Sem argumento: cozinha toda a comida crua. Com item: cozinha/funde esse item.
         const targets = args[0]
@@ -702,7 +862,7 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !bot, !bots, !ordem, !todos voltar, !construir casa, !colonia auto, !base aqui, !tarefas, !item, !receita')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir casa, !todos voltar, !tarefas, !item, !receita')
         break
     }
   })

@@ -1,12 +1,25 @@
 class ColonyOrchestrator {
-  constructor({ botManager, homeProvider, ownerProvider, intervalMs = 5000, logger = console }) {
+  constructor({
+    botManager,
+    homeProvider,
+    ownerProvider,
+    storage = null,
+    demandPlanner = null,
+    intervalMs = 5000,
+    stockMaxAgeMs = 30000,
+    logger = console
+  }) {
     this.botManager = botManager
     this.homeProvider = homeProvider
     this.ownerProvider = ownerProvider
+    this.storage = storage
+    this.demandPlanner = demandPlanner
     this.intervalMs = intervalMs
+    this.stockMaxAgeMs = stockMaxAgeMs
     this.logger = logger
     this.auto = false
     this.timer = null
+    this.autoBackoff = new Map()
   }
 
   start() {
@@ -27,6 +40,19 @@ class ColonyOrchestrator {
     return this.auto
   }
 
+  autoReadiness() {
+    const missing = []
+    if (!this.homeProvider?.()) missing.push('base')
+    if (!this.storage?.configured?.()) missing.push('estoque')
+    if (!this.demandPlanner) missing.push('planejador')
+    return { ready: missing.length === 0, missing }
+  }
+
+  demandReport() {
+    if (!this.demandPlanner || !this.storage?.configured?.()) return null
+    return this.demandPlanner.report(this.storage.cachedSummary())
+  }
+
   workers(role = null) {
     const normalized = role ? this.botManager.normalizeRole(role) : null
     return [...this.botManager.workers.values()]
@@ -45,7 +71,8 @@ class ColonyOrchestrator {
       role: worker.role,
       state: controller.state,
       task: controller.currentTask?.type || null,
-      resource: controller.currentTask?.resource || null
+      resource: controller.currentTask?.resource || null,
+      item: controller.currentTask?.item || null
     }))
   }
 
@@ -88,6 +115,8 @@ class ColonyOrchestrator {
           return { type: 'construir_casa' }
         }
         throw new Error('construtor entende nesta etapa: casa/abrigo')
+      case 'artesao':
+        return { type: 'fabricar', item: resource, count }
       case 'ajudante':
         return { type: 'voltar' }
       default:
@@ -105,6 +134,38 @@ class ColonyOrchestrator {
     return chosen.worker.name
   }
 
+  async craft(item, count = 1) {
+    const artisans = this.controllers('artesao')
+    if (!artisans.length) throw new Error('não há artesão na colônia')
+    const chosen = artisans.find(({ controller }) => controller.isIdle()) || artisans[0]
+    const task = { type: 'fabricar', item, count: Math.max(1, Number.parseInt(count, 10) || 1) }
+    chosen.controller.run(task)
+      .then((result) => this.logger.log(`[produção] ${chosen.worker.name}:`, result))
+      .catch((err) => this.logger.log(`[produção] ${chosen.worker.name} falhou: ${err.message}`))
+    return { name: chosen.worker.name, task }
+  }
+
+  async supply(workerName, item, count = 1) {
+    const worker = this.botManager.get(workerName)
+    if (!worker?.bot?.colonyController) throw new Error(`bot não encontrado: ${workerName}`)
+    const task = { type: 'retirar_estoque', item, count: Math.max(1, Number.parseInt(count, 10) || 1) }
+    worker.bot.colonyController.run(task)
+      .then((result) => this.logger.log(`[estoque] ${workerName} recebeu:`, result))
+      .catch((err) => this.logger.log(`[estoque] ${workerName} falhou: ${err.message}`))
+    return task
+  }
+
+  async depositAll() {
+    const names = []
+    for (const { worker, controller } of this.controllers()) {
+      if (!controller.isIdle()) continue
+      controller.run({ type: 'depositar' })
+        .catch((err) => this.logger.log(`[estoque] ${worker.name} não depositou: ${err.message}`))
+      names.push(worker.name)
+    }
+    return names
+  }
+
   async returnAll() {
     const assignments = []
     for (const { worker, controller } of this.controllers()) {
@@ -116,34 +177,50 @@ class ColonyOrchestrator {
     return assignments
   }
 
-  async tick() {
-    if (!this.auto) return
-    for (const { worker, controller } of this.controllers()) {
-      if (!controller.isIdle()) continue
-      const task = this.autoTask(worker.role)
-      if (!task) continue
-      controller.run(task)
-        .then((result) => this.logger.log(`[auto] ${worker.name}:`, result))
-        .catch((err) => this.logger.log(`[auto] ${worker.name}: ${err.message}`))
-    }
+  eligibleAutoControllers() {
+    const now = Date.now()
+    return this.controllers().filter(({ worker, controller }) =>
+      controller.isIdle() && (this.autoBackoff.get(worker.name) || 0) <= now
+    )
   }
 
-  autoTask(role) {
-    switch (role) {
-      case 'minerador':
-        return { type: 'coletar_blocos', resource: 'carvao', count: 4 }
-      case 'lenhador':
-        return { type: 'coletar_blocos', resource: 'madeira', count: 4 }
-      case 'fazendeiro':
-        return { type: 'fazenda', resource: 'comida', count: 2 }
-      case 'explorador':
-        return { type: 'explorar', radius: 96 }
-      case 'guarda':
-        return { type: 'guardar', durationMs: 15000 }
-      case 'ajudante':
-        return { type: 'voltar' }
-      default:
-        return null
+  runAuto(worker, controller, task) {
+    controller.run(task)
+      .then((result) => {
+        if (result?.ok === false) {
+          this.autoBackoff.set(worker.name, Date.now() + 15000)
+        } else {
+          this.autoBackoff.delete(worker.name)
+        }
+        this.logger.log(`[auto] ${worker.name} ${task.reason || task.type}:`, result)
+      })
+      .catch((err) => {
+        this.autoBackoff.set(worker.name, Date.now() + 20000)
+        this.logger.log(`[auto] ${worker.name}: ${err.message}`)
+      })
+  }
+
+  async tick() {
+    if (!this.auto) return
+
+    const readiness = this.autoReadiness()
+    if (!readiness.ready) return
+
+    const eligible = this.eligibleAutoControllers()
+    if (!eligible.length) return
+
+    if (!this.storage.snapshotFresh(this.stockMaxAgeMs)) {
+      const chosen = eligible[0]
+      this.runAuto(chosen.worker, chosen.controller, {
+        type: 'sincronizar_estoque',
+        reason: 'atualizar_estoque'
+      })
+      return
+    }
+
+    const { plan } = this.demandPlanner.buildPlan(eligible, this.storage.cachedSummary())
+    for (const { worker, controller, task } of plan) {
+      this.runAuto(worker, controller, task)
     }
   }
 }

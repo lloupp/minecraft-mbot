@@ -102,6 +102,10 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!parar` | Desconecta o orquestrador e encerra os bots auxiliares |
 | `!bot criar [papel] [qtd]` | Cria bots auxiliares, ex.: `!bot criar minerador 3` |
 | `!bot remover <nome>` | Remove um bot da colônia |
+| `!base aqui` | Define a posição atual do jogador como base da colônia |
+| `!base status` | Mostra as coordenadas da base |
+| `!base limpar` | Remove a base e desativa o modo automático |
+| `!colonia necessidades` | Mostra os déficits atuais calculados a partir do estoque |
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
@@ -137,6 +141,7 @@ Papéis disponíveis nesta primeira versão:
 - `explorador`
 - `guarda`
 - `ajudante`
+- `artesao`
 
 Exemplos:
 
@@ -210,8 +215,123 @@ Comandos principais:
 - **construtor**: executa o blueprint inicial de um abrigo 3x3;
 - **ajudante**: pode retornar à base e receber futuras tarefas genéricas.
 
-O modo `!colonia auto` distribui tarefas padrão apenas para workers ociosos. Ordens manuais substituem a tarefa atual do worker.
+A base é definida explicitamente pelo jogador com `!base aqui`. O comando usa a posição do jogador que enviou a ordem, não a posição do bot. A base pode ser consultada com `!base status` e removida com `!base limpar`.
+
+O modo `!colonia auto` agora é orientado por demanda real. Ele exige **base + estoque central** configurados e distribui tarefas apenas a workers ociosos. Ordens manuais continuam disponíveis e substituem a tarefa atual do worker.
 
 ### Construção
 
-`!construir casa` usa um construtor disponível e cria um abrigo 3x3 próximo à base. Nesta versão, o construtor precisa ter no próprio inventário pelo menos 23 blocos adequados (por exemplo, cobblestone ou planks). A logística de estoque compartilhado e transferência automática de materiais entre bots é uma próxima etapa separada.
+`!construir casa` usa um construtor disponível e cria um abrigo 3x3 próximo à base. Se ele não tiver pelo menos 23 blocos adequados no inventário, tenta retirá-los automaticamente do estoque central.
+
+
+## Estoque central e cadeia de produção
+
+A colônia pode usar um **baú, baú-armadilha ou barrel real** como estoque compartilhado.
+
+Fique próximo ao container e use:
+
+```text
+!estoque aqui
+!estoque status
+!estoque guardar
+```
+
+Depois disso:
+
+- mineradores e lenhadores descarregam automaticamente recursos coletados;
+- fazendeiros descarregam excedentes, preservando comida para sobrevivência;
+- ferramentas, armas e comida mínima ficam com os workers;
+- operações no mesmo container são serializadas para evitar dois bots manipularem o baú simultaneamente;
+- construtores retiram blocos do estoque quando precisam;
+- mineradores, lenhadores e guardas tentam retirar uma ferramenta adequada do estoque antes de produzir uma nova.
+
+### Artesão
+
+Crie pelo menos um artesão:
+
+```text
+!bot criar artesao
+```
+
+Ele pode receber ordens de produção:
+
+```text
+!fabricar picareta_ferro 2
+!fabricar machado_ferro 2
+!fabricar ferro 8
+!fabricar vidro 16
+```
+
+O sistema resolve cadeias de crafting de forma recursiva. Exemplo:
+
+```text
+iron_pickaxe
+  -> iron_ingot + stick
+  -> raw_iron -> furnace -> iron_ingot
+  -> log -> planks -> sticks
+  -> crafting_table
+  -> iron_pickaxe
+  -> estoque central
+```
+
+Se uma receita exigir bancada e não houver uma por perto, o sistema tenta obter/fabricar e posicionar uma `crafting_table`. O mesmo ocorre com a `furnace` quando é necessário fundir raw iron, raw gold, raw copper, sand ou madeira para carvão vegetal.
+
+### Abastecimento
+
+É possível mandar um worker retirar um item específico do estoque:
+
+```text
+!abastecer minerador_01 iron_pickaxe 1
+!abastecer construtor_01 cobblestone 32
+```
+
+Na rotina normal, mineradores e lenhadores já tentam se abastecer sozinhos com ferramentas.
+
+### Fluxo atual
+
+```text
+COLETA
+  ↓
+ESTOQUE CENTRAL
+  ↓
+FUNDIÇÃO
+  ↓
+CRAFTING
+  ↓
+FERRAMENTAS / MATERIAIS
+  ↓
+WORKERS / CONSTRUTORES
+  ↓
+NOVOS RECURSOS
+```
+
+## Autonomia por demanda
+
+Com base e estoque definidos:
+
+```text
+!base aqui
+!estoque aqui
+!colonia auto
+```
+
+O orquestrador mantém metas mínimas para comida, madeira, combustível, ferro, materiais de construção e reserva de ferramentas. Ele lê o estoque central e escolhe tarefas conforme o déficit:
+
+```text
+pouco carvão      -> minerador busca carvão
+pouco ferro       -> minerador busca ferro
+pouca madeira     -> lenhador busca madeira
+pouca comida      -> fazendeiro produz comida
+raw_iron sobrando -> artesão funde iron_ingot
+faltam ferramentas -> artesão fabrica reposição
+estoque estável   -> explorador pode explorar
+guarda            -> protege o dono
+```
+
+Para consultar a demanda atual:
+
+```text
+!colonia necessidades
+```
+
+O estoque é sincronizado periodicamente. Se um worker falhar em uma tarefa automática, recebe um pequeno período de espera antes de nova tentativa para evitar loops de erro.

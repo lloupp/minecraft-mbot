@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "check": "node --check index.js && node --check core/CommandRouter.js && node --check core/MinecraftKnowledge.js && node --check core/Planner.js && node --check core/BotManager.js && node --check core/resources.js && node --check core/WorkerController.js && node --check core/ColonyOrchestrator.js && node --check lib/food.js && node --check lib/perception.js && node --check lib/protocol.js && node --check lib/craft.js && node --check lib/gather.js && node --check lib/combat.js",
+    "check": "node --check index.js && node --check core/CommandRouter.js && node --check core/MinecraftKnowledge.js && node --check core/Planner.js && node --check core/BotManager.js && node --check core/resources.js && node --check core/StorageManager.js && node --check core/DemandPlanner.js && node --check core/ProductionManager.js && node --check core/WorkerController.js && node --check core/ColonyOrchestrator.js && node --check lib/food.js && node --check lib/perception.js && node --check lib/protocol.js && node --check lib/craft.js && node --check lib/gather.js && node --check lib/combat.js",
     "test": "node --test"
   },
   "keywords": [
