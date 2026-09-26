@@ -516,6 +516,21 @@ O primeiro plugin Mineflayer a ser testado como backend opcional será
 candidatos operacionais mais úteis para uma colônia autônoma.
 
 
+## StateMachine experimental
+
+A exploração dos workers possui um backend experimental com
+`mineflayer-statemachine`. Ele não é instalado como dependência padrão.
+
+Para testar:
+
+```bash
+npm install --no-save --package-lock=false mineflayer-statemachine@1.7.0
+MBOT_STATEMACHINE=1 node index.js
+```
+
+Sem a variável, o fluxo clássico de exploração permanece ativo. A promoção para
+runtime padrão depende de teste real em Minecraft 1.20.1.
+
 ## Plugins de runtime opcionais
 
 O bot pode carregar plugins da comunidade sem remover os fallbacks próprios.

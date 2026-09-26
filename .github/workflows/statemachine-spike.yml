@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/statemachine-spike.yml'
       - 'scripts/statemachine-spike.js'
+      - 'scripts/statemachine-explore-spike.js'
+      - 'lib/stateMachineExplore.js'
+      - 'core/WorkerController.js'
       - 'docs/ROADMAP.md'
   workflow_dispatch:
 
@@ -24,3 +27,5 @@ jobs:
         run: npm ls mineflayer mineflayer-pathfinder mineflayer-statemachine
       - name: Run compatibility assertions
         run: node scripts/statemachine-spike.js
+      - name: Run exploration adapter spike
+        run: MBOT_STATEMACHINE=1 node scripts/statemachine-explore-spike.js
