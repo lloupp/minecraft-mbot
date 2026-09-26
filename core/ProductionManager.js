@@ -190,8 +190,9 @@ class ProductionManager {
       if (local >= count) return { name, count }
 
       if (this.storage?.configured()) {
-        const result = await this.storage.withdrawFirst(bot, [name], count)
-        if (result) return result
+        const missing = count - local
+        const result = await this.storage.withdrawFirst(bot, [name], missing)
+        if (result) return { name, count }
       }
     }
     throw new Error(`faltam insumos para fundir ${outputName}`)
@@ -204,6 +205,10 @@ class ProductionManager {
         .filter((item) => item.name === name)
         .reduce((sum, item) => sum + item.count, 0)
       if (local >= needed) return { name, count: needed }
+      if (local > 0 && this.storage?.configured()) {
+        const result = await this.storage.withdrawFirst(bot, [name], needed - local)
+        if (result) return { name, count: needed }
+      }
     }
     if (this.storage?.configured()) {
       const result = await this.storage.withdrawFirst(bot, ['coal', 'charcoal'], needed)
