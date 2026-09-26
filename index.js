@@ -525,6 +525,10 @@ async function main() {
   })
 
   commandRouter.register('fabricar', async (_context, args) => {
+    if (!storage.configured()) {
+      bot.chat('Defina primeiro um baú/barrel central com !estoque aqui.')
+      return
+    }
     if (!args.length) {
       bot.chat('Uso: !fabricar <item> [qtd]. Ex.: !fabricar picareta_ferro 2')
       return
