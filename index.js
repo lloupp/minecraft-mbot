@@ -26,6 +26,7 @@ const equipment = require('./lib/equipment')
 const night = require('./lib/night')
 const husbandry = require('./lib/husbandry')
 const { Autonomy } = require('./lib/autonomy')
+const { loadPlugins, startWebViews } = require('./lib/plugins')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
@@ -127,6 +128,7 @@ async function main() {
     }
   }
   bot.loadPlugin(pathfinder)
+  loadPlugins(bot)
 
   // ========== ORQUESTRAÇÃO ==========
   const knowledge = new MinecraftKnowledge(bot)
@@ -154,6 +156,7 @@ async function main() {
     const worker = mineflayer.createBot({ ...CONFIG, username: name })
     configureClient(worker, serverProfile)
     worker.loadPlugin(pathfinder)
+    loadPlugins(worker, { log: (msg) => console.log(`[colônia] ${name} ${msg}`) })
     worker.colonyController = new WorkerController({
       bot: worker,
       name,
@@ -559,6 +562,7 @@ async function main() {
 
   // ========== EVENTOS ==========
   let restoredWorkers = false
+  bot.once('spawn', () => startWebViews(bot))
   bot.on('spawn', async () => {
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)

@@ -90,6 +90,31 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 - **"chunk size" warnings**: Esperado — protocolo incompleto, não é fatal para chat.
 - **"unsupported protocol version"**: defina `MINECRAFT_VERSION=26.3`.
 
+## Plugins prontos
+
+O bot carrega plugins da comunidade (`lib/plugins.js`), todos presos ao mesmo
+fork do mineflayer por `overrides` no `package.json`. Se algum não carregar
+numa versão, o bot usa a implementação própria em `lib/`.
+
+| Plugin | Para quê |
+|---|---|
+| `mineflayer-pvp` | Combate corpo a corpo: persegue e golpeia no tempo certo |
+| `mineflayer-collectblock` + `mineflayer-tool` | Coleta com a ferramenta certa, recolhendo os itens |
+| `mineflayer-armor-manager` | Veste armadura assim que pega (também nos bots da colônia) |
+| `minecrafthawkeye` | Mira com arco contra esqueletos e alvos distantes (se tiver arco e flechas) |
+| `prismarine-viewer` | **Ver o bot jogando no navegador** (3D; suporta até 1.21.4) |
+| `mineflayer-web-inventory` | Ver o inventário do bot no navegador |
+
+Para as páginas web, defina as portas ao iniciar:
+
+```bash
+MBOT_VIEWER_PORT=3007 MBOT_INVENTORY_PORT=3008 node index.js
+```
+
+Abra `http://localhost:3007` (ou `http://<IP deste PC>:3007` de outro PC da rede,
+liberando a porta no firewall). O visualizador precisa do módulo nativo `canvas`,
+instalado como dependência opcional.
+
 ## Comandos no chat
 
 | Comando | O que faz |
