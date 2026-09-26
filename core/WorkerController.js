@@ -4,6 +4,7 @@ const food = require('../lib/food')
 const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const husbandry = require('../lib/husbandry')
+const { animalPenPlan } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -203,6 +204,12 @@ class WorkerController {
         case 'tosquiar':
           result = await this.shearSheep(task.count || 1, isCancelled)
           break
+        case 'manejar_populacao':
+          result = await this.manageAnimalPopulation(task.species, task.target || 6, isCancelled)
+          break
+        case 'construir_curral':
+          result = await this.buildAnimalPen(isCancelled, task.species || 'cow', task.offset || null)
+          break
         case 'explorar':
           result = await this.explore(task.radius || 64, isCancelled, task.center || null)
           break
@@ -315,6 +322,121 @@ class WorkerController {
       storage: this.storage,
       production: this.production
     })
+  }
+
+  async manageAnimalPopulation(species, target, isCancelled) {
+    return husbandry.managePopulation(this.bot, species, target, isCancelled, {
+      storage: this.storage
+    })
+  }
+
+  inventoryCountByName(name) {
+    return this.bot.inventory.items()
+      .filter((item) => item.name === name)
+      .reduce((sum, item) => sum + (item.count || 0), 0)
+  }
+
+  async ensureItemAmount(name, count) {
+    const wanted = Math.max(1, Number.parseInt(count, 10) || 1)
+    let have = this.inventoryCountByName(name)
+    if (have >= wanted) return have
+
+    if (this.storage?.configured()) {
+      await this.storage.withdraw(this.bot, name, wanted - have).catch(() => 0)
+      have = this.inventoryCountByName(name)
+      if (have >= wanted) return have
+    }
+
+    if (this.production) {
+      try {
+        await this.production.craftInternal(this.bot, name, wanted - have)
+      } catch {}
+      have = this.inventoryCountByName(name)
+    }
+
+    return have
+  }
+
+  async ensurePenKit(plan) {
+    const woods = [
+      'oak', 'spruce', 'birch', 'jungle', 'acacia',
+      'dark_oak', 'mangrove', 'cherry', 'bamboo'
+    ]
+
+    for (const wood of woods) {
+      const fence = `${wood}_fence`
+      const gate = `${wood}_fence_gate`
+      if (!this.bot.registry?.itemsByName?.[fence] || !this.bot.registry?.itemsByName?.[gate]) continue
+
+      const haveFence = await this.ensureItemAmount(fence, plan.fenceCount)
+      const haveGate = await this.ensureItemAmount(gate, plan.gateCount)
+      if (haveFence >= plan.fenceCount && haveGate >= plan.gateCount) {
+        return { fence, gate }
+      }
+    }
+    return null
+  }
+
+  async placeGroundItem(position, itemName, isCancelled) {
+    if (isCancelled()) return false
+    const pos = new Vec3(position.x, position.y, position.z)
+    let current = this.bot.blockAt(pos)
+    if (current?.name === itemName) return true
+
+    if (current && current.name !== 'air' && current.boundingBox !== 'empty') return false
+    if (current && current.name !== 'air' && current.boundingBox === 'empty') {
+      await this.bot.dig(current).catch(() => {})
+      current = this.bot.blockAt(pos)
+      if (current && current.name !== 'air' && current.boundingBox !== 'empty') return false
+    }
+
+    const below = this.bot.blockAt(pos.offset(0, -1, 0))
+    if (!below || below.name === 'air' || below.boundingBox === 'empty') return false
+
+    const item = this.bot.inventory.items().find((entry) => entry.name === itemName)
+    if (!item) return false
+
+    await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 10000).catch(() => {})
+    if (isCancelled()) return false
+    await this.bot.equip(item, 'hand').catch(() => {})
+    try {
+      await this.bot.placeBlock(below, new Vec3(0, 1, 0))
+      return this.bot.blockAt(pos)?.name === itemName
+    } catch {
+      return false
+    }
+  }
+
+  async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
+    const home = this.homeProvider?.()
+    const canonical = husbandry.normalizeSpecies(species) || species
+    const plan = animalPenPlan(home, canonical, offset)
+    const kit = await this.ensurePenKit(plan)
+    if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
+
+    let fencesPlaced = 0
+    for (const position of plan.fences) {
+      if (isCancelled()) break
+      if (await this.placeGroundItem(position, kit.fence, isCancelled)) fencesPlaced++
+    }
+
+    let gatePlaced = false
+    if (!isCancelled()) {
+      gatePlaced = await this.placeGroundItem(plan.gate, kit.gate, isCancelled)
+    }
+
+    return {
+      ok: !isCancelled() && gatePlaced && fencesPlaced >= plan.fenceCount,
+      species: canonical,
+      size: plan.size,
+      fencesPlaced,
+      fencesRequested: plan.fenceCount,
+      gatePlaced,
+      center: plan.center,
+      offset: plan.offset,
+      fenceItem: kit.fence,
+      gateItem: kit.gate
+    }
   }
 
   async explore(radius, isCancelled, center = null) {
