@@ -94,7 +94,7 @@ Critérios do spike:
 
 ### Riscos
 
-A versão publicada `mineflayer-statemachine 1.7.0` declara dependências antigas, incluindo Mineflayer 4.x e pathfinder. O minecraft-mbot usa um fork de Mineflayer.
+A versão publicada `mineflayer-statemachine 1.7.0` é de 23/01/2023 e declara dependências antigas, incluindo Mineflayer 4.x e pathfinder. O minecraft-mbot usa um fork de Mineflayer.
 
 Antes de promover:
 
@@ -148,7 +148,7 @@ Estudar e reaproveitar ideias do `mineflayer-builder` para orientação, ordena�
 
 Fonte oficial: https://github.com/PrismarineJS/mineflayer-builder
 
-O próprio README atual declara o projeto work in progress e ainda não utilizável como pacote completo. O exemplo oficial pede mundo plano, bot OP e Creative.
+A última release publicada do `mineflayer-builder` é 1.0.1, de 11/04/2022. Existe um PR de release 1.1.0 aberto em 2026, mas não é uma release publicada. O próprio README atual declara o projeto work in progress e ainda não utilizável como pacote completo. O exemplo oficial pede mundo plano, bot OP e Creative.
 
 ### O que é útil para nós
 
