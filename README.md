@@ -870,3 +870,20 @@ meta atingida
 ```
 
 O alvo é limitado a 2–32 animais por espécie. Falhas de terreno, falta de alimento, ausência de animais próximos ou curral obstruído entram no sistema de backoff do modo automático. Depois de uma tentativa de reprodução considerada bem-sucedida, a espécie recebe um cooldown de 5 minutos antes de outra tentativa automática, evitando consumo repetitivo de alimento.
+
+
+## Produção animal não letal
+
+Com um fazendeiro e currais funcionais:
+
+```text
+!produto la 8
+!produto leite 3
+!produto ovos
+```
+
+- **Lã:** usa o curral de ovelhas, obtém tesoura, ignora filhotes, recolhe os drops e deposita no estoque.
+- **Leite:** usa o curral de vacas, obtém baldes antes de entrar, ignora filhotes e confirma os baldes de leite.
+- **Ovos:** entra no curral das galinhas e recolhe apenas ovos já existentes no chão; não espera indefinidamente.
+
+Essas tarefas não abatem animais e não reduzem metas populacionais. Carne e couro permanecem fora desta etapa até existir política explícita de reserva mínima.
