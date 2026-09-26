@@ -132,6 +132,41 @@ criar uma instância nova a cada tarefa e deve encapsular o tick atrás de um
 adapter. A estratégia preferida é uma máquina reutilizável por worker ou
 atualização manual de `NestedStateMachine`.
 
+### Spike de runtime: exploração
+
+A primeira migração real usa apenas a tarefa `explorar` do worker.
+
+Ativação experimental:
+
+```bash
+npm install --no-save --package-lock=false mineflayer-statemachine@1.7.0
+MBOT_STATEMACHINE=1 node index.js
+```
+
+Com a flag desligada, a exploração clássica continua inalterada.
+
+A integração não usa `BotStateMachine`. Ela usa `StateTransition` e
+`NestedStateMachine` com atualização manual, evitando listener permanente no
+evento legado do plugin.
+
+Fluxo do spike:
+
+```text
+prepare
+  ↓
+navigate
+  ├─ cancelado -> cancelled
+  ├─ erro      -> failed
+  └─ chegou    -> verify
+                    ↓
+                   done
+```
+
+O CI experimental instala o pacote temporariamente e valida sucesso,
+cancelamento e falha. O próximo gate é testar esse caminho no servidor real
+1.20.1 e comparar com a exploração clássica antes de adicionar a dependência ao
+runtime normal.
+
 ### Critério para promoção
 
 1. CI verde;
