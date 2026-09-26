@@ -143,7 +143,7 @@ class ProjectManager {
   }
 
   targets() {
-    if (!this.active) return {}
+    if (!this.isActive()) return {}
     return { ...this.definition(this.active.type).targets }
   }
 
@@ -248,8 +248,8 @@ class ProjectManager {
       status: this.active.status,
       startedAt: this.active.startedAt,
       completedAt: this.active.completedAt,
-      targets: this.targets(),
-      requiredRoles: this.requiredRoles(),
+      targets: { ...this.definition(this.active.type).targets },
+      requiredRoles: { ...(this.definition(this.active.type).requiredRoles || {}) },
       deficits: report?.deficits ? { ...report.deficits } : null,
       actions
     }
