@@ -344,3 +344,25 @@ test('StorageManager snapshot cache pode ser atualizado sem abrir container', ()
   assert.deepEqual(storage.cachedSummary(), { coal: 5, oak_log: 7 })
   assert.equal(storage.snapshotFresh(1000), true)
 })
+
+
+test('DemandPlanner não fabrica ferramenta com apenas uma tábua', () => {
+  const planner = new DemandPlanner()
+  const workers = [{
+    worker: { name: 'artesao_01', role: 'artesao' },
+    controller: { isIdle: () => true }
+  }]
+  const { plan } = planner.buildPlan(workers, {
+    bread: 32,
+    coal: 24,
+    iron_ingot: 12,
+    cobblestone: 64,
+    oak_planks: 1
+  })
+  assert.equal(plan.length, 0)
+})
+
+test('DemandPlanner contabiliza alimentos crus utilizáveis', () => {
+  const metrics = stockMetrics({ beef: 6, porkchop: 4, carrot: 2 })
+  assert.equal(metrics.food, 12)
+})
