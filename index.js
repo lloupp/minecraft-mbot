@@ -40,11 +40,9 @@ const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
 const { WaypointManager } = require('./core/WaypointManager')
 const { groundedPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
-const { EventLog, getEventLog } = require('./lib/event-log')
-const { DeathRecovery } = require('./lib/death-recovery')
-const { InventorySync } = require('./lib/inventory-sync')
-const { ReplanningEngine } = require('./lib/replanning')
-const { RouteMemory } = require('./lib/route-memory')
+const blueprint = require('./lib/blueprint')
+const { buildBlueprint, describeReport } = require('./lib/blueprintBuilder')
+const { getEventLog } = require('./lib/event-log')
 const { StatusServer } = require('./lib/status-server')
 const { RunVerifier } = require('./core/RunVerifier')
 
@@ -206,21 +204,13 @@ async function main() {
 
   // ========== AUDITABILIDADE E RESILIÊNCIA ==========
   const eventLog = getEventLog()
-  const deathRecovery = new DeathRecovery({ storage, eventLog, logger: console })
-  const inventorySync = new InventorySync({ storage, bot, eventLog, logger: console })
-  const routeMemory = new RouteMemory(storage)
-  const replanning = new ReplanningEngine({ storage, eventLog, logger: console })
-  const statusServer = new StatusServer({ botManager, storage, projectManager, eventLog })
+  const statusPort = Number(process.env.STATUS_PORT || 3080)
+  const statusServer = new StatusServer({ botManager, storage, projectManager, eventLog, port: statusPort })
   const runVerifier = new RunVerifier({ eventLog, storage, botManager, projectManager })
 
-  // Carregar route memory
-  routeMemory.load()
-
-  // Iniciar inventory sync e status server
-  inventorySync.start()
-  const statusPort = Number(process.env.STATUS_PORT || 3080)
-  statusServer.port = statusPort
-  if (process.env.STATUS_SERVER !== '0') statusServer.start()
+  // O servidor de status é opt-in. Os módulos experimentais de recovery/replanning
+  // ficam disponíveis no código, mas não são ativados até integração real com workers.
+  if (process.env.STATUS_SERVER === '1') statusServer.start()
 
   // Registrar evento de início da colônia
   eventLog.log('colony_start', {
@@ -802,6 +792,7 @@ async function main() {
     colony.stop()
     try { await persistState() } catch {}
     botManager.stopAll()
+    statusServer.stop()
     stopLan()
     console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
     setTimeout(() => process.exit(quitRequested ? 0 : 1), 500)
@@ -1938,6 +1929,12 @@ async function main() {
         break
       }
       case '!status':
+        if (args[0] === 'server') {
+          bot.chat(process.env.STATUS_SERVER === '1'
+            ? `Status server: http://127.0.0.1:${statusServer.port}`
+            : 'Status server desativado. Defina STATUS_SERVER=1 para ativar.')
+          break
+        }
         if (!bot.entity) {
           bot.chat('Ainda estou entrando no mundo.')
           return
@@ -1956,7 +1953,7 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral>, !todos voltar, !tarefas')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
         bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
         break
       case '!verify': {
@@ -1966,7 +1963,7 @@ async function main() {
         break
       }
       case '!events': {
-        const limit = Number(args[1]) || 10
+        const limit = Math.max(1, Math.min(50, Number(args[0]) || 10))
         const events = eventLog.getRecent(limit)
         bot.chat(`Últimos ${events.length} eventos:`)
         for (const e of events.slice(-5)) {
@@ -1975,19 +1972,14 @@ async function main() {
         break
       }
       case '!freeze': {
-        const name = args[1] || `freeze-${Date.now()}`
+        const name = args[0] || `freeze-${Date.now()}`
         bot.chat(`Freeze iniciado: ${name}`)
-        const { execSync } = require('child_process')
         try {
-          execSync(`node scripts/freeze-colony.js ${name}`, { cwd: process.cwd(), timeout: 30000 })
+          execFileSync(process.execPath, ['scripts/freeze-colony.js', name], { cwd: process.cwd(), timeout: 30000 })
           bot.chat(`Freeze concluído: ${name}`)
         } catch (err) {
           bot.chat(`Freeze erro: ${err.message}`)
         }
-        break
-      }
-      case '!status server': {
-        bot.chat(`Status server: http://127.0.0.1:${statusServer.port}`)
         break
       }
     }
