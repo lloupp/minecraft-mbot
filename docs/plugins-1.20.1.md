@@ -128,3 +128,57 @@ plugin disponível e compatível?
 
 Somente depois de passar smoke test em Minecraft 1.20.1 real o backend por plugin
 deve ser habilitado por padrão.
+
+
+## Pesquisa aprofundada: mineflayer-statemachine
+
+Fonte oficial: https://github.com/PrismarineJS/mineflayer-statemachine
+
+O plugin adiciona uma API de máquina de estados de alto nível com transições, estados aninhados e behaviors reutilizáveis. O próprio README do Mineflayer o lista como plugin útil para comportamentos complexos.
+
+Pontos positivos para o minecraft-mbot:
+
+- combina com o crescimento do WorkerController;
+- permite representar tarefas em etapas explícitas;
+- facilita transições como preparar -> mover -> executar -> verificar -> voltar;
+- pode ajudar a tornar cancelamento e retomada mais previsvisíveis;
+- integra com mineflayer-pathfinder.
+
+Riscos:
+
+- versão publicada 1.7.0, de 23/01/2023;
+- backlog aberto e issue de 2024 questionando a manutenção do repositório;
+- dependências declaradas antigas em relação ao stack atual;
+- precisa ser validado com Node 22 e o fork @wp2508/mineflayer;
+- não deve criar uma segunda cópia efetiva de Mineflayer;
+- não pode assumir o papel estratégico do ColonyOrchestrator.
+
+Decisão: spike de alta prioridade atrás de MBOT_STATEMACHINE=1, migrando um único fluxo antes de qualquer adoção maior.
+
+## Pesquisa aprofundada: mineflayer-builder
+
+Fonte oficial: https://github.com/PrismarineJS/mineflayer-builder
+
+Apesar de aparecer entre os projetos que usam Mineflayer para construir schematics, a última release publicada é 1.0.1 de 11/04/2022. Há um PR de release 1.1.0 aberto em 2026, mas não publicado. O README atual do próprio projeto declara que ele ainda é work in progress e não é um pacote utilizável completo.
+
+O exemplo/código atual:
+
+- pressupõe bot OP e Creative;
+- usa bot.creative.setInventorySlot;
+- executa /clear;
+- usa bot._placeBlockWithOptions;
+- cria Movements próprios;
+- altera searchRadius do pathfinder;
+- usa maxDropDown muito alto.
+
+Partes úteis como referência:
+
+- Build e ações disponíveis;
+- GoalPlaceBlock;
+- escolha de face de colocação;
+- facing/orientação;
+- ordenação por distância;
+- verificação de stateId;
+- integração com prismarine-schematic.
+
+Decisão: não instalar como backend padrão. Usar como referência para o construtor por plantas e só testar como backend experimental se puder operar em survival sem Creative/OP, sem API privada e sem sobrescrever o pathfinder global.
