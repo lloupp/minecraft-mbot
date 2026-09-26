@@ -147,6 +147,7 @@ Pontos positivos para o minecraft-mbot:
 Riscos:
 
 - versão publicada 1.7.0, de 23/01/2023;
+- backlog aberto e issue de 2024 questionando a manutenção do repositório;
 - dependências declaradas antigas em relação ao stack atual;
 - precisa ser validado com Node 22 e o fork @wp2508/mineflayer;
 - não deve criar uma segunda cópia efetiva de Mineflayer;
