@@ -323,6 +323,23 @@ class WorkerController {
     return { canonical, plan, status }
   }
 
+  penPopulation(species) {
+    const pen = this.penContext(species)
+    if (!pen) return { species, built: false, inside: 0, status: null }
+    const center = new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z)
+    const inside = husbandry.selectAnimals(this.bot, pen.canonical, {
+      center,
+      range: pen.plan.size + 2,
+      filter: (entity) => pointInsidePen(entity.position, pen.plan)
+    }).length
+    return {
+      species: pen.canonical,
+      built: pen.status.built,
+      inside,
+      status: pen.status
+    }
+  }
+
   async breedAnimals(species, pairs, isCancelled) {
     const pen = this.penContext(species)
     if (!pen?.status?.built) {

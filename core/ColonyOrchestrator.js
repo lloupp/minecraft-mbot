@@ -22,6 +22,8 @@ class ColonyOrchestrator {
     this.auto = false
     this.timer = null
     this.autoBackoff = new Map()
+    this.animalBackoff = new Map()
+    this.animalTargets = new Map()
   }
 
   start() {
@@ -48,6 +50,88 @@ class ColonyOrchestrator {
     if (!this.storage?.configured?.()) missing.push('estoque')
     if (!this.demandPlanner) missing.push('planejador')
     return { ready: missing.length === 0, missing }
+  }
+
+  setAnimalTarget(species, target) {
+    const key = String(species || '').toLowerCase()
+    if (!key) throw new Error('espécie inválida')
+    const value = Math.max(2, Math.min(32, Number.parseInt(target, 10) || 2))
+    this.animalTargets.set(key, value)
+    return value
+  }
+
+  clearAnimalTarget(species) {
+    return this.animalTargets.delete(String(species || '').toLowerCase())
+  }
+
+  restoreAnimalTargets(targets = {}) {
+    this.animalTargets.clear()
+    for (const [species, target] of Object.entries(targets || {})) {
+      const value = Number.parseInt(target, 10)
+      if (!species || !Number.isInteger(value)) continue
+      this.animalTargets.set(String(species).toLowerCase(), Math.max(2, Math.min(32, value)))
+    }
+    return this.animalTargetsSnapshot()
+  }
+
+  animalTargetsSnapshot() {
+    return Object.fromEntries(this.animalTargets)
+  }
+
+  buildAnimalPlan(eligible = []) {
+    const farmers = eligible.filter(({ worker, controller }) =>
+      worker.role === 'fazendeiro' &&
+      controller.isIdle() &&
+      typeof controller.penPopulation === 'function'
+    )
+    if (!farmers.length || !this.animalTargets.size) return []
+
+    const used = new Set()
+    const plan = []
+    for (const [species, target] of this.animalTargets) {
+      if ((this.animalBackoff.get(species) || 0) > Date.now()) continue
+      const chosen = farmers.find(({ worker }) => !used.has(worker.name))
+      if (!chosen) break
+
+      const snapshot = chosen.controller.penPopulation(species)
+      if (!snapshot?.built) {
+        plan.push({
+          ...chosen,
+          task: {
+            type: 'construir_curral',
+            species,
+            reason: `curral_${species}`
+          }
+        })
+        used.add(chosen.worker.name)
+        continue
+      }
+
+      if (snapshot.inside >= target) continue
+      if (snapshot.inside < 2) {
+        plan.push({
+          ...chosen,
+          task: {
+            type: 'capturar_animais',
+            species,
+            count: Math.max(1, Math.min(target - snapshot.inside, 2 - snapshot.inside)),
+            reason: `capturar_${species}`
+          }
+        })
+      } else {
+        plan.push({
+          ...chosen,
+          task: {
+            type: 'manejar_populacao',
+            species,
+            target,
+            reason: `manter_${species}`
+          }
+        })
+      }
+      used.add(chosen.worker.name)
+    }
+    return plan
   }
 
   demandReport() {
@@ -281,6 +365,16 @@ class ColonyOrchestrator {
         } else {
           this.autoBackoff.delete(worker.name)
         }
+
+        if (task.species && task.type === 'manejar_populacao') {
+          this.animalBackoff.set(
+            task.species,
+            Date.now() + (result?.ok === false ? 30000 : 300000)
+          )
+        } else if (task.species && ['capturar_animais', 'construir_curral'].includes(task.type)) {
+          if (result?.ok === false) this.animalBackoff.set(task.species, Date.now() + 30000)
+          else this.animalBackoff.delete(task.species)
+        }
         if (task.projectActionId) {
           this.projectManager?.completeAction?.(task.projectActionId, result)
           const report = this.demandReport()
@@ -293,6 +387,9 @@ class ColonyOrchestrator {
       .catch((err) => {
         if (task.projectActionId) this.projectManager?.failAction?.(task.projectActionId, err)
         this.autoBackoff.set(worker.name, Date.now() + 20000)
+        if (task.species && ['manejar_populacao', 'capturar_animais', 'construir_curral'].includes(task.type)) {
+          this.animalBackoff.set(task.species, Date.now() + 30000)
+        }
         this.logger.log(`[auto] ${worker.name}: ${err.message}`)
       })
   }
@@ -324,6 +421,9 @@ class ColonyOrchestrator {
 
     const projectPlan = this.projectManager?.planActions?.(eligible, report) || []
     const projectWorkers = new Set(projectPlan.map((entry) => entry.worker.name))
+    const husbandryEligible = eligible.filter(({ worker }) => !projectWorkers.has(worker.name))
+    const animalPlan = this.buildAnimalPlan(husbandryEligible)
+    const animalWorkers = new Set(animalPlan.map((entry) => entry.worker.name))
 
     if (!projectPlan.length && this.projectManager?.maybeComplete?.(report)) {
       this.logger.log(`[projeto] ${this.projectManager.status()?.type || 'projeto'} concluído.`)
@@ -333,8 +433,12 @@ class ColonyOrchestrator {
       this.runAuto(worker, controller, task)
     }
 
+    for (const { worker, controller, task } of animalPlan) {
+      this.runAuto(worker, controller, task)
+    }
+
     for (const { worker, controller, task } of plan) {
-      if (projectWorkers.has(worker.name)) continue
+      if (projectWorkers.has(worker.name) || animalWorkers.has(worker.name)) continue
       this.runAuto(worker, controller, task)
     }
 

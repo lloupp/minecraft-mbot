@@ -778,3 +778,50 @@ Quando um curral está completo:
 usam apenas vacas que estejam fisicamente dentro do curral. Se o curral estiver ausente ou incompleto, o comportamento anterior por proximidade continua disponível como fallback.
 
 A captura depende do comportamento nativo de atração do Minecraft e do caminho estar livre entre o animal e o portão. Terreno irregular, água, cercas extras ou obstáculos podem impedir uma captura; nesses casos a tarefa reporta menos animais capturados do que o solicitado.
+
+
+### Metas automáticas de rebanho
+
+É possível transformar o tamanho do rebanho em uma meta persistente da colônia:
+
+```text
+!curral meta vaca 8
+!curral meta ovelha 10
+!curral metas
+```
+
+Para remover uma meta:
+
+```text
+!curral meta vaca off
+```
+
+As metas são salvas em `.data/colony-state.json` junto com o restante do estado da colônia.
+
+Quando `!colonia auto` está ativo, o orquestrador usa esta ordem:
+
+```text
+projeto ativo
+  ↓
+metas de animais
+  ↓
+demanda comum do estoque
+```
+
+Para cada espécie configurada:
+
+```text
+curral ausente/incompleto
+  -> fazendeiro tenta construir o curral
+
+menos de 2 animais dentro
+  -> tenta capturar animais próximos até formar o par inicial
+
+2 ou mais, abaixo da meta
+  -> entra no curral e tenta reprodução controlada
+
+meta atingida
+  -> nenhuma ação
+```
+
+O alvo é limitado a 2–32 animais por espécie. Falhas de terreno, falta de alimento, ausência de animais próximos ou curral obstruído entram no sistema de backoff do modo automático. Depois de uma tentativa de reprodução considerada bem-sucedida, a espécie recebe um cooldown de 5 minutos antes de outra tentativa automática, evitando consumo repetitivo de alimento.
