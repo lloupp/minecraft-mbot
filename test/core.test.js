@@ -1,6 +1,9 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 const { EventEmitter } = require('node:events')
+const fs = require('node:fs')
+const os = require('node:os')
+const path = require('node:path')
 
 const { CommandRouter } = require('../core/CommandRouter')
 const { MinecraftKnowledge } = require('../core/MinecraftKnowledge')
@@ -12,6 +15,8 @@ const { StorageManager, aggregateItems, isEquipment } = require('../core/Storage
 const { ProductionManager, normalizeItemName, recipeIngredients, SMELT_INPUTS } = require('../core/ProductionManager')
 const { DemandPlanner, stockMetrics, deficits } = require('../core/DemandPlanner')
 const { ProjectManager, PROJECT_DEFINITIONS } = require('../core/ProjectManager')
+const { StateStore, point } = require('../core/StateStore')
+const { SmokeTest } = require('../core/SmokeTest')
 
 test('CommandRouter interpreta e despacha comandos', async () => {
   const router = new CommandRouter()
@@ -469,4 +474,103 @@ test('StorageManager retira materiais de construção mistos', async () => {
   assert.equal(result.complete, true)
   assert.equal(result.withdrawn, 23)
   assert.deepEqual(result.items, { cobblestone: 10, oak_planks: 13 })
+})
+
+
+test('Projetos fazenda e mina possuem ações físicas', () => {
+  assert.equal(PROJECT_DEFINITIONS.fazenda.actions[0].task.type, 'construir_fazenda')
+  assert.equal(PROJECT_DEFINITIONS.mina.actions[0].task.type, 'construir_mina')
+  assert.equal(PROJECT_DEFINITIONS.vila.actions.some((a) => a.task.type === 'construir_fazenda'), true)
+  assert.equal(PROJECT_DEFINITIONS.vila.actions.some((a) => a.task.type === 'construir_mina'), true)
+})
+
+test('ProjectManager restaura projeto em andamento e reabre ações executando', () => {
+  const manager = new ProjectManager({
+    storage: { configured: () => true },
+    homeProvider: () => ({ x: 0, y: 64, z: 0 })
+  })
+  const ok = manager.restore({
+    type: 'vila',
+    status: 'ativo',
+    startedAt: 123,
+    actions: [
+      { id: 'vila-casa-1', status: 'concluido', attempts: 1 },
+      { id: 'vila-casa-2', status: 'executando', attempts: 2 }
+    ]
+  })
+  assert.equal(ok, true)
+  const state = manager.exportState()
+  assert.equal(state.type, 'vila')
+  assert.equal(state.actions.find((a) => a.id === 'vila-casa-1').status, 'concluido')
+  assert.equal(state.actions.find((a) => a.id === 'vila-casa-2').status, 'pendente')
+})
+
+test('StateStore persiste base, estoque, workers e projeto', async () => {
+  const dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'minecraft-mbot-'))
+  const file = path.join(dir, 'state.json')
+  const store = new StateStore(file)
+
+  await store.save({
+    home: { x: 10.5, y: 64, z: -2 },
+    storage: { x: 11, y: 64, z: -2 },
+    auto: true,
+    workers: { minerador: 2, fazendeiro: 1 },
+    project: { type: 'mina', status: 'ativo', actions: [] }
+  })
+
+  const loaded = await store.load()
+  assert.deepEqual(loaded.home, { x: 10.5, y: 64, z: -2 })
+  assert.deepEqual(loaded.storage, { x: 11, y: 64, z: -2 })
+  assert.equal(loaded.auto, true)
+  assert.equal(loaded.workers.minerador, 2)
+  assert.equal(loaded.project.type, 'mina')
+
+  await fs.promises.rm(dir, { recursive: true, force: true })
+})
+
+test('StateStore rejeita coordenadas inválidas sem quebrar', () => {
+  assert.equal(point({ x: 'x', y: 64, z: 0 }), null)
+  assert.deepEqual(point({ x: '1', y: 64, z: -3 }), { x: 1, y: 64, z: -3 })
+})
+
+test('SmokeTest detecta infraestrutura mínima e acesso ao estoque', async () => {
+  const smoke = new SmokeTest({
+    bot: {
+      entity: { position: { x: 0, y: 64, z: 0 } },
+      pathfinder: {},
+      registry: { itemsByName: {}, blocksByName: {} }
+    },
+    storage: {
+      configured: () => true,
+      summary: async () => ({ coal: 8, bread: 4 })
+    },
+    botManager: {
+      list: () => [{ name: 'minerador_01', status: 'ocioso' }]
+    },
+    homeProvider: () => ({ x: 0, y: 64, z: 0 }),
+    projectManager: { status: () => null }
+  })
+
+  const result = await smoke.run()
+  assert.equal(result.ok, true)
+  assert.equal(result.failed, 0)
+  assert.equal(result.checks.find((c) => c.name === 'estoque_acesso').ok, true)
+})
+
+test('SmokeTest falha quando base e estoque estão ausentes', async () => {
+  const smoke = new SmokeTest({
+    bot: {
+      entity: { position: { x: 0, y: 64, z: 0 } },
+      pathfinder: {},
+      registry: { itemsByName: {}, blocksByName: {} }
+    },
+    storage: { configured: () => false },
+    botManager: { list: () => [] },
+    homeProvider: () => null,
+    projectManager: { status: () => null }
+  })
+  const result = await smoke.run()
+  assert.equal(result.ok, false)
+  assert.equal(result.checks.find((c) => c.name === 'base').ok, false)
+  assert.equal(result.checks.find((c) => c.name === 'estoque').ok, false)
 })
