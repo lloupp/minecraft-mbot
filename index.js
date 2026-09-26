@@ -14,6 +14,11 @@ const { autoVersionForge } = require('minecraft-protocol-forge')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const food = require('./lib/food')
 const perception = require('./lib/perception')
+const { fixEntityMovement } = require('./lib/protocol')
+const { CommandRouter } = require('./core/CommandRouter')
+const { MinecraftKnowledge } = require('./core/MinecraftKnowledge')
+const { Planner } = require('./core/Planner')
+const { BotManager } = require('./core/BotManager')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -68,74 +73,6 @@ async function findServer() {
   return null
 }
 
-// No 26.3 os pacotes de movimento de entidades mudaram de formato (`delta` e
-// `position`), mas o mineflayer ainda lê os campos antigos e as posições dos
-// outros jogadores/mobs viram NaN. Converte para o formato antigo antes dele.
-function fixEntityMovement(client) {
-  const fixDelta = (packet) => {
-    const d = packet.delta
-    if (!d || packet.dX !== undefined) return
-    let x = 0; let y = 0; let z = 0
-    if (d.steps?.length) {
-      for (const step of d.steps) { x += step.x; y += step.y; z += step.z }
-    } else {
-      x = d.dX; y = d.dY; z = d.dZ
-    }
-    // mineflayer divide por 128 * 32 (fixedPointDelta128).
-    packet.dX = x * 4096
-    packet.dY = y * 4096
-    packet.dZ = z * 4096
-  }
-  client.prependListener('rel_entity_move', fixDelta)
-  client.prependListener('entity_move_look', fixDelta)
-  client.prependListener('sync_entity_position', (packet) => {
-    const path = packet.position?.path
-    if (!path || packet.x !== undefined) return
-    const pos = path.endPosition || path.steps?.at(-1)?.position
-    if (!pos) return
-    packet.x = pos.x
-    packet.y = pos.y
-    packet.z = pos.z
-    packet.dx = 0
-    packet.dy = 0
-    packet.dz = 0
-  })
-}
-
-// No 26.3 os pacotes de movimento de entidades mudaram de formato (`delta` e
-// `position`), mas o mineflayer ainda lê os campos antigos e as posições dos
-// outros jogadores/mobs viram NaN. Converte para o formato antigo antes dele.
-function fixEntityMovement(client) {
-  const fixDelta = (packet) => {
-    const d = packet.delta
-    if (!d || packet.dX !== undefined) return
-    let x = 0; let y = 0; let z = 0
-    if (d.steps?.length) {
-      for (const step of d.steps) { x += step.x; y += step.y; z += step.z }
-    } else {
-      x = d.dX; y = d.dY; z = d.dZ
-    }
-    // mineflayer divide por 128 * 32 (fixedPointDelta128).
-    packet.dX = x * 4096
-    packet.dY = y * 4096
-    packet.dZ = z * 4096
-  }
-  client.prependListener('rel_entity_move', fixDelta)
-  client.prependListener('entity_move_look', fixDelta)
-  client.prependListener('sync_entity_position', (packet) => {
-    const path = packet.position?.path
-    if (!path || packet.x !== undefined) return
-    const pos = path.endPosition || path.steps?.at(-1)?.position
-    if (!pos) return
-    packet.x = pos.x
-    packet.y = pos.y
-    packet.z = pos.z
-    packet.dx = 0
-    packet.dy = 0
-    packet.dz = 0
-  })
-}
-
 async function main() {
   const server = await findServer()
   if (!server) {
@@ -147,7 +84,7 @@ async function main() {
   const CONFIG = {
     host: HOST,
     port: server.port,
-    username: 'eduardo_bot',
+    username: process.env.MINECRAFT_BOT_NAME || 'eduardo_bot',
     password: '',
     // version: false trava na detecção automática; usa a versão do ping.
     version: process.env.MINECRAFT_VERSION || server.version,
@@ -162,6 +99,37 @@ async function main() {
   autoVersionForge(bot._client)
   fixEntityMovement(bot._client)
   bot.loadPlugin(pathfinder)
+
+  // ========== ORQUESTRAÇÃO ==========
+  const knowledge = new MinecraftKnowledge(bot)
+  const planner = new Planner(bot, knowledge)
+  const commandRouter = new CommandRouter()
+
+  function createWorker({ name, role }) {
+    const worker = mineflayer.createBot({ ...CONFIG, username: name })
+    autoVersionForge(worker._client)
+    fixEntityMovement(worker._client)
+    worker.loadPlugin(pathfinder)
+
+    worker.once('spawn', () => {
+      const moves = new Movements(worker)
+      moves.canDig = false
+      moves.allow1by1towers = false
+      worker.pathfinder.setMovements(moves)
+      worker.pathfinder.setGoal(null)
+      console.log(`[colônia] ${name} conectado como ${role}`)
+    })
+    worker.on('kicked', (reason) => console.log(`[colônia] ${name} expulso:`, reason))
+    worker.on('error', (err) => console.log(`[colônia] ${name} erro: ${err.message}`))
+    return worker
+  }
+
+  const maxColonyBots = Math.max(1, Number.parseInt(process.env.MAX_COLONY_BOTS, 10) || 12)
+  const botManager = new BotManager({
+    createBot: createWorker,
+    orchestratorName: CONFIG.username,
+    maxBots: maxColonyBots
+  })
 
   // ========== ESTADO ==========
   let mode = 'seguir'       // 'seguir' | 'ficar' | 'tarefa'
@@ -376,6 +344,7 @@ async function main() {
   })
 
   bot.on('end', () => {
+    botManager.stopAll()
     console.log('Conexão encerrada.')
   })
 
@@ -387,14 +356,106 @@ async function main() {
   })
 
   // ========== COMANDOS VIA CHAT ==========
-  bot.on('chat', (username, message) => {
+  function colonySummary() {
+    const workers = botManager.list()
+    if (!workers.length) return [`Colônia: 1/${maxColonyBots} (somente ${bot.username}).`]
+    const roles = {}
+    for (const worker of workers) roles[worker.role] = (roles[worker.role] || 0) + 1
+    const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ')
+    const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | ${roleText}`]
+    for (let i = 0; i < workers.length; i += 4) {
+      lines.push(workers.slice(i, i + 4).map((w) => `${w.name}(${w.status})`).join(', '))
+    }
+    return lines
+  }
+
+  commandRouter.register(['bots', 'colonia'], async () => {
+    for (const line of colonySummary()) bot.chat(line)
+  })
+
+  commandRouter.register('bot', async (_context, args) => {
+    const action = String(args[0] || '').toLowerCase()
+    if (action === 'criar') {
+      let role = String(args[1] || 'ajudante').toLowerCase()
+      let count = Number.parseInt(args[2], 10) || 1
+      if (/^\d+$/.test(role)) {
+        count = Number.parseInt(role, 10)
+        role = 'ajudante'
+      }
+      try {
+        const created = await botManager.create(role, count)
+        bot.chat(`Criados ${created.length}: ${created.map((w) => w.name).join(', ')}`)
+      } catch (err) {
+        bot.chat(`Não consegui criar bot: ${err.message}`)
+      }
+      return
+    }
+
+    if (action === 'remover' || action === 'parar') {
+      const name = String(args[1] || '').toLowerCase()
+      if (!name) {
+        bot.chat('Uso: !bot remover <nome>')
+        return
+      }
+      bot.chat(botManager.remove(name) ? `${name} removido da colônia.` : `Não encontrei ${name}.`)
+      return
+    }
+
+    bot.chat('Uso: !bot criar [papel] [qtd] | !bot remover <nome> | !bots')
+  })
+
+  commandRouter.register('item', async (_context, args) => {
+    if (!args.length) {
+      bot.chat('Uso: !item <nome>')
+      return
+    }
+    const info = knowledge.describe(args.join('_'))
+    if (!info) {
+      bot.chat(`Não encontrei "${args.join(' ')}" no registro do Minecraft.`)
+      return
+    }
+    const details = [
+      info.isBlock ? 'bloco' : null,
+      info.isItem ? 'item' : null,
+      info.stackSize ? `pilha ${info.stackSize}` : null,
+      info.foodPoints != null ? `comida +${info.foodPoints}` : null
+    ].filter(Boolean).join(' | ')
+    bot.chat(`${info.name}: ${details || 'registrado'}`)
+  })
+
+  commandRouter.register('receita', async (_context, args) => {
+    if (!args.length) {
+      bot.chat('Uso: !receita <item> [qtd]')
+      return
+    }
+    let count = 1
+    if (/^\d+$/.test(args.at(-1))) count = Math.max(1, Number.parseInt(args.pop(), 10))
+    const plan = planner.craftPlan(args.join('_'), count)
+    if (!plan.ok) {
+      bot.chat(`Não conheço o item "${args.join(' ')}".`)
+      return
+    }
+    if (plan.reason === 'sem_receita_conhecida') {
+      bot.chat(`${plan.target}: não encontrei receita de crafting no registro atual.`)
+      return
+    }
+    if (plan.craftable) {
+      bot.chat(`Consigo fabricar ${count}x ${plan.target} com o inventário atual${plan.requiresTable ? ' (precisa bancada)' : ''}.`)
+      return
+    }
+    bot.chat(`Para ${count}x ${plan.target} faltam: ${plan.missing.map((m) => `${m.name}x${m.needed}`).join(', ')}`)
+  })
+
+  bot.on('chat', async (username, message) => {
     if (username === bot.username) return
     if (OWNER && username !== OWNER) return
+    if (await commandRouter.dispatch({ bot, username }, message)) return
     const [cmd, ...args] = message.toLowerCase().trim().split(/\s+/)
 
     switch (cmd) {
       case '!parar':
-        console.log(`Comando !parar recebido de ${username}. Encerrando bot...`)
+        console.log(`Comando !parar recebido de ${username}. Encerrando bot e colônia...`)
+        botManager.stopAll()
         bot.quit()
         break
       case '!seguir':
@@ -458,7 +519,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !minerar <bloco> [qtd], !comer, !comida, !ver, !cancelar, !status, !pos, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !minerar, !comer, !comida, !ver, !status, !bot, !bots, !item, !receita, !cancelar, !parar')
         break
     }
   })
