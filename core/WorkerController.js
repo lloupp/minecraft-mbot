@@ -4,7 +4,7 @@ const food = require('../lib/food')
 const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const husbandry = require('../lib/husbandry')
-const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./AnimalPen')
+const { groundedPenPlan, pointInsidePen, inspectAnimalPen } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -333,7 +333,7 @@ class WorkerController {
     const canonical = husbandry.normalizeSpecies(species) || species
     const home = this.homeProvider?.()
     if (!home) return null
-    const plan = animalPenPlan(home, canonical)
+    const plan = groundedPenPlan(this.bot, home, canonical)
     const status = inspectAnimalPen(this.bot, plan)
     return { canonical, plan, status }
   }
@@ -488,7 +488,7 @@ class WorkerController {
   async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
     const home = this.homeProvider?.()
     const canonical = husbandry.normalizeSpecies(species) || species
-    const plan = animalPenPlan(home, canonical, offset)
+    const plan = groundedPenPlan(this.bot, home, canonical, offset)
     const kit = await this.ensurePenKit(plan)
     if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
 

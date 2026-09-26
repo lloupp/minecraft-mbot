@@ -36,7 +36,7 @@ const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
 const { WaypointManager } = require('./core/WaypointManager')
-const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
+const { groundedPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -1257,7 +1257,7 @@ async function main() {
       return
     }
 
-    const plan = animalPenPlan(colonyHome, species)
+    const plan = groundedPenPlan(bot, colonyHome, species)
     const status = inspectAnimalPen(bot, plan)
     const center = new Vec3(plan.center.x, plan.center.y, plan.center.z)
     const inside = husbandry.selectAnimals(bot, species, {
