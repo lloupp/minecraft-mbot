@@ -1,0 +1,35 @@
+[
+  {
+    "name": "dias_1_3",
+    "conditions": {
+      "maxdaycount": 2
+    }
+  },
+  {
+    "name": "dias_4_7",
+    "conditions": {
+      "mindaycount": 3,
+      "maxdaycount": 6
+    }
+  },
+  {
+    "name": "dias_8_15",
+    "conditions": {
+      "mindaycount": 7,
+      "maxdaycount": 14
+    }
+  },
+  {
+    "name": "dias_16_30",
+    "conditions": {
+      "mindaycount": 15,
+      "maxdaycount": 29
+    }
+  },
+  {
+    "name": "dia_30_mais",
+    "conditions": {
+      "mindaycount": 30
+    }
+  }
+]

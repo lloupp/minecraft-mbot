@@ -1,0 +1,98 @@
+[
+  {
+    "dimension": "minecraft:overworld",
+    "mob": [
+      "minecraft:creeper",
+      "minecraft:skeleton",
+      "minecraft:stray",
+      "minecraft:spider",
+      "minecraft:cave_spider",
+      "minecraft:enderman",
+      "minecraft:witch",
+      "minecraft:phantom",
+      "minecraft:slime",
+      "minecraft:pillager",
+      "minecraft:vindicator",
+      "minecraft:evoker",
+      "minecraft:ravager",
+      "minecraft:vex",
+      "minecraft:skeleton_horse"
+    ],
+    "result": "deny"
+  },
+  {
+    "phase": "dias_1_3",
+    "dimension": "minecraft:overworld",
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager",
+      "minecraft:drowned"
+    ],
+    "result": "deny",
+    "mincount": {
+      "amount": 20,
+      "hostile": true
+    }
+  },
+  {
+    "phase": "dias_4_7",
+    "dimension": "minecraft:overworld",
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager",
+      "minecraft:drowned"
+    ],
+    "result": "deny",
+    "mincount": {
+      "amount": 35,
+      "hostile": true
+    }
+  },
+  {
+    "phase": "dias_8_15",
+    "dimension": "minecraft:overworld",
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager",
+      "minecraft:drowned"
+    ],
+    "result": "deny",
+    "mincount": {
+      "amount": 50,
+      "hostile": true
+    }
+  },
+  {
+    "phase": "dias_16_30",
+    "dimension": "minecraft:overworld",
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager",
+      "minecraft:drowned"
+    ],
+    "result": "deny",
+    "mincount": {
+      "amount": 65,
+      "hostile": true
+    }
+  },
+  {
+    "phase": "dia_30_mais",
+    "dimension": "minecraft:overworld",
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager",
+      "minecraft:drowned"
+    ],
+    "result": "deny",
+    "mincount": {
+      "amount": 80,
+      "hostile": true
+    }
+  }
+]

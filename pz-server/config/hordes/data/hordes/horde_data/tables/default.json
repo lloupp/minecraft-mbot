@@ -1,0 +1,10 @@
+[
+	"minecraft:zombie-60-0-0",
+	"minecraft:zombie_villager-10-0-0",
+	"minecraft:husk-15-8-0",
+	"minecraft:zombie{IsBaby:1b}-4-8-0",
+	"minecraft:zombie{HandItems:[{id:\"minecraft:iron_sword\",Count:1b},{}]}-6-12-0",
+	"minecraft:zombie{ArmorItems:[{},{},{id:\"minecraft:leather_chestplate\",Count:1b},{id:\"minecraft:leather_helmet\",Count:1b}]}-8-16-0",
+	"minecraft:husk{ArmorItems:[{},{},{id:\"minecraft:chainmail_chestplate\",Count:1b},{id:\"minecraft:iron_helmet\",Count:1b}]}-6-24-0",
+	"minecraft:zombie{ArmorItems:[{id:\"minecraft:iron_boots\",Count:1b},{id:\"minecraft:iron_leggings\",Count:1b},{id:\"minecraft:iron_chestplate\",Count:1b},{id:\"minecraft:iron_helmet\",Count:1b}]}-4-32-0"
+]

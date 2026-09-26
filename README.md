@@ -2,6 +2,9 @@
 
 Bot companheiro e orquestrador para **Minecraft Java 1.20.1** com compatibilidade adicional para Forge 26.3, usando **mineflayer**.
 
+> Servidor de sobrevivência zumbi (Forge 1.20.1 + Lost Cities, hordas, TaCZ etc.): veja
+> [`pz-server/README.md`](pz-server/README.md).
+
 ## Status Atual
 
 O `eduardo_bot` agora também funciona como **orquestrador da colônia**. Ele pode criar e remover bots auxiliares, consultar o registro de itens/blocos do Minecraft e montar planos simples de crafting a partir das receitas disponíveis no Mineflayer.

@@ -1,0 +1,128 @@
+[
+  {
+    "mob": [
+      "minecraft:zombie"
+    ],
+    "persecond": 0.04,
+    "attempts": 8,
+    "amount": {
+      "minimum": 1,
+      "maximum": 1
+    },
+    "conditions": {
+      "dimension": "minecraft:overworld",
+      "mindist": 24,
+      "maxdist": 56,
+      "norestrictions": true,
+      "mindaycount": 0,
+      "maxdaycount": 0,
+      "maxthis": 10
+    }
+  },
+  {
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:zombie_villager"
+    ],
+    "persecond": 0.05,
+    "attempts": 8,
+    "amount": {
+      "minimum": 1,
+      "maximum": 2
+    },
+    "conditions": {
+      "dimension": "minecraft:overworld",
+      "mindist": 24,
+      "maxdist": 56,
+      "norestrictions": true,
+      "mindaycount": 3,
+      "maxdaycount": 0,
+      "maxthis": 18
+    },
+    "weights": [
+      4,
+      1
+    ]
+  },
+  {
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:zombie_villager",
+      "minecraft:husk"
+    ],
+    "persecond": 0.05,
+    "attempts": 8,
+    "amount": {
+      "minimum": 2,
+      "maximum": 3
+    },
+    "conditions": {
+      "dimension": "minecraft:overworld",
+      "mindist": 24,
+      "maxdist": 56,
+      "norestrictions": true,
+      "mindaycount": 7,
+      "maxdaycount": 0,
+      "maxthis": 26
+    },
+    "weights": [
+      5,
+      1,
+      2
+    ]
+  },
+  {
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:zombie_villager",
+      "minecraft:husk"
+    ],
+    "persecond": 0.05,
+    "attempts": 8,
+    "amount": {
+      "minimum": 2,
+      "maximum": 4
+    },
+    "conditions": {
+      "dimension": "minecraft:overworld",
+      "mindist": 24,
+      "maxdist": 56,
+      "norestrictions": true,
+      "mindaycount": 15,
+      "maxdaycount": 0,
+      "maxthis": 34
+    },
+    "weights": [
+      5,
+      1,
+      3
+    ]
+  },
+  {
+    "mob": [
+      "minecraft:zombie",
+      "minecraft:zombie_villager",
+      "minecraft:husk"
+    ],
+    "persecond": 0.05,
+    "attempts": 8,
+    "amount": {
+      "minimum": 3,
+      "maximum": 5
+    },
+    "conditions": {
+      "dimension": "minecraft:overworld",
+      "mindist": 24,
+      "maxdist": 56,
+      "norestrictions": true,
+      "mindaycount": 30,
+      "maxdaycount": 0,
+      "maxthis": 42
+    },
+    "weights": [
+      5,
+      1,
+      3
+    ]
+  }
+]

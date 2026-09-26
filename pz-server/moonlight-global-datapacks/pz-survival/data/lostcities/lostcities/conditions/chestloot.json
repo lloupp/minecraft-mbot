@@ -1,0 +1,207 @@
+{
+  "values": [
+    {
+      "factor": 1,
+      "value": "pz:chests/domestic"
+    },
+    {
+      "factor": 20,
+      "value": "pz:chests/domestic",
+      "inbuilding": [
+        "building1",
+        "building2",
+        "building3",
+        "building4",
+        "building5",
+        "building6",
+        "building7",
+        "building8",
+        "cabin"
+      ]
+    },
+    {
+      "factor": 2,
+      "value": "pz:chests/pharmacy",
+      "inbuilding": [
+        "building1",
+        "building2",
+        "building3",
+        "building4",
+        "building5",
+        "building6",
+        "building7",
+        "building8",
+        "cabin"
+      ]
+    },
+    {
+      "factor": 1,
+      "value": "pz:chests/workshop",
+      "inbuilding": [
+        "building1",
+        "building2",
+        "building3",
+        "building4",
+        "building5",
+        "building6",
+        "building7",
+        "building8",
+        "cabin"
+      ]
+    },
+    {
+      "factor": 20,
+      "value": "pz:chests/market",
+      "inbuilding": [
+        "shopping00",
+        "shopping01",
+        "shopping10",
+        "shopping11",
+        "shopping_open00",
+        "shopping_open01",
+        "shopping_open10",
+        "shopping_open11"
+      ]
+    },
+    {
+      "factor": 8,
+      "value": "pz:chests/pharmacy",
+      "inbuilding": [
+        "shopping00",
+        "shopping01",
+        "shopping10",
+        "shopping11",
+        "shopping_open00",
+        "shopping_open01",
+        "shopping_open10",
+        "shopping_open11"
+      ]
+    },
+    {
+      "factor": 20,
+      "value": "pz:chests/restaurant",
+      "inbuilding": [
+        "highway_restaurant",
+        "highway_restaurant_parking"
+      ]
+    },
+    {
+      "factor": 5,
+      "value": "pz:chests/market",
+      "inbuilding": [
+        "highway_restaurant",
+        "highway_restaurant_parking"
+      ]
+    },
+    {
+      "factor": 20,
+      "value": "pz:chests/workshop",
+      "inbuilding": [
+        "highway_gas_station"
+      ]
+    },
+    {
+      "factor": 4,
+      "value": "pz:chests/market",
+      "inbuilding": [
+        "highway_gas_station"
+      ]
+    },
+    {
+      "factor": 16,
+      "value": "pz:chests/office",
+      "inbuilding": [
+        "library00",
+        "library01",
+        "library10",
+        "library11",
+        "center00",
+        "center01",
+        "center10",
+        "center11",
+        "town00",
+        "town01",
+        "town10",
+        "town11"
+      ]
+    },
+    {
+      "factor": 8,
+      "value": "pz:chests/pharmacy",
+      "inbuilding": [
+        "library00",
+        "library01",
+        "library10",
+        "library11",
+        "center00",
+        "center01",
+        "center10",
+        "center11",
+        "town00",
+        "town01",
+        "town10",
+        "town11"
+      ]
+    },
+    {
+      "factor": 1,
+      "value": "pz:chests/military",
+      "inbuilding": [
+        "library00",
+        "library01",
+        "library10",
+        "library11",
+        "center00",
+        "center01",
+        "center10",
+        "center11",
+        "town00",
+        "town01",
+        "town10",
+        "town11"
+      ]
+    },
+    {
+      "factor": 20,
+      "value": "pz:chests/military",
+      "inbuilding": [
+        "radiotower"
+      ]
+    },
+    {
+      "factor": 16,
+      "value": "pz:chests/workshop",
+      "inbuilding": [
+        "oilrig00",
+        "oilrig01",
+        "oilrig10",
+        "oilrig11"
+      ]
+    },
+    {
+      "factor": 4,
+      "value": "pz:chests/military",
+      "inbuilding": [
+        "oilrig00",
+        "oilrig01",
+        "oilrig10",
+        "oilrig11"
+      ]
+    },
+    {
+      "factor": 10,
+      "value": "pz:chests/workshop",
+      "cellar": true
+    },
+    {
+      "factor": 30,
+      "value": "pz:chests/military",
+      "inpart": "rail_dungeon1"
+    },
+    {
+      "factor": 30,
+      "value": "pz:chests/military",
+      "inpart": "rail_dungeon2"
+    }
+  ]
+}

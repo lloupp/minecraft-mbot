@@ -1,0 +1,16 @@
+{
+  "values": [
+    {
+      "factor": 6,
+      "value": "minecraft:zombie"
+    },
+    {
+      "factor": 2,
+      "value": "minecraft:zombie_villager"
+    },
+    {
+      "factor": 2,
+      "value": "minecraft:husk"
+    }
+  ]
+}
