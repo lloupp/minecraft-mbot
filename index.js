@@ -188,6 +188,8 @@ async function main() {
     demandPlanner,
     projectManager
   })
+  colony.restoreAnimalTargets(savedState.animalTargets)
+
   const smokeTest = new SmokeTest({
     bot,
     storage,
@@ -212,7 +214,8 @@ async function main() {
       companionAuto: autonomous,
       waypoints: waypointManager.exportState(),
       workers: workerRoleCounts(),
-      project: projectManager.exportState()
+      project: projectManager.exportState(),
+      animalTargets: colony.animalTargetsSnapshot()
     })
   }
 
@@ -1180,9 +1183,47 @@ async function main() {
   })
 
   commandRouter.register('curral', async (_context, args) => {
-    const species = husbandry.normalizeSpecies(args[0] || 'vaca')
+    const action = String(args[0] || 'vaca').toLowerCase()
+
+    if (action === 'metas') {
+      const targets = colony.animalTargetsSnapshot()
+      const entries = Object.entries(targets)
+      bot.chat(entries.length
+        ? `Metas de animais: ${entries.map(([species, target]) => `${species}=${target}`).join(', ')}.`
+        : 'Nenhuma meta persistente de animais configurada.')
+      return
+    }
+
+    if (action === 'meta') {
+      const species = husbandry.normalizeSpecies(args[1])
+      const rawTarget = String(args[2] || '').toLowerCase()
+      if (!species) {
+        bot.chat('Uso: !curral meta <animal> <2-32|off>')
+        return
+      }
+      if (['off', 'remover', 'apagar'].includes(rawTarget)) {
+        const removed = colony.clearAnimalTarget(species)
+        persistSoon()
+        bot.chat(removed
+          ? `Meta automática de ${species} removida.`
+          : `Não havia meta automática para ${species}.`)
+        return
+      }
+
+      const target = Number.parseInt(rawTarget, 10)
+      if (!Number.isInteger(target) || target < 2 || target > 32) {
+        bot.chat('Uso: !curral meta <animal> <2-32|off>')
+        return
+      }
+      colony.setAnimalTarget(species, target)
+      persistSoon()
+      bot.chat(`Meta automática de ${species}: ${target}. Ela é mantida quando !colonia auto estiver ativo.`)
+      return
+    }
+
+    const species = husbandry.normalizeSpecies(action)
     if (!species) {
-      bot.chat('Uso: !curral <vaca|ovelha|porco|galinha|coelho|cabra|mooshroom|lhama>')
+      bot.chat('Uso: !curral <animal> | !curral metas | !curral meta <animal> <2-32|off>')
       return
     }
     if (!colonyHome) {
@@ -1198,9 +1239,10 @@ async function main() {
       range: plan.size + 2,
       filter: (entity) => pointInsidePen(entity.position, plan)
     }).length
+    const target = colony.animalTargetsSnapshot()[species]
 
     bot.chat(
-      `Curral ${species}: ${status.built ? 'pronto' : 'incompleto'} | cercas ${status.fencesPresent}/${status.fencesExpected} | portão ${status.gatePresent ? (status.gateOpen ? 'aberto' : 'fechado') : 'ausente'} | animais dentro ${inside}.`
+      `Curral ${species}: ${status.built ? 'pronto' : 'incompleto'} | cercas ${status.fencesPresent}/${status.fencesExpected} | portão ${status.gatePresent ? (status.gateOpen ? 'aberto' : 'fechado') : 'ausente'} | animais dentro ${inside}${target ? ` | meta ${target}` : ''}.`
     )
   })
 
