@@ -1,0 +1,26 @@
+name: StateMachine compatibility spike
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/statemachine-spike.yml'
+      - 'scripts/statemachine-spike.js'
+      - 'docs/ROADMAP.md'
+  workflow_dispatch:
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - name: Install StateMachine only for the spike
+        run: npm install --no-save --package-lock=false mineflayer-statemachine@1.7.0
+      - name: Inspect dependency resolution
+        run: npm ls mineflayer mineflayer-pathfinder mineflayer-statemachine
+      - name: Run compatibility assertions
+        run: node scripts/statemachine-spike.js
