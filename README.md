@@ -640,7 +640,37 @@ MBOT_VIEWER_PORT=3007 MBOT_INVENTORY_PORT=3008 node index.js
 - `3007`: visão 3D do bot;
 - `3008`: inventário web.
 
+As duas escutam só em `127.0.0.1` (os adaptadores prontos dos pacotes escutam em
+todas as interfaces; veja `lib/web-views.js`).
+
 Se um plugin não carregar ou não suportar a versão conectada, o bot registra a falha e continua com sua implementação própria.
+
+## Painel de testes ao vivo
+
+Painel local para acompanhar o bot e rodar cenários de teste com evidência,
+sem recarregar a página:
+
+```bash
+MBOT_DASHBOARD=1 MBOT_VIEWER_PORT=3007 MBOT_INVENTORY_PORT=3008 node index.js
+# abra http://127.0.0.1:3006/dashboard
+```
+
+- Desligado por padrão; porta em `MBOT_DASHBOARD_PORT` (padrão 3006). Tudo em `127.0.0.1`.
+- Mostra: 3D do bot principal (se `MBOT_VIEWER_PORT`), inventário (lista, ou a
+  página web se `MBOT_INVENTORY_PORT`), posição, dimensão, vida/fome, modo e
+  tarefa, workers (clique numa linha para ver o inventário dele), projeto,
+  logs do console e eventos com filtros, e o histórico da sessão.
+- Cenários (`core/scenarios.js`): conexão, inventário, coletar 1 tronco, smoke,
+  criar worker e visualizador. Estados `PENDING`, `RUNNING`, `PASS`, `FAIL`,
+  `SKIPPED` e `BLOCKED`. `PASS` só com a evidência completa e validada no
+  servidor; pré-condição não atendida vira `BLOCKED`. Cada transição vai para o
+  `EventLog` (`scenario_status`). O histórico vale para a sessão atual.
+- Segurança: a API só executa ids do catálogo (nenhum comando, código ou
+  argumento vindo do navegador), aceita só `Host` de loopback e o POST exige o
+  cabeçalho `X-Mbot-Dashboard` e origem local.
+- Limites: 3D e inventário web só do bot principal. Se o bot cair, o processo
+  sai e o painel mostra "offline" até o supervisor (`npm run sempre` ou systemd)
+  reconectar; a página se recupera sozinha.
 
 ## Perfil recomendado: servidor 1.20.1
 

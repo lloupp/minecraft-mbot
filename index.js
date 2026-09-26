@@ -49,6 +49,7 @@ const { buildBlueprint, describeReport } = require('./lib/blueprintBuilder')
 const { getEventLog } = require('./lib/event-log')
 const { StatusServer } = require('./lib/status-server')
 const { RunVerifier } = require('./core/RunVerifier')
+const { describeBot, describeWorkers, ConsoleBuffer } = require('./lib/dashboard-snapshot')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -108,7 +109,17 @@ async function findServer() {
   return null
 }
 
+// Visualizações para o painel: sem funções, só porta/endereço/estado.
+function publicViews(views) {
+  if (!views) return null
+  const pick = (view) => view && { port: view.port, address: view.address, status: view.status, error: view.error }
+  return { viewer: pick(views.viewer), inventory: pick(views.inventory) }
+}
+
 async function main() {
+  // Painel de testes local (opt-in). Captura o console desde o início para o painel mostrar a conexão.
+  const dashboardEnabled = process.env.MBOT_DASHBOARD === '1'
+  const consoleBuffer = dashboardEnabled ? new ConsoleBuffer().capture() : null
   const server = await findServer()
   if (!server) {
     console.error(`Nenhum servidor Minecraft encontrado em ${HOST}. Abra o mundo para LAN (Esc > "Abrir para LAN") ou defina MINECRAFT_PORT.`)
@@ -226,6 +237,34 @@ async function main() {
   // O servidor de status é opt-in. Os módulos experimentais de recovery/replanning
   // ficam disponíveis no código, mas não são ativados até integração real com workers.
   if (process.env.STATUS_SERVER === '1') statusServer.start()
+
+  // Painel: mesmo StatusServer (rotas antigas continuam), com a página, o retrato
+  // do bot/workers e os cenários do RunVerifier. Só em 127.0.0.1.
+  let webViews = null
+  const dashboardServer = dashboardEnabled
+    ? new StatusServer({
+      botManager,
+      storage,
+      projectManager,
+      eventLog,
+      port: envPort(process.env.MBOT_DASHBOARD_PORT) || 3006,
+      dashboard: {
+        runVerifier,
+        views: () => webViews,
+        snapshot: () => ({
+          profile: { id: serverProfile.id, version: bot.version || serverProfile.version, server: `${CONFIG.host}:${CONFIG.port}` },
+          main: describeBot(bot, { role: 'orquestrador', status: bot.entity ? 'conectado' : 'desconectado', mode, task: taskName, owner: ownerName() || null }),
+          workers: describeWorkers(botManager),
+          views: publicViews(webViews),
+          logs: consoleBuffer ? consoleBuffer.recent(200) : []
+        })
+      }
+    })
+    : null
+  if (dashboardServer) {
+    dashboardServer.start()
+    console.log(`[painel] http://127.0.0.1:${dashboardServer.port}/dashboard`)
+  }
 
   // Registrar evento de início da colônia
   eventLog.log('colony_start', {
@@ -744,7 +783,38 @@ async function main() {
 
   // ========== EVENTOS ==========
   let restoredWorkers = false
-  bot.once('spawn', () => startWebViews(bot))
+  bot.once('spawn', () => { webViews = startWebViews(bot) })
+
+  // Contexto dos cenários do painel: só ações já existentes, com o bot real.
+  const LOG_BLOCK_IDS = () => Object.values(bot.registry.blocksByName).filter((b) => /_log$/.test(b.name)).map((b) => b.id)
+  runVerifier.setScenarioContext({
+    get bot() { return bot },
+    storage,
+    botManager,
+    dimension: () => currentDimension(),
+    views: () => webViews,
+    countLogsNearby: () => bot.findBlocks({ matching: LOG_BLOCK_IDS(), maxDistance: 32, count: 256 }).length,
+    // measure() roda ainda dentro da tarefa, antes de o bot voltar a seguir.
+    mineLog: async (isCancelled, measure) => {
+      const ids = new Set(LOG_BLOCK_IDS().map((id) => bot.registry.blocks[id].name))
+      let mined = 0
+      let inventoryAfter = null
+      let interrupted = true
+      await runTask('teste: coletar madeira', async (taskCancelled) => {
+        mined = await gather.mineBlocks(bot, (name) => ids.has(name), 1, () => taskCancelled() || isCancelled())
+        inventoryAfter = await measure()
+        // Luta, fuga ou outro comando cancelam a tarefa no meio.
+        interrupted = taskCancelled()
+      })
+      return { mined, inventoryAfter, interrupted }
+    },
+    runSmoke: () => withoutFollowing('smoke test', () => smokeTest.run()),
+    createWorker: async () => {
+      const created = await botManager.create('ajudante', 1)
+      persistSoon()
+      return created
+    }
+  })
   let memoryCapture = null
   bot.once('spawn', () => {
     memoryCapture = attachMemoryCapture(bot, memory, {
@@ -914,6 +984,9 @@ async function main() {
     memoryCapture?.stop()
     botManager.stopAll()
     statusServer.stop()
+    dashboardServer?.stop()
+    webViews?.viewer?.close?.()
+    webViews?.inventory?.close?.()
     stopLan()
     console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
     setTimeout(() => process.exit(quitRequested ? 0 : 1), 500)
