@@ -14,11 +14,15 @@ const { autoVersionForge } = require('minecraft-protocol-forge')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const food = require('./lib/food')
 const perception = require('./lib/perception')
-const { fixEntityMovement } = require('./lib/protocol')
+const { fixEntityMovement, fixOutgoingPackets } = require('./lib/protocol')
+const { announceLan, motdText } = require('./lib/lan')
 const { CommandRouter } = require('./core/CommandRouter')
 const { MinecraftKnowledge } = require('./core/MinecraftKnowledge')
 const { Planner } = require('./core/Planner')
 const { BotManager } = require('./core/BotManager')
+const craft = require('./lib/craft')
+const gather = require('./lib/gather')
+const combat = require('./lib/combat')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
@@ -34,8 +38,8 @@ const OWNER = process.env.MINECRAFT_OWNER || null
 const FOLLOW_DISTANCE = 2   // blocos de distância ao seguir o dono
 const FLEE_DISTANCE = 16    // distância que tenta manter do agressor
 const FLEE_MS = 4000        // tempo fugindo depois de tomar dano
-const LOW_HEALTH = 10       // com HP baixo, foge de hostis próximos antes de apanhar
-const MINE_RANGE = 32       // raio de busca de blocos para minerar
+const DEFEND_RANGE = 5      // hostil mais perto que isso: o bot reage (luta ou foge)
+const CREEPER_RANGE = 6     // creeper mais perto que isso: foge antes que exploda
 const HUNGRY = 14           // abaixo disso come (ou vai buscar comida)
 const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram certo
 
@@ -63,7 +67,7 @@ function pingServer(port) {
     const timer = setTimeout(() => resolve(null), 3000)
     ping({ host: HOST, port }, (err, res) => {
       clearTimeout(timer)
-      resolve(err || !res?.version ? null : { port, version: res.version.name })
+      resolve(err || !res?.version ? null : { port, version: res.version.name, motd: motdText(res.description) })
     })
   })
 }
@@ -103,7 +107,18 @@ async function main() {
   // ========== CRIAÇÃO DO BOT ==========
   const bot = mineflayer.createBot(CONFIG)
   autoVersionForge(bot._client)
+
+  // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
+  let stopLan = () => {}
+  if (process.env.MINECRAFT_LAN_ANNOUNCE === '1') {
+    if (['127.0.0.1', 'localhost'].includes(HOST)) {
+      stopLan = announceLan({ motd: process.env.MINECRAFT_LAN_MOTD || server.motd || 'Servidor', port: server.port })
+    } else {
+      console.log('[lan] anúncio só funciona para servidor neste PC (MINECRAFT_HOST local)')
+    }
+  }
   fixEntityMovement(bot._client)
+  fixOutgoingPackets(bot._client)
   bot.loadPlugin(pathfinder)
 
   // ========== ORQUESTRAÇÃO ==========
@@ -123,6 +138,7 @@ async function main() {
     const worker = mineflayer.createBot({ ...CONFIG, username: name })
     autoVersionForge(worker._client)
     fixEntityMovement(worker._client)
+    fixOutgoingPackets(worker._client)
     worker.loadPlugin(pathfinder)
     worker.colonyController = new WorkerController({
       bot: worker,
@@ -170,6 +186,8 @@ async function main() {
   let taskId = 0            // incrementado para cancelar a tarefa em andamento
   let followMoves, workMoves
   let resolvedOwner = OWNER
+  let fightTarget = null     // mob com quem está lutando
+  let fightResume = 'seguir' // modo para voltar depois da luta
 
   function ownerName() {
     if (resolvedOwner) return resolvedOwner
@@ -205,7 +223,7 @@ async function main() {
   // Foge do agressor (ou do hostil mais próximo); sem ameaça visível, corre para o dono.
   function flee(attacker) {
     if (mode === 'tarefa') {
-      bot.chat(`Estou apanhando! Parei de ${taskName}.`)
+      bot.chat(taskName === 'lutar' ? 'Recuando!' : `Estou apanhando! Parei de ${taskName}.`)
       cancelTask()
       mode = 'seguir'
     }
@@ -221,8 +239,8 @@ async function main() {
   }
 
   // Executa uma tarefa longa. `fn` recebe isCancelled() e deve parar quando for true
-  // (fuga, !cancelar, outra tarefa). No fim, volta a seguir o dono.
-  async function runTask(name, fn) {
+  // (fuga, !cancelar, outra tarefa). No fim, volta a seguir o dono (ou a `resume`).
+  async function runTask(name, fn, { resume = 'seguir' } = {}) {
     cancelTask()
     const myTask = taskId
     const isCancelled = () => myTask !== taskId
@@ -235,9 +253,38 @@ async function main() {
       if (!isCancelled()) bot.chat(`Não consegui ${name}: ${err.message}`)
     }
     if (isCancelled()) return
-    mode = 'seguir'
     taskName = null
-    follow()
+    mode = resume
+    if (resume === 'seguir') follow()
+    else bot.pathfinder.setGoal(null)
+  }
+
+  const isLiving = (entity) => entity && entity !== bot.entity && entity.isValid !== false
+
+  // Luta com `target` até ele morrer; com vida baixa, recua.
+  function defend(target) {
+    const resume = mode === 'ficar' || (mode === 'tarefa' && taskName === 'lutar' && fightResume === 'ficar') ? 'ficar' : 'seguir'
+    if (mode === 'tarefa' && taskName !== 'lutar') bot.chat(`Parei de ${taskName} para lutar com ${target.name}.`)
+    fightTarget = target
+    fightResume = resume
+    console.log(`Lutando com ${target.name} (HP ${Math.round(bot.health)})`)
+    runTask('lutar', async (isCancelled) => {
+      const result = await combat.fight(bot, target, isCancelled)
+      console.log(`Luta com ${target.name}: ${result}`)
+      if (result === 'recuei') {
+        flee(target)
+      } else if (result === 'morto') {
+        await food.collectDrops(bot, target.position.clone(), isCancelled)
+      }
+    }, { resume })
+  }
+
+  // Reação a uma ameaça: lutar ou fugir, conforme o mob, a vida e quantos inimigos há.
+  function react(attacker) {
+    const threat = isLiving(attacker) ? attacker : nearestHostile(FLEE_DISTANCE)
+    if (taskName === 'lutar' && threat === fightTarget) return
+    if (threat && combat.decide(bot, threat) === 'lutar') defend(threat)
+    else flee(threat)
   }
 
   function mine(blockName, count) {
@@ -248,23 +295,10 @@ async function main() {
     }
     bot.chat(`Minerando ${count}x ${blockName}...`)
     runTask('minerar', async (isCancelled) => {
-      let mined = 0
-      while (mined < count && !isCancelled()) {
-        const block = bot.findBlock({ matching: blockType.id, maxDistance: MINE_RANGE })
-        if (!block) {
-          bot.chat(`Não encontrei mais ${blockName} num raio de ${MINE_RANGE} blocos.`)
-          break
-        }
-        await food.goTo(bot, new goals.GoalGetToBlock(block.position.x, block.position.y, block.position.z))
-        if (isCancelled()) return
-        const tool = bot.pathfinder.bestHarvestTool(block)
-        if (tool) await bot.equip(tool, 'hand')
-        await bot.dig(block)
-        mined++
-        // Anda até onde o bloco estava para pegar o item.
-        await food.goTo(bot, new goals.GoalBlock(block.position.x, block.position.y, block.position.z), 6000).catch(() => {})
-      }
-      if (!isCancelled()) bot.chat(`Minerei ${mined}x ${blockName}.`)
+      const mined = await gather.mineBlocks(bot, (name) => name === blockName, count, isCancelled)
+      if (isCancelled()) return
+      if (mined < count) bot.chat(`Só consegui ${mined}x ${blockName} (não achei mais ou não alcancei).`)
+      else bot.chat(`Minerei ${mined}x ${blockName}.`)
     })
   }
 
@@ -297,6 +331,7 @@ async function main() {
           break
         }
         console.log(`Busca de comida: ${done}`)
+        if (food.hasFood(bot)) bot.chat(`Consegui comida: ${done}.`)
       }
       if (!isCancelled() && food.hasFood(bot)) await eatNow()
     })
@@ -315,10 +350,11 @@ async function main() {
     followMoves.canDig = false          // não quebra construções enquanto segue
     followMoves.allow1by1towers = false
     workMoves = new Movements(bot)
+    bot.pathfinder.thinkTimeout = 10000 // caminhos até blocos subterrâneos demoram a calcular
   })
 
   bot.once('health', () => {
-    console.log(`HP: ${Math.round(bot.health)}/20 | Fome: ${bot.food}/20`)
+    console.log(`HP: ${Math.round(bot.health * 10) / 10}/20 | Fome: ${bot.food}/20`)
   })
 
   bot.on('entityHurt', (entity, source) => {
@@ -326,8 +362,9 @@ async function main() {
   })
 
   bot.on('health', () => {
-    if (lastHealth !== null && bot.health < lastHealth && bot.health > 0) {
-      flee(lastAttacker)
+    // Durante a luta, o próprio laço de combate decide quando recuar.
+    if (lastHealth !== null && bot.health < lastHealth && bot.health > 0 && taskName !== 'lutar') {
+      react(lastAttacker)
       lastAttacker = null
     }
     lastHealth = bot.health
@@ -348,10 +385,23 @@ async function main() {
       fleeingUntil = 0
       if (mode === 'ficar') bot.pathfinder.setGoal(null)
     }
-    if (bot.health <= LOW_HEALTH && mode !== 'ficar' && nearestHostile(6)) {
-      flee()
-      return
+    // Defesa: foge de creepers e reage a hostis que chegam perto.
+    if (taskName !== 'lutar') {
+      const creeper = bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
+        e.position.distanceTo(bot.entity.position) <= CREEPER_RANGE)
+      if (creeper) {
+        flee(creeper)
+        return
+      }
+      const target = combat.proactiveTarget(bot, DEFEND_RANGE)
+      if (target) {
+        react(target)
+        return
+      }
     }
+    // Correr gasta muita fome; com pouca comida, só anda.
+    followMoves.allowSprinting = workMoves.allowSprinting = bot.food > 6
+
     // Fome: come se tiver comida; senão, sai para buscar (só quando está livre).
     const needsFood = bot.food <= HUNGRY || (bot.food < 18 && bot.health < 20)
     if (needsFood && !eating && (mode !== 'tarefa' || bot.food <= 6) && food.hasFood(bot)) {
@@ -376,10 +426,15 @@ async function main() {
     console.log('Bot desconectado:', reason)
   })
 
-  bot.on('end', () => {
+  // Queda inesperada (servidor reiniciou, rede caiu, kick): sai com erro para o
+  // supervisor (systemd ou `npm run sempre`) reconectar. !parar sai com código 0.
+  let quitRequested = false
+  bot.on('end', (reason) => {
     colony.stop()
     botManager.stopAll()
-    console.log('Conexão encerrada.')
+    stopLan()
+    console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
+    setTimeout(() => process.exit(quitRequested ? 0 : 1), 500)
   })
 
   bot.on('error', (err) => {
@@ -388,6 +443,8 @@ async function main() {
       console.error(`Verifique se o mundo está aberto para LAN e se a porta ${CONFIG.port} está correta. Configure outra porta com MINECRAFT_PORT.`)
     }
   })
+
+  const parseCount = (arg, fallback = 1) => Math.max(1, Math.min(64, Number.parseInt(arg, 10) || fallback))
 
   // ========== COMANDOS VIA CHAT ==========
   function colonySummary() {
@@ -696,11 +753,22 @@ async function main() {
     }
   })
 
-  commandRouter.register('fabricar', async (_context, args) => {
-    if (!storage.configured()) {
-      bot.chat('Defina primeiro um baú/barrel central com !estoque aqui.')
+  // O próprio bot fabrica (coletando madeira/pedra e usando a mesa se precisar).
+  function craftSelf(itemName, count) {
+    const item = bot.registry.itemsByName[itemName]
+    if (!item) {
+      bot.chat(`Não conheço o item "${itemName}".`)
       return
     }
+    const target = craft.countItem(bot, item.id) + count
+    bot.chat(`Fabricando ${count}x ${item.name}...`)
+    runTask('fabricar', async (isCancelled) => {
+      await craft.craftItem(bot, item.name, target, isCancelled)
+      if (!isCancelled()) bot.chat(`Pronto! Tenho ${craft.countItem(bot, item.id)}x ${item.name}.`)
+    })
+  }
+
+  commandRouter.register('fabricar', async (_context, args) => {
     if (!args.length) {
       bot.chat('Uso: !fabricar <item> [qtd]. Ex.: !fabricar picareta_ferro 2')
       return
@@ -708,6 +776,11 @@ async function main() {
     let count = 1
     if (/^\d+$/.test(args.at(-1))) count = Math.max(1, Number.parseInt(args.pop(), 10))
     const item = normalizeItemName(args.join('_'))
+    // Sem estoque central da colônia, o próprio bot fabrica para si.
+    if (!storage.configured()) {
+      craftSelf(item, count)
+      return
+    }
     try {
       const assignment = await colony.craft(item, count)
       bot.chat(`${assignment.name} vai fabricar ${count}x ${item} e guardar no estoque.`)
@@ -817,6 +890,7 @@ async function main() {
       case '!parar':
         console.log(`Comando !parar recebido de ${username}. Encerrando bot e colônia...`)
         botManager.stopAll()
+        quitRequested = true
         bot.quit()
         break
       case '!seguir':
@@ -843,6 +917,18 @@ async function main() {
         if (!bot.entity) return
         for (const line of perception.describe(bot)) bot.chat(line)
         break
+      case '!atacar': {
+        const name = args[0]
+        const target = bot.nearestEntity((e) => e !== bot.entity && e.type !== 'player' &&
+          (name ? e.name === name : e.type === 'hostile') && e.position.distanceTo(bot.entity.position) <= 24)
+        if (!target) {
+          bot.chat(name ? `Não vejo ${name} por perto.` : 'Não vejo nenhum monstro por perto.')
+          return
+        }
+        bot.chat(`Atacando ${target.name}!`)
+        defend(target)
+        break
+      }
       case '!ficar':
         cancelTask()
         mode = 'ficar'
@@ -858,8 +944,29 @@ async function main() {
           bot.chat('Uso: !minerar <bloco> [quantidade]  ex.: !minerar oak_log 5')
           return
         }
-        const count = Math.max(1, Math.min(64, Number.parseInt(args[1], 10) || 1))
-        mine(args[0], count)
+        mine(args[0], parseCount(args[1]))
+        break
+      }
+      case '!cozinhar': {
+        // Sem argumento: cozinha toda a comida crua. Com item: cozinha/funde esse item.
+        const targets = args[0]
+          ? [{ name: args[0], count: parseCount(args[1], 64) }]
+          : craft.rawFoods(bot).map((i) => ({ name: i.name, count: i.count }))
+        if (!targets.length) {
+          bot.chat('Não tenho comida crua. Para fundir outra coisa: !cozinhar <item> [qtd], ex.: !cozinhar raw_iron')
+          return
+        }
+        if (targets.some((t) => !craft.smeltResult(t.name))) {
+          bot.chat(`${args[0]} não vai na fornalha.`)
+          return
+        }
+        bot.chat('Indo para a fornalha...')
+        runTask('cozinhar', async (isCancelled) => {
+          for (const t of targets) {
+            const done = await craft.smeltItem(bot, t.name, t.count, isCancelled)
+            if (!isCancelled()) bot.chat(`Fornalha: ${done}x ${t.name} -> ${craft.smeltResult(t.name)}`)
+          }
+        })
         break
       }
       case '!status':
@@ -867,7 +974,7 @@ async function main() {
           bot.chat('Ainda estou entrando no mundo.')
           return
         }
-        bot.chat(`HP: ${Math.round(bot.health)}/20 | Fome: ${bot.food}/20 | Itens: ${bot.inventory.items().length} | Modo: ${taskName ?? mode}`)
+        bot.chat(`HP: ${Math.round(bot.health * 10) / 10}/20 | Fome: ${bot.food}/20 | Itens: ${bot.inventory.items().length} | Modo: ${taskName ?? mode}`)
         const pos = bot.entity.position
         bot.chat(`Posição: X=${pos.x.toFixed(1)}, Y=${pos.y.toFixed(1)}, Z=${pos.z.toFixed(1)}`)
         break
@@ -880,7 +987,8 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !colonia auto, !bot, !ordem, !fabricar, !construir casa, !tarefas, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir casa, !todos voltar, !tarefas')
         break
     }
   })

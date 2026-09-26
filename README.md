@@ -46,6 +46,11 @@ npm install
 node index.js
 ```
 
+## Servidor 24h
+
+Para deixar o bot jogando sempre, num servidor dedicado na rede local (com
+reconexão automática e serviços do systemd), veja [deploy/README.md](deploy/README.md).
+
 ## Estrutura
 
 ```
@@ -53,6 +58,9 @@ minecraft-mbot/
 ├── index.js          # Conexão, estados, fuga e comandos
 ├── lib/
 │   ├── food.js       # Comer e buscar comida
+│   ├── craft.js      # Fabricar (com mesa) e usar a fornalha
+│   ├── gather.js     # Coletar blocos (pula os inalcançáveis)
+│   ├── combat.js     # Lutar ou fugir, arma e recarga do golpe
 │   └── perception.js # Reconhecer blocos e entidades em volta
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
@@ -87,6 +95,9 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!seguir` | Segue o dono (padrão ao entrar) |
 | `!ficar` | Fica parado onde está |
 | `!minerar <bloco> [qtd]` | Minera blocos próximos, ex.: `!minerar oak_log 5` |
+| `!fabricar <item> [qtd]` | Fabrica o item, coletando madeira/pedra e fazendo a mesa se precisar, ex.: `!fabricar wooden_pickaxe` |
+| `!cozinhar [item] [qtd]` | Sem item: cozinha a comida crua. Com item: usa a fornalha, ex.: `!cozinhar raw_iron` |
+| `!atacar [mob]` | Ataca o monstro mais próximo (ou o mob indicado, ex.: `!atacar zombie`) |
 | `!comer` | Come a melhor comida do inventário |
 | `!comida` | Sai para buscar comida |
 | `!ver` | Descreve o que vê: bloco sob os pés, recursos e mobs por perto |
@@ -110,6 +121,14 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
 com HP baixo, foge de mobs hostis próximos antes de apanhar.
+
+### Combate
+Ao tomar dano ou quando um monstro chega a 5 blocos, o bot decide entre lutar e
+fugir: foge de creepers (e de qualquer ameaça quando está cercado por 3+ inimigos
+ou com pouca vida); avança sobre esqueletos e strays, porque fugir de flechas
+não adianta; nos demais casos luta com a melhor arma do inventário, respeitando
+o tempo de recarga do golpe, e recua se a vida cair a 6 ou menos. Depois da
+luta, recolhe os drops e volta ao que fazia (seguir ou ficar).
 
 ### Fome
 Com fome (≤ 14), o bot come a melhor comida que tiver (evita carne podre, frango
