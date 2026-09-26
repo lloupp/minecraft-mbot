@@ -15,6 +15,7 @@ const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const food = require('./lib/food')
 const perception = require('./lib/perception')
 const { fixEntityMovement, fixOutgoingPackets } = require('./lib/protocol')
+const { announceLan, motdText } = require('./lib/lan')
 const { CommandRouter } = require('./core/CommandRouter')
 const { MinecraftKnowledge } = require('./core/MinecraftKnowledge')
 const { Planner } = require('./core/Planner')
@@ -65,7 +66,7 @@ function pingServer(port) {
     const timer = setTimeout(() => resolve(null), 3000)
     ping({ host: HOST, port }, (err, res) => {
       clearTimeout(timer)
-      resolve(err || !res?.version ? null : { port, version: res.version.name })
+      resolve(err || !res?.version ? null : { port, version: res.version.name, motd: motdText(res.description) })
     })
   })
 }
@@ -105,6 +106,16 @@ async function main() {
   // ========== CRIAÇÃO DO BOT ==========
   const bot = mineflayer.createBot(CONFIG)
   autoVersionForge(bot._client)
+
+  // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
+  let stopLan = () => {}
+  if (process.env.MINECRAFT_LAN_ANNOUNCE === '1') {
+    if (['127.0.0.1', 'localhost'].includes(HOST)) {
+      stopLan = announceLan({ motd: process.env.MINECRAFT_LAN_MOTD || server.motd || 'Servidor', port: server.port })
+    } else {
+      console.log('[lan] anúncio só funciona para servidor neste PC (MINECRAFT_HOST local)')
+    }
+  }
   fixEntityMovement(bot._client)
   fixOutgoingPackets(bot._client)
   bot.loadPlugin(pathfinder)
@@ -415,6 +426,7 @@ async function main() {
   bot.on('end', (reason) => {
     colony.stop()
     botManager.stopAll()
+    stopLan()
     console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
     setTimeout(() => process.exit(quitRequested ? 0 : 1), 500)
   })

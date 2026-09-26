@@ -73,5 +73,8 @@ Sem systemd, `npm run sempre` roda o bot reconectando a cada 15s.
 
 ## 5. Entrar do Windows
 
-Minecraft **26.3** (vanilla ou Forge pelo TLauncher) → Multijogador → Conexão
+Minecraft **26.3** (vanilla ou Forge pelo TLauncher) → Multijogador: o servidor
+aparece sozinho em "Jogos em LAN", porque o bot o anuncia na rede
+(`MINECRAFT_LAN_ANNOUNCE=1` no serviço; nome em `MINECRAFT_LAN_MOTD`, padrão = MOTD
+do servidor). O anúncio só roda enquanto o bot está ligado. Sem ele, use Conexão
 direta → `<IP deste PC>:25565` (veja o IP com `hostname -I`).

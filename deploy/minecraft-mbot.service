@@ -9,6 +9,8 @@ WorkingDirectory=%h/minecraft-mbot
 Environment=MINECRAFT_HOST=127.0.0.1
 Environment=MINECRAFT_PORT=25565
 Environment=MINECRAFT_OWNER=eduardo
+# Faz o servidor aparecer em "Jogos em LAN" nos outros PCs da rede.
+Environment=MINECRAFT_LAN_ANNOUNCE=1
 # Shell de login para achar o `node` do PATH do usuário.
 ExecStart=/bin/bash -lc 'exec node index.js'
 # Queda de conexão sai com erro e reconecta; !parar sai com 0 e fica desligado.
