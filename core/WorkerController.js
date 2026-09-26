@@ -107,7 +107,7 @@ class WorkerController {
           result = await this.guard(task.durationMs || 20000, isCancelled)
           break
         case 'construir_casa':
-          result = await this.buildHouse(isCancelled)
+          result = await this.buildHouse(isCancelled, task.offset)
           break
         case 'retirar_estoque':
           result = await this.withdrawFromStorage(task.item, task.count || 1)
@@ -323,15 +323,20 @@ class WorkerController {
     return this.production.craftToStorage(this.bot, item, count)
   }
 
-  buildingMaterial(minimum = 23) {
-    const allowed = new Set([
-      'cobblestone', 'stone', 'oak_planks', 'spruce_planks', 'birch_planks',
-      'jungle_planks', 'acacia_planks', 'dark_oak_planks', 'mangrove_planks',
-      'cherry_planks', 'bamboo_planks', 'dirt'
+  buildingMaterials() {
+    const allowed = new Set(this.storage?.buildingMaterialNames?.() || [
+      'cobblestone', 'stone', 'deepslate', 'cobbled_deepslate',
+      'oak_planks', 'spruce_planks', 'birch_planks', 'jungle_planks',
+      'acacia_planks', 'dark_oak_planks', 'mangrove_planks', 'cherry_planks',
+      'bamboo_planks', 'dirt'
     ])
     return this.bot.inventory.items()
-      .filter((item) => allowed.has(item.name) && item.count >= minimum)
-      .sort((a, b) => b.count - a.count)[0] || null
+      .filter((item) => allowed.has(item.name) && item.count > 0)
+      .sort((a, b) => b.count - a.count)
+  }
+
+  buildingMaterial(minimum = 23) {
+    return this.buildingMaterials().find((item) => item.count >= minimum) || null
   }
 
   async placeAt(position, material, isCancelled) {
@@ -359,19 +364,27 @@ class WorkerController {
     return false
   }
 
-  async buildHouse(isCancelled) {
+  async buildHouse(isCancelled, offset = null) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
-    let material = this.buildingMaterial(23)
-    if (!material && this.storage?.configured()) {
-      await this.storage.withdrawBuildingMaterial(this.bot, 23)
-      material = this.buildingMaterial(23)
-    }
-    if (!material) throw new Error('preciso de pelo menos 23 blocos de construção no inventário ou estoque')
 
-    const baseX = Math.floor(home.x) + 5
+    const required = 23
+    let materials = this.buildingMaterials()
+    let available = materials.reduce((sum, item) => sum + item.count, 0)
+    if (available < required && this.storage?.configured()) {
+      await this.storage.withdrawBuildingMaterial(this.bot, required - available)
+      materials = this.buildingMaterials()
+      available = materials.reduce((sum, item) => sum + item.count, 0)
+    }
+    if (available < required) {
+      throw new Error(`preciso de ${required} blocos de construção; tenho ${available}`)
+    }
+
+    const dx = Number(offset?.x ?? 5)
+    const dz = Number(offset?.z ?? 2)
+    const baseX = Math.floor(home.x) + dx
     const baseY = Math.floor(home.y) - 1
-    const baseZ = Math.floor(home.z) + 2
+    const baseZ = Math.floor(home.z) + dz
     const targets = []
 
     for (let y = 1; y <= 2; y++) {
@@ -388,14 +401,24 @@ class WorkerController {
     }
 
     let placed = 0
+    const used = {}
     for (const target of targets) {
       if (isCancelled()) break
-      const item = this.bot.inventory.items().find((entry) => entry.name === material.name)
+      const item = this.buildingMaterials()[0]
       if (!item) break
-      if (await this.placeAt(target, item, isCancelled).catch(() => false)) placed++
+      if (await this.placeAt(target, item, isCancelled).catch(() => false)) {
+        placed++
+        used[item.name] = (used[item.name] || 0) + 1
+      }
     }
 
-    return { ok: placed > 0, placed, requested: targets.length, material: material.name }
+    return {
+      ok: placed === targets.length,
+      placed,
+      requested: targets.length,
+      materials: used,
+      offset: { x: dx, z: dz }
+    }
   }
 }
 
