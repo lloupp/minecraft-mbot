@@ -1,4 +1,5 @@
 const { goals } = require('mineflayer-pathfinder')
+const { Vec3 } = require('vec3')
 
 const ITEM_ALIASES = {
   picareta_madeira: 'wooden_pickaxe',
@@ -42,6 +43,45 @@ class ProductionManager {
     const id = bot.registry?.blocksByName?.crafting_table?.id
     if (!Number.isInteger(id)) return null
     return bot.findBlock({ matching: id, maxDistance })
+  }
+
+  async ensureCraftingTable(bot, depth = 0, trail = new Set()) {
+    let table = this.findCraftingTable(bot)
+    if (table) return table
+
+    let tableItem = bot.inventory.items().find((item) => item.name === 'crafting_table')
+    if (!tableItem && this.storage?.configured()) {
+      await this.storage.withdraw(bot, 'crafting_table', 1)
+      tableItem = bot.inventory.items().find((item) => item.name === 'crafting_table')
+    }
+    if (!tableItem) {
+      await this.craftInternal(bot, 'crafting_table', 1, depth + 1, trail)
+      tableItem = bot.inventory.items().find((item) => item.name === 'crafting_table')
+    }
+    if (!tableItem) throw new Error('não consegui obter crafting_table')
+
+    const anchor = this.storage?.getPosition?.() || bot.entity.position
+    const offsets = [
+      [2, 0], [-2, 0], [0, 2], [0, -2],
+      [2, 1], [-2, 1], [1, 2], [1, -2]
+    ]
+
+    for (const [dx, dz] of offsets) {
+      const target = new Vec3(Math.floor(anchor.x + dx), Math.floor(anchor.y), Math.floor(anchor.z + dz))
+      const current = bot.blockAt(target)
+      const below = bot.blockAt(target.offset(0, -1, 0))
+      if (!below || below.name === 'air' || below.boundingBox === 'empty') continue
+      if (current && current.name !== 'air' && current.boundingBox !== 'empty') continue
+
+      await bot.pathfinder.goto(new goals.GoalNear(target.x, target.y, target.z, 3)).catch(() => {})
+      await bot.equip(tableItem, 'hand')
+      await bot.placeBlock(below, new Vec3(0, 1, 0))
+      await bot.waitForTicks?.(2)
+      table = bot.blockAt(target)
+      if (table?.name === 'crafting_table') return table
+    }
+
+    throw new Error('não encontrei local livre para posicionar crafting_table')
   }
 
   itemById(bot, id) {
@@ -99,8 +139,7 @@ class ProductionManager {
 
         let craftingTable = null
         if (recipe.requiresTable) {
-          craftingTable = this.findCraftingTable(bot)
-          if (!craftingTable) throw new Error('receita precisa de crafting_table perto da base')
+          craftingTable = await this.ensureCraftingTable(bot, depth, nextTrail)
           if (bot.entity.position.distanceTo(craftingTable.position) > 4) {
             await bot.pathfinder.goto(new goals.GoalNear(
               craftingTable.position.x,
