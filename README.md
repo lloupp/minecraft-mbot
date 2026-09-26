@@ -100,12 +100,13 @@ numa versão, o bot usa a implementação própria em `lib/`.
 |---|---|
 | `mineflayer-pvp` | Combate corpo a corpo: persegue e golpeia no tempo certo |
 | `mineflayer-collectblock` + `mineflayer-tool` | Carregados, mas a coleta própria continua padrão: em 1.20.1 o plugin travou em minérios subterrâneos (0 ferro contra 10 da coleta própria). Ative com `MBOT_COLLECTBLOCK=1` |
-| `mineflayer-armor-manager` | Veste armadura assim que pega (também nos bots da colônia) |
 | `minecrafthawkeye` | Mira com arco contra esqueletos e alvos distantes (se tiver arco e flechas) |
 | `prismarine-viewer` | **Ver o bot jogando no navegador** (3D; suporta até 1.21.4) |
 | `mineflayer-web-inventory` | Ver o inventário do bot no navegador |
 
-`MBOT_PLUGINS=0` desliga todos os plugins.
+`MBOT_PLUGINS=0` desliga todos os plugins; `MBOT_PLUGINS_SKIP=pvp,hawkeye` pula alguns.
+
+O `mineflayer-armor-manager` foi testado e **removido**: ele clica no inventário a cada item recolhido e dessincroniza o craft (o servidor reenviou o inventário 153 vezes contra 42 sem ele). A armadura é vestida por `lib/equipment.js` quando o bot está livre.
 
 Para as páginas web, defina as portas ao iniciar:
 

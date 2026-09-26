@@ -22,7 +22,6 @@
     "minecraft-protocol-forge": "github:PrismarineJS/node-minecraft-protocol-forge#master",
     "minecrafthawkeye": "^1.3.9",
     "mineflayer": "npm:@wp2508/mineflayer@4.42.2",
-    "mineflayer-armor-manager": "^2.0.1",
     "mineflayer-collectblock": "^1.6.0",
     "mineflayer-pathfinder": "^2.4.5",
     "mineflayer-pvp": "^1.3.2",
