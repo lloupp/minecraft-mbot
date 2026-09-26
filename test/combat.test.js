@@ -57,3 +57,64 @@ test('escolhe a melhor arma, preferindo espada', () => {
   const bot = fakeBot({ items: ['wooden_sword', 'iron_axe', 'iron_sword', 'dirt'] })
   assert.equal(combat.bestWeapon(bot).name, 'iron_sword')
 })
+
+
+test('escudo vai para a mão secundária só se ainda não estiver lá', async () => {
+  const equipped = []
+  const bot = {
+    inventory: { slots: [], items: () => [{ name: 'shield' }] },
+    equip: async (item, dest) => { equipped.push([item.name, dest]) }
+  }
+  assert.equal(await combat.equipShield(bot), true)
+  assert.deepEqual(equipped, [['shield', 'off-hand']])
+  bot.inventory.slots[45] = { name: 'shield' }
+  assert.equal(await combat.equipShield(bot), true)
+  assert.equal(equipped.length, 1)
+})
+
+test('fim de luta antiga não interrompe luta mais nova', async () => {
+  const mkTarget = (name) => ({
+    name,
+    type: 'hostile',
+    isValid: true,
+    position: { distanceTo: () => 2, offset: () => ({}) }
+  })
+  const target1 = mkTarget('zombie')
+  const target2 = mkTarget('husk')
+  let cancel1 = false
+  const bot = {
+    health: 20,
+    heldItem: null,
+    usingHeldItem: false,
+    entity: { position: {} },
+    entities: {},
+    inventory: {
+      slots: [],
+      items: () => [{ name: 'iron_sword' }, { name: 'shield' }]
+    },
+    equip: async (item, where) => {
+      if (where === 'hand') bot.heldItem = item
+      if (where === 'off-hand') bot.inventory.slots[45] = item
+    },
+    pvp: {
+      target: null,
+      stopped: 0,
+      attack(target) { this.target = target },
+      stop() { this.stopped++; this.target = null }
+    },
+    pathfinder: { setGoal() {} }
+  }
+
+  const first = combat.fight(bot, target1, () => cancel1)
+  await new Promise((resolve) => setTimeout(resolve, 5))
+  const second = combat.fight(bot, target2, () => false)
+  cancel1 = true
+  await first
+
+  assert.equal(bot.pvp.target, target2)
+  assert.equal(bot.pvp.stopped, 0)
+
+  target2.isValid = false
+  await second
+  assert.equal(bot.pvp.stopped, 1)
+})
