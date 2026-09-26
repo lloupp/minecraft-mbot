@@ -42,6 +42,9 @@ class WorkerController {
     this.workMoves = null
     this.penMoves = null
     this.activePen = null     // curral com portão aberto ou com o bot dentro
+    // Atração de animais: segue só com o animal a até `near` blocos; a mais de
+    // `lost` ele desistiu; espera até `waitMs` ele alcançar.
+    this.lure = { near: 3, lost: 10, waitMs: 5000, pollMs: 250, timeoutMs: 45000 }
     this.eating = false
     this.defending = false
     this.lastHealth = null
@@ -637,6 +640,61 @@ class WorkerController {
     }
   }
 
+  async waitUntil(check, isCancelled, timeoutMs) {
+    const deadline = Date.now() + timeoutMs
+    while (!isCancelled()) {
+      if (check()) return true
+      if (Date.now() >= deadline) return false
+      await sleep(this.lure.pollMs)
+    }
+    return false
+  }
+
+  lureDistance(entity) {
+    return entity.position.distanceTo(this.bot.entity.position)
+  }
+
+  // Espera o animal atraído chegar perto antes de começar a andar.
+  async waitForAnimal(entity, isCancelled) {
+    return this.waitUntil(
+      () => entity.isValid !== false && this.lureDistance(entity) <= this.lure.near,
+      isCancelled,
+      this.lure.waitMs
+    )
+  }
+
+  // Anda em trechos curtos até `target` com o animal atrás: se ele ficar a mais
+  // de `near` blocos, para e espera ele alcançar. Animal atraído perde o
+  // interesse a mais de ~10 blocos, e aí não há o que fazer.
+  async leadAnimal(entity, target, isCancelled) {
+    const goal = new goals.GoalNear(target.x, target.y, target.z, 1)
+    const deadline = Date.now() + this.lure.timeoutMs
+    let walking = false
+    let waitingSince = null
+    try {
+      while (!isCancelled() && Date.now() < deadline) {
+        if (entity.isValid === false) return false
+        const lag = this.lureDistance(entity)
+        if (lag > this.lure.lost) return false
+        if (lag > this.lure.near) {
+          if (walking) this.bot.pathfinder.setGoal(null)
+          walking = false
+          waitingSince = waitingSince || Date.now()
+          if (Date.now() - waitingSince > this.lure.waitMs) return false
+        } else {
+          waitingSince = null
+          if (goal.isEnd(this.bot.entity.position.floored())) return true
+          if (!walking) this.bot.pathfinder.setGoal(goal)
+          walking = true
+        }
+        await sleep(this.lure.pollMs)
+      }
+      return false
+    } finally {
+      if (walking && !isCancelled()) this.bot.pathfinder.setGoal(null)
+    }
+  }
+
   async lureFeed(species) {
     const canonical = husbandry.normalizeSpecies(species) || species
     const config = husbandry.SPECIES[canonical]
@@ -727,48 +785,57 @@ class WorkerController {
 
     let captured = 0
     let attempted = 0
-    for (const entity of candidates) {
-      if (captured >= wanted || isCancelled()) break
-      if (entity.isValid === false) continue
-      attempted++
+    // Atraindo: sem correr (o animal fica para trás e perde o interesse) e sem cavar.
+    this.useMoves(this.penMoves)
+    this.bot.setControlState?.('sprint', false)
+    try {
+      for (const entity of candidates) {
+        if (captured >= wanted || isCancelled()) break
+        if (entity.isValid === false) continue
+        attempted++
 
-      const currentFeed = this.bot.inventory.items().find((entry) => entry.name === feed.name)
-      if (!currentFeed) break
-      await this.bot.equip(currentFeed, 'hand').catch(() => {})
+        const currentFeed = this.bot.inventory.items().find((entry) => entry.name === feed.name)
+        if (!currentFeed) break
+        await this.bot.equip(currentFeed, 'hand').catch(() => {})
 
-      await this.goTo(
-        new goals.GoalNear(
-          Math.floor(entity.position.x),
-          Math.floor(entity.position.y),
-          Math.floor(entity.position.z),
-          3
-        ),
-        15000
-      ).catch(() => {})
-      if (isCancelled() || entity.isValid === false) break
-      if (entity.position.distanceTo(this.bot.entity.position) > 6) continue
-
-      const outside = pen.plan.outside
-      await this.goTo(new goals.GoalNear(outside.x, outside.y, outside.z, 1), 20000).catch(() => {})
-      await sleep(650)
-      if (isCancelled()) break
-
-      let inside = false
-      try {
-        await this.setPenGate(pen.plan, true, isCancelled)
+        await this.goTo(
+          new goals.GoalNear(
+            Math.floor(entity.position.x),
+            Math.floor(entity.position.y),
+            Math.floor(entity.position.z),
+            3
+          ),
+          15000
+        ).catch(() => {})
+        if (isCancelled() || entity.isValid === false) break
+        // Com a ração na mão o animal vem até o bot; sem isso não adianta andar.
+        if (!(await this.waitForAnimal(entity, isCancelled))) continue
+        if (!(await this.leadAnimal(entity, pen.plan.outside, isCancelled))) continue
         if (isCancelled()) break
 
-        const entry = pen.plan.insideEntry
-        await this.bot.equip(currentFeed, 'hand').catch(() => {})
-        await this.goTo(new goals.GoalNear(entry.x, entry.y, entry.z, 1), 12000).catch(() => {})
-        await sleep(1200)
-        inside = entity.isValid !== false && pointInsidePen(entity.position, pen.plan)
-      } finally {
-        if (!isCancelled()) await this.setPenGate(pen.plan, false, isCancelled).catch(() => {})
-      }
+        let inside = false
+        try {
+          // Portão aberto só com o animal colado no bot (e o bot já do lado de fora dele).
+          if (!(await this.setPenGate(pen.plan, true, isCancelled))) continue
+          if (isCancelled()) break
 
-      if (inside) captured++
-      if (!isCancelled()) await this.leaveAnimalPen(pen.plan, isCancelled).catch(() => {})
+          await this.bot.equip(currentFeed, 'hand').catch(() => {})
+          // Vai até o centro para puxar o animal inteiro para dentro antes de fechar.
+          await this.leadAnimal(entity, pen.plan.center, isCancelled)
+          inside = await this.waitUntil(
+            () => entity.isValid !== false && pointInsidePen(entity.position, pen.plan),
+            isCancelled,
+            1500
+          )
+        } finally {
+          if (!isCancelled()) await this.setPenGate(pen.plan, false, isCancelled).catch(() => {})
+        }
+
+        if (inside) captured++
+        if (!isCancelled()) await this.leaveAnimalPen(pen.plan, isCancelled).catch(() => {})
+      }
+    } finally {
+      if (!isCancelled()) this.useMoves(this.workMoves)
     }
 
     const insideNow = husbandry.selectAnimals(this.bot, pen.canonical, {

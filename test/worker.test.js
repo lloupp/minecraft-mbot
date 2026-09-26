@@ -120,7 +120,7 @@ function penWorld({ items = [], cows = 2 } = {}) {
   bot.activateBlock = async (block) => { block.open = !block.open }
   bot.activated = []
   bot.activateEntity = async (entity) => { bot.activated.push(entity.id) }
-  bot.pathfinder.goto = async (goal) => {
+  const move = (goal) => {
     bot.pathfinder.goals.push(goal)
     if (goal.isEnd?.(bot.entity.position.floored())) return // já está perto
     const target = new Vec3(goal.x + 0.5, goal.y, goal.z + 0.5)
@@ -130,6 +130,11 @@ function penWorld({ items = [], cows = 2 } = {}) {
       throw new Error('sem caminho: curral fechado')
     }
     bot.entity.position = target
+  }
+  bot.pathfinder.goto = async (goal) => move(goal)
+  bot.pathfinder.setGoal = (goal) => {
+    bot.pathfinder.goal = goal
+    if (goal) try { move(goal) } catch {}
   }
   for (let i = 0; i < cows; i++) {
     bot.entities[i + 1] = {
@@ -205,6 +210,56 @@ test('WorkerController cancelado dentro do curral: a próxima tarefa sai pelo po
   const last = bot.pathfinder.goals[bot.pathfinder.goals.length - 1]
   assert.deepEqual([last.x, last.z], [0, 0])
   assert.equal(worker.activePen, null)
+})
+
+// Vaca fora do curral que segue o bot enquanto ele segura ração e está perto.
+function temptedCow(bot, position, { follows = true } = {}) {
+  const cow = { id: 50, name: 'cow', isValid: true, following: false, spot: position }
+  Object.defineProperty(cow, 'position', {
+    get () {
+      if (!cow.following && follows && cow.spot.distanceTo(bot.entity.position) <= 3.5) cow.following = true
+      return cow.following ? bot.entity.position.offset(0, 0, -1) : cow.spot
+    }
+  })
+  bot.unequip = async () => { // largou a ração: a vaca para onde está
+    if (cow.following) cow.spot = cow.position
+    cow.following = false
+  }
+  bot.entities[cow.id] = cow
+  return cow
+}
+
+test('WorkerController atrai o animal sem correr e só abre o portão com ele perto', async () => {
+  const { home, plan, gate, bot } = penWorld({ items: [{ name: 'wheat', count: 1 }], cows: 0 })
+  const cow = temptedCow(bot, new Vec3(plan.gate.x + 0.5, 64, plan.gate.z - 8.5))
+  const sprint = []
+  bot.setControlState = (control, state) => sprint.push([control, state])
+  const worker = readyWorker(bot, { role: 'fazendeiro', homeProvider: () => home })
+  worker.lure = { ...worker.lure, pollMs: 5 }
+
+  const result = await worker.run({ type: 'capturar_animais', species: 'cow', count: 1 })
+
+  assert.deepEqual(sprint, [['sprint', false]])
+  assert.equal(result.captured, 1)
+  assert.equal(result.inside, 1)
+  assert.equal(pointInsidePen(cow.position, plan), true)
+  assert.equal(pointInsidePen(bot.entity.position, plan), false)
+  assert.equal(gate.open, false)
+})
+
+test('WorkerController não abre o portão se o animal não acompanha', async () => {
+  const { home, plan, gate, bot } = penWorld({ items: [{ name: 'wheat', count: 1 }], cows: 0 })
+  temptedCow(bot, new Vec3(plan.gate.x + 0.5, 64, plan.gate.z - 8.5), { follows: false })
+  let toggles = 0
+  bot.activateBlock = async (block) => { toggles++; block.open = !block.open }
+  const worker = readyWorker(bot, { role: 'fazendeiro', homeProvider: () => home })
+  worker.lure = { ...worker.lure, pollMs: 5, waitMs: 30 }
+
+  const result = await worker.run({ type: 'capturar_animais', species: 'cow', count: 1 })
+
+  assert.equal(result.captured, 0)
+  assert.equal(toggles, 0)
+  assert.equal(gate.open, false)
 })
 
 test('WorkerController recoloca portão virado de lado, olhando de fora do curral', async () => {
