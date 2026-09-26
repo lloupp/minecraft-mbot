@@ -134,6 +134,7 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!animais [raio]` | Conta animais suportados próximos |
 | `!reproduzir <animal> [pares]` | Alimenta pares para tentar reprodução |
 | `!tosquiar [qtd]` | Tenta tosquiar ovelhas próximas |
+| `!produto <la|leite|ovos> [qtd]` | Coleta produto animal não letal usando um fazendeiro |
 | `!manejo <animal> [alvo]` | Tenta elevar a população até uma meta limitada |
 | `!construir curral [animal]` | Constrói um curral físico 7x7 para a espécie |
 
@@ -870,3 +871,32 @@ meta atingida
 ```
 
 O alvo é limitado a 2–32 animais por espécie. Falhas de terreno, falta de alimento, ausência de animais próximos ou curral obstruído entram no sistema de backoff do modo automático. Depois de uma tentativa de reprodução considerada bem-sucedida, a espécie recebe um cooldown de 5 minutos antes de outra tentativa automática, evitando consumo repetitivo de alimento.
+
+
+## Produção animal não letal
+
+Com um fazendeiro e currais funcionais, a colônia pode produzir recursos sem abate:
+
+```text
+!produto la 8
+!produto leite 3
+!produto ovos
+```
+
+### Lã
+
+`!produto la 8` usa o curral de ovelhas, obtém tesoura antes de entrar, ignora filhotes, recolhe os drops, sai pelo portão e deposita a lã no estoque central.
+
+### Leite
+
+`!produto leite 3` usa o curral de vacas, obtém até 16 baldes vazios antes de entrar, ignora filhotes, confirma `milk_bucket` no inventário e deposita os baldes de leite no estoque central.
+
+### Ovos
+
+`!produto ovos` entra no curral das galinhas e recolhe os ovos que já estiverem no chão. A tarefa não espera indefinidamente uma galinha botar ovo.
+
+### Segurança
+
+Essas tarefas não abatem animais, não reduzem a meta populacional, não saem do curral para buscar ferramentas/recipientes e fecham o portão ao sair.
+
+Metas automáticas de estoque para lã/leite/ovos ficam para a próxima camada; nesta etapa a produção é explícita por comando para facilitar validação no servidor 1.20.1.
