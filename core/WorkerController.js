@@ -118,6 +118,9 @@ class WorkerController {
         case 'depositar':
           result = await this.depositCargo()
           break
+        case 'sincronizar_estoque':
+          result = await this.syncStorage()
+          break
         case 'voltar':
           result = await this.returnHome(isCancelled)
           break
@@ -307,6 +310,12 @@ class WorkerController {
     if (!this.storage?.configured()) throw new Error('estoque central não configurado')
     const deposited = await this.storage.depositCargo(this.bot)
     return { ok: true, deposited }
+  }
+
+  async syncStorage() {
+    if (!this.storage?.configured()) throw new Error('estoque central não configurado')
+    const stock = await this.storage.summary(this.bot)
+    return { ok: true, stock }
   }
 
   async craft(item, count) {

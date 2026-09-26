@@ -10,6 +10,7 @@ const { ColonyOrchestrator } = require('../core/ColonyOrchestrator')
 const { resolveBlockNames } = require('../core/resources')
 const { StorageManager, aggregateItems, isEquipment } = require('../core/StorageManager')
 const { ProductionManager, normalizeItemName, recipeIngredients, SMELT_INPUTS } = require('../core/ProductionManager')
+const { DemandPlanner, stockMetrics, deficits } = require('../core/DemandPlanner')
 
 test('CommandRouter interpreta e despacha comandos', async () => {
   const router = new CommandRouter()
@@ -159,40 +160,110 @@ test('ColonyOrchestrator divide uma ordem entre trabalhadores da profissão', as
   assert.equal(received.length, 2)
 })
 
-test('ColonyOrchestrator modo automático só envia tarefa para ocioso', async () => {
+test('DemandPlanner mede estoque e prioriza necessidades', () => {
+  const metrics = stockMetrics({
+    bread: 10,
+    oak_log: 20,
+    coal: 4,
+    raw_iron: 5,
+    iron_ingot: 2,
+    cobblestone: 30
+  })
+  assert.equal(metrics.food, 10)
+  assert.equal(metrics.wood, 20)
+  assert.equal(metrics.fuel, 4)
+  assert.equal(metrics.ironTotal, 7)
+
+  const missing = deficits(metrics)
+  assert.equal(missing.food, 22)
+  assert.equal(missing.wood, 44)
+  assert.equal(missing.fuel, 20)
+})
+
+test('DemandPlanner distribui trabalho conforme falta no estoque', () => {
+  const planner = new DemandPlanner()
+  const controller = () => ({ isIdle: () => true })
+  const workers = [
+    { worker: { name: 'minerador_01', role: 'minerador' }, controller: controller() },
+    { worker: { name: 'lenhador_01', role: 'lenhador' }, controller: controller() },
+    { worker: { name: 'fazendeiro_01', role: 'fazendeiro' }, controller: controller() }
+  ]
+
+  const result = planner.buildPlan(workers, {})
+  assert.equal(result.plan.length, 3)
+  assert.equal(result.plan.find((x) => x.worker.role === 'minerador').task.resource, 'carvao')
+  assert.equal(result.plan.find((x) => x.worker.role === 'lenhador').task.resource, 'madeira')
+  assert.equal(result.plan.find((x) => x.worker.role === 'fazendeiro').task.resource, 'comida')
+})
+
+test('DemandPlanner manda artesao converter ferro bruto quando necessário', () => {
+  const planner = new DemandPlanner()
+  const workers = [{
+    worker: { name: 'artesao_01', role: 'artesao' },
+    controller: { isIdle: () => true }
+  }]
+  const { plan } = planner.buildPlan(workers, {
+    raw_iron: 8,
+    coal: 24,
+    oak_log: 64,
+    bread: 32,
+    cobblestone: 64
+  })
+  assert.equal(plan.length, 1)
+  assert.equal(plan[0].task.type, 'fabricar')
+  assert.equal(plan[0].task.item, 'iron_ingot')
+})
+
+test('ColonyOrchestrator exige base, estoque e planejador para auto', () => {
+  const manager = { workers: new Map(), normalizeRole: (role) => role }
+  const colony = new ColonyOrchestrator({
+    botManager: manager,
+    homeProvider: () => null,
+    storage: { configured: () => false },
+    demandPlanner: null
+  })
+  assert.deepEqual(colony.autoReadiness(), {
+    ready: false,
+    missing: ['base', 'estoque', 'planejador']
+  })
+})
+
+test('ColonyOrchestrator automático usa plano de demanda com snapshot fresco', async () => {
   const tasks = []
-  const workers = new Map([
-    ['lenhador_01', {
-      name: 'lenhador_01',
-      role: 'lenhador',
-      bot: { colonyController: {
+  const worker = {
+    name: 'lenhador_01',
+    role: 'lenhador',
+    bot: {
+      colonyController: {
         state: 'ocioso',
         currentTask: null,
         isIdle: () => true,
         run: async (task) => { tasks.push(task); return { ok: true } }
-      } }
-    }],
-    ['minerador_01', {
-      name: 'minerador_01',
-      role: 'minerador',
-      bot: { colonyController: {
-        state: 'trabalhando',
-        currentTask: { type: 'coletar_blocos' },
-        isIdle: () => false,
-        run: async (task) => { tasks.push(task); return { ok: true } }
-      } }
-    }]
-  ])
-  const manager = { workers, normalizeRole: (role) => role }
-  const colony = new ColonyOrchestrator({ botManager: manager })
+      }
+    }
+  }
+  const manager = {
+    workers: new Map([[worker.name, worker]]),
+    normalizeRole: (role) => role
+  }
+  const storage = {
+    configured: () => true,
+    snapshotFresh: () => true,
+    cachedSummary: () => ({})
+  }
+  const planner = new DemandPlanner()
+  const colony = new ColonyOrchestrator({
+    botManager: manager,
+    homeProvider: () => ({ x: 0, y: 64, z: 0 }),
+    storage,
+    demandPlanner: planner
+  })
   colony.setAuto(true)
   await colony.tick()
   await new Promise((resolve) => setImmediate(resolve))
-
   assert.equal(tasks.length, 1)
   assert.equal(tasks[0].resource, 'madeira')
 })
-
 
 test('StorageManager agrega estoque e preserva equipamento', () => {
   assert.deepEqual(aggregateItems([
@@ -260,4 +331,38 @@ test('ProductionManager conta inventário por id', () => {
   }
   assert.equal(production.inventoryCount(bot, 1, null), 5)
   assert.equal(production.inventoryCount(bot, 2, null), 9)
+})
+
+
+test('StorageManager snapshot cache pode ser atualizado sem abrir container', () => {
+  const storage = new StorageManager()
+  storage.updateSnapshot([
+    { name: 'coal', count: 3 },
+    { name: 'coal', count: 2 },
+    { name: 'oak_log', count: 7 }
+  ])
+  assert.deepEqual(storage.cachedSummary(), { coal: 5, oak_log: 7 })
+  assert.equal(storage.snapshotFresh(1000), true)
+})
+
+
+test('DemandPlanner não fabrica ferramenta com apenas uma tábua', () => {
+  const planner = new DemandPlanner()
+  const workers = [{
+    worker: { name: 'artesao_01', role: 'artesao' },
+    controller: { isIdle: () => true }
+  }]
+  const { plan } = planner.buildPlan(workers, {
+    bread: 32,
+    coal: 24,
+    iron_ingot: 12,
+    cobblestone: 64,
+    oak_planks: 1
+  })
+  assert.equal(plan.length, 0)
+})
+
+test('DemandPlanner contabiliza alimentos crus utilizáveis', () => {
+  const metrics = stockMetrics({ beef: 6, porkchop: 4, carrot: 2 })
+  assert.equal(metrics.food, 12)
 })
