@@ -76,7 +76,9 @@ class WorkerController {
 
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
-      this.workMoves.canDig = true
+      // Navegação não escava atalhos (nem pedra à mão, nem construções).
+      // Coleta e obras continuam cavando explicitamente com bot.dig.
+      this.workMoves.canDig = false
       // Subir empilhando blocos (terra/pedregulho do próprio inventário) é o único
       // jeito de sair de um poço 1x1 que o worker cavou minerando para baixo.
       this.workMoves.allow1by1towers = true
