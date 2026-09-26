@@ -17,6 +17,8 @@ const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
 const FLEE_MS = 4000      // tempo fugindo
 const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
+// Blocos naturais que podem ser cavados para abrir a linha do curral.
+const NATURAL_TERRAIN = /^(grass_block|dirt|coarse_dirt|rooted_dirt|podzol|mycelium|mud|clay|sand|red_sand|gravel|stone|andesite|diorite|granite|tuff|snow_block)$/
 // Todos os workers dividem o mesmo processo Node. Com o padrão do pathfinder
 // (40 ms de A* por tick), 7 workers calculando caminhos longos ao mesmo tempo
 // saturavam a CPU e o servidor os derrubava por "Timed out".
@@ -626,6 +628,14 @@ class WorkerController {
     let current = this.bot.blockAt(pos)
     if (current?.name === itemName) return true
 
+    // Terreno 1 bloco acima do chão do curral (grama, terra...) ocupa a linha da
+    // cerca: cava para a cerca ficar no nível das outras (visto no 1.20.1: 18/23).
+    if (current && NATURAL_TERRAIN.test(current.name)) {
+      await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 10000).catch(() => {})
+      if (isCancelled()) return false
+      await this.bot.dig(current).catch(() => {})
+      current = this.bot.blockAt(pos)
+    }
     if (current && current.name !== 'air' && current.boundingBox !== 'empty') return false
     if (current && current.name !== 'air' && current.boundingBox === 'empty') {
       await this.bot.dig(current).catch(() => {})
@@ -712,6 +722,17 @@ class WorkerController {
     }
     // De novo antes do portão: o pathfinder pode ter posto terra lá dentro durante a obra.
     leveled += await this.levelPenInterior(plan, isCancelled)
+
+    // Acesso ao portão no nível do curral: com a célula da frente 1 bloco mais
+    // alta o fazendeiro não conseguia entrar e o portão ficava aberto até o
+    // tempo acabar, soltando os animais (visto no 1.20.1).
+    const approach = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z - 1)
+    for (const pos of [approach, approach.offset(0, 1, 0)]) {
+      const block = this.bot.blockAt(pos)
+      if (isCancelled() || !NATURAL_TERRAIN.test(block?.name || '')) continue
+      await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 8000).catch(() => {})
+      await this.bot.dig(block).catch(() => {})
+    }
 
     let gatePlaced = false
     if (!isCancelled()) {

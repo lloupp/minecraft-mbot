@@ -426,3 +426,43 @@ test('WorkerController tira degrau posto dentro do curral durante a obra, antes 
   assert.equal(result.leveled, 1)
   assert.equal(result.ok, true)
 })
+
+test('WorkerController cava terreno natural na linha da cerca, mas não blocos construídos', async () => {
+  const blocks = { '(1, 64, 0)': 'grass_block', '(2, 64, 0)': 'oak_planks' }
+  const bot = fakeBot()
+  bot.blockAt = (pos) => {
+    const name = blocks[pos.toString()] || (pos.y < 64 ? 'dirt' : 'air')
+    return { name, position: pos, boundingBox: name === 'air' ? 'empty' : 'block' }
+  }
+  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  bot.inventory = { items: () => [{ name: 'oak_fence', count: 2 }] }
+  bot.placeBlock = async (below) => { blocks[below.position.offset(0, 1, 0).toString()] = 'oak_fence' }
+  const worker = readyWorker(bot)
+
+  assert.equal(await worker.placeGroundItem({ x: 1, y: 64, z: 0 }, 'oak_fence', () => false), true)
+  assert.equal(blocks['(1, 64, 0)'], 'oak_fence')
+  assert.equal(await worker.placeGroundItem({ x: 2, y: 64, z: 0 }, 'oak_fence', () => false), false)
+  assert.equal(blocks['(2, 64, 0)'], 'oak_planks')
+})
+
+test('WorkerController nivela a entrada do portão antes de colocá-lo', async () => {
+  const home = { x: 0, y: 64, z: 0 }
+  const plan = animalPenPlan(home, 'cow')
+  const approach = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z - 1)
+  const blocks = { [approach.toString()]: 'grass_block' } // terreno de fora 1 bloco mais alto
+  const bot = fakeBot()
+  bot.blockAt = (pos) => {
+    const name = blocks[pos.toString()] || 'air'
+    return { name, position: pos, boundingBox: name === 'air' ? 'empty' : 'block' }
+  }
+  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  const worker = readyWorker(bot, { role: 'construtor', homeProvider: () => home })
+  worker.ensurePenKit = async () => ({ fence: 'oak_fence', gate: 'oak_fence_gate' })
+  worker.placeGroundItem = async () => true
+  let approachAtGate = null
+  worker.placePenGate = async () => { approachAtGate = blocks[approach.toString()]; return true }
+
+  const result = await worker.buildAnimalPen(() => false, 'cow')
+  assert.equal(approachAtGate, 'air')
+  assert.equal(result.ok, true)
+})
