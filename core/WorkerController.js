@@ -47,6 +47,7 @@ class WorkerController {
     this.lure = { near: 3, lost: 10, waitMs: 5000, pollMs: 250, timeoutMs: 45000 }
     this.eating = false
     this.defending = false
+    this.diggingOut = false
     this.lastHealth = null
     this.lastAttacker = null
     this.survivalTimer = null
@@ -81,9 +82,15 @@ class WorkerController {
 
     // Tomou dano: interrompe a tarefa para lutar ou fugir.
     bot.on('health', () => {
-      if (this.lastHealth !== null && bot.health < this.lastHealth && bot.health > 0 && !this.defending) {
-        this.defend(this.lastAttacker).catch((err) => this.logger.log(`[colônia] ${this.name} defesa: ${err.message}`))
-        this.lastAttacker = null
+      if (this.lastHealth !== null && bot.health < this.lastHealth && bot.health > 0) {
+        if (this.headBlock()) {
+          // Sufocando (areia/cascalho caiu na cabeça): cava para sair, não é ataque.
+          this.digOut().catch((err) => this.logger.log(`[colônia] ${this.name} soterrado: ${err.message}`))
+          this.lastAttacker = null
+        } else if (!this.defending) {
+          this.defend(this.lastAttacker).catch((err) => this.logger.log(`[colônia] ${this.name} defesa: ${err.message}`))
+          this.lastAttacker = null
+        }
       }
       this.lastHealth = bot.health
     })
@@ -105,6 +112,35 @@ class WorkerController {
       return
     }
     if (this.bot.food <= HUNGRY && !this.bot.targetDigBlock) this.eat()
+  }
+
+  // Bloco sólido e cavável na altura dos olhos: o bot está sufocando.
+  headBlock() {
+    const position = this.bot.entity?.position
+    if (!position) return null
+    const block = this.bot.blockAt(position.offset(0, 1.62, 0))
+    return block && block.boundingBox === 'block' && block.diggable !== false ? block : null
+  }
+
+  async digOut() {
+    if (this.diggingOut) return
+    this.diggingOut = true
+    try {
+      // Areia/cascalho continuam caindo: repete algumas vezes, cabeça e depois pés.
+      for (let i = 0; i < 6; i++) {
+        const head = this.headBlock()
+        // Nos pés só cava o que caiu (areia/cascalho), não o chão (terra arada, areia das almas).
+        const feet = this.bot.blockAt(this.bot.entity.position)
+        const block = head || (gather.FALLING.has(feet?.name) ? feet : null)
+        if (!block) break
+        const tool = this.bot.pathfinder?.bestHarvestTool?.(block)
+        if (tool) await this.bot.equip(tool, 'hand').catch(() => {})
+        await this.bot.dig(block)
+        await sleep(150)
+      }
+    } finally {
+      this.diggingOut = false
+    }
   }
 
   async eat() {
@@ -337,15 +373,9 @@ class WorkerController {
     }
   }
 
+  // Mesma coleta do food: espera o item aparecer (até 1,5 s) e passa mais de uma vez.
   async collectDrops(center, isCancelled) {
-    await sleep(450)
-    const drops = Object.values(this.bot.entities || {})
-      .filter((entity) => entity.name === 'item' && entity.position?.distanceTo(center) <= 6)
-    for (const drop of drops) {
-      if (isCancelled() || drop.isValid === false) return
-      const p = drop.position
-      await this.goTo(new goals.GoalNear(p.x, p.y, p.z, 1), 5000).catch(() => {})
-    }
+    await food.collectDrops(this.bot, center, isCancelled)
   }
 
   async gatherBlocks(resource, count, isCancelled) {
@@ -1219,11 +1249,19 @@ class WorkerController {
     const wanted = Math.max(6, Math.min(32, Number(length) || 12))
     let clearedSegments = 0
     let dug = 0
+    let blockedBy = null
 
     for (let i = 0; i < wanted && !isCancelled(); i++) {
       const foot = new Vec3(anchor.position.x + dx * i, anchor.position.y, anchor.position.z + dz * i)
       const positions = [foot, foot.offset(0, 1, 0)]
       let segmentOk = true
+
+      // Areia/cascalho no teto (ou na altura da cabeça) desaba no túnel e soterra
+      // o bot: encerra o túnel aqui em vez de cavar embaixo.
+      if (gather.FALLING.has(this.bot.blockAt(positions[1])?.name) || gather.hasFallingAbove(this.bot, positions[1])) {
+        blockedBy = 'areia_cascalho'
+        break
+      }
 
       for (const pos of positions) {
         if (isCancelled()) break
@@ -1263,6 +1301,7 @@ class WorkerController {
       length: wanted,
       clearedSegments,
       dug,
+      blockedBy,
       start: { x: anchor.position.x, y: anchor.position.y, z: anchor.position.z },
       deposited
     }

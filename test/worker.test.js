@@ -297,6 +297,48 @@ test('WorkerController recoloca portão virado de lado, olhando de fora do curra
   assert.equal(bot.blockAt(gatePos).getProperties().facing, 'south')
 })
 
+test('WorkerController soterrado cava para sair em vez de fugir', async () => {
+  const zombie = { name: 'zombie', type: 'hostile', isValid: true, position: new Vec3(6, 64, 0) }
+  const bot = fakeBot({ entities: { 1: zombie } })
+  const head = new Vec3(0, 65, 0)
+  let sand = true
+  bot.blockAt = (pos) => sand && pos.floored().equals(head)
+    ? { name: 'sand', boundingBox: 'block', diggable: true, position: head }
+    : { name: 'air', boundingBox: 'empty', position: pos.floored() }
+  const dug = []
+  bot.dig = async (block) => { dug.push(block.name); sand = false }
+  const worker = readyWorker(bot)
+
+  bot.emit('health')
+  bot.health = 19
+  bot.emit('health') // dano de sufocamento: sem atacante
+
+  await sleep(200)
+  assert.deepEqual(dug, ['sand'])
+  assert.notEqual(worker.state, 'defendendo')
+  assert.equal(worker.defending, false)
+})
+
+test('WorkerController encerra o túnel da mina ao achar cascalho no teto', async () => {
+  const blocks = {
+    [new Vec3(10, 64, 0).toString()]: 'stone',
+    [new Vec3(11, 64, 0).toString()]: 'stone',
+    [new Vec3(11, 65, 0).toString()]: 'stone',
+    [new Vec3(11, 66, 0).toString()]: 'gravel'
+  }
+  const bot = fakeBot({ blocks })
+  bot.registry.blocksByName.stone = { id: 3 }
+  bot.findBlock = () => ({ position: new Vec3(10, 64, 0) })
+  const worker = readyWorker(bot, { homeProvider: () => ({ x: 0, y: 64, z: 0 }) })
+
+  const result = await worker.run({ type: 'construir_mina', length: 6 })
+
+  assert.equal(result.blockedBy, 'areia_cascalho')
+  assert.equal(result.dug, 1)
+  assert.equal(bot.blockAt(new Vec3(11, 64, 0)).name, 'stone')
+  assert.equal(bot.blockAt(new Vec3(11, 65, 0)).name, 'stone')
+})
+
 test('StorageManager não segura a trava do baú enquanto o bot caminha', async () => {
   const storage = new StorageManager()
   storage.setPosition({ x: 0, y: 64, z: 0 })
