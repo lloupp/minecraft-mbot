@@ -121,13 +121,16 @@ Esse spike NÃO adiciona o pacote ao runtime. O CI instala temporariamente
 - transição disparada por tick;
 - resolução da mesma instalação de `mineflayer` usada pelo projeto;
 - resolução da mesma instalação de `mineflayer-pathfinder`;
-- comportamento de listener do `BotStateMachine`.
+- comportamento de listener do `BotStateMachine`;
+- presença do alias legado `physicTick` no Mineflayer instalado.
 
-O spike também documenta uma limitação da versão 1.7.0: `BotStateMachine`
-registra `physicsTick` no construtor e não expõe `dispose()`. Por isso, uma
-integração futura não deve criar uma instância nova a cada tarefa. A estratégia
-preferida é uma máquina reutilizável por worker ou atualização manual de
-`NestedStateMachine`.
+O spike também documenta duas limitações da versão 1.7.0: `BotStateMachine`
+registra o evento legado `physicTick` (sem "s") e não expõe `dispose()`.
+O Mineflayer atual ainda emite esse alias para compatibilidade, mas o marca como
+deprecated e pode removê-lo no futuro. Por isso, uma integração futura não deve
+criar uma instância nova a cada tarefa e deve encapsular o tick atrás de um
+adapter. A estratégia preferida é uma máquina reutilizável por worker ou
+atualização manual de `NestedStateMachine`.
 
 ### Critério para promoção
 
