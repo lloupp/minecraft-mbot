@@ -22,6 +22,7 @@ class ColonyOrchestrator {
     this.auto = false
     this.timer = null
     this.autoBackoff = new Map()
+    this.animalBackoff = new Map()
     this.animalTargets = new Map()
   }
 
@@ -88,6 +89,7 @@ class ColonyOrchestrator {
     const used = new Set()
     const plan = []
     for (const [species, target] of this.animalTargets) {
+      if ((this.animalBackoff.get(species) || 0) > Date.now()) continue
       const chosen = farmers.find(({ worker }) => !used.has(worker.name))
       if (!chosen) break
 
@@ -363,6 +365,16 @@ class ColonyOrchestrator {
         } else {
           this.autoBackoff.delete(worker.name)
         }
+
+        if (task.species && task.type === 'manejar_populacao') {
+          this.animalBackoff.set(
+            task.species,
+            Date.now() + (result?.ok === false ? 30000 : 300000)
+          )
+        } else if (task.species && ['capturar_animais', 'construir_curral'].includes(task.type)) {
+          if (result?.ok === false) this.animalBackoff.set(task.species, Date.now() + 30000)
+          else this.animalBackoff.delete(task.species)
+        }
         if (task.projectActionId) {
           this.projectManager?.completeAction?.(task.projectActionId, result)
           const report = this.demandReport()
@@ -375,6 +387,9 @@ class ColonyOrchestrator {
       .catch((err) => {
         if (task.projectActionId) this.projectManager?.failAction?.(task.projectActionId, err)
         this.autoBackoff.set(worker.name, Date.now() + 20000)
+        if (task.species && ['manejar_populacao', 'capturar_animais', 'construir_curral'].includes(task.type)) {
+          this.animalBackoff.set(task.species, Date.now() + 30000)
+        }
         this.logger.log(`[auto] ${worker.name}: ${err.message}`)
       })
   }
