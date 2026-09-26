@@ -31,9 +31,11 @@ class Planner {
     const candidates = recipes.map((recipe) => {
       const missing = []
       const ingredients = []
+      const outputCount = Math.max(1, recipe.result?.count || 1)
+      const runs = Math.ceil(count / outputCount)
       for (const delta of recipe.delta || []) {
         if (delta.count >= 0) continue
-        const needed = Math.abs(delta.count) * count
+        const needed = Math.abs(delta.count) * runs
         const have = this.inventoryCount(delta.id)
         const name = this.knowledge.itemNameFromId(delta.id)
         ingredients.push({ name, needed, have })
@@ -43,6 +45,8 @@ class Planner {
         recipe,
         ingredients,
         missing,
+        runs,
+        outputCount,
         score: missing.reduce((sum, entry) => sum + entry.needed, 0)
       }
     }).sort((a, b) => a.score - b.score)
@@ -54,6 +58,8 @@ class Planner {
       count,
       craftable: best.missing.length === 0,
       requiresTable: Boolean(best.recipe.requiresTable),
+      runs: best.runs,
+      outputCount: best.outputCount,
       ingredients: best.ingredients,
       missing: best.missing,
       alternatives: candidates.length
