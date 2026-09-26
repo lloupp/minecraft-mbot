@@ -114,6 +114,9 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!projeto <casa|fazenda|mina|vila>` | Inicia um projeto e cria as profissões que faltarem |
 | `!projeto status` | Mostra progresso, recursos faltantes e obras |
 | `!projeto cancelar` | Cancela o projeto atual |
+| `!construir fazenda` | Prepara fisicamente um canteiro 5x5 próximo à base |
+| `!construir mina [comprimento]` | Abre fisicamente um túnel de mineração |
+| `!smoke` | Executa verificações ao vivo de spawn, registry, base, estoque e workers |
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
@@ -377,11 +380,13 @@ Mantém reservas mínimas de materiais, comida, combustível, ferro e ferramenta
 
 ### Projeto fazenda
 
-Prioriza uma reserva maior de alimentos e madeira e garante a presença de fazendeiro e artesão. Nesta etapa o projeto representa uma **operação agrícola sustentável**: ele considera o objetivo concluído quando a reserva alimentar e os demais insumos definidos forem atingidos. A construção física de canteiros irrigados ainda não faz parte deste blueprint.
+Prioriza uma reserva maior de alimentos e madeira e garante a presença de fazendeiro e artesão. Depois das metas de recursos, o fazendeiro executa uma ação física: prepara um canteiro 5x5, tenta criar irrigação central, ara a terra e planta sementes/comidas plantáveis disponíveis.
+
+Para irrigação autônoma, deixe um `water_bucket` no estoque central ou construa a base perto de uma fonte de água. Sem água, a ação é considerada incompleta e será tentada novamente pelo projeto.
 
 ### Projeto mina
 
-Cria uma equipe com dois mineradores, artesão, lenhador e guarda. Aumenta as metas de combustível, ferro, picaretas e materiais de construção até formar uma reserva de mineração. Nesta etapa o projeto cria a operação de mineração; um túnel/mina física dedicada ainda será uma evolução separada.
+Cria uma equipe com dois mineradores, artesão, lenhador e guarda. Aumenta as metas de combustível, ferro, picaretas e materiais de construção e, depois, um minerador abre fisicamente um túnel de dois blocos de altura em uma formação rochosa próxima. Os blocos coletados são enviados de volta ao estoque central.
 
 ### Projeto vila
 
@@ -397,7 +402,7 @@ Cria uma equipe com dois mineradores, artesão, lenhador e guarda. Aumenta as me
 1 explorador
 ```
 
-O projeto aumenta as metas de comida, madeira, combustível, ferro, ferramentas e construção. Quando os recursos ficam prontos, o construtor recebe três obras em posições diferentes ao redor da base.
+O projeto aumenta as metas de comida, madeira, combustível, ferro, ferramentas e construção. Quando os recursos ficam prontos, a vila executa três casas em posições diferentes, uma fazenda física e uma entrada/túnel de mina.
 
 Fluxo:
 
@@ -420,3 +425,60 @@ marcar projeto concluído
 ```
 
 As casas podem usar uma combinação de cobblestone, stone, deepslate, planks e dirt disponíveis no estoque; não é mais necessário ter 23 blocos do mesmo tipo.
+
+
+## Persistência da colônia
+
+Base, estoque, modo automático, quantidade de workers por profissão e projeto atual são salvos localmente em:
+
+```text
+.data/colony-state.json
+```
+
+Esse arquivo está no `.gitignore` e não é enviado ao GitHub. O caminho pode ser alterado:
+
+```bash
+COLONY_STATE_FILE=/caminho/estado.json node index.js
+```
+
+Ao reiniciar o bot, ele tenta restaurar automaticamente:
+
+```text
+base
+estoque central
+workers por profissão
+projeto em andamento
+modo automático
+```
+
+Uma ação de projeto que estava em execução no momento da queda volta como **pendente**, para ser retomada com segurança em vez de ser considerada concluída sem confirmação.
+
+## Smoke test no mundo real
+
+O CI valida sintaxe e lógica sem um servidor Minecraft. Para validar a sessão real do Forge/TLauncher, depois de entrar no mundo use:
+
+```text
+!smoke
+```
+
+O teste verifica ao vivo:
+
+- se o EduardoBot terminou o spawn;
+- se o pathfinder está carregado;
+- se o registry de itens/blocos está disponível;
+- se a base foi definida;
+- se o estoque central foi configurado;
+- se o baú/barrel pode realmente ser aberto e lido;
+- estado dos workers conectados;
+- estado do projeto atual.
+
+Exemplo de preparação:
+
+```text
+!base aqui
+!estoque aqui
+!bot criar minerador
+!smoke
+```
+
+Esse comando é o smoke test E2E disponível para o ambiente real. Ele precisa ser executado no seu mundo porque o GitHub Actions não possui acesso ao servidor LAN da sua máquina.
