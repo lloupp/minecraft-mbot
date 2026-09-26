@@ -439,7 +439,8 @@ class ColonyOrchestrator {
     const { plan, report } = this.demandPlanner.buildPlan(
       eligible,
       this.storage.cachedSummary(),
-      projectTargets
+      projectTargets,
+      this.projectManager?.materialTargets?.() || {}
     )
 
     const projectPlan = this.projectManager?.planActions?.(eligible, report) || []
