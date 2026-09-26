@@ -23,6 +23,7 @@ class StateStore {
       home: null,
       storage: null,
       auto: false,
+      companionAuto: false,
       workers: {},
       project: null,
       updatedAt: null

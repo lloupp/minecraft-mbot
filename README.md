@@ -1,6 +1,6 @@
-# Minecraft Bot de Automação
+# Minecraft Bot Companheiro e Orquestrador
 
-Bot para Minecraft Forge 26.3 usando **mineflayer**.
+Bot companheiro e orquestrador para **Minecraft Java 1.20.1** com compatibilidade adicional para Forge 26.3, usando **mineflayer**.
 
 ## Status Atual
 
@@ -9,17 +9,19 @@ O `eduardo_bot` agora também funciona como **orquestrador da colônia**. Ele po
 
 | Item | Status |
 |------|--------|
-| **Versão do jogo** | Forge 26.3 (Protocolo 777) ✅ |
-| **Conexão** | Funciona ✅ |
-| **Chat via bot** | Funciona ✅ |
-| **Spawn completo** | Funciona ✅ |
-| **Movimentação** | Requer `minecraft-data` com suporte nativo a 26.3 ⏳ |
+| **Perfil recomendado** | Minecraft Java 1.20.1 ✅ |
+| **Compatibilidade legada** | Forge 26.3 / protocolo 777 ✅ |
+| **Conexão / chat / spawn** | Implementados ✅ |
+| **Movimentação e pathfinder** | Implementados ✅ |
+| **Colônia / projetos / persistência** | Implementados ✅ |
+| **Smoke E2E 1.20.1** | Pronto via `!smoke`; validar no servidor real ⏳ |
 
 ## Pré-requisitos
 
-- Java 17+ ✅
+- Java compatível com o servidor Minecraft ✅
 - Node.js 22+ ✅
-- TLauncher com Minecraft 1.20.1 Forge 26.3 ✅
+- Servidor Minecraft Java 1.20.1 recomendado ✅
+- Forge 26.3 continua disponível como perfil de compatibilidade
 
 ## Como usar
 
@@ -34,7 +36,7 @@ e faz um ping de status) e usa a versão anunciada pelo servidor.
 Para forçar valores:
 
 ```bash
-MINECRAFT_PORT=25565 MINECRAFT_VERSION=26.3 node index.js
+MINECRAFT_PORT=25565 MINECRAFT_VERSION=1.20.1 MINECRAFT_PROFILE=vanilla1201 node index.js
 ```
 
 Se o servidor estiver em outra máquina, configure `MINECRAFT_HOST` e
@@ -482,3 +484,73 @@ Exemplo de preparação:
 ```
 
 Esse comando é o smoke test E2E disponível para o ambiente real. Ele precisa ser executado no seu mundo porque o GitHub Actions não possui acesso ao servidor LAN da sua máquina.
+
+
+## Perfil recomendado: servidor 1.20.1
+
+Para o novo servidor, o perfil recomendado é Minecraft Java **1.20.1**. O bot detecta essa versão pelo ping e usa o protocolo normal, sem aplicar as correções específicas do Forge 26.3.
+
+Pode forçar explicitamente:
+
+```bash
+MINECRAFT_HOST=127.0.0.1 \
+MINECRAFT_PORT=25565 \
+MINECRAFT_VERSION=1.20.1 \
+MINECRAFT_PROFILE=vanilla1201 \
+node index.js
+```
+
+Perfis disponíveis:
+
+```text
+auto          detecta pelo servidor
+vanilla1201   força Minecraft 1.20.1 padrão/Paper
+forge         usa camada Forge sem patches 26.3
+forge263      mantém compatibilidade do ambiente Forge 26.3
+```
+
+Use no chat:
+
+```text
+!servidor
+```
+
+para ver versão, perfil e protocolo atualmente conectados. O `!smoke` também inclui o perfil do servidor nas verificações.
+
+## Autonomia do companheiro
+
+Além da automação da colônia, o próprio EduardoBot pode jogar sozinho como companheiro:
+
+```text
+!autonomo
+!metas
+!autonomo off
+```
+
+A progressão é determinística, sem LLM. Ele tenta manter comida, fabricar ferramentas, conseguir carvão/tochas, minerar e fundir ferro, produzir equipamento e vestir automaticamente a melhor armadura disponível.
+
+As metas são calculadas usando o registro da versão conectada. Assim, itens que não existem no Minecraft 1.20.1, como tiers específicos de versões posteriores, não entram no planejamento.
+
+### Segurança à noite
+
+Quando está autônomo ou longe do dono durante a noite, o EduardoBot tenta:
+
+1. encontrar uma cama próxima e dormir;
+2. se não houver cama, localizar solo seguro;
+3. cavar um pequeno abrigo;
+4. fechar a entrada;
+5. esperar amanhecer;
+6. sair e continuar a tarefa anterior.
+
+Enquanto está protegido no abrigo, ele não abandona o local para perseguir monstros.
+
+### Equipamento
+
+Periodicamente o EduardoBot:
+
+- veste automaticamente a melhor armadura do inventário;
+- verifica se já possui materiais para melhorar espada e picareta;
+- fabrica a melhoria sem sair para coletar materiais extras;
+- mantém combate/fuga como reflexos de maior prioridade.
+
+O estado de `!autonomo` é persistido junto com base, estoque, workers e projetos.

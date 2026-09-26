@@ -1,10 +1,11 @@
 class SmokeTest {
-  constructor({ bot, storage, botManager, homeProvider, projectManager }) {
+  constructor({ bot, storage, botManager, homeProvider, projectManager, serverProfile = null }) {
     this.bot = bot
     this.storage = storage
     this.botManager = botManager
     this.homeProvider = homeProvider
     this.projectManager = projectManager
+    this.serverProfile = serverProfile
   }
 
   async run() {
@@ -14,6 +15,13 @@ class SmokeTest {
     add('spawn', Boolean(this.bot.entity), this.bot.entity ? 'bot no mundo' : 'bot sem entity')
     add('pathfinder', Boolean(this.bot.pathfinder), this.bot.pathfinder ? 'carregado' : 'ausente')
     add('registry', Boolean(this.bot.registry?.itemsByName && this.bot.registry?.blocksByName), 'itens/blocos')
+    if (this.serverProfile) {
+      add(
+        'perfil_servidor',
+        this.serverProfile.id !== 'forge263' || Boolean(this.serverProfile.useProtocolPatches),
+        `${this.serverProfile.id} / protocolo ${this.bot._client?.protocolVersion ?? 'N/A'}`
+      )
+    }
     add('base', Boolean(this.homeProvider?.()), this.homeProvider?.() ? 'definida' : 'não definida')
     add('estoque', this.storage?.configured?.(), this.storage?.configured?.() ? 'configurado' : 'não configurado')
 
