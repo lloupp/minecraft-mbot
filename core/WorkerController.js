@@ -405,7 +405,7 @@ class WorkerController {
         maxDistance: 8,
         point: position
       })
-      if (nearby && nearby.position.distanceTo(position) <= 4) return true
+      if (nearby && nearby.position.distanceTo(position) <= 2) return true
     }
 
     let bucket = this.bot.inventory.items().find((item) => item.name === 'water_bucket')
@@ -478,7 +478,32 @@ class WorkerController {
         if (!block) continue
 
         if (block.name !== 'farmland') {
-          const tillable = ['dirt', 'grass_block', 'dirt_path'].includes(block.name)
+          let tillable = ['dirt', 'grass_block', 'dirt_path'].includes(block.name)
+
+          if (!tillable && this.storage?.configured()) {
+            let dirt = this.bot.inventory.items().find((item) => item.name === 'dirt')
+            if (!dirt) {
+              await this.storage.withdraw(this.bot, 'dirt', 1).catch(() => 0)
+              dirt = this.bot.inventory.items().find((item) => item.name === 'dirt')
+            }
+
+            if (dirt) {
+              await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 8000).catch(() => {})
+              if (isCancelled()) break
+              if (block.name !== 'air' && block.boundingBox !== 'empty') {
+                await this.bot.dig(block).catch(() => {})
+              }
+              const below = this.bot.blockAt(pos.offset(0, -1, 0))
+              if (below && below.name !== 'air') {
+                await this.bot.equip(dirt, 'hand').catch(() => {})
+                await this.bot.placeBlock(below, new Vec3(0, 1, 0)).catch(() => {})
+                await sleep(150)
+                block = this.bot.blockAt(pos)
+                tillable = ['dirt', 'grass_block', 'dirt_path'].includes(block?.name)
+              }
+            }
+          }
+
           if (!tillable) continue
           await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 8000).catch(() => {})
           if (isCancelled()) break
@@ -505,7 +530,7 @@ class WorkerController {
     }
 
     return {
-      ok: irrigated && tilled >= 8,
+      ok: irrigated && tilled >= 8 && planted >= 4,
       irrigated,
       tilled,
       planted,
