@@ -325,18 +325,24 @@ class WorkerController {
 
   async breedAnimals(species, pairs, isCancelled) {
     const pen = this.penContext(species)
-    const scoped = pen?.status?.built
-      ? {
-          center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
-          range: pen.plan.size + 2,
-          filter: (entity) => pointInsidePen(entity.position, pen.plan)
-        }
-      : {}
+    if (!pen?.status?.built) {
+      return husbandry.breed(this.bot, species, pairs, isCancelled, {
+        storage: this.storage
+      })
+    }
 
-    return husbandry.breed(this.bot, species, pairs, isCancelled, {
-      storage: this.storage,
-      ...scoped
-    })
+    return this.withAnimalPen(pen, isCancelled, () => husbandry.breed(
+      this.bot,
+      species,
+      pairs,
+      isCancelled,
+      {
+        storage: this.storage,
+        center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
+        range: pen.plan.size + 2,
+        filter: (entity) => pointInsidePen(entity.position, pen.plan)
+      }
+    ))
   }
 
   async shearSheep(count, isCancelled) {
@@ -348,19 +354,26 @@ class WorkerController {
 
   async manageAnimalPopulation(species, target, isCancelled) {
     const pen = this.penContext(species)
-    const scoped = pen?.status?.built
-      ? {
-          center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
-          range: pen.plan.size + 2,
-          filter: (entity) => pointInsidePen(entity.position, pen.plan)
-        }
-      : {}
+    if (!pen?.status?.built) {
+      const result = await husbandry.managePopulation(this.bot, species, target, isCancelled, {
+        storage: this.storage
+      })
+      return { ...result, penScoped: false }
+    }
 
-    const result = await husbandry.managePopulation(this.bot, species, target, isCancelled, {
-      storage: this.storage,
-      ...scoped
-    })
-    return { ...result, penScoped: Boolean(pen?.status?.built) }
+    const result = await this.withAnimalPen(pen, isCancelled, () => husbandry.managePopulation(
+      this.bot,
+      species,
+      target,
+      isCancelled,
+      {
+        storage: this.storage,
+        center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
+        range: pen.plan.size + 2,
+        filter: (entity) => pointInsidePen(entity.position, pen.plan)
+      }
+    ))
+    return { ...result, penScoped: true }
   }
 
   inventoryCountByName(name) {
@@ -469,6 +482,32 @@ class WorkerController {
       offset: plan.offset,
       fenceItem: kit.fence,
       gateItem: kit.gate
+    }
+  }
+
+  async enterAnimalPen(plan, isCancelled) {
+    await this.bot.unequip?.('hand').catch?.(() => {})
+    if (!(await this.setPenGate(plan, true, isCancelled))) return false
+    try {
+      const entry = plan.insideEntry
+      await this.goTo(new goals.GoalNear(entry.x, entry.y, entry.z, 1), 12000)
+    } finally {
+      await this.setPenGate(plan, false, () => false).catch(() => {})
+    }
+    return !isCancelled() && pointInsidePen(this.bot.entity?.position, plan)
+  }
+
+  async withAnimalPen(pen, isCancelled, work) {
+    const entered = await this.enterAnimalPen(pen.plan, isCancelled)
+    if (!entered) throw new Error(`não consegui entrar no curral de ${pen.canonical}`)
+    try {
+      return await work()
+    } finally {
+      if (!this.defending && this.bot.entity && pointInsidePen(this.bot.entity.position, pen.plan)) {
+        await this.leaveAnimalPen(pen.plan, () => false).catch(() => {})
+      } else {
+        await this.setPenGate(pen.plan, false, () => false).catch(() => {})
+      }
     }
   }
 
