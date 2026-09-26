@@ -71,6 +71,18 @@ function testNestedMachine() {
   return events
 }
 
+function testLegacyTickCompatibility() {
+  const mineflayerDir = packageDir('mineflayer')
+  const physicsFile = path.join(mineflayerDir, 'lib', 'plugins', 'physics.js')
+  const source = fs.readFileSync(physicsFile, 'utf8')
+  assert.match(
+    source,
+    /emit\(['"]physicTick['"]\)/,
+    'o Mineflayer instalado não mantém o alias legado physicTick exigido pelo statemachine 1.7.0'
+  )
+  return physicsFile
+}
+
 function testBotStateMachineListener() {
   const events = []
   const bot = new EventEmitter()
@@ -83,24 +95,30 @@ function testBotStateMachineListener() {
   })
   const root = new NestedStateMachine([transition], start, done)
 
-  const before = bot.listenerCount('physicsTick')
+  const before = bot.listenerCount('physicTick')
   const machine = new BotStateMachine(bot, root)
-  const after = bot.listenerCount('physicsTick')
-  assert.equal(after, before + 1, 'BotStateMachine não registrou physicsTick como esperado')
+  const after = bot.listenerCount('physicTick')
+  assert.equal(after, before + 1, 'BotStateMachine 1.7.0 não registrou physicTick como esperado')
 
   events.push('advance')
-  bot.emit('physicsTick')
+  bot.emit('physicTick')
   assert.equal(root.activeState, done, 'transição não ocorreu no physicsTick')
 
   // A versão 1.7.0 não expõe dispose(). O spike remove o listener do fake bot
   // manualmente; em runtime não criaremos uma máquina nova por tarefa.
   assert.equal(typeof machine.dispose, 'undefined')
-  bot.removeAllListeners('physicsTick')
+  bot.removeAllListeners('physicTick')
 
-  return { listenerAdded: after - before, hasDispose: typeof machine.dispose === 'function' }
+  return {
+    event: 'physicTick',
+    deprecatedAlias: true,
+    listenerAdded: after - before,
+    hasDispose: typeof machine.dispose === 'function'
+  }
 }
 
 const deps = testSharedDependencies()
+const legacyTickFile = testLegacyTickCompatibility()
 const nestedEvents = testNestedMachine()
 const listener = testBotStateMachineListener()
 
@@ -117,5 +135,6 @@ console.log(JSON.stringify({
   deps,
   nestedEvents,
   listener,
-  recommendation: 'usar uma máquina reutilizável por worker ou update manual; não instanciar BotStateMachine por tarefa'
+  legacyTickFile,
+  recommendation: 'compatível enquanto Mineflayer mantiver physicTick; preferir máquina reutilizável/update manual e não instanciar BotStateMachine por tarefa'
 }, null, 2))
