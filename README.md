@@ -111,6 +111,9 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!base status` | Mostra as coordenadas da base |
 | `!base limpar` | Remove a base e desativa o modo automático |
 | `!colonia necessidades` | Mostra os déficits atuais calculados a partir do estoque |
+| `!projeto <casa|fazenda|mina|vila>` | Inicia um projeto e cria as profissões que faltarem |
+| `!projeto status` | Mostra progresso, recursos faltantes e obras |
+| `!projeto cancelar` | Cancela o projeto atual |
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
@@ -340,3 +343,80 @@ Para consultar a demanda atual:
 ```
 
 O estoque é sincronizado periodicamente. Se um worker falhar em uma tarefa automática, recebe um pequeno período de espera antes de nova tentativa para evitar loops de erro.
+
+
+## Projetos da colônia
+
+O orquestrador também trabalha com objetivos compostos. Um projeto aumenta temporariamente as metas do estoque, garante a composição mínima de trabalhadores e usa o modo automático para executar as etapas.
+
+Comandos:
+
+```text
+!projeto casa
+!projeto fazenda
+!projeto mina
+!projeto vila
+
+!projeto status
+!projeto cancelar
+!projeto tipos
+```
+
+É obrigatório configurar antes:
+
+```text
+!base aqui
+!estoque aqui
+```
+
+Ao iniciar um projeto, o EduardoBot verifica as profissões existentes. Se houver capacidade na colônia, cria automaticamente os bots que faltarem e ativa a orquestração automática.
+
+### Projeto casa
+
+Mantém reservas mínimas de materiais, comida, combustível, ferro e ferramentas. Depois dos recursos atingirem as metas, um construtor recebe a obra de um abrigo 3x3 próximo à base.
+
+### Projeto fazenda
+
+Prioriza uma reserva maior de alimentos e madeira e garante a presença de fazendeiro e artesão. Nesta etapa o projeto representa uma **operação agrícola sustentável**: ele considera o objetivo concluído quando a reserva alimentar e os demais insumos definidos forem atingidos. A construção física de canteiros irrigados ainda não faz parte deste blueprint.
+
+### Projeto mina
+
+Cria uma equipe com dois mineradores, artesão, lenhador e guarda. Aumenta as metas de combustível, ferro, picaretas e materiais de construção até formar uma reserva de mineração. Nesta etapa o projeto cria a operação de mineração; um túnel/mina física dedicada ainda será uma evolução separada.
+
+### Projeto vila
+
+É o projeto mais amplo. A composição padrão é:
+
+```text
+2 mineradores
+2 lenhadores
+1 fazendeiro
+1 artesao
+1 construtor
+1 guarda
+1 explorador
+```
+
+O projeto aumenta as metas de comida, madeira, combustível, ferro, ferramentas e construção. Quando os recursos ficam prontos, o construtor recebe três obras em posições diferentes ao redor da base.
+
+Fluxo:
+
+```text
+!projeto vila
+      ↓
+verificar trabalhadores
+      ↓
+criar profissões ausentes
+      ↓
+aumentar metas do estoque
+      ↓
+coletar / fundir / fabricar
+      ↓
+atingir recursos necessários
+      ↓
+construir casas em offsets diferentes
+      ↓
+marcar projeto concluído
+```
+
+As casas podem usar uma combinação de cobblestone, stone, deepslate, planks e dirt disponíveis no estoque; não é mais necessário ter 23 blocos do mesmo tipo.

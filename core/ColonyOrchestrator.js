@@ -5,6 +5,7 @@ class ColonyOrchestrator {
     ownerProvider,
     storage = null,
     demandPlanner = null,
+    projectManager = null,
     intervalMs = 5000,
     stockMaxAgeMs = 30000,
     logger = console
@@ -14,6 +15,7 @@ class ColonyOrchestrator {
     this.ownerProvider = ownerProvider
     this.storage = storage
     this.demandPlanner = demandPlanner
+    this.projectManager = projectManager
     this.intervalMs = intervalMs
     this.stockMaxAgeMs = stockMaxAgeMs
     this.logger = logger
@@ -50,7 +52,8 @@ class ColonyOrchestrator {
 
   demandReport() {
     if (!this.demandPlanner || !this.storage?.configured?.()) return null
-    return this.demandPlanner.report(this.storage.cachedSummary())
+    const projectTargets = this.projectManager?.targets?.() || {}
+    return this.demandPlanner.report(this.storage.cachedSummary(), projectTargets)
   }
 
   workers(role = null) {
@@ -192,9 +195,17 @@ class ColonyOrchestrator {
         } else {
           this.autoBackoff.delete(worker.name)
         }
+        if (task.projectActionId) {
+          this.projectManager?.completeAction?.(task.projectActionId, result)
+          const report = this.demandReport()
+          if (this.projectManager?.maybeComplete?.(report)) {
+            this.logger.log(`[projeto] ${task.projectType} concluído.`)
+          }
+        }
         this.logger.log(`[auto] ${worker.name} ${task.reason || task.type}:`, result)
       })
       .catch((err) => {
+        if (task.projectActionId) this.projectManager?.failAction?.(task.projectActionId, err)
         this.autoBackoff.set(worker.name, Date.now() + 20000)
         this.logger.log(`[auto] ${worker.name}: ${err.message}`)
       })
@@ -218,10 +229,29 @@ class ColonyOrchestrator {
       return
     }
 
-    const { plan } = this.demandPlanner.buildPlan(eligible, this.storage.cachedSummary())
-    for (const { worker, controller, task } of plan) {
+    const projectTargets = this.projectManager?.targets?.() || {}
+    const { plan, report } = this.demandPlanner.buildPlan(
+      eligible,
+      this.storage.cachedSummary(),
+      projectTargets
+    )
+
+    const projectPlan = this.projectManager?.planActions?.(eligible, report) || []
+    const projectWorkers = new Set(projectPlan.map((entry) => entry.worker.name))
+
+    if (!projectPlan.length && this.projectManager?.maybeComplete?.(report)) {
+      this.logger.log(`[projeto] ${this.projectManager.status()?.type || 'projeto'} concluído.`)
+    }
+
+    for (const { worker, controller, task } of projectPlan) {
       this.runAuto(worker, controller, task)
     }
+
+    for (const { worker, controller, task } of plan) {
+      if (projectWorkers.has(worker.name)) continue
+      this.runAuto(worker, controller, task)
+    }
+
   }
 }
 

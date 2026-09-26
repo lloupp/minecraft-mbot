@@ -68,15 +68,25 @@ class DemandPlanner {
     this.targets = { ...DEFAULT_TARGETS, ...targets }
   }
 
-  report(stock) {
-    const metrics = stockMetrics(stock)
-    return { metrics, deficits: deficits(metrics, this.targets), targets: { ...this.targets } }
+  effectiveTargets(extraTargets = {}) {
+    const targets = { ...this.targets }
+    for (const [key, value] of Object.entries(extraTargets || {})) {
+      targets[key] = Math.max(Number(targets[key] || 0), Number(value || 0))
+    }
+    return targets
   }
 
-  buildPlan(workers, stock) {
-    const report = this.report(stock)
+  report(stock, extraTargets = {}) {
+    const metrics = stockMetrics(stock)
+    const targets = this.effectiveTargets(extraTargets)
+    return { metrics, deficits: deficits(metrics, targets), targets }
+  }
+
+  buildPlan(workers, stock, extraTargets = {}) {
+    const report = this.report(stock, extraTargets)
+    const targets = report.targets
     const m = { ...report.metrics }
-    const d = () => deficits(m, this.targets)
+    const d = () => deficits(m, targets)
     const idle = workers.filter((entry) => entry.controller?.isIdle?.())
     const priority = {
       minerador: 10,

@@ -11,6 +11,7 @@ const { resolveBlockNames } = require('../core/resources')
 const { StorageManager, aggregateItems, isEquipment } = require('../core/StorageManager')
 const { ProductionManager, normalizeItemName, recipeIngredients, SMELT_INPUTS } = require('../core/ProductionManager')
 const { DemandPlanner, stockMetrics, deficits } = require('../core/DemandPlanner')
+const { ProjectManager, PROJECT_DEFINITIONS } = require('../core/ProjectManager')
 
 test('CommandRouter interpreta e despacha comandos', async () => {
   const router = new CommandRouter()
@@ -365,4 +366,107 @@ test('DemandPlanner não fabrica ferramenta com apenas uma tábua', () => {
 test('DemandPlanner contabiliza alimentos crus utilizáveis', () => {
   const metrics = stockMetrics({ beef: 6, porkchop: 4, carrot: 2 })
   assert.equal(metrics.food, 12)
+})
+
+
+test('DemandPlanner aplica metas adicionais de projeto', () => {
+  const planner = new DemandPlanner()
+  const report = planner.report({ bread: 40 }, { food: 100, wood: 200 })
+  assert.equal(report.targets.food, 100)
+  assert.equal(report.targets.wood, 200)
+  assert.equal(report.deficits.food, 60)
+  assert.equal(report.deficits.wood, 200)
+})
+
+test('ProjectManager exige base e estoque', () => {
+  const manager = new ProjectManager({
+    storage: { configured: () => false },
+    homeProvider: () => null
+  })
+  assert.throws(() => manager.start('casa'), /defina a base/)
+})
+
+test('ProjectManager inicia vila com workforce e ações previstas', () => {
+  const manager = new ProjectManager({
+    storage: { configured: () => true },
+    homeProvider: () => ({ x: 0, y: 64, z: 0 })
+  })
+  const status = manager.start('vila')
+  assert.equal(status.type, 'vila')
+  assert.equal(status.status, 'ativo')
+  assert.equal(status.actions.length, 3)
+  assert.equal(status.requiredRoles.minerador, 2)
+  assert.equal(status.requiredRoles.construtor, 1)
+  assert.equal(PROJECT_DEFINITIONS.vila.targets.building, 256)
+})
+
+test('ProjectManager agenda construção apenas após metas atendidas', () => {
+  const manager = new ProjectManager({
+    storage: { configured: () => true },
+    homeProvider: () => ({ x: 0, y: 64, z: 0 })
+  })
+  manager.start('casa')
+
+  const worker = {
+    worker: { name: 'construtor_01', role: 'construtor' },
+    controller: { isIdle: () => true }
+  }
+
+  assert.deepEqual(manager.planActions([worker], {
+    deficits: { food: 1 }
+  }), [])
+
+  const plan = manager.planActions([worker], {
+    deficits: {
+      food: 0, wood: 0, fuel: 0, ironTotal: 0, ironIngot: 0,
+      building: 0, ironPickaxe: 0, ironAxe: 0, ironSword: 0
+    }
+  })
+  assert.equal(plan.length, 1)
+  assert.equal(plan[0].task.type, 'construir_casa')
+  assert.deepEqual(plan[0].task.offset, { x: 5, z: 2 })
+})
+
+test('ProjectManager conclui projeto após obra e metas', () => {
+  const manager = new ProjectManager({
+    storage: { configured: () => true },
+    homeProvider: () => ({ x: 0, y: 64, z: 0 })
+  })
+  manager.start('casa')
+  const worker = {
+    worker: { name: 'construtor_01', role: 'construtor' },
+    controller: { isIdle: () => true }
+  }
+  const report = {
+    deficits: {
+      food: 0, wood: 0, fuel: 0, ironTotal: 0, ironIngot: 0,
+      building: 0, ironPickaxe: 0, ironAxe: 0, ironSword: 0
+    }
+  }
+  const plan = manager.planActions([worker], report)
+  manager.completeAction(plan[0].task.projectActionId, { ok: true })
+  assert.equal(manager.maybeComplete(report), true)
+  assert.equal(manager.status().status, 'concluido')
+  assert.deepEqual(manager.targets(), {})
+})
+
+test('StorageManager retira materiais de construção mistos', async () => {
+  const storage = new StorageManager()
+  const items = [
+    { name: 'cobblestone', type: 1, count: 10 },
+    { name: 'oak_planks', type: 2, count: 13 }
+  ]
+  const container = {
+    containerItems: () => items.filter((item) => item.count > 0),
+    withdraw: async (type, _metadata, amount) => {
+      const item = items.find((entry) => entry.type === type)
+      item.count -= amount
+    }
+  }
+  storage.withContainer = async (_bot, fn) => fn(container)
+
+  const result = await storage.withdrawBuildingMaterial({}, 23)
+  assert.equal(result.complete, true)
+  assert.equal(result.withdrawn, 23)
+  assert.deepEqual(result.items, { cobblestone: 10, oak_planks: 13 })
 })

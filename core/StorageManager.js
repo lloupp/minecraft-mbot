@@ -222,14 +222,44 @@ class StorageManager {
     return this.withdrawFirst(bot, order, 1)
   }
 
-  async withdrawBuildingMaterial(bot, count = 23) {
-    const names = [
-      'cobblestone', 'stone',
+  buildingMaterialNames() {
+    return [
+      'cobblestone', 'stone', 'deepslate', 'cobbled_deepslate',
       'oak_planks', 'spruce_planks', 'birch_planks', 'jungle_planks',
       'acacia_planks', 'dark_oak_planks', 'mangrove_planks', 'cherry_planks',
       'bamboo_planks', 'dirt'
     ]
-    return this.withdrawFirst(bot, names, count)
+  }
+
+  async withdrawBuildingMaterial(bot, count = 23) {
+    const wanted = Math.max(1, Number(count) || 1)
+    return this.withContainer(bot, async (container) => {
+      const withdrawn = {}
+      let remaining = wanted
+
+      for (const name of this.buildingMaterialNames()) {
+        if (remaining <= 0) break
+        const items = container.containerItems()
+        const available = items
+          .filter((item) => item.name === name)
+          .reduce((sum, item) => sum + item.count, 0)
+        if (available <= 0) continue
+
+        const amount = Math.min(remaining, available)
+        const sample = items.find((item) => item.name === name)
+        await container.withdraw(sample.type, null, amount)
+        withdrawn[name] = (withdrawn[name] || 0) + amount
+        remaining -= amount
+      }
+
+      this.updateSnapshot(container.containerItems())
+      return {
+        requested: wanted,
+        withdrawn: wanted - remaining,
+        complete: remaining === 0,
+        items: withdrawn
+      }
+    })
   }
 }
 
