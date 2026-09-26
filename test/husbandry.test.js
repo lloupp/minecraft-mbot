@@ -141,3 +141,65 @@ test('managePopulation usa somente animais aprovados pelo filtro', async () => {
   assert.equal(result.target, 4)
   assert.equal(result.plannedPairs, 1)
 })
+
+test('husbandry lê o índice do metadado baby do minecraft-data 1.20.1', () => {
+  const registry = require('minecraft-data')('1.20.1')
+  assert.equal(registry.entitiesByName.cow.metadataKeys.indexOf('baby'), 16)
+  assert.equal(registry.entitiesByName.llama.metadataKeys.indexOf('flags'), 17)
+
+  const bot = { registry }
+  assert.equal(husbandry.isBaby(bot, { name: 'cow', metadata: { 16: true } }), true)
+  assert.equal(husbandry.isBaby(bot, { name: 'cow', metadata: { 16: false } }), false)
+  assert.equal(husbandry.isBaby(bot, { name: 'cow' }), false)
+})
+
+test('husbandry não alimenta filhotes e não conta filhotes como pares', async () => {
+  const wheat = { name: 'wheat', count: 8, type: 1 }
+  const bot = fakeBot({ species: 'cow', animalCount: 4, items: [wheat] })
+  bot.entities[3].metadata = { 16: true }
+  bot.entities[4].metadata = { 16: true }
+
+  const plan = await husbandry.managePopulation(bot, 'cow', 8)
+  assert.equal(plan.current, 4)
+  assert.equal(plan.plannedPairs, 1)
+  assert.equal(plan.fed, 2)
+  assert.deepEqual(bot.activated, ['cow', 'cow'])
+})
+
+test('husbandry respeita o cooldown de 5 minutos após alimentar', async () => {
+  const wheat = { name: 'wheat', count: 8, type: 1 }
+  const bot = fakeBot({ species: 'cow', animalCount: 2, items: [wheat] })
+
+  const first = await husbandry.breed(bot, 'cow', 1)
+  assert.equal(first.fed, 2)
+
+  const second = await husbandry.breed(bot, 'cow', 1)
+  assert.equal(second.ok, false)
+  assert.equal(second.reason, 'poucos_animais')
+  assert.equal(bot.activated.length, 2)
+
+  const later = Date.now() + husbandry.FEED_COOLDOWN_MS + 1
+  assert.equal(husbandry.canBreed(bot, bot.entities[1], later), true)
+})
+
+test('husbandry só procria lhamas domadas', async () => {
+  const hay = { name: 'hay_block', count: 4, type: 1 }
+  const bot = fakeBot({ species: 'llama', animalCount: 2, items: [hay] })
+
+  const wild = await husbandry.breed(bot, 'lhama', 1)
+  assert.equal(wild.ok, false)
+  assert.equal(wild.reason, 'poucos_animais')
+
+  bot.entities[1].metadata = { 17: 0x02 }
+  bot.entities[2].metadata = { 17: 0x02 | 0x04 }
+  const tamed = await husbandry.breed(bot, 'lhama', 1)
+  assert.equal(tamed.ok, true)
+  assert.equal(tamed.fed, 2)
+})
+
+test('husbandry não gasta ração com animal sem par', async () => {
+  const wheat = { name: 'wheat', count: 8, type: 1 }
+  const bot = fakeBot({ species: 'cow', animalCount: 3, items: [wheat] })
+  const result = await husbandry.breed(bot, 'cow', 2)
+  assert.equal(result.fed, 2)
+})

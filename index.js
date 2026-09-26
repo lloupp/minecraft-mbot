@@ -27,6 +27,8 @@ const equipment = require('./lib/equipment')
 const night = require('./lib/night')
 const husbandry = require('./lib/husbandry')
 const { Autonomy } = require('./lib/autonomy')
+const { loadPlugins, startWebViews } = require('./lib/plugins')
+const { createBot } = require('./lib/botFactory')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
@@ -53,6 +55,8 @@ const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram cert
 const OWNER_NEAR = 32
 const GEAR_CHECK_MS = 15000
 const NIGHT_RETRY_MS = 60000
+const EXPLORE_DISTANCE = 50
+const EXPLORE_EVERY_MS = 20000
 
 function envPort(value) {
   const port = Number(value)
@@ -116,10 +120,7 @@ async function main() {
   console.log(`Perfil: ${describeProfile(serverProfile)}`)
 
   // ========== CRIAÇÃO DO BOT ==========
-  // Cópia: o mineflayer grava no objeto de opções (client, connect, auth...).
-  // Os workers usam {...CONFIG}; herdar o `connect` deste bot os deixava presos em
-  // "conectando" sem nunca abrir a conexão.
-  const bot = mineflayer.createBot({ ...CONFIG })
+  const bot = createBot(mineflayer, CONFIG)
   configureClient(bot, serverProfile)
 
   // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
@@ -132,6 +133,7 @@ async function main() {
     }
   }
   bot.loadPlugin(pathfinder)
+  loadPlugins(bot)
 
   // ========== ORQUESTRAÇÃO ==========
   const knowledge = new MinecraftKnowledge(bot)
@@ -156,9 +158,10 @@ async function main() {
   projectManager.restore(savedState.project)
 
   function createWorker({ name, role }) {
-    const worker = mineflayer.createBot({ ...CONFIG, username: name })
+    const worker = createBot(mineflayer, CONFIG, { username: name })
     configureClient(worker, serverProfile)
     worker.loadPlugin(pathfinder)
+    loadPlugins(worker, { log: (msg) => console.log(`[colônia] ${name} ${msg}`) })
     worker.colonyController = new WorkerController({
       bot: worker,
       name,
@@ -408,12 +411,35 @@ async function main() {
     runTask(goal.name, async (isCancelled) => {
       try {
         const result = await goal.run(bot, isCancelled)
-        if (result && !isCancelled()) console.log(`[autônomo] ${goal.name}: ${result}`)
+        if (isCancelled()) return
+        autonomy.succeeded(goal)
+        if (result) console.log(`[autônomo] ${goal.name}: ${result}`)
       } catch (err) {
         if (isCancelled()) return
         autonomy.failed(goal)
         throw err
       }
+    })
+    return true
+  }
+
+  let lastExplore = 0
+  function explore() {
+    if (Date.now() - lastExplore < EXPLORE_EVERY_MS) return false
+    lastExplore = Date.now()
+    const angle = Math.random() * 2 * Math.PI
+    const target = bot.entity.position.offset(
+      Math.cos(angle) * EXPLORE_DISTANCE,
+      0,
+      Math.sin(angle) * EXPLORE_DISTANCE
+    )
+    console.log(`[autônomo] sem meta disponível; explorando até ${Math.round(target.x)}, ${Math.round(target.z)}`)
+    runTask('explorar', async () => {
+      await food.goTo(
+        bot,
+        new goals.GoalXZ(Math.round(target.x), Math.round(target.z)),
+        60000
+      ).catch(() => {})
     })
     return true
   }
@@ -590,6 +616,7 @@ async function main() {
 
   // ========== EVENTOS ==========
   let restoredWorkers = false
+  bot.once('spawn', () => startWebViews(bot))
   bot.on('spawn', async () => {
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
@@ -648,6 +675,8 @@ async function main() {
     if (lastHealth !== null && bot.health < lastHealth && head?.boundingBox === 'block' && bot.canDigBlock(head)) {
       console.log(`Sufocando em ${head.name}: cavando para sair`)
       bot.dig(head).catch(() => {})
+      lastHealth = bot.health
+      return
     }
 
     // Durante a luta, o próprio laço de combate decide quando recuar.
@@ -719,7 +748,7 @@ async function main() {
     }
 
     if (autonomous) {
-      if (!autonomyStep()) bot.pathfinder.setGoal(null)
+      if (!autonomyStep() && !explore()) bot.pathfinder.setGoal(null)
       return
     }
 

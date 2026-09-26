@@ -4,7 +4,7 @@ const { Vec3 } = require('vec3')
 
 const equipment = require('../lib/equipment')
 const night = require('../lib/night')
-const { Autonomy } = require('../lib/autonomy')
+const { Autonomy, FIRST_RETRY_MS } = require('../lib/autonomy')
 const { detectProfile, normalizeVersion, PROFILE_IDS } = require('../lib/serverProfile')
 
 function fakeBot({ items = [], armor = {}, blocks = {}, food = 20, time = 1000, copper = false } = {}) {
@@ -103,6 +103,25 @@ test('abrigo evita caverna e água lateral', () => {
   assert.equal(night.safeToDig(water, ground), false)
 })
 
+test('abrigo não escolhe tronco nem folhas como superfície', () => {
+  const treeBlocks = {
+    [new Vec3(0, 63, 0).toString()]: 'birch_leaves',
+    [new Vec3(0, 62, 0).toString()]: 'birch_log',
+    [new Vec3(0, 61, 0).toString()]: 'air',
+    [new Vec3(0, 60, 0).toString()]: 'dirt'
+  }
+  for (let x = -8; x <= 8; x++) {
+    for (let z = -8; z <= 8; z++) treeBlocks[new Vec3(x, 64, z).toString()] = 'air'
+  }
+  const bot = fakeBot({ blocks: treeBlocks })
+  bot.entity = { position: new Vec3(0, 64, 0) }
+  const spot = night.findShelterSpot(bot)
+
+  assert.ok(spot)
+  assert.equal(spot.toString(), new Vec3(0, 60, 0).toString())
+  assert.ok(['dirt', 'stone', 'cobblestone', 'grass_block'].includes(bot.blockAt(spot).name))
+})
+
 test('autonomia pula metas já cumpridas e respeita cooldown de falha', () => {
   const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace']], food: 20 })
   const autonomy = new Autonomy(bot)
@@ -127,4 +146,24 @@ test('abrigo espera a terra cavada entrar no inventário antes de desistir', asy
   const item = await night.waitForCoverItem(bot, 2000)
   assert.equal(item?.name, 'dirt')
   assert.equal(await night.waitForCoverItem({ inventory: { items: () => [] } }, 200), null)
+})
+
+test('autonomia aumenta backoff progressivamente e zera após sucesso', () => {
+  const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace']], food: 20 })
+  const autonomy = new Autonomy(bot)
+  const goal = autonomy.next()
+  const before = Date.now()
+
+  autonomy.failed(goal)
+  const firstUntil = autonomy.blockedUntil.get(goal.name)
+  assert.ok(firstUntil >= before + FIRST_RETRY_MS - 1000)
+
+  autonomy.failed(goal)
+  const secondUntil = autonomy.blockedUntil.get(goal.name)
+  assert.ok(secondUntil > firstUntil)
+  assert.equal(autonomy.failures.get(goal.name), 2)
+
+  autonomy.succeeded(goal)
+  assert.equal(autonomy.failures.has(goal.name), false)
+  assert.equal(autonomy.blockedUntil.has(goal.name), false)
 })

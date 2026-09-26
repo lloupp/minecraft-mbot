@@ -14,8 +14,20 @@ test('animalPenPlan cria curral 7x7 com 23 cercas e um portão', () => {
   assert.equal(plan.fenceCount, 23)
   assert.equal(plan.gateCount, 1)
   assert.equal(plan.fences.length, 23)
-  assert.deepEqual(plan.gate, { x: 15, y: 64, z: 8 })
-  assert.deepEqual(plan.center, { x: 15, y: 64, z: 11 })
+  assert.deepEqual(plan.gate, { x: 23, y: 64, z: 8 })
+  assert.deepEqual(plan.center, { x: 23, y: 64, z: 11 })
+})
+
+test('animalPenPlan deixa livre o acesso ao portão de todos os currais', () => {
+  const home = { x: 0, y: 64, z: 0 }
+  const plans = Object.keys(SPECIES_OFFSETS).map((species) => animalPenPlan(home, species))
+  const fences = new Set(plans.flatMap((plan) => [...plan.fences, plan.gate].map((p) => `${p.x},${p.z}`)))
+  for (const plan of plans) {
+    // Os dois blocos entre o portão e o ponto de espera (e ele mesmo) ficam vazios.
+    for (let dz = 1; dz <= 2; dz++) {
+      assert.equal(fences.has(`${plan.gate.x},${plan.gate.z - dz}`), false, `${plan.species} dz=${dz}`)
+    }
+  }
 })
 
 test('animalPenPlan separa espécies em offsets diferentes', () => {
@@ -93,9 +105,71 @@ test('ColonyOrchestrator delega curral ao construtor e manejo ao fazendeiro', as
 
 test('pointInsidePen distingue interior, borda e exterior', () => {
   const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
-  assert.equal(pointInsidePen(new Vec3(15, 64, 11), plan), true)
-  assert.equal(pointInsidePen(new Vec3(12, 64, 8), plan), false)
+  assert.equal(pointInsidePen(new Vec3(23, 64, 11), plan), true)
+  assert.equal(pointInsidePen(new Vec3(20, 64, 8), plan), false)
   assert.equal(pointInsidePen(new Vec3(30, 64, 30), plan), false)
+})
+
+test('pointInsidePen tem limites simétricos e confere a altura', () => {
+  const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow') // origem x=20, z=8
+  assert.equal(pointInsidePen(new Vec3(20.5, 64, 11.5), plan), false) // cerca oeste
+  assert.equal(pointInsidePen(new Vec3(26.5, 64, 11.5), plan), false) // cerca leste
+  assert.equal(pointInsidePen(new Vec3(23.5, 64, 8.5), plan), false) // portão
+  assert.equal(pointInsidePen(new Vec3(21.3, 64, 11.5), plan), true)
+  assert.equal(pointInsidePen(new Vec3(25.7, 64, 11.5), plan), true)
+  assert.equal(pointInsidePen(new Vec3(23.5, 58, 11.5), plan), false) // túnel embaixo
+})
+
+test('inspectAnimalPen trata chunk não carregado como desconhecido', () => {
+  const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
+  const status = inspectAnimalPen({ blockAt: () => null }, plan)
+  assert.equal(status.unknown, true)
+  assert.equal(status.built, false)
+
+  const farmer = {
+    name: 'fazendeiro_01',
+    role: 'fazendeiro',
+    bot: { colonyController: { isIdle: () => true, penPopulation: () => ({ built: false, inside: 0, status }) } }
+  }
+  const colony = new ColonyOrchestrator({
+    botManager: { workers: new Map([[farmer.name, farmer]]), normalizeRole: (role) => role },
+    logger: silent
+  })
+  colony.setAnimalTarget('cow', 6)
+  assert.deepEqual(colony.buildAnimalPlan(colony.controllers()), [])
+})
+
+test('ColonyOrchestrator dobra a espera a cada falha seguida no manejo', async () => {
+  let outcome = { ok: false }
+  const farmer = {
+    name: 'fazendeiro_01',
+    role: 'fazendeiro',
+    bot: { colonyController: { run: async () => outcome } }
+  }
+  const colony = new ColonyOrchestrator({
+    botManager: { workers: new Map([[farmer.name, farmer]]), normalizeRole: (role) => role },
+    logger: silent
+  })
+  const task = { type: 'capturar_animais', species: 'cow', count: 1 }
+  const waitFor = async () => {
+    const before = Date.now()
+    colony.runAuto(farmer, farmer.bot.colonyController, task)
+    await new Promise((resolve) => setImmediate(resolve))
+    return Math.round((colony.animalBackoff.get('cow') - before) / 1000)
+  }
+
+  assert.equal(await waitFor(), 30)
+  assert.equal(await waitFor(), 60)
+  assert.equal(await waitFor(), 120)
+  outcome = { ok: true }
+  await waitFor()
+  assert.equal(colony.animalFailures.has('cow'), false)
+})
+
+test('restoreAnimalTargets guarda só espécies válidas, no nome canônico', () => {
+  const colony = new ColonyOrchestrator({ botManager: { workers: new Map() }, logger: silent })
+  const restored = colony.restoreAnimalTargets({ vaca: 6, dragao: 4, Ovelhas: '3' })
+  assert.deepEqual(restored, { cow: 6, sheep: 3 })
 })
 
 test('inspectAnimalPen exige todas as cercas e um portão', () => {
@@ -162,11 +236,36 @@ test('curral usa o chão do local, não a altura da base', () => {
   assert.equal(penGroundY(blockAt, home, 'cow'), 95)
 })
 
-test('animal no vão do portão não conta como capturado com a margem da captura', () => {
-  const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
-  const noPortao = { x: plan.gate.x + 0.5, z: plan.gate.z + 0.5 }
-  const noCentro = { x: plan.center.x + 0.5, z: plan.center.z + 0.5 }
-  assert.equal(pointInsidePen(noPortao, plan), true) // margem padrão: conta
-  assert.equal(pointInsidePen(noPortao, plan, 1.0), false)
-  assert.equal(pointInsidePen(noCentro, plan, 1.0), true)
+test('ColonyOrchestrator não manda dois fazendeiros para a mesma espécie', async () => {
+  let finish
+  const pending = new Promise((resolve) => { finish = resolve })
+  const farmer = (name) => ({
+    name,
+    role: 'fazendeiro',
+    bot: {
+      colonyController: {
+        isIdle: () => true,
+        penPopulation: () => ({ built: true, inside: 4 }),
+        run: () => pending
+      }
+    }
+  })
+  const a = farmer('fazendeiro_01')
+  const b = farmer('fazendeiro_02')
+  const manager = { workers: new Map([[a.name, a], [b.name, b]]), normalizeRole: (role) => role }
+  const colony = new ColonyOrchestrator({ botManager: manager, logger: silent })
+  colony.setAnimalTarget('cow', 8)
+
+  const first = colony.buildAnimalPlan(colony.controllers())
+  assert.equal(first.length, 1)
+  colony.runAuto(first[0].worker, first[0].controller, first[0].task)
+
+  // Tick seguinte, antes da tarefa terminar: o outro fazendeiro não pega vaca.
+  const eligible = colony.controllers().filter(({ worker }) => worker.name !== first[0].worker.name)
+  assert.deepEqual(colony.buildAnimalPlan(eligible), [])
+
+  finish({ ok: true })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(colony.animalInFlight.has('cow'), false)
+  assert.equal(colony.animalBackoff.has('cow'), true)
 })
