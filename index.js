@@ -54,6 +54,8 @@ const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram cert
 const OWNER_NEAR = 32
 const GEAR_CHECK_MS = 15000
 const NIGHT_RETRY_MS = 60000
+const EXPLORE_DISTANCE = 50 // blocos andados ao explorar sem meta disponível
+const EXPLORE_EVERY_MS = 20000
 
 function envPort(value) {
   const port = Number(value)
@@ -385,12 +387,29 @@ async function main() {
     runTask(goal.name, async (isCancelled) => {
       try {
         const result = await goal.run(bot, isCancelled)
-        if (result && !isCancelled()) console.log(`[autônomo] ${goal.name}: ${result}`)
+        if (isCancelled()) return
+        autonomy.succeeded(goal)
+        if (result) console.log(`[autônomo] ${goal.name}: ${result}`)
       } catch (err) {
         if (isCancelled()) return
         autonomy.failed(goal)
         throw err
       }
+    })
+    return true
+  }
+
+  // Sem meta disponível (todas em espera por falta de recurso por perto), um
+  // jogador sai para procurar: anda ~50 blocos numa direção nova.
+  let lastExplore = 0
+  function explore() {
+    if (Date.now() - lastExplore < EXPLORE_EVERY_MS) return false
+    lastExplore = Date.now()
+    const angle = Math.random() * 2 * Math.PI
+    const target = bot.entity.position.offset(Math.cos(angle) * EXPLORE_DISTANCE, 0, Math.sin(angle) * EXPLORE_DISTANCE)
+    console.log(`[autônomo] nada para fazer aqui; explorando até ${Math.round(target.x)}, ${Math.round(target.z)}`)
+    runTask('explorar', async () => {
+      await food.goTo(bot, new goals.GoalXZ(Math.round(target.x), Math.round(target.z)), 60000).catch(() => {})
     })
     return true
   }
@@ -626,6 +645,8 @@ async function main() {
     if (lastHealth !== null && bot.health < lastHealth && head?.boundingBox === 'block' && bot.canDigBlock(head)) {
       console.log(`Sufocando em ${head.name}: cavando para sair`)
       bot.dig(head).catch(() => {})
+      lastHealth = bot.health
+      return // não é ataque: não fugir nem cancelar a tarefa
     }
 
     // Durante a luta, o próprio laço de combate decide quando recuar.
@@ -697,7 +718,7 @@ async function main() {
     }
 
     if (autonomous) {
-      if (!autonomyStep()) bot.pathfinder.setGoal(null)
+      if (!autonomyStep() && !explore()) bot.pathfinder.setGoal(null)
       return
     }
 
