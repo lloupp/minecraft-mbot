@@ -1,9 +1,16 @@
 const { Movements, goals } = require('mineflayer-pathfinder')
 const { Vec3 } = require('vec3')
 const food = require('../lib/food')
+const gather = require('../lib/gather')
+const combat = require('../lib/combat')
 const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const HUNGRY = 14         // abaixo disso come o que tiver
+const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
+const FLEE_MS = 4000      // tempo fugindo
+const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
 
 class WorkerController {
   constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console }) {
@@ -20,6 +27,11 @@ class WorkerController {
     this.taskVersion = 0
     this.exploreStep = 0
     this.workMoves = null
+    this.eating = false
+    this.defending = false
+    this.lastHealth = null
+    this.lastAttacker = null
+    this.survivalTimer = null
 
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
@@ -27,13 +39,99 @@ class WorkerController {
       this.workMoves.allow1by1towers = false
       bot.pathfinder.setMovements(this.workMoves)
       this.state = 'ocioso'
+      this.survivalTimer = setInterval(() => this.survivalTick(), 1000)
+      this.survivalTimer.unref?.()
     })
 
     bot.once('end', () => {
+      clearInterval(this.survivalTimer)
       this.taskVersion++
       this.state = 'desconectado'
       this.currentTask = null
     })
+
+    bot.on('entityHurt', (entity, source) => {
+      if (entity === bot.entity && source) this.lastAttacker = source
+    })
+
+    // Tomou dano: interrompe a tarefa para lutar ou fugir.
+    bot.on('health', () => {
+      if (this.lastHealth !== null && bot.health < this.lastHealth && bot.health > 0 && !this.defending) {
+        this.defend(this.lastAttacker).catch((err) => this.logger.log(`[colônia] ${this.name} defesa: ${err.message}`))
+        this.lastAttacker = null
+      }
+      this.lastHealth = bot.health
+    })
+
+    bot.on('death', () => {
+      this.logger.log(`[colônia] ${this.name} morreu.`)
+      this.cancel()
+      this.lastHealth = null
+    })
+  }
+
+  // Sobrevivência entre e durante tarefas: come quando tem fome e foge de creepers.
+  survivalTick() {
+    if (!this.bot.entity || this.defending) return
+    const creeper = this.bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
+      e.position.distanceTo(this.bot.entity.position) <= CREEPER_RANGE)
+    if (creeper) {
+      this.defend(creeper).catch(() => {})
+      return
+    }
+    if (this.bot.food <= HUNGRY && !this.bot.targetDigBlock) this.eat()
+  }
+
+  async eat() {
+    if (this.eating || !food.hasFood(this.bot)) return null
+    this.eating = true
+    try {
+      return await food.eat(this.bot)
+    } catch {
+      return null
+    } finally {
+      this.eating = false
+    }
+  }
+
+  // Luta ou foge (conforme combat.decide). Cancela a tarefa atual; o modo
+  // automático vê o worker ocupado ('defendendo') e só redistribui depois.
+  async defend(attacker) {
+    const bot = this.bot
+    const living = attacker && attacker !== bot.entity && attacker.isValid !== false
+    const threat = living
+      ? attacker
+      : bot.nearestEntity((e) => e.type === 'hostile' && e.position.distanceTo(bot.entity.position) <= FLEE_DISTANCE)
+    if (!threat) return null
+
+    this.cancel()
+    this.defending = true
+    this.state = 'defendendo'
+    const version = this.taskVersion
+    const isCancelled = () => version !== this.taskVersion
+    let result = 'fugi'
+    try {
+      if (combat.decide(bot, threat) === 'lutar') {
+        result = await combat.fight(bot, threat, isCancelled)
+        if (result === 'recuei') await this.flee(threat, isCancelled)
+      } else {
+        await this.flee(threat, isCancelled)
+      }
+      this.logger.log(`[colônia] ${this.name} ${threat.name}: ${result}`)
+      return result
+    } finally {
+      this.defending = false
+      if (!isCancelled()) {
+        this.state = 'ocioso'
+        bot.pathfinder?.setGoal(null)
+      }
+    }
+  }
+
+  async flee(threat, isCancelled) {
+    this.bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(threat, FLEE_DISTANCE)), true)
+    const until = Date.now() + FLEE_MS
+    while (Date.now() < until && !isCancelled()) await sleep(200)
   }
 
   snapshot() {
@@ -89,9 +187,7 @@ class WorkerController {
     this.state = 'trabalhando'
 
     try {
-      if (this.bot.food <= 14 && food.hasFood(this.bot)) {
-        await food.eat(this.bot).catch(() => {})
-      }
+      if (this.bot.food <= HUNGRY) await this.eat()
       let result
       switch (task.type) {
         case 'coletar_blocos':
@@ -173,28 +269,11 @@ class WorkerController {
     await this.ensureRoleTool()
     const names = resolveBlockNames(this.bot, resource, this.role)
     if (!names.length) throw new Error(`não conheço o recurso "${resource}"`)
-    const ids = names.map((name) => this.bot.registry.blocksByName[name]?.id).filter(Number.isInteger)
-    if (!ids.length) throw new Error(`nenhum bloco compatível com "${resource}"`)
+    const wanted = new Set(names.filter((name) => Number.isInteger(this.bot.registry.blocksByName[name]?.id)))
+    if (!wanted.size) throw new Error(`nenhum bloco compatível com "${resource}"`)
 
-    let gathered = 0
-    while (gathered < count && !isCancelled()) {
-      const block = this.bot.findBlock({
-        matching: ids,
-        maxDistance: 48
-      })
-      if (!block) break
-
-      await this.goTo(new goals.GoalGetToBlock(block.position.x, block.position.y, block.position.z))
-      if (isCancelled()) break
-
-      const fresh = this.bot.blockAt(block.position)
-      if (!fresh || fresh.name === 'air') continue
-      const tool = this.bot.pathfinder.bestHarvestTool(fresh)
-      if (tool) await this.bot.equip(tool, 'hand').catch(() => {})
-      await this.bot.dig(fresh)
-      gathered++
-      await this.collectDrops(block.position, isCancelled)
-    }
+    // gather pula blocos inalcançáveis em vez de insistir sempre no mesmo.
+    const gathered = await gather.mineBlocks(this.bot, (name) => wanted.has(name), count, isCancelled)
 
     const deposited = this.storage?.configured()
       ? await this.storage.depositCargo(this.bot).catch(() => ({}))
