@@ -105,7 +105,7 @@ async function main() {
     port: server.port,
     username: process.env.MINECRAFT_BOT_NAME || 'eduardo_bot',
     password: '',
-    version: serverProfile.id === 'vanilla1201' ? '1.20.1' : requestedVersion,
+    version: serverProfile.version || requestedVersion,
     hideErrors: !process.env.DEBUG_PROTOCOL
   }
   console.log(`Conectando a ${CONFIG.host}:${CONFIG.port} (versão ${CONFIG.version})...`)
