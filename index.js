@@ -831,7 +831,7 @@ async function main() {
   function projectStatusLines() {
     const report = colony.demandReport()
     const status = projectManager.status(report)
-    if (!status) return ['Nenhum projeto ativo. Tipos: casa, fazenda, mina, vila.']
+    if (!status) return ['Nenhum projeto ativo. Tipos: casa, fazenda, mina, vila, planta <nome>.']
 
     const actionDone = status.actions.filter((a) => a.status === 'concluido').length
     const actionTotal = status.actions.length
@@ -1015,10 +1015,12 @@ async function main() {
       return
     }
 
+    // "!projeto iniciar <tipo>" é o mesmo que "!projeto <tipo>".
+    const rest = action === 'iniciar' ? args.slice(2) : args.slice(1)
     if (action === 'iniciar') action = String(args[1] || '').toLowerCase()
 
     if (action === 'planta') {
-      await startBlueprintProject(args[1], args[2])
+      await startBlueprintProject(rest[0], rest[1])
       return
     }
 
