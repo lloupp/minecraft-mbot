@@ -80,6 +80,9 @@ class WorkerController {
       this.penMoves.canDig = false
       this.penMoves.allow1by1towers = false
       this.penMoves.allowSprinting = false
+      // Sem andaimes: um bloco de terra posto dentro do curral vira degrau e os
+      // animais pulavam a cerca (visto no 1.20.1 após !reproduzir).
+      this.penMoves.scafoldingBlocks = []
       protectPenBlocks(this.penMoves, bot.registry)
       bot.pathfinder.setMovements(this.workMoves)
       bot.pathfinder.tickTimeout = PATH_TICK_MS
@@ -678,15 +681,9 @@ class WorkerController {
     return false
   }
 
-  async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
-    const home = this.homeProvider?.()
-    const canonical = husbandry.normalizeSpecies(species) || species
-    const plan = groundedPenPlan(this.bot, home, canonical, offset)
-    const kit = await this.ensurePenKit(plan)
-    if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
-
-    // Nivela o interior: um bloco de terreno na altura da cerca, encostado nela,
-    // vira degrau e os animais pulavam para fora com o portão fechado.
+  // Nivela o interior: um bloco na altura da cerca, encostado nela, vira degrau
+  // e os animais pulavam para fora com o portão fechado.
+  async levelPenInterior(plan, isCancelled) {
     let leveled = 0
     for (let dx = 1; dx < plan.size - 1 && !isCancelled(); dx++) {
       for (let dz = 1; dz < plan.size - 1 && !isCancelled(); dz++) {
@@ -696,12 +693,25 @@ class WorkerController {
         if (await this.bot.dig(block).then(() => true, () => false)) leveled++
       }
     }
+    return leveled
+  }
+
+  async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
+    const home = this.homeProvider?.()
+    const canonical = husbandry.normalizeSpecies(species) || species
+    const plan = groundedPenPlan(this.bot, home, canonical, offset)
+    const kit = await this.ensurePenKit(plan)
+    if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
+
+    let leveled = await this.levelPenInterior(plan, isCancelled)
 
     let fencesPlaced = 0
     for (const position of plan.fences) {
       if (isCancelled()) break
       if (await this.placeGroundItem(position, kit.fence, isCancelled)) fencesPlaced++
     }
+    // De novo antes do portão: o pathfinder pode ter posto terra lá dentro durante a obra.
+    leveled += await this.levelPenInterior(plan, isCancelled)
 
     let gatePlaced = false
     if (!isCancelled()) {
