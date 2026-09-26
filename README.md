@@ -503,6 +503,7 @@ Perfis disponíveis:
 ```text
 auto          detecta pelo servidor
 vanilla1201   força Minecraft 1.20.1 padrão/Paper
+forge         usa camada Forge sem patches 26.3
 forge263      mantém compatibilidade do ambiente Forge 26.3
 ```
 
