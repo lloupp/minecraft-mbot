@@ -24,6 +24,7 @@ const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
 const { ProductionManager, normalizeItemName } = require('./core/ProductionManager')
 const { DemandPlanner } = require('./core/DemandPlanner')
+const { ProjectManager } = require('./core/ProjectManager')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -113,6 +114,10 @@ async function main() {
   const production = new ProductionManager({ storage })
   const demandPlanner = new DemandPlanner()
   let colonyHome = null
+  const projectManager = new ProjectManager({
+    storage,
+    homeProvider: () => colonyHome
+  })
 
   function createWorker({ name, role }) {
     const worker = mineflayer.createBot({ ...CONFIG, username: name })
@@ -148,7 +153,8 @@ async function main() {
     homeProvider: () => colonyHome,
     ownerProvider: () => ownerEntity(),
     storage,
-    demandPlanner
+    demandPlanner,
+    projectManager
   })
   colony.start()
 
@@ -448,6 +454,101 @@ async function main() {
     }
 
     for (const line of colonySummary()) bot.chat(line)
+  })
+
+  function projectStatusLines() {
+    const report = colony.demandReport()
+    const status = projectManager.status(report)
+    if (!status) return ['Nenhum projeto ativo. Tipos: casa, fazenda, mina, vila.']
+
+    const actionDone = status.actions.filter((a) => a.status === 'concluido').length
+    const actionTotal = status.actions.length
+    const deficits = status.deficits || {}
+    const missing = Object.entries(deficits)
+      .filter(([, value]) => Number(value || 0) > 0)
+      .slice(0, 5)
+      .map(([key, value]) => `${key}:${value}`)
+      .join(', ')
+
+    return [
+      `Projeto ${status.type}: ${status.status} | obras ${actionDone}/${actionTotal || 0}`,
+      missing ? `Faltas: ${missing}` : 'Recursos-alvo atingidos.'
+    ]
+  }
+
+  async function ensureProjectWorkers(type) {
+    const definition = projectManager.definition(type)
+    if (!definition) throw new Error(`projeto desconhecido: ${type}`)
+
+    const missing = {}
+    let totalMissing = 0
+    for (const [role, wanted] of Object.entries(definition.requiredRoles || {})) {
+      const current = botManager.byRole(role).length
+      const amount = Math.max(0, Number(wanted) - current)
+      if (amount > 0) {
+        missing[role] = amount
+        totalMissing += amount
+      }
+    }
+
+    if (totalMissing > botManager.capacity()) {
+      throw new Error(`faltam ${totalMissing} bots, mas há capacidade para ${botManager.capacity()}`)
+    }
+
+    const created = []
+    for (const [role, amount] of Object.entries(missing)) {
+      const workers = await botManager.create(role, amount)
+      created.push(...workers.map((worker) => worker.name))
+    }
+    return created
+  }
+
+  commandRouter.register(['projeto', 'projetos'], async (_context, args) => {
+    let action = String(args[0] || 'status').toLowerCase()
+
+    if (action === 'tipos' || action === 'listar' || action === 'lista') {
+      bot.chat(`Projetos: ${projectManager.types().join(', ')}.`)
+      return
+    }
+
+    if (action === 'status') {
+      for (const line of projectStatusLines()) bot.chat(line)
+      return
+    }
+
+    if (action === 'cancelar' || action === 'parar') {
+      const cancelled = projectManager.cancel()
+      if (!cancelled) {
+        bot.chat('Nenhum projeto para cancelar.')
+        return
+      }
+      bot.chat(`Projeto ${cancelled.type} cancelado. O modo automático continua disponível para a colônia.`)
+      return
+    }
+
+    if (action === 'iniciar') action = String(args[1] || '').toLowerCase()
+
+    const definition = projectManager.definition(action)
+    if (!definition) {
+      bot.chat('Uso: !projeto <casa|fazenda|mina|vila> | !projeto status | !projeto cancelar')
+      return
+    }
+
+    try {
+      if (!colonyHome) throw new Error('defina a base primeiro com !base aqui')
+      if (!storage.configured()) throw new Error('defina o estoque primeiro com !estoque aqui')
+      if (projectManager.isActive()) throw new Error(`já existe projeto ativo: ${projectManager.active.type}`)
+
+      const created = await ensureProjectWorkers(action)
+      projectManager.start(action)
+      colony.setAuto(true)
+
+      bot.chat(`Projeto ${action} iniciado. Orquestração automática ativada.`)
+      if (created.length) bot.chat(`Bots criados para o projeto: ${created.join(', ')}`)
+      for (const line of projectStatusLines()) bot.chat(line)
+    } catch (err) {
+      bot.chat(`Não consegui iniciar o projeto: ${err.message}`)
+    }
   })
 
   commandRouter.register('ordem', async (_context, args) => {
@@ -771,7 +872,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !base aqui, !estoque aqui, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !fabricar, !abastecer, !construir casa, !todos voltar, !tarefas, !parar')
+        bot.chat('Comandos: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !colonia auto, !bot, !ordem, !fabricar, !construir casa, !tarefas, !parar')
         break
     }
   })
