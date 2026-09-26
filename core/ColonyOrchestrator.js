@@ -239,6 +239,10 @@ class ColonyOrchestrator {
     const projectPlan = this.projectManager?.planActions?.(eligible, report) || []
     const projectWorkers = new Set(projectPlan.map((entry) => entry.worker.name))
 
+    if (!projectPlan.length && this.projectManager?.maybeComplete?.(report)) {
+      this.logger.log(`[projeto] ${this.projectManager.status()?.type || 'projeto'} concluído.`)
+    }
+
     for (const { worker, controller, task } of projectPlan) {
       this.runAuto(worker, controller, task)
     }
@@ -248,9 +252,6 @@ class ColonyOrchestrator {
       this.runAuto(worker, controller, task)
     }
 
-    if (!projectPlan.length && !plan.length && this.projectManager?.maybeComplete?.(report)) {
-      this.logger.log(`[projeto] ${this.projectManager.status()?.type || 'projeto'} concluído.`)
-    }
   }
 }
 
