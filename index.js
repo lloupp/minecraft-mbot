@@ -23,6 +23,7 @@ const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
 const { ProductionManager, normalizeItemName } = require('./core/ProductionManager')
+const { DemandPlanner } = require('./core/DemandPlanner')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -110,6 +111,7 @@ async function main() {
   const commandRouter = new CommandRouter()
   const storage = new StorageManager()
   const production = new ProductionManager({ storage })
+  const demandPlanner = new DemandPlanner()
   let colonyHome = null
 
   function createWorker({ name, role }) {
@@ -121,7 +123,7 @@ async function main() {
       bot: worker,
       name,
       role,
-      homeProvider: () => colonyHome || bot.entity?.position,
+      homeProvider: () => colonyHome,
       ownerProvider: () => ownerEntity(),
       storage,
       production
@@ -143,8 +145,10 @@ async function main() {
   })
   const colony = new ColonyOrchestrator({
     botManager,
-    homeProvider: () => colonyHome || bot.entity?.position,
-    ownerProvider: () => ownerEntity()
+    homeProvider: () => colonyHome,
+    ownerProvider: () => ownerEntity(),
+    storage,
+    demandPlanner
   })
   colony.start()
 
@@ -294,7 +298,6 @@ async function main() {
 
   // ========== EVENTOS ==========
   bot.on('spawn', () => {
-    if (!colonyHome) colonyHome = bot.entity.position.clone()
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
     console.log(`Posição: X=${bot.entity.position.x.toFixed(1)}, Y=${bot.entity.position.y.toFixed(1)}, Z=${bot.entity.position.z.toFixed(1)}`)
@@ -383,11 +386,13 @@ async function main() {
   // ========== COMANDOS VIA CHAT ==========
   function colonySummary() {
     const workers = botManager.list()
-    if (!workers.length) return [`Colônia: 1/${maxColonyBots} (somente ${bot.username}).`]
     const roles = {}
     for (const worker of workers) roles[worker.role] = (roles[worker.role] || 0) + 1
-    const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ')
-    const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | auto: ${colony.auto ? 'ON' : 'OFF'} | estoque: ${storage.configured() ? 'OK' : 'NÃO'} | ${roleText}`]
+    const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ') || 'sem workers'
+    const baseText = colonyHome
+      ? `${Math.floor(colonyHome.x)},${Math.floor(colonyHome.y)},${Math.floor(colonyHome.z)}`
+      : 'NÃO'
+    const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | auto: ${colony.auto ? 'ON' : 'OFF'} | base: ${baseText} | estoque: ${storage.configured() ? 'OK' : 'NÃO'} | ${roleText}`]
     for (let i = 0; i < workers.length; i += 4) {
       lines.push(workers.slice(i, i + 4).map((w) => {
         const detail = w.resource || w.item || ''
@@ -407,10 +412,41 @@ async function main() {
     if (action === 'auto') {
       const value = String(args[1] || 'on').toLowerCase()
       const enabled = !['off', '0', 'nao', 'não', 'false'].includes(value)
-      colony.setAuto(enabled)
-      bot.chat(`Modo automático da colônia: ${enabled ? 'ATIVADO' : 'DESATIVADO'}.`)
+
+      if (!enabled) {
+        colony.setAuto(false)
+        bot.chat('Modo automático da colônia: DESATIVADO.')
+        return
+      }
+
+      const readiness = colony.autoReadiness()
+      if (!readiness.ready) {
+        bot.chat(`Não posso ativar o automático. Falta definir: ${readiness.missing.join(', ')}.`)
+        return
+      }
+
+      colony.setAuto(true)
+      bot.chat('Modo automático por demanda: ATIVADO.')
       return
     }
+
+    if (action === 'necessidades' || action === 'demanda') {
+      if (!storage.configured()) {
+        bot.chat('Defina primeiro o estoque com !estoque aqui.')
+        return
+      }
+      try {
+        if (!storage.snapshotFresh(5000)) await storage.summary(bot)
+        const report = colony.demandReport()
+        const d = report?.deficits || {}
+        bot.chat(`Faltas: comida ${d.food || 0}, madeira ${d.wood || 0}, combustível ${d.fuel || 0}, ferro ${d.ironTotal || 0}, construção ${d.building || 0}.`)
+        bot.chat(`Reserva: lingotes ${d.ironIngot || 0}, picaretas ${d.ironPickaxe || 0}, machados ${d.ironAxe || 0}, espadas ${d.ironSword || 0}.`)
+      } catch (err) {
+        bot.chat(`Não consegui analisar a demanda: ${err.message}`)
+      }
+      return
+    }
+
     for (const line of colonySummary()) bot.chat(line)
   })
 
@@ -452,13 +488,39 @@ async function main() {
     }
   })
 
-  commandRouter.register('base', async (_context, args) => {
-    if (String(args[0] || '').toLowerCase() !== 'aqui' || !bot.entity) {
-      bot.chat('Uso: !base aqui')
+  commandRouter.register('base', async (context, args) => {
+    const action = String(args[0] || 'status').toLowerCase()
+
+    if (action === 'status') {
+      if (!colonyHome) {
+        bot.chat('Base ainda não definida. Vá ao local desejado e use !base aqui.')
+        return
+      }
+      bot.chat(`Base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
       return
     }
-    colonyHome = bot.entity.position.clone()
-    bot.chat(`Base definida em X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
+
+    if (action === 'limpar' || action === 'remover') {
+      colonyHome = null
+      colony.setAuto(false)
+      bot.chat('Base removida. O modo automático foi desativado.')
+      return
+    }
+
+    if (action !== 'aqui') {
+      bot.chat('Uso: !base aqui | !base status | !base limpar')
+      return
+    }
+
+    const player = bot.players[context.username]?.entity
+    const source = player?.position || bot.entity?.position
+    if (!source) {
+      bot.chat('Não consigo determinar sua posição agora.')
+      return
+    }
+
+    colonyHome = source.clone()
+    bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
   })
 
   commandRouter.register('tarefas', async () => {
@@ -480,7 +542,7 @@ async function main() {
     if (action === 'aqui' || action === 'definir') {
       try {
         const block = storage.configureNearest(bot, 8)
-        colonyHome = colonyHome || bot.entity?.position?.clone()
+        await storage.summary(bot)
         bot.chat(`Estoque central definido: ${block.name} em X=${block.position.x}, Y=${block.position.y}, Z=${block.position.z}.`)
       } catch (err) {
         bot.chat(`Não consegui definir o estoque: ${err.message}`)
@@ -500,7 +562,8 @@ async function main() {
 
     if (action === 'limpar') {
       storage.setPosition(null)
-      bot.chat('Estoque central removido da configuração.')
+      colony.setAuto(false)
+      bot.chat('Estoque central removido. O modo automático foi desativado.')
       return
     }
 
@@ -706,7 +769,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !bot, !bots, !ordem, !estoque, !fabricar, !abastecer, !construir casa, !colonia auto, !todos voltar, !tarefas, !item, !receita, !parar')
+        bot.chat('Comandos: !base aqui, !estoque aqui, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !fabricar, !abastecer, !construir casa, !todos voltar, !tarefas, !parar')
         break
     }
   })
