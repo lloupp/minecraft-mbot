@@ -148,3 +148,17 @@ test('StorageManager serializa operações do mesmo bot (não troca o objetivo n
   const results = await Promise.all([storage.summary(bot), storage.summary(bot), storage.count(bot, 'coal')])
   assert.deepEqual(results, [{ coal: 3 }, { coal: 3 }, 3])
 })
+
+test('WorkerController dá tempo proporcional à distância para voltar à base', async () => {
+  const bot = fakeBot()
+  const home = new Vec3(170, 64, 0) // 170 blocos
+  const worker = readyWorker(bot, { homeProvider: () => home })
+  let timeout = null
+  worker.goTo = async (_goal, ms) => { timeout = ms }
+  await worker.run({ type: 'voltar' })
+  assert.equal(timeout, 119000)
+
+  bot.entity.position = new Vec3(165, 64, 0) // perto: mantém o mínimo de 30 s
+  await worker.run({ type: 'voltar' })
+  assert.equal(timeout, 30000)
+})

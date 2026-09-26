@@ -673,3 +673,21 @@ test('ColonyOrchestrator respeita cooldown por espécie no modo automático', ()
 
   assert.deepEqual(plan, [])
 })
+
+test('BotManager mantém na escala o worker que caiu, mas não o removido', async () => {
+  const bots = []
+  const manager = new BotManager({
+    createBot: async () => { const b = new EventEmitter(); b.quit = () => {}; bots.push(b); return b },
+    maxBots: 12
+  })
+  await manager.create('minerador', 2)
+  await manager.create('lenhador', 1)
+  bots[0].emit('end') // queda inesperada (timeout, servidor reiniciou)
+  assert.equal(manager.list().length, 2)
+  assert.deepEqual(manager.rosterCounts(), { minerador: 2, lenhador: 1 })
+
+  manager.remove('lenhador_01') // remoção pedida pelo jogador
+  assert.deepEqual(manager.rosterCounts(), { minerador: 2 })
+  manager.stopAll() // !parar
+  assert.deepEqual(manager.rosterCounts(), {})
+})

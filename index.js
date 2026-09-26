@@ -202,10 +202,10 @@ async function main() {
     serverProfile
   })
 
+  // Escala pretendida, não só quem está online: se o servidor cair, os workers
+  // caem antes do orquestrador salvar e a colônia se perderia no estado.
   function workerRoleCounts() {
-    const counts = {}
-    for (const worker of botManager.list()) counts[worker.role] = (counts[worker.role] || 0) + 1
-    return counts
+    return botManager.rosterCounts()
   }
 
   async function persistState() {

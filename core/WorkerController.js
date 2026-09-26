@@ -13,6 +13,18 @@ const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
 const FLEE_MS = 4000      // tempo fugindo
 const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
+// Todos os workers dividem o mesmo processo Node. Com o padrão do pathfinder
+// (40 ms de A* por tick), 7 workers calculando caminhos longos ao mesmo tempo
+// saturavam a CPU e o servidor os derrubava por "Timed out".
+const PATH_TICK_MS = 8
+// Tempo para uma viagem longa: ~700 ms por bloco (medido ~2 blocos/s com vários
+// workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
+const MS_PER_BLOCK = 700
+function travelTimeoutMs(from, to) {
+  if (!from || !to) return 30000
+  const d = Math.hypot(from.x - to.x, from.y - to.y, from.z - to.z)
+  return Math.max(30000, Math.round(d * MS_PER_BLOCK))
+}
 
 class WorkerController {
   constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console }) {
@@ -40,6 +52,7 @@ class WorkerController {
       this.workMoves.canDig = true
       this.workMoves.allow1by1towers = false
       bot.pathfinder.setMovements(this.workMoves)
+      bot.pathfinder.tickTimeout = PATH_TICK_MS
       this.state = 'ocioso'
       this.survivalTimer = setInterval(() => this.survivalTick(), 1000)
       this.survivalTimer.unref?.()
@@ -734,7 +747,8 @@ class WorkerController {
   async returnHome(isCancelled) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
-    await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), 30000)
+    const timeoutMs = travelTimeoutMs(this.bot.entity?.position, home)
+    await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), timeoutMs)
     return { ok: !isCancelled() }
   }
 
