@@ -15,7 +15,7 @@ const { StorageManager, aggregateItems, isEquipment } = require('../core/Storage
 const { ProductionManager, normalizeItemName, recipeIngredients, SMELT_INPUTS } = require('../core/ProductionManager')
 const { DemandPlanner, stockMetrics, deficits } = require('../core/DemandPlanner')
 const { ProjectManager, PROJECT_DEFINITIONS } = require('../core/ProjectManager')
-const { StateStore, point } = require('../core/StateStore')
+const { StateStore, point, animalTargets } = require('../core/StateStore')
 const { SmokeTest } = require('../core/SmokeTest')
 
 test('CommandRouter interpreta e despacha comandos', async () => {
@@ -586,4 +586,72 @@ test('StateStore inicia vazio quando JSON persistido está corrompido', async ()
   assert.equal(loaded.project, null)
   assert.equal(store.lastLoadError instanceof SyntaxError, true)
   await fs.promises.rm(dir, { recursive: true, force: true })
+})
+
+
+test('animalTargets normaliza limites persistidos', () => {
+  assert.deepEqual(animalTargets({ cow: 8, sheep: 100, pig: 1, bad: 'x' }), {
+    cow: 8,
+    sheep: 32,
+    pig: 2
+  })
+})
+
+test('StateStore persiste metas de animais', async () => {
+  const dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'minecraft-mbot-animals-'))
+  const file = path.join(dir, 'state.json')
+  const store = new StateStore(file)
+
+  await store.save({ animalTargets: { cow: 8, sheep: 10 } })
+  const loaded = await store.load()
+
+  assert.deepEqual(loaded.animalTargets, { cow: 8, sheep: 10 })
+  await fs.promises.rm(dir, { recursive: true, force: true })
+})
+
+test('ColonyOrchestrator planeja curral, captura e manejo para metas persistentes', () => {
+  const manager = { workers: new Map(), normalizeRole: (role) => role }
+  const colony = new ColonyOrchestrator({ botManager: manager, logger: { log: () => {} } })
+  colony.setAnimalTarget('cow', 8)
+
+  const makeEligible = (snapshot) => [{
+    worker: { name: 'fazendeiro_01', role: 'fazendeiro' },
+    controller: {
+      isIdle: () => true,
+      penPopulation: () => snapshot
+    }
+  }]
+
+  let plan = colony.buildAnimalPlan(makeEligible({ built: false, inside: 0 }))
+  assert.equal(plan[0].task.type, 'construir_curral')
+  assert.equal(plan[0].task.species, 'cow')
+
+  plan = colony.buildAnimalPlan(makeEligible({ built: true, inside: 0 }))
+  assert.deepEqual(plan[0].task, {
+    type: 'capturar_animais',
+    species: 'cow',
+    count: 2,
+    reason: 'capturar_cow'
+  })
+
+  plan = colony.buildAnimalPlan(makeEligible({ built: true, inside: 3 }))
+  assert.deepEqual(plan[0].task, {
+    type: 'manejar_populacao',
+    species: 'cow',
+    target: 8,
+    reason: 'manter_cow'
+  })
+
+  plan = colony.buildAnimalPlan(makeEligible({ built: true, inside: 8 }))
+  assert.deepEqual(plan, [])
+})
+
+test('ColonyOrchestrator restaura e remove metas de animais', () => {
+  const manager = { workers: new Map(), normalizeRole: (role) => role }
+  const colony = new ColonyOrchestrator({ botManager: manager })
+  colony.restoreAnimalTargets({ cow: 7, sheep: 40 })
+
+  assert.deepEqual(colony.animalTargetsSnapshot(), { cow: 7, sheep: 32 })
+  assert.equal(colony.clearAnimalTarget('cow'), true)
+  assert.deepEqual(colony.animalTargetsSnapshot(), { sheep: 32 })
 })
