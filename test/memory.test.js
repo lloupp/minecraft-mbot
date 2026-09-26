@@ -198,6 +198,18 @@ test('Clarifier: resposta por nome e prefixo', async () => {
   promise = c.ask('Qual casa?', ['casa (-300,64)', 'casa velha (120,70)'])
   assert.equal(c.handleMessage('eduardo', 'casa v'), true)
   assert.equal((await promise).index, 1)
+
+  // Local salvo com hífen responde ao nome com espaço.
+  promise = c.ask('Qual casa?', ['casa (1,2,3)', 'casa-velha (4,5,6)'])
+  assert.equal(c.handleMessage('eduardo', 'Casa Velha'), true)
+  assert.equal((await promise).index, 1)
+})
+
+test('Clarifier: pergunta opcional expira em silêncio', async () => {
+  const { said, c } = clarifier(20)
+  const answer = await c.confirm('Usar sempre essa? sim/não', { quiet: true })
+  assert.equal(answer, null)
+  assert.deepEqual(said, ['Usar sempre essa? sim/não'])
 })
 
 test('Clarifier: resposta inválida, cancelamento e comando novo', async () => {

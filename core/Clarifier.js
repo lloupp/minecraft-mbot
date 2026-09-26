@@ -12,8 +12,8 @@ const NAO = new Set(['nao', 'não', 'n', 'no'])
 const CANCELAR = new Set(['cancelar', 'cancela', 'nenhum', 'nenhuma', 'deixa', 'esquece', '0'])
 
 const norm = (value) => String(value || '')
-  .normalize('NFD').replace(/[̀-ͯ]/g, '')
-  .toLowerCase().trim()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/[-_]+/g, ' ').trim()
 
 // Rótulo da opção sem o sufixo de coordenadas/origem, para comparar com o que o jogador digitou.
 const optionName = (label) => norm(label).replace(/\s*[([].*$/, '').trim()
@@ -31,7 +31,8 @@ class Clarifier {
 
   // options: lista de rótulos (strings). Resolve { index, option } ou null.
   // who: se definido, só aceita resposta desse jogador.
-  ask(question, options, { who = null, timeoutMs = this.timeoutMs, kind = 'escolha' } = {}) {
+  // quiet: no timeout não avisa no chat (perguntas opcionais, como "usar sempre?").
+  ask(question, options, { who = null, timeoutMs = this.timeoutMs, kind = 'escolha', quiet = false } = {}) {
     this.cancel()
     const opts = (options || []).map(String)
     const text = kind === 'confirmar'
@@ -45,7 +46,7 @@ class Clarifier {
         timer: setTimeout(() => {
           if (this.pending !== pending) return
           this.pending = null
-          this.say('Sem resposta; deixei pra lá.')
+          if (!quiet) this.say('Sem resposta; deixei pra lá.')
           resolve(null)
         }, timeoutMs)
       }
