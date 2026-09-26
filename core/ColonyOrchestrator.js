@@ -289,7 +289,12 @@ class ColonyOrchestrator {
   }
 
   async collectAnimalProduct(product, count = 1) {
-    const normalizedCount = Math.max(1, Math.min(32, Number.parseInt(count, 10) || 1))
+    const raw = Number.parseInt(count, 10) || 1
+    const normalizedCount = product === 'milk'
+      ? Math.max(1, Math.min(16, raw))
+      : product === 'eggs'
+        ? 1
+        : Math.max(1, Math.min(32, raw))
     const name = this.runRoleTask(
       'fazendeiro',
       { type: 'produto_animal', product, count: normalizedCount },
