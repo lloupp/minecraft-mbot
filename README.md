@@ -688,7 +688,7 @@ O sistema reporta quantos animais foram **alimentados** e quantos pares foram te
 
 Para tosquia, o bot procura `shears` no inventário, depois no estoque central e, se necessário, tenta fabricar uma tesoura usando a cadeia de produção. A lã coletada é enviada de volta ao estoque quando possível.
 
-A reprodução ainda não roda automaticamente no projeto de fazenda. Ela permanece sob comando explícito até existir uma camada de curral/cercado que impeça dispersão dos animais e consumo descontrolado de alimento.
+A reprodução continua sob comando explícito por padrão. Quando o curral físico da espécie está completo, reprodução e manejo passam a considerar somente os animais que estão dentro dele.
 
 
 ## Currais e manejo populacional
@@ -730,3 +730,51 @@ Exemplo:
 ```
 
 O comando não abate animais acima da meta. Nesta etapa, o limite serve para impedir reprodução desnecessária; descarte/abate seletivo só será adicionado com regras explícitas de reserva mínima.
+
+
+### Captura para o curral
+
+Depois de construir o curral, consulte o estado:
+
+```text
+!curral vaca
+!curral ovelha
+```
+
+O comando verifica o mundo real: quantidade de cercas, presença/estado do portão e quantos animais da espécie estão dentro.
+
+Para levar animais encontrados nas proximidades para o curral:
+
+```text
+!capturar vaca 2
+!capturar ovelha 4
+!capturar galinha 6
+```
+
+É necessário ter um worker `fazendeiro`. O fazendeiro:
+
+1. procura um alimento que atraia a espécie;
+2. retira esse alimento do estoque central quando necessário;
+3. encontra animais da espécie fora do curral;
+4. aproxima-se segurando o alimento;
+5. leva o animal até a entrada;
+6. abre o portão;
+7. entra no curral mantendo o alimento na mão;
+8. confirma se o animal cruzou o limite;
+9. fecha o portão;
+10. sai sem alimento na mão e fecha novamente o portão.
+
+O portão fica aberto apenas durante a passagem para reduzir fuga dos animais já confinados.
+
+A associação entre espécie e curral é determinística a partir da posição da base. Por isso não é preciso salvar coordenadas adicionais: após um reinício, o sistema recalcula o mesmo local e valida se a estrutura ainda existe.
+
+Quando um curral está completo:
+
+```text
+!reproduzir vaca 2
+!manejo vaca 8
+```
+
+usam apenas vacas que estejam fisicamente dentro do curral. Se o curral estiver ausente ou incompleto, o comportamento anterior por proximidade continua disponível como fallback.
+
+A captura depende do comportamento nativo de atração do Minecraft e do caminho estar livre entre o animal e o portão. Terreno irregular, água, cercas extras ou obstáculos podem impedir uma captura; nesses casos a tarefa reporta menos animais capturados do que o solicitado.

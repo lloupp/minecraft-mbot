@@ -163,6 +163,16 @@ class ColonyOrchestrator {
     return { name: chosen.worker.name, task }
   }
 
+  async captureAnimals(species, count = 1) {
+    const normalizedCount = Math.max(1, Math.min(16, Number.parseInt(count, 10) || 1))
+    const name = this.runRoleTask(
+      'fazendeiro',
+      { type: 'capturar_animais', species, count: normalizedCount },
+      `captura de ${species}`
+    )
+    return { name, species, count: normalizedCount }
+  }
+
   async manageAnimalPopulation(species, target = 6) {
     const normalizedTarget = Math.max(2, Math.min(32, Number.parseInt(target, 10) || 6))
     const name = this.runRoleTask(
