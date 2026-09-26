@@ -1,18 +1,32 @@
 const ROLE_ALIASES = {
   minerador: 'minerador',
+  mineradores: 'minerador',
   miner: 'minerador',
+  miners: 'minerador',
   lenhador: 'lenhador',
+  lenhadores: 'lenhador',
   lumberjack: 'lenhador',
+  lumberjacks: 'lenhador',
   fazendeiro: 'fazendeiro',
+  fazendeiros: 'fazendeiro',
   farmer: 'fazendeiro',
+  farmers: 'fazendeiro',
   construtor: 'construtor',
+  construtores: 'construtor',
   builder: 'construtor',
+  builders: 'construtor',
   explorador: 'explorador',
+  exploradores: 'explorador',
   explorer: 'explorador',
+  explorers: 'explorador',
   guarda: 'guarda',
+  guardas: 'guarda',
   guard: 'guarda',
+  guards: 'guarda',
   ajudante: 'ajudante',
-  helper: 'ajudante'
+  ajudantes: 'ajudante',
+  helper: 'ajudante',
+  helpers: 'ajudante'
 }
 
 class BotManager {
@@ -66,9 +80,20 @@ class BotManager {
   }
 
   list() {
-    return [...this.workers.values()].map(({ name, role, status, createdAt }) => ({
-      name, role, status, createdAt
+    return [...this.workers.values()].map(({ name, role, status, createdAt, bot }) => ({
+      name,
+      role,
+      status: bot.colonyController?.state || status,
+      task: bot.colonyController?.currentTask?.type || null,
+      resource: bot.colonyController?.currentTask?.resource || null,
+      createdAt
     }))
+  }
+
+  byRole(role) {
+    const normalized = this.normalizeRole(role)
+    if (!normalized) return []
+    return [...this.workers.values()].filter((worker) => worker.role === normalized)
   }
 
   get(name) {
