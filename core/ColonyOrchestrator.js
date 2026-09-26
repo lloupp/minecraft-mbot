@@ -149,6 +149,30 @@ class ColonyOrchestrator {
     return this.runRoleTask('minerador', { type: 'construir_mina', length }, 'mina')
   }
 
+  async buildAnimalPen(species = 'cow', offset = null) {
+    const task = { type: 'construir_curral', species, offset }
+    const candidates = [
+      ...this.controllers('construtor'),
+      ...this.controllers('fazendeiro')
+    ]
+    if (!candidates.length) throw new Error('não há construtor nem fazendeiro na colônia')
+    const chosen = candidates.find(({ controller }) => controller.isIdle()) || candidates[0]
+    chosen.controller.run(task)
+      .then((result) => this.logger.log(`[curral] ${chosen.worker.name}:`, result))
+      .catch((err) => this.logger.log(`[curral] ${chosen.worker.name} falhou: ${err.message}`))
+    return { name: chosen.worker.name, task }
+  }
+
+  async manageAnimalPopulation(species, target = 6) {
+    const normalizedTarget = Math.max(2, Math.min(32, Number.parseInt(target, 10) || 6))
+    const name = this.runRoleTask(
+      'fazendeiro',
+      { type: 'manejar_populacao', species, target: normalizedTarget },
+      `manejo de ${species}`
+    )
+    return { name, species, target: normalizedTarget }
+  }
+
   async breedAnimals(species, pairs = 1) {
     const normalizedPairs = Math.max(1, Math.min(16, Number.parseInt(pairs, 10) || 1))
     const name = this.runRoleTask(
