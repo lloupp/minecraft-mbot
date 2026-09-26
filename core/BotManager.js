@@ -40,6 +40,10 @@ class BotManager {
     this.orchestratorName = orchestratorName
     this.maxBots = maxBots
     this.workers = new Map()
+    // Escala pretendida (nome -> papel): só muda com create/remove/stopAll. Um worker
+    // que cai (servidor reiniciou, timeout) sai de `workers`, mas continua aqui para
+    // ser restaurado quando o processo voltar.
+    this.roster = new Map()
     this.sequence = new Map()
   }
 
@@ -71,6 +75,7 @@ class BotManager {
       const bot = await this.createBot({ name, role: normalized })
       const worker = { name, role: normalized, bot, status: 'conectando', createdAt: Date.now() }
       this.workers.set(name, worker)
+      this.roster.set(name, normalized)
       created.push(worker)
 
       bot.once?.('spawn', () => { worker.status = 'ativo' })
@@ -109,12 +114,21 @@ class BotManager {
     if (!worker) return false
     worker.bot.quit?.()
     this.workers.delete(name)
+    this.roster.delete(name)
     return true
   }
 
   stopAll() {
     for (const worker of this.workers.values()) worker.bot.quit?.()
     this.workers.clear()
+    this.roster.clear()
+  }
+
+  // Quantidade pretendida por papel, incluindo workers que caíram sem ser removidos.
+  rosterCounts() {
+    const counts = {}
+    for (const role of this.roster.values()) counts[role] = (counts[role] || 0) + 1
+    return counts
   }
 }
 

@@ -21,6 +21,7 @@ class StorageManager {
   constructor() {
     this.position = null
     this._lock = Promise.resolve()
+    this._botQueues = new WeakMap()
     this._snapshot = {}
     this.lastUpdatedAt = 0
   }
@@ -112,24 +113,38 @@ class StorageManager {
   }
 
   async withContainer(bot, fn) {
-    // Anda até o baú antes de entrar na fila: a trava só cobre abrir e mexer
-    // nos itens, para um bot longe não segurar os outros enquanto caminha.
-    await this.goNear(bot, this.block(bot).position)
+    // Um bot faz uma operação de baú por vez: duas ao mesmo tempo trocariam o
+    // objetivo do pathfinder uma da outra ("The goal was changed...").
+    const previousOwn = this._botQueues.get(bot) || Promise.resolve()
+    let releaseOwn
+    const own = new Promise((resolve) => { releaseOwn = resolve })
+    this._botQueues.set(bot, own)
+    await previousOwn
 
-    const previous = this._lock
-    let release
-    this._lock = new Promise((resolve) => { release = resolve })
-    await previous
-
-    let container
     try {
-      container = await bot.openContainer(this.block(bot))
-      return await fn(container)
+      // Anda até o baú antes de entrar na fila: a trava só cobre abrir e mexer
+      // nos itens, para um bot longe não segurar os outros enquanto caminha.
+      await this.goNear(bot, this.block(bot).position)
+
+      const previous = this._lock
+      let release
+      this._lock = new Promise((resolve) => { release = resolve })
+      await previous
+
+      let container
+      try {
+        container = await bot.openContainer(this.block(bot))
+        return await fn(container)
+      } finally {
+        try { container?.close() } catch {}
+        release()
+      }
     } finally {
-      try { container?.close() } catch {}
-      release()
+      releaseOwn()
+      if (this._botQueues.get(bot) === own) this._botQueues.delete(bot)
     }
   }
+
 
   async summary(bot) {
     return this.withContainer(bot, async (container) => this.updateSnapshot(container.containerItems()))

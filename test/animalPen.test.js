@@ -220,6 +220,22 @@ test('ColonyOrchestrator delega captura ao fazendeiro', async () => {
   assert.deepEqual(tasks[0], { type: 'capturar_animais', species: 'cow', count: 3 })
 })
 
+test('curral usa o chão do local, não a altura da base', () => {
+  const { penGroundY, animalPenPlan } = require('../core/AnimalPen')
+  const home = { x: 0, y: 96, z: 0 } // base 1 bloco acima do chão do curral
+  const fences = new Set()
+  const blockAt = (p) => {
+    if (fences.has(`${p.x},${p.y},${p.z}`)) return { name: 'oak_fence', boundingBox: 'block' }
+    if (p.y === 99 && p.x === 13) return { name: 'oak_leaves', boundingBox: 'block' } // copa de árvore
+    return p.y <= 94 ? { name: 'grass_block', boundingBox: 'block' } : { name: 'air', boundingBox: 'empty' }
+  }
+  assert.equal(penGroundY(blockAt, home, 'cow'), 95)
+
+  // Com as cercas já no lugar, o nível continua o mesmo (inspeção e portão batem).
+  for (const f of animalPenPlan({ ...home, y: 95 }, 'cow').fences) fences.add(`${f.x},${f.y},${f.z}`)
+  assert.equal(penGroundY(blockAt, home, 'cow'), 95)
+})
+
 test('ColonyOrchestrator não manda dois fazendeiros para a mesma espécie', async () => {
   let finish
   const pending = new Promise((resolve) => { finish = resolve })

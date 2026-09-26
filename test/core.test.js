@@ -673,3 +673,82 @@ test('ColonyOrchestrator respeita cooldown por espécie no modo automático', ()
 
   assert.deepEqual(plan, [])
 })
+
+test('BotManager mantém na escala o worker que caiu, mas não o removido', async () => {
+  const bots = []
+  const manager = new BotManager({
+    createBot: async () => { const b = new EventEmitter(); b.quit = () => {}; bots.push(b); return b },
+    maxBots: 12
+  })
+  await manager.create('minerador', 2)
+  await manager.create('lenhador', 1)
+  bots[0].emit('end') // queda inesperada (timeout, servidor reiniciou)
+  assert.equal(manager.list().length, 2)
+  assert.deepEqual(manager.rosterCounts(), { minerador: 2, lenhador: 1 })
+
+  manager.remove('lenhador_01') // remoção pedida pelo jogador
+  assert.deepEqual(manager.rosterCounts(), { minerador: 2 })
+  manager.stopAll() // !parar
+  assert.deepEqual(manager.rosterCounts(), {})
+})
+
+test('settleCursor devolve ao inventário o resultado que ficou no cursor', async () => {
+  const { settleCursor } = require('../core/ProductionManager')
+  const clicks = []
+  const bot = {
+    waitForTicks: async () => {},
+    inventory: { selectedItem: { name: 'oak_planks', count: 4 }, firstEmptyInventorySlot: () => 12 },
+    clickWindow: async (slot, button, mode) => { clicks.push([slot, button, mode]); bot.inventory.selectedItem = null }
+  }
+  await settleCursor(bot)
+  assert.deepEqual(clicks, [[12, 0, 0]])
+  await settleCursor(bot) // cursor vazio: não clica de novo
+  assert.equal(clicks.length, 1)
+})
+
+test('ProductionManager pega a mesa antes dos ingredientes e fabrica uma rodada por vez', async () => {
+  const order = []
+  const crafts = []
+  const bot = {
+    registry: { itemsByName: { torch: { id: 7 } } },
+    recipesAll: () => [{ requiresTable: true, result: { count: 4 }, delta: [{ id: 1, count: -1 }, { id: 2, count: -1 }] }],
+    entity: { position: { distanceTo: () => 1 } },
+    craft: async (_recipe, runs) => { crafts.push(runs) },
+    waitForTicks: async () => {},
+    inventory: { selectedItem: null }
+  }
+  const pm = new ProductionManager({ storage: null })
+  pm.findCraftingTable = () => null
+  pm.ensureCraftingTable = async () => { order.push('mesa'); return { position: {} } }
+  pm.ensureIngredient = async (_bot, id) => { order.push(`ingrediente ${id}`) }
+  pm.inventoryCount = () => 99
+
+  const result = await pm.craftInternal(bot, 'torch', 8)
+  assert.deepEqual(order, ['mesa', 'ingrediente 1', 'ingrediente 2'])
+  assert.deepEqual(crafts, [1, 1])
+  assert.equal(result.produced, 8)
+})
+
+test('ProductionManager repõe ingrediente gasto ao fabricar outro ingrediente', async () => {
+  // Picareta de madeira: 3 tábuas (id 1) + 2 gravetos (id 2); fazer gravetos gasta 2 tábuas.
+  const stock = { 1: 0, 2: 0 }
+  const calls = []
+  const bot = {
+    registry: { itemsByName: { wooden_pickaxe: { id: 9 } } },
+    recipesAll: () => [{ requiresTable: false, result: { count: 1 }, delta: [{ id: 1, count: -3 }, { id: 2, count: -2 }] }],
+    entity: { position: { distanceTo: () => 1 } },
+    craft: async () => { assert.ok(stock[1] >= 3 && stock[2] >= 2, 'fabricou sem ingredientes') },
+    waitForTicks: async () => {},
+    inventory: { selectedItem: null }
+  }
+  const pm = new ProductionManager({ storage: null })
+  pm.inventoryCount = (_bot, id) => stock[id]
+  pm.ensureIngredient = async (_bot, id, _meta, count) => {
+    calls.push(id)
+    if (stock[id] >= count) return
+    if (id === 2) stock[1] -= 2 // os gravetos consomem tábuas
+    stock[id] = count
+  }
+  await pm.craftInternal(bot, 'wooden_pickaxe', 1)
+  assert.deepEqual(calls, [1, 2, 1, 2])
+})

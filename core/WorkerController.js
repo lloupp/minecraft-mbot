@@ -4,7 +4,7 @@ const food = require('../lib/food')
 const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const husbandry = require('../lib/husbandry')
-const { animalPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = require('./AnimalPen')
+const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -13,6 +13,18 @@ const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
 const FLEE_MS = 4000      // tempo fugindo
 const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
+// Todos os workers dividem o mesmo processo Node. Com o padrão do pathfinder
+// (40 ms de A* por tick), 7 workers calculando caminhos longos ao mesmo tempo
+// saturavam a CPU e o servidor os derrubava por "Timed out".
+const PATH_TICK_MS = 8
+// Tempo para uma viagem longa: ~700 ms por bloco (medido ~2 blocos/s com vários
+// workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
+const MS_PER_BLOCK = 700
+function travelTimeoutMs(from, to) {
+  if (!from || !to) return 30000
+  const d = Math.hypot(from.x - to.x, from.y - to.y, from.z - to.z)
+  return Math.max(30000, Math.round(d * MS_PER_BLOCK))
+}
 
 // Cercas e portões nunca podem ser quebrados pelo pathfinder: um buraco no
 // curral solta os animais (e com canOpenDoors=false ele prefere cavar a cerca).
@@ -55,7 +67,9 @@ class WorkerController {
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
       this.workMoves.canDig = true
-      this.workMoves.allow1by1towers = false
+      // Subir empilhando blocos (terra/pedregulho do próprio inventário) é o único
+      // jeito de sair de um poço 1x1 que o worker cavou minerando para baixo.
+      this.workMoves.allow1by1towers = true
       protectPenBlocks(this.workMoves, bot.registry)
       // Perto/dentro do curral: sem cavar e sem correr.
       this.penMoves = new Movements(bot)
@@ -64,6 +78,7 @@ class WorkerController {
       this.penMoves.allowSprinting = false
       protectPenBlocks(this.penMoves, bot.registry)
       bot.pathfinder.setMovements(this.workMoves)
+      bot.pathfinder.tickTimeout = PATH_TICK_MS
       this.state = 'ocioso'
       this.survivalTimer = setInterval(() => this.survivalTick(), 1000)
       this.survivalTimer.unref?.()
@@ -329,7 +344,7 @@ class WorkerController {
     const home = this.homeProvider?.()
     if (!home || !position) return null
     for (const species of Object.keys(SPECIES_OFFSETS)) {
-      const plan = animalPenPlan(home, species)
+      const plan = groundedPenPlan(this.bot, home, species)
       if (pointInsidePen(position, plan) && inspectAnimalPen(this.bot, plan).gatePresent) return plan
     }
     return null
@@ -389,7 +404,7 @@ class WorkerController {
     const gathered = await gather.mineBlocks(this.bot, (name) => wanted.has(name), count, isCancelled)
 
     const deposited = this.storage?.configured()
-      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
       : {}
     return { ok: gathered > 0, gathered, requested: count, resource, exhausted: gathered < count, deposited }
   }
@@ -402,7 +417,7 @@ class WorkerController {
       gathered++
     }
     const deposited = this.storage?.configured()
-      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
       : {}
     return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count, deposited }
   }
@@ -411,7 +426,7 @@ class WorkerController {
     const canonical = husbandry.normalizeSpecies(species) || species
     const home = this.homeProvider?.()
     if (!home) return null
-    const plan = animalPenPlan(home, canonical)
+    const plan = groundedPenPlan(this.bot, home, canonical)
     const status = inspectAnimalPen(this.bot, plan)
     return { canonical, plan, status }
   }
@@ -608,9 +623,21 @@ class WorkerController {
   async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
     const home = this.homeProvider?.()
     const canonical = husbandry.normalizeSpecies(species) || species
-    const plan = animalPenPlan(home, canonical, offset)
+    const plan = groundedPenPlan(this.bot, home, canonical, offset)
     const kit = await this.ensurePenKit(plan)
     if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
+
+    // Nivela o interior: um bloco de terreno na altura da cerca, encostado nela,
+    // vira degrau e os animais pulavam para fora com o portão fechado.
+    let leveled = 0
+    for (let dx = 1; dx < plan.size - 1 && !isCancelled(); dx++) {
+      for (let dz = 1; dz < plan.size - 1 && !isCancelled(); dz++) {
+        const block = this.bot.blockAt(new Vec3(plan.origin.x + dx, plan.origin.y, plan.origin.z + dz))
+        if (!block || block.boundingBox !== 'block') continue
+        await this.goTo(new goals.GoalNear(block.position.x, block.position.y, block.position.z, 3), 8000).catch(() => {})
+        if (await this.bot.dig(block).then(() => true, () => false)) leveled++
+      }
+    }
 
     let fencesPlaced = 0
     for (const position of plan.fences) {
@@ -630,6 +657,7 @@ class WorkerController {
       fencesPlaced,
       fencesRequested: plan.fenceCount,
       gatePlaced,
+      leveled,
       center: plan.center,
       offset: plan.offset,
       fenceItem: kit.fence,
@@ -776,6 +804,12 @@ class WorkerController {
 
   async leaveAnimalPen(plan, isCancelled) {
     await this.bot.unequip?.('hand').catch?.(() => {})
+    // Os animais acabaram de seguir o fazendeiro e ficam colados nele: abrir o
+    // portão na hora deixava um escapar. Espera se afastarem do portão.
+    const gateCenter = new Vec3(plan.gate.x + 0.5, plan.gate.y, plan.gate.z + 0.5)
+    await this.waitUntil(() => !Object.values(this.bot.entities || {}).some((entity) =>
+      entity.name === plan.species && entity.position?.distanceTo(gateCenter) < 2.5
+    ), isCancelled, 6000)
     if (!(await this.setPenGate(plan, true, isCancelled))) return false
     try {
       const out = plan.outside
@@ -952,7 +986,8 @@ class WorkerController {
   async returnHome(isCancelled) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
-    await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), 30000)
+    const timeoutMs = travelTimeoutMs(this.bot.entity?.position, home)
+    await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), timeoutMs)
     return { ok: !isCancelled() }
   }
 
@@ -1293,7 +1328,7 @@ class WorkerController {
     }
 
     const deposited = this.storage?.configured()
-      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
       : {}
 
     return {

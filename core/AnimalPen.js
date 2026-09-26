@@ -96,7 +96,42 @@ function inspectAnimalPen(bot, plan) {
   }
 }
 
+// Nível do chão no local do curral. O curral fica a 12+ blocos da base e o terreno
+// ali costuma ser mais alto ou mais baixo; com a altura da base, todas as cercas
+// eram puladas (visto no 1.20.1: 0/23 com a base 1 bloco acima do chão do curral).
+function isGroundBelow(block) {
+  return block?.boundingBox === 'block' && !/fence|_leaves$/.test(block.name)
+}
+
+function penGroundY(blockAt, home, species = 'cow', offset = null) {
+  const plan = animalPenPlan(home, species, offset)
+  const counts = new Map()
+  for (const point of [...plan.fences, plan.gate]) {
+    for (let y = plan.origin.y + 4; y >= plan.origin.y - 4; y--) {
+      const here = blockAt(new Vec3(point.x, y, point.z))
+      const below = blockAt(new Vec3(point.x, y - 1, point.z))
+      if (!here || !below) continue
+      const free = here.boundingBox === 'empty' || /fence/.test(here.name)
+      if (free && isGroundBelow(below)) {
+        counts.set(y, (counts.get(y) || 0) + 1)
+        break
+      }
+    }
+  }
+  if (!counts.size) return plan.origin.y
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || Math.abs(a[0] - plan.origin.y) - Math.abs(b[0] - plan.origin.y))[0][0]
+}
+
+function groundedPenPlan(bot, home, species = 'cow', offset = null) {
+  if (!home || typeof bot?.blockAt !== 'function') return animalPenPlan(home, species, offset)
+  const y = penGroundY((pos) => bot.blockAt(pos), home, species, offset)
+  return animalPenPlan({ ...home, y }, species, offset)
+}
+
 module.exports = {
+  penGroundY,
+  groundedPenPlan,
   PEN_SIZE,
   SPECIES_OFFSETS,
   animalPenPlan,

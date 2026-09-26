@@ -215,13 +215,17 @@ test('WorkerController cancelado dentro do curral: a próxima tarefa sai pelo po
 // Vaca fora do curral que segue o bot enquanto ele segura ração e está perto.
 function temptedCow(bot, position, { follows = true } = {}) {
   const cow = { id: 50, name: 'cow', isValid: true, following: false, spot: position }
+  let holdingFeed = true
+  const equip = bot.equip
+  bot.equip = async (...args) => { holdingFeed = true; return equip?.(...args) }
   Object.defineProperty(cow, 'position', {
     get () {
-      if (!cow.following && follows && cow.spot.distanceTo(bot.entity.position) <= 3.5) cow.following = true
+      if (!cow.following && follows && holdingFeed && cow.spot.distanceTo(bot.entity.position) <= 3.5) cow.following = true
       return cow.following ? bot.entity.position.offset(0, 0, -1) : cow.spot
     }
   })
   bot.unequip = async () => { // largou a ração: a vaca para onde está
+    holdingFeed = false
     if (cow.following) cow.spot = cow.position
     cow.following = false
   }
@@ -358,4 +362,44 @@ test('StorageManager não segura a trava do baú enquanto o bot caminha', async 
     storage.summary(makeBot('perto', 5))
   ])
   assert.deepEqual(order, ['perto', 'longe'])
+})
+
+test('StorageManager serializa operações do mesmo bot (não troca o objetivo no meio)', async () => {
+  const storage = new StorageManager()
+  storage.setPosition({ x: 0, y: 64, z: 0 })
+  const chest = { name: 'chest', position: new Vec3(0, 64, 0) }
+  // Como o pathfinder real: um goto novo rejeita o que estava em andamento.
+  let current = null
+  const bot = {
+    blockAt: () => chest,
+    pathfinder: {
+      setGoal: () => {},
+      goto: () => {
+        current?.reject(new Error('The goal was changed before it could be completed!'))
+        return new Promise((resolve, reject) => {
+          const entry = { reject }
+          current = entry
+          setTimeout(() => { if (current === entry) current = null; resolve() }, 20)
+        })
+      }
+    },
+    openContainer: async () => ({ containerItems: () => [{ name: 'coal', count: 3 }], close: () => {} })
+  }
+
+  const results = await Promise.all([storage.summary(bot), storage.summary(bot), storage.count(bot, 'coal')])
+  assert.deepEqual(results, [{ coal: 3 }, { coal: 3 }, 3])
+})
+
+test('WorkerController dá tempo proporcional à distância para voltar à base', async () => {
+  const bot = fakeBot()
+  const home = new Vec3(170, 64, 0) // 170 blocos
+  const worker = readyWorker(bot, { homeProvider: () => home })
+  let timeout = null
+  worker.goTo = async (_goal, ms) => { timeout = ms }
+  await worker.run({ type: 'voltar' })
+  assert.equal(timeout, 119000)
+
+  bot.entity.position = new Vec3(165, 64, 0) // perto: mantém o mínimo de 30 s
+  await worker.run({ type: 'voltar' })
+  assert.equal(timeout, 30000)
 })

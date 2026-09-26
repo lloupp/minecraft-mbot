@@ -44,6 +44,18 @@ function normalizeItemName(value) {
   return ITEM_ALIASES[normalized] || normalized
 }
 
+// No 1.20.1, bot.craft às vezes termina com o resultado preso no cursor (o clique
+// que o guarda chega antes da confirmação do servidor). Visto no servidor real
+// logo depois de fechar o baú: o tronco era gasto e as tábuas "sumiam", e a
+// cadeia caía para outras madeiras ("não encontrei receita para stripped_cherry_log").
+async function settleCursor(bot) {
+  await bot.waitForTicks?.(2)
+  if (!bot.inventory?.selectedItem) return
+  const slot = bot.inventory.firstEmptyInventorySlot?.()
+  if (slot == null) return
+  await bot.clickWindow(slot, 0, 0)
+}
+
 function recipeIngredients(recipe, runs = 1) {
   return (recipe?.delta || [])
     .filter((delta) => delta.count < 0)
@@ -290,24 +302,38 @@ class ProductionManager {
     for (const recipe of recipes) {
       const runs = Math.ceil(count / Math.max(1, recipe.result?.count || 1))
       try {
-        for (const ingredient of recipeIngredients(recipe, runs)) {
-          await this.ensureIngredient(bot, ingredient.id, ingredient.metadata, ingredient.count, depth, nextTrail)
-        }
-
+        // A mesa vem antes dos ingredientes: fabricá-la depois gastava as tábuas
+        // já separadas para a receita (picareta de madeira nunca saía).
         let craftingTable = null
         if (recipe.requiresTable) {
           craftingTable = await this.ensureCraftingTable(bot, depth, nextTrail)
-          if (bot.entity.position.distanceTo(craftingTable.position) > 4) {
-            await bot.pathfinder.goto(new goals.GoalNear(
-              craftingTable.position.x,
-              craftingTable.position.y,
-              craftingTable.position.z,
-              3
-            ))
-          }
         }
 
-        await bot.craft(recipe, runs, craftingTable)
+        // Fabricar um ingrediente pode gastar outro já separado (os gravetos
+        // gastavam as tábuas da picareta): confere de novo até todos baterem.
+        const ingredients = recipeIngredients(recipe, runs)
+        for (let pass = 0; pass < 3; pass++) {
+          for (const ingredient of ingredients) {
+            await this.ensureIngredient(bot, ingredient.id, ingredient.metadata, ingredient.count, depth, nextTrail)
+          }
+          if (ingredients.every((i) => this.inventoryCount(bot, i.id, i.metadata) >= i.count)) break
+        }
+
+        if (craftingTable && bot.entity.position.distanceTo(craftingTable.position) > 4) {
+          await bot.pathfinder.goto(new goals.GoalNear(
+            craftingTable.position.x,
+            craftingTable.position.y,
+            craftingTable.position.z,
+            3
+          ))
+        }
+
+        // Uma rodada por vez: com várias, o resultado de uma rodada no meio podia
+        // ficar no cursor e se perder (8 tochas pedidas, 4 entregues).
+        for (let run = 0; run < runs; run++) {
+          await bot.craft(recipe, 1, craftingTable)
+          await settleCursor(bot)
+        }
         return {
           item: itemName,
           requested: count,
@@ -340,4 +366,4 @@ class ProductionManager {
   }
 }
 
-module.exports = { ProductionManager, normalizeItemName, recipeIngredients, ITEM_ALIASES, SMELT_INPUTS }
+module.exports = { ProductionManager, normalizeItemName, recipeIngredients, settleCursor, ITEM_ALIASES, SMELT_INPUTS }

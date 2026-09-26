@@ -38,7 +38,7 @@ const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
 const { WaypointManager } = require('./core/WaypointManager')
-const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
+const { groundedPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -205,10 +205,10 @@ async function main() {
     serverProfile
   })
 
+  // Escala pretendida, não só quem está online: se o servidor cair, os workers
+  // caem antes do orquestrador salvar e a colônia se perderia no estado.
   function workerRoleCounts() {
-    const counts = {}
-    for (const worker of botManager.list()) counts[worker.role] = (counts[worker.role] || 0) + 1
-    return counts
+    return botManager.rosterCounts()
   }
 
   async function persistState() {
@@ -357,6 +357,29 @@ async function main() {
       bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(threat, FLEE_DISTANCE)), true)
     } else {
       follow()
+    }
+  }
+
+  // Ações do próprio orquestrador que andam (ler o baú, smoke test). No modo
+  // seguir, o laço principal troca o objetivo do pathfinder a cada 500 ms e o
+  // goto falharia com "The goal was changed before it could be completed!".
+  // O contador cobre chamadas sobrepostas: só volta a seguir quando a última acaba.
+  let pausedFollowing = 0
+  let pauseName = null
+  async function withoutFollowing(name, fn) {
+    if (mode !== 'seguir' && !pausedFollowing) return fn()
+    if (!pausedFollowing++) {
+      mode = 'tarefa'
+      taskName = pauseName = name
+    }
+    try {
+      return await fn()
+    } finally {
+      // Outra tarefa pode ter começado no meio (runTask troca taskName): não a sobrescreve.
+      if (!--pausedFollowing && mode === 'tarefa' && taskName === pauseName) {
+        mode = 'seguir'
+        taskName = null
+      }
     }
   }
 
@@ -813,7 +836,7 @@ async function main() {
         return
       }
       try {
-        if (!storage.snapshotFresh(5000)) await storage.summary(bot)
+        if (!storage.snapshotFresh(5000)) await withoutFollowing('ler o estoque', () => storage.summary(bot))
         const report = colony.demandReport()
         const d = report?.deficits || {}
         bot.chat(`Faltas: comida ${d.food || 0}, madeira ${d.wood || 0}, combustível ${d.fuel || 0}, ferro ${d.ironTotal || 0}, construção ${d.building || 0}.`)
@@ -1263,7 +1286,7 @@ async function main() {
       return
     }
 
-    const plan = animalPenPlan(colonyHome, species)
+    const plan = groundedPenPlan(bot, colonyHome, species)
     const status = inspectAnimalPen(bot, plan)
     const center = new Vec3(plan.center.x, plan.center.y, plan.center.z)
     const inside = husbandry.selectAnimals(bot, species, {
@@ -1405,7 +1428,7 @@ async function main() {
 
   commandRouter.register('smoke', async () => {
     bot.chat('Executando smoke test da colônia...')
-    const result = await smokeTest.run()
+    const result = await withoutFollowing('smoke test', () => smokeTest.run())
     const status = result.ok ? 'PASSOU' : 'FALHOU'
     bot.chat(`Smoke: ${status} | ${result.passed} ok | ${result.failed} falha(s).`)
     for (const check of result.checks) {
@@ -1432,7 +1455,7 @@ async function main() {
     if (action === 'aqui' || action === 'definir') {
       try {
         const block = storage.configureNearest(bot, 8)
-        await storage.summary(bot)
+        await withoutFollowing('ler o estoque', () => storage.summary(bot))
         persistSoon()
         bot.chat(`Estoque central definido: ${block.name} em X=${block.position.x}, Y=${block.position.y}, Z=${block.position.z}.`)
       } catch (err) {
@@ -1466,7 +1489,7 @@ async function main() {
     }
 
     try {
-      const counts = await storage.summary(bot)
+      const counts = await withoutFollowing('ler o estoque', () => storage.summary(bot))
       const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
       if (!entries.length) {
         bot.chat('Estoque central está vazio.')
