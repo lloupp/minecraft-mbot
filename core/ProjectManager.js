@@ -1,3 +1,5 @@
+const { stockMetrics } = require('./DemandPlanner')
+
 const PROJECT_DEFINITIONS = {
   casa: {
     label: 'Casa',
@@ -81,6 +83,45 @@ const PROJECT_DEFINITIONS = {
   }
 }
 
+const MAX_BLUEPRINT_ATTEMPTS = 4
+
+function sumMaterials(list) {
+  const out = {}
+  for (const materials of list) {
+    for (const [name, count] of Object.entries(materials || {})) {
+      out[name] = (out[name] || 0) + Number(count || 0)
+    }
+  }
+  return out
+}
+
+// Projeto de planta: definição montada na hora (não é fixa como casa/vila).
+// Cada fatia da planta vira uma obra de construtor com o material que ela usa.
+function blueprintDefinition({ name, origin, size = null, regions = [], builders = null }) {
+  const count = Math.max(1, Number(builders) || regions.length || 1)
+  return {
+    label: `Planta ${name}`,
+    blueprint: {
+      name,
+      origin: { x: Math.floor(origin.x), y: Math.floor(origin.y), z: Math.floor(origin.z) },
+      size: size ? { ...size } : null
+    },
+    requiredRoles: { construtor: count, minerador: 1, lenhador: 1, artesao: 1 },
+    targets: {},
+    actions: regions.map((entry, index) => ({
+      id: `planta-${index + 1}`,
+      role: 'construtor',
+      task: {
+        type: 'construir_planta',
+        planta: name,
+        origin: { x: Math.floor(origin.x), y: Math.floor(origin.y), z: Math.floor(origin.z) },
+        region: entry.region ? { ...entry.region } : null,
+        materials: { ...(entry.materials || {}) }
+      }
+    }))
+  }
+}
+
 function mergeTargets(base = {}, extra = {}) {
   const out = { ...base }
   for (const [key, value] of Object.entries(extra || {})) {
@@ -102,7 +143,9 @@ class ProjectManager {
   }
 
   definition(type) {
-    return PROJECT_DEFINITIONS[String(type || '').toLowerCase()] || null
+    const normalized = String(type || '').toLowerCase()
+    if (normalized === 'planta') return this.active?.type === 'planta' ? this.active.definition : null
+    return PROJECT_DEFINITIONS[normalized] || null
   }
 
   start(type) {
@@ -134,7 +177,35 @@ class ProjectManager {
     return this.status()
   }
 
+  startBlueprint(options) {
+    if (!this.homeProvider?.()) throw new Error('defina a base primeiro com !base aqui')
+    if (!this.storage?.configured?.()) throw new Error('defina o estoque primeiro com !estoque aqui')
+    if (this.active && this.active.status === 'ativo') {
+      throw new Error(`já existe projeto ativo: ${this.active.type}`)
+    }
+    const definition = blueprintDefinition(options)
+    if (!definition.actions.length) throw new Error('planta sem blocos para construir')
+    this.active = {
+      type: 'planta',
+      label: definition.label,
+      definition,
+      status: 'ativo',
+      startedAt: Date.now(),
+      completedAt: null,
+      actions: definition.actions.map((action) => ({
+        id: action.id,
+        role: action.role,
+        task: JSON.parse(JSON.stringify(action.task)),
+        status: 'pendente',
+        attempts: 0,
+        lastError: null
+      }))
+    }
+    return this.status()
+  }
+
   restore(state) {
+    if (state?.type === 'planta' && state.blueprint) return this.restoreBlueprint(state)
     if (!state || !state.type || !this.definition(state.type)) return false
     const definition = this.definition(state.type)
     this.active = {
@@ -158,8 +229,55 @@ class ProjectManager {
     return true
   }
 
+  restoreBlueprint(state) {
+    const definition = blueprintDefinition({
+      ...state.blueprint,
+      regions: (state.actions || []).map((action) => ({
+        region: action.task?.region || null,
+        materials: action.task?.materials || {}
+      }))
+    })
+    if (!definition.actions.length) return false
+    this.active = {
+      type: 'planta',
+      label: definition.label,
+      definition,
+      status: state.status === 'concluido' ? 'concluido' : 'ativo',
+      startedAt: Number(state.startedAt) || Date.now(),
+      completedAt: state.completedAt ? Number(state.completedAt) : null,
+      actions: definition.actions.map((action, index) => {
+        const saved = state.actions[index] || {}
+        return {
+          id: action.id,
+          role: action.role,
+          task: JSON.parse(JSON.stringify(action.task)),
+          status: saved.status === 'concluido' ? 'concluido' : 'pendente',
+          attempts: Number(saved.attempts || 0),
+          lastError: saved.lastError || null
+        }
+      })
+    }
+    return true
+  }
+
   exportState() {
     if (!this.active) return null
+    if (this.active.type === 'planta') {
+      return {
+        type: 'planta',
+        status: this.active.status,
+        startedAt: this.active.startedAt,
+        completedAt: this.active.completedAt,
+        blueprint: { ...this.active.definition.blueprint, builders: this.active.definition.requiredRoles.construtor },
+        actions: this.active.actions.map((action) => ({
+          id: action.id,
+          status: action.status,
+          attempts: action.attempts,
+          lastError: action.lastError,
+          task: JSON.parse(JSON.stringify(action.task))
+        }))
+      }
+    }
     return {
       type: this.active.type,
       status: this.active.status,
@@ -190,7 +308,44 @@ class ProjectManager {
 
   targets() {
     if (!this.isActive()) return {}
+    if (this.active.type === 'planta') {
+      // Categorias do planejador (construção/madeira) a partir do material das
+      // obras que ainda vão começar: mineradores e lenhadores trabalham para elas.
+      const metrics = stockMetrics(this.materialTargets())
+      const out = {}
+      if (metrics.building > 0) out.building = metrics.building
+      if (metrics.wood > 0) out.wood = metrics.wood
+      return out
+    }
     return { ...this.definition(this.active.type).targets }
+  }
+
+  // Material (item -> quantidade) das obras de planta pendentes.
+  materialTargets() {
+    if (!this.isActive() || this.active.type !== 'planta') return {}
+    return sumMaterials(this.pendingActions().map((action) => action.task.materials))
+  }
+
+  // Material das obras pendentes que o estoque ainda não cobre.
+  missingMaterials(stock = {}) {
+    const out = {}
+    for (const [name, count] of Object.entries(this.materialTargets())) {
+      const lack = count - Number(stock[name] || 0)
+      if (lack > 0) out[name] = lack
+    }
+    return out
+  }
+
+  // Obra de planta só começa com o material da fatia no estoque, descontando o
+  // que outras obras planejadas no mesmo ciclo já reservaram.
+  materialsReady(action, stock, reserved) {
+    for (const [name, count] of Object.entries(action.task.materials || {})) {
+      if (Number(stock?.[name] || 0) - Number(reserved[name] || 0) < count) return false
+    }
+    for (const [name, count] of Object.entries(action.task.materials || {})) {
+      reserved[name] = (reserved[name] || 0) + count
+    }
+    return true
   }
 
   requiredRoles() {
@@ -214,7 +369,10 @@ class ProjectManager {
   }
 
   planActions(workers, report) {
-    if (!this.isActive() || !this.actionReady(report)) return []
+    if (!this.isActive()) return []
+    const blueprintMode = this.active.type === 'planta'
+    if (!blueprintMode && !this.actionReady(report)) return []
+    const reserved = {}
     const idleByRole = new Map()
     for (const entry of workers) {
       if (!entry.controller?.isIdle?.()) continue
@@ -225,8 +383,9 @@ class ProjectManager {
     const planned = []
     for (const action of this.pendingActions()) {
       const candidates = idleByRole.get(action.role) || []
+      if (!candidates.length) continue
+      if (blueprintMode && !this.materialsReady(action, report?.stock, reserved)) continue
       const entry = candidates.shift()
-      if (!entry) continue
       action.status = 'executando'
       action.attempts++
       planned.push({
@@ -249,6 +408,15 @@ class ProjectManager {
     if (result?.ok === false) {
       action.status = 'pendente'
       action.lastError = 'resultado sem sucesso'
+      // Planta: a próxima tentativa só precisa do que faltou nesta.
+      if (action.task.type === 'construir_planta' && result.remaining) {
+        action.task.materials = { ...result.remaining }
+        const missing = Object.keys(result.missing || {})
+        if (missing.length) action.lastError = `sem material: ${missing.join(', ')}`
+        else if (result.failed) action.lastError = `${result.failed} blocos falharam`
+        // Blocos inalcançáveis não melhoram com insistência: desiste da fatia.
+        if (!missing.length && action.attempts >= MAX_BLUEPRINT_ATTEMPTS) action.status = 'falhou'
+      }
       return
     }
     action.status = 'concluido'
@@ -264,7 +432,9 @@ class ProjectManager {
   }
 
   maybeComplete(report) {
-    if (!this.isActive() || !this.actionReady(report)) return false
+    if (!this.isActive()) return false
+    // Planta termina quando as obras terminam; as metas de estoque são só meio.
+    if (this.active.type !== 'planta' && !this.actionReady(report)) return false
     if (this.pendingActions().length || this.inProgressActions().length) return false
     this.active.status = 'concluido'
     this.active.completedAt = Date.now()
@@ -294,12 +464,15 @@ class ProjectManager {
       status: this.active.status,
       startedAt: this.active.startedAt,
       completedAt: this.active.completedAt,
-      targets: { ...this.definition(this.active.type).targets },
+      targets: this.active.type === 'planta' ? this.targets() : { ...this.definition(this.active.type).targets },
       requiredRoles: { ...(this.definition(this.active.type).requiredRoles || {}) },
       deficits: report?.deficits ? { ...report.deficits } : null,
+      blueprint: this.active.definition?.blueprint ? { ...this.active.definition.blueprint } : null,
+      materials: this.materialTargets(),
+      missingMaterials: report?.stock ? this.missingMaterials(report.stock) : null,
       actions
     }
   }
 }
 
-module.exports = { ProjectManager, PROJECT_DEFINITIONS, mergeTargets }
+module.exports = { ProjectManager, PROJECT_DEFINITIONS, mergeTargets, blueprintDefinition, sumMaterials }
