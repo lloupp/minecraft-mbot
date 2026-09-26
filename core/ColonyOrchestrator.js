@@ -24,6 +24,8 @@ class ColonyOrchestrator {
     this.auto = false
     this.timer = null
     this.autoBackoff = new Map()
+    this.autoFailures = new Map()
+    this.autoInFlight = new Map()
     this.animalBackoff = new Map()
     this.animalTargets = new Map()
     // Espécies com tarefa de manejo em andamento: o backoff só é gravado no fim,
@@ -379,7 +381,7 @@ class ColonyOrchestrator {
   eligibleAutoControllers() {
     const now = Date.now()
     return this.controllers().filter(({ worker, controller }) =>
-      controller.isIdle() && (this.autoBackoff.get(worker.name) || 0) <= now
+      controller.isIdle() && !this.autoInFlight.has(worker.name) && (this.autoBackoff.get(worker.name) || 0) <= now
     )
   }
 
@@ -391,19 +393,26 @@ class ColonyOrchestrator {
     return Math.min(30000 * 2 ** (failures - 1), 600000)
   }
 
+  recordAutoFailure(name, baseDelay = 15000) {
+    const failures = Math.min((this.autoFailures.get(name) || 0) + 1, 7)
+    this.autoFailures.set(name, failures)
+    this.autoBackoff.set(name, Date.now() + Math.min(baseDelay * 2 ** (failures - 1), 600000))
+  }
+
   runAuto(worker, controller, task) {
+    if (this.autoInFlight.has(worker.name)) return
+    this.autoInFlight.set(worker.name, task)
     const animalTask = task.species &&
       ['manejar_populacao', 'capturar_animais', 'construir_curral'].includes(task.type)
     if (animalTask) this.animalInFlight.add(task.species)
-    controller.run(task)
-      .finally(() => {
-        if (animalTask) this.animalInFlight.delete(task.species)
-      })
+    return Promise.resolve()
+      .then(() => controller.run(task))
       .then((result) => {
         if (result?.ok === false) {
-          this.autoBackoff.set(worker.name, Date.now() + 15000)
+          this.recordAutoFailure(worker.name)
         } else {
           this.autoBackoff.delete(worker.name)
+          this.autoFailures.delete(worker.name)
         }
 
         if (animalTask && result?.ok === false) {
@@ -424,11 +433,15 @@ class ColonyOrchestrator {
       })
       .catch((err) => {
         if (task.projectActionId) this.projectManager?.failAction?.(task.projectActionId, err)
-        this.autoBackoff.set(worker.name, Date.now() + 20000)
+        this.recordAutoFailure(worker.name, 20000)
         if (animalTask) {
           this.animalBackoff.set(task.species, Date.now() + this.animalFailureDelay(task.species))
         }
         this.logger.log(`[auto] ${worker.name}: ${err.message}`)
+      })
+      .finally(() => {
+        this.autoInFlight.delete(worker.name)
+        if (animalTask) this.animalInFlight.delete(task.species)
       })
   }
 
@@ -442,6 +455,7 @@ class ColonyOrchestrator {
     if (!eligible.length) return
 
     if (!this.storage.snapshotFresh(this.stockMaxAgeMs)) {
+      if ([...this.autoInFlight.values()].some((task) => task.type === 'sincronizar_estoque')) return
       const chosen = eligible[0]
       this.runAuto(chosen.worker, chosen.controller, {
         type: 'sincronizar_estoque',
