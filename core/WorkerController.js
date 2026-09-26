@@ -4,7 +4,7 @@ const food = require('../lib/food')
 const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const husbandry = require('../lib/husbandry')
-const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./AnimalPen')
+const { animalPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -13,6 +13,17 @@ const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
 const FLEE_MS = 4000      // tempo fugindo
 const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
+
+// Cercas e portões nunca podem ser quebrados pelo pathfinder: um buraco no
+// curral solta os animais (e com canOpenDoors=false ele prefere cavar a cerca).
+function protectPenBlocks(moves, registry) {
+  for (const block of registry?.blocksArray || []) {
+    if (block.name.endsWith('_fence') || block.name.endsWith('_fence_gate')) {
+      moves.blocksCantBreak.add(block.id)
+    }
+  }
+  return moves
+}
 
 class WorkerController {
   constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console }) {
@@ -29,6 +40,8 @@ class WorkerController {
     this.taskVersion = 0
     this.exploreStep = 0
     this.workMoves = null
+    this.penMoves = null
+    this.activePen = null     // curral com portão aberto ou com o bot dentro
     this.eating = false
     this.defending = false
     this.lastHealth = null
@@ -39,6 +52,13 @@ class WorkerController {
       this.workMoves = new Movements(bot)
       this.workMoves.canDig = true
       this.workMoves.allow1by1towers = false
+      protectPenBlocks(this.workMoves, bot.registry)
+      // Perto/dentro do curral: sem cavar e sem correr.
+      this.penMoves = new Movements(bot)
+      this.penMoves.canDig = false
+      this.penMoves.allow1by1towers = false
+      this.penMoves.allowSprinting = false
+      protectPenBlocks(this.penMoves, bot.registry)
       bot.pathfinder.setMovements(this.workMoves)
       this.state = 'ocioso'
       this.survivalTimer = setInterval(() => this.survivalTick(), 1000)
@@ -189,6 +209,8 @@ class WorkerController {
     this.state = 'trabalhando'
 
     try {
+      this.useMoves(this.workMoves)
+      await this.leaveLeftoverPen(isCancelled)
       if (this.bot.food <= HUNGRY) await this.eat()
       let result
       switch (task.type) {
@@ -259,6 +281,44 @@ class WorkerController {
     }
   }
 
+  useMoves(moves) {
+    if (moves && typeof this.bot.pathfinder?.setMovements === 'function') this.bot.pathfinder.setMovements(moves)
+  }
+
+  // Curral construído (com portão) que contém a posição, entre os das espécies conhecidas.
+  penAt(position) {
+    const home = this.homeProvider?.()
+    if (!home || !position) return null
+    for (const species of Object.keys(SPECIES_OFFSETS)) {
+      const plan = animalPenPlan(home, species)
+      if (pointInsidePen(position, plan) && inspectAnimalPen(this.bot, plan).gatePresent) return plan
+    }
+    return null
+  }
+
+  // Uma tarefa cancelada no meio do manejo pode deixar o bot dentro do curral
+  // ou o portão aberto: sai pelo portão (abrir → sair → fechar) antes de seguir,
+  // senão o pathfinder tentaria atravessar a cerca.
+  async leaveLeftoverPen(isCancelled) {
+    const plan = this.activePen || this.penAt(this.bot.entity?.position)
+    if (!plan) return
+    this.useMoves(this.penMoves)
+    try {
+      if (this.bot.entity && pointInsidePen(this.bot.entity.position, plan)) {
+        await this.leaveAnimalPen(plan, isCancelled)
+      } else {
+        await this.setPenGate(plan, false, isCancelled)
+      }
+    } catch (err) {
+      this.logger.log(`[colônia] ${this.name} não saiu do curral: ${err.message}`)
+    } finally {
+      if (!isCancelled()) {
+        this.activePen = null
+        this.useMoves(this.workMoves)
+      }
+    }
+  }
+
   async goTo(goal, timeoutMs = 20000) {
     let timer
     const timeout = new Promise((_, reject) => {
@@ -323,15 +383,27 @@ class WorkerController {
     return { canonical, plan, status }
   }
 
+  // Limita a seleção de animais aos que estão dentro do curral.
+  penScope(pen) {
+    return {
+      center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
+      range: pen.plan.size + 2,
+      filter: (entity) => pointInsidePen(entity.position, pen.plan)
+    }
+  }
+
+  // Busca a ração ANTES de entrar no curral: lá dentro, ir ao baú faria o
+  // pathfinder abrir caminho pela cerca (o portão fica fechado atrás do bot).
+  async penFeed(canonical, count) {
+    const config = husbandry.SPECIES[canonical]
+    if (!config || count < 2) return null
+    return husbandry.ensureFeed(this.bot, config, count, this.storage)
+  }
+
   penPopulation(species) {
     const pen = this.penContext(species)
     if (!pen) return { species, built: false, inside: 0, status: null }
-    const center = new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z)
-    const inside = husbandry.selectAnimals(this.bot, pen.canonical, {
-      center,
-      range: pen.plan.size + 2,
-      filter: (entity) => pointInsidePen(entity.position, pen.plan)
-    }).length
+    const inside = husbandry.selectAnimals(this.bot, pen.canonical, this.penScope(pen)).length
     return {
       species: pen.canonical,
       built: pen.status.built,
@@ -348,18 +420,16 @@ class WorkerController {
       })
     }
 
-    return this.withAnimalPen(pen, isCancelled, () => husbandry.breed(
-      this.bot,
-      species,
-      pairs,
-      isCancelled,
-      {
-        storage: this.storage,
-        center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
-        range: pen.plan.size + 2,
-        filter: (entity) => pointInsidePen(entity.position, pen.plan)
-      }
-    ))
+    const scope = this.penScope(pen)
+    const wanted = Math.max(1, Math.min(16, Number.parseInt(pairs, 10) || 1))
+    const breedable = husbandry.selectAnimals(this.bot, pen.canonical, scope)
+      .filter((entity) => husbandry.canBreed(this.bot, entity))
+    const feed = await this.penFeed(pen.canonical, Math.min(wanted * 2, breedable.length - (breedable.length % 2)))
+    // Sem par ou sem ração: breed (sem estoque) só informa o motivo, sem sair do lugar.
+    if (!feed) return husbandry.breed(this.bot, species, pairs, isCancelled, scope)
+
+    return this.withAnimalPen(pen, isCancelled, () =>
+      husbandry.breed(this.bot, species, pairs, isCancelled, scope))
   }
 
   async shearSheep(count, isCancelled) {
@@ -378,18 +448,19 @@ class WorkerController {
       return { ...result, penScoped: false }
     }
 
-    const result = await this.withAnimalPen(pen, isCancelled, () => husbandry.managePopulation(
-      this.bot,
-      species,
-      target,
-      isCancelled,
-      {
-        storage: this.storage,
-        center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
-        range: pen.plan.size + 2,
-        filter: (entity) => pointInsidePen(entity.position, pen.plan)
-      }
-    ))
+    const scope = this.penScope(pen)
+    const animals = husbandry.selectAnimals(this.bot, pen.canonical, scope)
+    const breedable = animals.filter((entity) => husbandry.canBreed(this.bot, entity))
+    const plan = husbandry.populationPlan(animals.length, target, breedable.length)
+    const feed = plan.pairs > 0 ? await this.penFeed(pen.canonical, plan.pairs * 2) : null
+    if (!feed) {
+      // Meta atingida, poucos adultos ou sem ração: responde sem entrar no curral.
+      const result = await husbandry.managePopulation(this.bot, species, target, isCancelled, scope)
+      return { ...result, penScoped: true }
+    }
+
+    const result = await this.withAnimalPen(pen, isCancelled, () =>
+      husbandry.managePopulation(this.bot, species, target, isCancelled, scope))
     return { ...result, penScoped: true }
   }
 
@@ -509,21 +580,28 @@ class WorkerController {
       const entry = plan.insideEntry
       await this.goTo(new goals.GoalNear(entry.x, entry.y, entry.z, 1), 12000)
     } finally {
-      await this.setPenGate(plan, false, () => false).catch(() => {})
+      // Cancelado: outra tarefa já controla o pathfinder e fecha o portão ela mesma.
+      if (!isCancelled()) await this.setPenGate(plan, false, isCancelled).catch(() => {})
     }
     return !isCancelled() && pointInsidePen(this.bot.entity?.position, plan)
   }
 
   async withAnimalPen(pen, isCancelled, work) {
-    const entered = await this.enterAnimalPen(pen.plan, isCancelled)
-    if (!entered) throw new Error(`não consegui entrar no curral de ${pen.canonical}`)
+    this.useMoves(this.penMoves)
     try {
+      const entered = await this.enterAnimalPen(pen.plan, isCancelled)
+      if (!entered) throw new Error(`não consegui entrar no curral de ${pen.canonical}`)
       return await work()
     } finally {
-      if (!this.defending && this.bot.entity && pointInsidePen(this.bot.entity.position, pen.plan)) {
-        await this.leaveAnimalPen(pen.plan, () => false).catch(() => {})
-      } else {
-        await this.setPenGate(pen.plan, false, () => false).catch(() => {})
+      // Se outra tarefa assumiu (cancelamento/defesa) não mexe no pathfinder nem
+      // no portão: o run() da próxima tarefa sai do curral pelo portão.
+      if (!isCancelled()) {
+        if (this.bot.entity && pointInsidePen(this.bot.entity.position, pen.plan)) {
+          await this.leaveAnimalPen(pen.plan, isCancelled).catch(() => {})
+        } else {
+          await this.setPenGate(pen.plan, false, isCancelled).catch(() => {})
+        }
+        this.useMoves(this.workMoves)
       }
     }
   }
@@ -554,7 +632,10 @@ class WorkerController {
     if (!gate?.name?.endsWith('_fence_gate')) throw new Error('portão do curral não encontrado')
 
     const current = gate.getProperties?.().open
-    if (typeof current === 'boolean' && current === open) return true
+    if (typeof current === 'boolean' && current === open) {
+      this.trackPen(plan, open)
+      return true
+    }
 
     await this.goTo(new goals.GoalNear(position.x, position.y, position.z, 3), 10000)
     if (isCancelled()) return false
@@ -562,7 +643,16 @@ class WorkerController {
     await sleep(350)
     gate = this.bot.blockAt(position)
     const updated = gate?.getProperties?.().open
-    return typeof updated === 'boolean' ? updated === open : true
+    const ok = typeof updated === 'boolean' ? updated === open : true
+    if (ok) this.trackPen(plan, open)
+    return ok
+  }
+
+  // Lembra do curral enquanto o portão está aberto ou o bot está dentro, para
+  // a próxima tarefa sair/fechar se esta for cancelada no meio.
+  trackPen(plan, open) {
+    if (open || pointInsidePen(this.bot.entity?.position, plan)) this.activePen = plan
+    else if (this.activePen === plan) this.activePen = null
   }
 
   async leaveAnimalPen(plan, isCancelled) {
@@ -573,7 +663,7 @@ class WorkerController {
       await this.goTo(new goals.GoalNear(out.x, out.y, out.z, 1), 12000)
       return !isCancelled()
     } finally {
-      await this.setPenGate(plan, false, () => false).catch(() => {})
+      if (!isCancelled()) await this.setPenGate(plan, false, isCancelled).catch(() => {})
     }
   }
 
@@ -643,7 +733,7 @@ class WorkerController {
         await sleep(1200)
         inside = entity.isValid !== false && pointInsidePen(entity.position, pen.plan)
       } finally {
-        await this.setPenGate(pen.plan, false, () => false).catch(() => {})
+        if (!isCancelled()) await this.setPenGate(pen.plan, false, isCancelled).catch(() => {})
       }
 
       if (inside) captured++
@@ -1138,4 +1228,4 @@ class WorkerController {
   }
 }
 
-module.exports = { WorkerController }
+module.exports = { WorkerController, protectPenBlocks }

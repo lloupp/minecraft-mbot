@@ -3,7 +3,8 @@ const assert = require('node:assert/strict')
 const { EventEmitter } = require('node:events')
 const { Vec3 } = require('vec3')
 
-const { WorkerController } = require('../core/WorkerController')
+const { WorkerController, protectPenBlocks } = require('../core/WorkerController')
+const { animalPenPlan, pointInsidePen } = require('../core/AnimalPen')
 const { StorageManager } = require('../core/StorageManager')
 
 const silent = { log: () => {} }
@@ -100,6 +101,110 @@ test('WorkerController come quando tem fome', async () => {
   worker.survivalTick() // já está comendo: não come duas vezes ao mesmo tempo
   await sleep(0)
   assert.equal(eaten, 1)
+})
+
+// Curral de vacas pronto em volta de home, com portão que abre/fecha e um
+// pathfinder que "teletransporta" o bot para o objetivo.
+function penWorld({ items = [], cows = 2 } = {}) {
+  const home = { x: 0, y: 64, z: 0 }
+  const plan = animalPenPlan(home, 'cow')
+  const blocks = new Map()
+  for (const p of plan.fences) blocks.set(new Vec3(p.x, p.y, p.z).toString(), { name: 'oak_fence', getProperties: () => ({}) })
+  const gate = { name: 'oak_fence_gate', open: false, getProperties () { return { open: this.open } } }
+  blocks.set(new Vec3(plan.gate.x, plan.gate.y, plan.gate.z).toString(), gate)
+
+  const bot = fakeBot()
+  bot.blockAt = (pos) => blocks.get(pos.toString()) || { name: 'air', boundingBox: 'empty', position: pos }
+  bot.inventory = { items: () => items }
+  bot.unequip = async () => {}
+  bot.activateBlock = async (block) => { block.open = !block.open }
+  bot.activated = []
+  bot.activateEntity = async (entity) => { bot.activated.push(entity.id) }
+  bot.pathfinder.goto = async (goal) => {
+    bot.pathfinder.goals.push(goal)
+    if (goal.isEnd?.(bot.entity.position.floored())) return // já está perto
+    const target = new Vec3(goal.x + 0.5, goal.y, goal.z + 0.5)
+    const toGate = goal.x === plan.gate.x && goal.z === plan.gate.z
+    // Cerca fechada: não há caminho entre dentro e fora (e cavar cerca é proibido).
+    if (!toGate && !gate.open && pointInsidePen(bot.entity.position, plan) !== pointInsidePen(target, plan)) {
+      throw new Error('sem caminho: curral fechado')
+    }
+    bot.entity.position = target
+  }
+  for (let i = 0; i < cows; i++) {
+    bot.entities[i + 1] = {
+      id: i + 1,
+      name: 'cow',
+      isValid: true,
+      position: new Vec3(plan.center.x + 0.5 + i, plan.center.y, plan.center.z + 0.5)
+    }
+  }
+  return { home, plan, gate, bot }
+}
+
+test('protectPenBlocks impede o pathfinder de quebrar cercas e portões', () => {
+  const registry = require('minecraft-data')('1.20.1')
+  const moves = protectPenBlocks({ blocksCantBreak: new Set() }, registry)
+  assert.equal(moves.blocksCantBreak.has(registry.blocksByName.oak_fence.id), true)
+  assert.equal(moves.blocksCantBreak.has(registry.blocksByName.spruce_fence_gate.id), true)
+  assert.equal(moves.blocksCantBreak.has(registry.blocksByName.oak_planks.id), false)
+})
+
+test('WorkerController busca ração no baú antes de entrar no curral', async () => {
+  const items = []
+  const { home, plan, gate, bot } = penWorld({ items })
+  const withdrawals = []
+  const storage = {
+    configured: () => true,
+    withdraw: async (_bot, name, count) => {
+      withdrawals.push({ name, count, inside: pointInsidePen(bot.entity.position, plan), gateOpen: gate.open })
+      items.push({ name, count })
+      return count
+    }
+  }
+  const worker = readyWorker(bot, { role: 'fazendeiro', storage, homeProvider: () => home })
+
+  const result = await worker.run({ type: 'reproduzir_animais', species: 'cow', pairs: 1 })
+
+  assert.equal(result.fed, 2)
+  assert.deepEqual(withdrawals, [{ name: 'wheat', count: 2, inside: false, gateOpen: false }])
+  assert.equal(pointInsidePen(bot.entity.position, plan), false)
+  assert.equal(gate.open, false)
+  assert.equal(worker.activePen, null)
+})
+
+test('WorkerController não entra no curral sem ração', async () => {
+  const { home, plan, gate, bot } = penWorld()
+  const storage = { configured: () => true, withdraw: async () => 0 }
+  const worker = readyWorker(bot, { role: 'fazendeiro', storage, homeProvider: () => home })
+
+  const result = await worker.run({ type: 'reproduzir_animais', species: 'cow', pairs: 1 })
+
+  assert.equal(result.reason, 'sem_alimento')
+  assert.equal(bot.pathfinder.goals.length, 0)
+  assert.equal(gate.open, false)
+  assert.equal(pointInsidePen(bot.entity.position, plan), false)
+})
+
+test('WorkerController cancelado dentro do curral: a próxima tarefa sai pelo portão', async () => {
+  const { home, plan, gate, bot } = penWorld({ items: [{ name: 'wheat', count: 4 }] })
+  const worker = readyWorker(bot, { role: 'fazendeiro', homeProvider: () => home })
+  let back = null
+  bot.activateEntity = async () => {
+    // Enquanto alimenta dentro do curral, chega "!todos voltar".
+    if (!back) back = worker.run({ type: 'voltar' })
+  }
+
+  await worker.run({ type: 'reproduzir_animais', species: 'cow', pairs: 1 }).catch(() => {})
+  const result = await back
+
+  assert.equal(result.ok, true)
+  assert.equal(gate.open, false)
+  assert.equal(pointInsidePen(bot.entity.position, plan), false)
+  // A última meta foi a de casa: a tarefa antiga não mexeu mais no pathfinder.
+  const last = bot.pathfinder.goals[bot.pathfinder.goals.length - 1]
+  assert.deepEqual([last.x, last.z], [0, 0])
+  assert.equal(worker.activePen, null)
 })
 
 test('StorageManager não segura a trava do baú enquanto o bot caminha', async () => {
