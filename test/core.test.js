@@ -8,6 +8,8 @@ const { Planner } = require('../core/Planner')
 const { BotManager } = require('../core/BotManager')
 const { ColonyOrchestrator } = require('../core/ColonyOrchestrator')
 const { resolveBlockNames } = require('../core/resources')
+const { StorageManager, aggregateItems, isEquipment } = require('../core/StorageManager')
+const { ProductionManager, normalizeItemName, recipeIngredients, SMELT_INPUTS } = require('../core/ProductionManager')
 
 test('CommandRouter interpreta e despacha comandos', async () => {
   const router = new CommandRouter()
@@ -189,4 +191,73 @@ test('ColonyOrchestrator modo automático só envia tarefa para ocioso', async (
 
   assert.equal(tasks.length, 1)
   assert.equal(tasks[0].resource, 'madeira')
+})
+
+
+test('StorageManager agrega estoque e preserva equipamento', () => {
+  assert.deepEqual(aggregateItems([
+    { name: 'raw_iron', count: 3 },
+    { name: 'raw_iron', count: 2 },
+    { name: 'coal', count: 4 }
+  ]), { raw_iron: 5, coal: 4 })
+  assert.equal(isEquipment('iron_pickaxe'), true)
+  assert.equal(isEquipment('oak_log'), false)
+})
+
+test('StorageManager guarda e recupera posição do estoque', () => {
+  const storage = new StorageManager()
+  assert.equal(storage.configured(), false)
+  storage.setPosition({ x: 10.9, y: 64.2, z: -4.1 })
+  assert.deepEqual(storage.getPosition(), { x: 10, y: 64, z: -5 })
+  assert.equal(storage.configured(), true)
+})
+
+test('ProductionManager normaliza aliases e ingredientes', () => {
+  assert.equal(normalizeItemName('picareta ferro'), 'iron_pickaxe')
+  assert.equal(normalizeItemName('baú'), 'chest')
+  assert.deepEqual(recipeIngredients({
+    delta: [
+      { id: 1, count: -3 },
+      { id: 2, count: -2 },
+      { id: 10, count: 1 }
+    ]
+  }, 2), [
+    { id: 1, metadata: null, count: 6 },
+    { id: 2, metadata: null, count: 4 }
+  ])
+  assert.deepEqual(SMELT_INPUTS.iron_ingot.slice(0, 1), ['raw_iron'])
+})
+
+test('BotManager aceita papel artesao', () => {
+  const manager = new BotManager({ createBot: async () => new EventEmitter() })
+  assert.equal(manager.normalizeRole('artesao'), 'artesao')
+  assert.equal(manager.normalizeRole('artesaos'), 'artesao')
+})
+
+test('ColonyOrchestrator cria tarefa de fabricação para artesao', () => {
+  const manager = {
+    workers: new Map(),
+    normalizeRole: (role) => role === 'artesao' ? 'artesao' : null
+  }
+  const colony = new ColonyOrchestrator({ botManager: manager })
+  assert.deepEqual(colony.taskFor('artesao', 'iron_pickaxe', 2), {
+    type: 'fabricar',
+    item: 'iron_pickaxe',
+    count: 2
+  })
+})
+
+test('ProductionManager conta inventário por id', () => {
+  const production = new ProductionManager({ storage: null })
+  const bot = {
+    inventory: {
+      items: () => [
+        { type: 1, metadata: 0, count: 2 },
+        { type: 1, metadata: 0, count: 3 },
+        { type: 2, metadata: 0, count: 9 }
+      ]
+    }
+  }
+  assert.equal(production.inventoryCount(bot, 1, null), 5)
+  assert.equal(production.inventoryCount(bot, 2, null), 9)
 })
