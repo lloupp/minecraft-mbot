@@ -1,6 +1,6 @@
 # Minecraft Bot Companheiro e Orquestrador
 
-Bot para Minecraft Forge 26.3 usando **mineflayer**.
+Bot companheiro e orquestrador para **Minecraft Java 1.20.1** com compatibilidade adicional para Forge 26.3, usando **mineflayer**.
 
 ## Status Atual
 
@@ -9,17 +9,19 @@ O `eduardo_bot` agora também funciona como **orquestrador da colônia**. Ele po
 
 | Item | Status |
 |------|--------|
-| **Versão do jogo** | Forge 26.3 (Protocolo 777) ✅ |
-| **Conexão** | Funciona ✅ |
-| **Chat via bot** | Funciona ✅ |
-| **Spawn completo** | Funciona ✅ |
-| **Movimentação** | Requer `minecraft-data` com suporte nativo a 26.3 ⏳ |
+| **Perfil recomendado** | Minecraft Java 1.20.1 ✅ |
+| **Compatibilidade legada** | Forge 26.3 / protocolo 777 ✅ |
+| **Conexão / chat / spawn** | Implementados ✅ |
+| **Movimentação e pathfinder** | Implementados ✅ |
+| **Colônia / projetos / persistência** | Implementados ✅ |
+| **Smoke E2E 1.20.1** | Pronto via `!smoke`; validar no servidor real ⏳ |
 
 ## Pré-requisitos
 
-- Java 17+ ✅
+- Java compatível com o servidor Minecraft ✅
 - Node.js 22+ ✅
-- TLauncher com Minecraft 1.20.1 Forge 26.3 ✅
+- Servidor Minecraft Java 1.20.1 recomendado ✅
+- Forge 26.3 continua disponível como perfil de compatibilidade
 
 ## Como usar
 
@@ -34,7 +36,7 @@ e faz um ping de status) e usa a versão anunciada pelo servidor.
 Para forçar valores:
 
 ```bash
-MINECRAFT_PORT=25565 MINECRAFT_VERSION=26.3 node index.js
+MINECRAFT_PORT=25565 MINECRAFT_VERSION=1.20.1 MINECRAFT_PROFILE=vanilla1201 node index.js
 ```
 
 Se o servidor estiver em outra máquina, configure `MINECRAFT_HOST` e
