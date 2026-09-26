@@ -1,6 +1,7 @@
 const PROJECT_DEFINITIONS = {
   casa: {
     label: 'Casa',
+    requiredRoles: { minerador: 1, lenhador: 1, artesao: 1, construtor: 1 },
     targets: {
       building: 64,
       wood: 24,
@@ -17,6 +18,7 @@ const PROJECT_DEFINITIONS = {
   },
   fazenda: {
     label: 'Fazenda',
+    requiredRoles: { lenhador: 1, fazendeiro: 1, artesao: 1 },
     targets: {
       food: 96,
       wood: 64,
@@ -29,6 +31,7 @@ const PROJECT_DEFINITIONS = {
   },
   mina: {
     label: 'Mina',
+    requiredRoles: { minerador: 2, lenhador: 1, artesao: 1, guarda: 1 },
     targets: {
       food: 48,
       wood: 64,
@@ -44,6 +47,15 @@ const PROJECT_DEFINITIONS = {
   },
   vila: {
     label: 'Vila',
+    requiredRoles: {
+      minerador: 2,
+      lenhador: 2,
+      fazendeiro: 1,
+      artesao: 1,
+      construtor: 1,
+      guarda: 1,
+      explorador: 1
+    },
     targets: {
       food: 128,
       wood: 256,
@@ -131,8 +143,13 @@ class ProjectManager {
   }
 
   targets() {
-    if (!this.isActive()) return {}
+    if (!this.active) return {}
     return { ...this.definition(this.active.type).targets }
+  }
+
+  requiredRoles() {
+    if (!this.active) return {}
+    return { ...(this.definition(this.active.type).requiredRoles || {}) }
   }
 
   pendingActions() {
@@ -232,6 +249,7 @@ class ProjectManager {
       startedAt: this.active.startedAt,
       completedAt: this.active.completedAt,
       targets: this.targets(),
+      requiredRoles: this.requiredRoles(),
       deficits: report?.deficits ? { ...report.deficits } : null,
       actions
     }
