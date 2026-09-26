@@ -65,8 +65,13 @@ minecraft-mbot/
 │   ├── combat.js     # Lutar ou fugir, arma e recarga do golpe
 │   ├── perception.js # Reconhecer blocos e entidades em volta
 │   ├── blueprint.js  # Ler plantas, materiais, ordem e divisão entre construtores
-│   └── blueprintBuilder.js # Construir a planta e conferir bloco a bloco
+│   ├── blueprintBuilder.js # Construir a planta e conferir bloco a bloco
+│   └── memoryCapture.js # Captura limitada de eventos e contexto
 ├── plantas/          # Plantas de exemplo (.schem) e gerador
+├── core/
+│   ├── Memory.js     # Memória tipada com proveniência (.data/memory.json)
+│   ├── References.js # Resolve nomes e detecta ambiguidade
+│   └── Clarifier.js  # Perguntas de esclarecimento com opções numeradas
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
 └── README.md         # Este arquivo
@@ -125,11 +130,17 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
-| `!local salvar <nome>` | Salva sua posição atual como local persistente |
+| `!local salvar <nome>` | Salva sua posição atual como waypoint persistente e registra proveniência |
 | `!local listar` | Lista os locais salvos |
 | `!local remover <nome>` | Remove um local salvo |
-| `!ir <local>` | Manda o EduardoBot até um local e ficar lá |
-| `!voltar [local]` | Volta para `base` por padrão ou outro local salvo |
+| `!ir <local>` | Manda o EduardoBot até um local (memória, base ou local salvo) e ficar lá; pergunta se o nome for ambíguo |
+| `!voltar [local]` | Volta para `base` por padrão (ou para a `casa` lembrada, se não houver base) |
+| `!lembrar <nome>` | Salva a posição atual como waypoint canônico e registra a proveniência; `... aqui` também é aceito |
+| `!lembrar <chave> = <valor>` | Guarda uma preferência, ex.: `!lembrar tochas.quantidade = 64` |
+| `!lembrar <anotação>` | Guarda uma anotação livre, ex.: `!lembrar a vila fica ao norte` |
+| `!esquecer <nome>` | Esquece um lugar, preferência ou local salvo |
+| `!memoria [tipo]` | Lista a memória com a origem de cada item (`lugares`, `preferencias`, `compromissos`, `fatos`) |
+| `!onde <coisa>` | Responde da memória, ex.: `!onde casa`, `!onde diamante`, `!onde morri` |
 | `!patrulha <a> <b> [...]` | Patrulha continuamente entre locais salvos |
 | `!patrulha off` | Encerra a patrulha |
 | `!enviar <bot> <local>` | Manda um worker específico até um local |
@@ -150,6 +161,43 @@ Arquivos ficam em `plantas/`. O bot lê Sponge `.schem` v2/v3, MCEdit `.schemati
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
 com HP baixo, foge de mobs hostis próximos antes de apanhar.
+
+### Memória e perguntas
+
+O bot mantém uma memória tipada em `.data/memory.json` (fora do git; mude com
+`MEMORY_FILE`). Cada item guarda a **origem** — `visto` (percepção do bot),
+`dito` (e por quem) ou `inferido` — com data e confiança, e `!memoria` mostra
+isso, ex.: `casa [dito por eduardo]`. Coordenadas e dimensão de lugares são lidas exclusivamente do `WaypointManager`.
+
+- **lugar**: referência e proveniência. Nome, posição, dimensão e persistência pertencem ao `WaypointManager`; capturas automáticas limitadas criam waypoints `auto-*`.
+- **preferencia**: chave → valor. Usadas hoje: `tochas.quantidade` (`!fabricar tocha` sem número),
+  `seguir.distancia` (1–16), `comida.preferida` (come essa primeiro), e as escolhas
+  salvas `ref.lugar.<nome>` / `minerar.<palavra>`;
+- **compromisso**: o que o bot prometeu (`!minerar`, `!fabricar` do próprio bot) e se terminou
+  (`feito`, `falhou`, `interrompido`);
+- **fato**: observações com expiração opcional (minério visto: 7 dias; morte: 3 dias).
+
+Captura automática, sem falar no chat: onde e por quem morreu; minérios valiosos
+num raio de 16 blocos (diamante, esmeralda, ouro, ferro, ancient debris; varredura a cada
+10 s, sem repetir o mesmo veio e esquecendo o que foi minerado); cama e estações utilizadas.
+Esses locais usam waypoints `auto-*` limitados por tipo e cooldown; Memory guarda apenas metadados.
+O limite é de 500 itens (os fatos mais antigos saem primeiro).
+
+Quando a ordem é ambígua, o bot pergunta com opções numeradas e espera 60 s:
+
+```text
+eduardo: !ir casa
+bot:     Qual casa? 1) casa (-300,64,-520) 2) casa velha (120,70,5)
+eduardo: 2
+bot:     Indo para casa velha (120,70,5)...
+bot:     Usar sempre essa? sim/não
+eduardo: sim
+bot:     Ok, vou lembrar.
+```
+
+O mesmo vale para `!minerar ferro` (iron_ore, deepslate_iron_ore ou qualquer um) e
+nomes digitados errado (`!ir csa` → "Quis dizer: 1) casa"). Responda com o número ou o
+nome; `cancelar` ou um novo comando `!` desiste da pergunta.
 
 ### Combate
 Ao tomar dano ou quando um monstro chega a 5 blocos, o bot decide entre lutar e
