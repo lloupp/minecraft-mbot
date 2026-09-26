@@ -18,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@nxg-org/mineflayer-custom-pvp": "^1.7.16",
     "minecraft-data": "npm:@wp2508/minecraft-data@3.111.6",
     "minecraft-protocol-forge": "github:PrismarineJS/node-minecraft-protocol-forge#master",
     "minecrafthawkeye": "^1.3.9",

@@ -57,3 +57,30 @@ test('escolhe a melhor arma, preferindo espada', () => {
   const bot = fakeBot({ items: ['wooden_sword', 'iron_axe', 'iron_sword', 'dirt'] })
   assert.equal(combat.bestWeapon(bot).name, 'iron_sword')
 })
+
+test('escudo vai para a mão secundária só se ainda não estiver lá', async () => {
+  const equipped = []
+  const bot = {
+    inventory: { slots: [], items: () => [{ name: 'shield' }] },
+    equip: async (item, dest) => { equipped.push([item.name, dest]) }
+  }
+  assert.equal(await combat.equipShield(bot), true)
+  assert.deepEqual(equipped, [['shield', 'off-hand']])
+  bot.inventory.slots[45] = { name: 'shield' }
+  assert.equal(await combat.equipShield(bot), true)
+  assert.equal(equipped.length, 1)
+  const noShield = { inventory: { slots: [], items: () => [] }, equip: async () => { throw new Error('não devia') } }
+  assert.equal(await combat.equipShield(noShield), false)
+})
+
+test('motor de corpo a corpo: custom-pvp > mineflayer-pvp > próprio', () => {
+  const saved = process.env.MBOT_MELEE
+  delete process.env.MBOT_MELEE
+  assert.equal(combat.meleeEngine({ swordpvp: {}, pvp: {} }), 'custom')
+  assert.equal(combat.meleeEngine({ pvp: {} }), 'pvp')
+  assert.equal(combat.meleeEngine({}), 'manual')
+  process.env.MBOT_MELEE = 'pvp'
+  assert.equal(combat.meleeEngine({ swordpvp: {}, pvp: {} }), 'pvp')
+  if (saved === undefined) delete process.env.MBOT_MELEE
+  else process.env.MBOT_MELEE = saved
+})

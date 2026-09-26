@@ -149,6 +149,13 @@ não adianta; nos demais casos luta com a melhor arma do inventário, respeitand
 o tempo de recarga do golpe, e recua se a vida cair a 6 ou menos. Depois da
 luta, recolhe os drops e volta ao que fazia (seguir ou ficar).
 
+**Motor corpo a corpo:** `@nxg-org/mineflayer-custom-pvp` (crítico com pulo,
+desvio, w-tap e escudo na mão secundária); `MBOT_MELEE=pvp` usa o
+`mineflayer-pvp` e `MBOT_MELEE=manual` o ataque próprio. Depois de matar, o bot
+emenda a luta com outro hostil a até 8 blocos. Teste contra 2 husks ao mesmo
+tempo (3 rodadas): custom-pvp venceu 3/3 com 6 críticos e 4 golpes bloqueados;
+mineflayer-pvp venceu 2/3, sem crítico com o escudo.
+
 ### Fome
 Com fome (≤ 14), o bot come a melhor comida que tiver (evita carne podre, frango
 cru etc., salvo em emergência). Sem comida, busca a fonte mais próxima num raio
