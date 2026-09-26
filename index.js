@@ -21,6 +21,7 @@ const { Planner } = require('./core/Planner')
 const { BotManager } = require('./core/BotManager')
 const craft = require('./lib/craft')
 const gather = require('./lib/gather')
+const combat = require('./lib/combat')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 
@@ -32,7 +33,8 @@ const OWNER = process.env.MINECRAFT_OWNER || null
 const FOLLOW_DISTANCE = 2   // blocos de distância ao seguir o dono
 const FLEE_DISTANCE = 16    // distância que tenta manter do agressor
 const FLEE_MS = 4000        // tempo fugindo depois de tomar dano
-const LOW_HEALTH = 10       // com HP baixo, foge de hostis próximos antes de apanhar
+const DEFEND_RANGE = 5      // hostil mais perto que isso: o bot reage (luta ou foge)
+const CREEPER_RANGE = 6     // creeper mais perto que isso: foge antes que exploda
 const HUNGRY = 14           // abaixo disso come (ou vai buscar comida)
 const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram certo
 
@@ -157,6 +159,8 @@ async function main() {
   let taskId = 0            // incrementado para cancelar a tarefa em andamento
   let followMoves, workMoves
   let resolvedOwner = OWNER
+  let fightTarget = null     // mob com quem está lutando
+  let fightResume = 'seguir' // modo para voltar depois da luta
 
   function ownerName() {
     if (resolvedOwner) return resolvedOwner
@@ -192,7 +196,7 @@ async function main() {
   // Foge do agressor (ou do hostil mais próximo); sem ameaça visível, corre para o dono.
   function flee(attacker) {
     if (mode === 'tarefa') {
-      bot.chat(`Estou apanhando! Parei de ${taskName}.`)
+      bot.chat(taskName === 'lutar' ? 'Recuando!' : `Estou apanhando! Parei de ${taskName}.`)
       cancelTask()
       mode = 'seguir'
     }
@@ -208,8 +212,8 @@ async function main() {
   }
 
   // Executa uma tarefa longa. `fn` recebe isCancelled() e deve parar quando for true
-  // (fuga, !cancelar, outra tarefa). No fim, volta a seguir o dono.
-  async function runTask(name, fn) {
+  // (fuga, !cancelar, outra tarefa). No fim, volta a seguir o dono (ou a `resume`).
+  async function runTask(name, fn, { resume = 'seguir' } = {}) {
     cancelTask()
     const myTask = taskId
     const isCancelled = () => myTask !== taskId
@@ -222,9 +226,38 @@ async function main() {
       if (!isCancelled()) bot.chat(`Não consegui ${name}: ${err.message}`)
     }
     if (isCancelled()) return
-    mode = 'seguir'
     taskName = null
-    follow()
+    mode = resume
+    if (resume === 'seguir') follow()
+    else bot.pathfinder.setGoal(null)
+  }
+
+  const isLiving = (entity) => entity && entity !== bot.entity && entity.isValid !== false
+
+  // Luta com `target` até ele morrer; com vida baixa, recua.
+  function defend(target) {
+    const resume = mode === 'ficar' || (mode === 'tarefa' && taskName === 'lutar' && fightResume === 'ficar') ? 'ficar' : 'seguir'
+    if (mode === 'tarefa' && taskName !== 'lutar') bot.chat(`Parei de ${taskName} para lutar com ${target.name}.`)
+    fightTarget = target
+    fightResume = resume
+    console.log(`Lutando com ${target.name} (HP ${Math.round(bot.health)})`)
+    runTask('lutar', async (isCancelled) => {
+      const result = await combat.fight(bot, target, isCancelled)
+      console.log(`Luta com ${target.name}: ${result}`)
+      if (result === 'recuei') {
+        flee(target)
+      } else if (result === 'morto') {
+        await food.collectDrops(bot, target.position.clone(), isCancelled)
+      }
+    }, { resume })
+  }
+
+  // Reação a uma ameaça: lutar ou fugir, conforme o mob, a vida e quantos inimigos há.
+  function react(attacker) {
+    const threat = isLiving(attacker) ? attacker : nearestHostile(FLEE_DISTANCE)
+    if (taskName === 'lutar' && threat === fightTarget) return
+    if (threat && combat.decide(bot, threat) === 'lutar') defend(threat)
+    else flee(threat)
   }
 
   function mine(blockName, count) {
@@ -303,8 +336,9 @@ async function main() {
   })
 
   bot.on('health', () => {
-    if (lastHealth !== null && bot.health < lastHealth && bot.health > 0) {
-      flee(lastAttacker)
+    // Durante a luta, o próprio laço de combate decide quando recuar.
+    if (lastHealth !== null && bot.health < lastHealth && bot.health > 0 && taskName !== 'lutar') {
+      react(lastAttacker)
       lastAttacker = null
     }
     lastHealth = bot.health
@@ -325,9 +359,19 @@ async function main() {
       fleeingUntil = 0
       if (mode === 'ficar') bot.pathfinder.setGoal(null)
     }
-    if (bot.health <= LOW_HEALTH && mode !== 'ficar' && nearestHostile(6)) {
-      flee()
-      return
+    // Defesa: foge de creepers e reage a hostis que chegam perto.
+    if (taskName !== 'lutar') {
+      const creeper = bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
+        e.position.distanceTo(bot.entity.position) <= CREEPER_RANGE)
+      if (creeper) {
+        flee(creeper)
+        return
+      }
+      const target = combat.proactiveTarget(bot, DEFEND_RANGE)
+      if (target) {
+        react(target)
+        return
+      }
     }
     // Correr gasta muita fome; com pouca comida, só anda.
     followMoves.allowSprinting = workMoves.allowSprinting = bot.food > 6
@@ -573,6 +617,18 @@ async function main() {
         if (!bot.entity) return
         for (const line of perception.describe(bot)) bot.chat(line)
         break
+      case '!atacar': {
+        const name = args[0]
+        const target = bot.nearestEntity((e) => e !== bot.entity && e.type !== 'player' &&
+          (name ? e.name === name : e.type === 'hostile') && e.position.distanceTo(bot.entity.position) <= 24)
+        if (!target) {
+          bot.chat(name ? `Não vejo ${name} por perto.` : 'Não vejo nenhum monstro por perto.')
+          return
+        }
+        bot.chat(`Atacando ${target.name}!`)
+        defend(target)
+        break
+      }
       case '!ficar':
         cancelTask()
         mode = 'ficar'
@@ -645,7 +701,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !bot, !bots, !ordem, !todos voltar, !construir casa, !colonia auto, !base aqui, !tarefas, !item, !receita')
         break
     }
