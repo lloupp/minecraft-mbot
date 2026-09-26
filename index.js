@@ -612,6 +612,13 @@ async function main() {
   })
 
   bot.on('health', () => {
+    // Sufocando (areia/cascalho caiu na cabeça): cava o bloco da cabeça na hora.
+    const head = bot.blockAt(bot.entity.position.offset(0, 1.6, 0))
+    if (lastHealth !== null && bot.health < lastHealth && head?.boundingBox === 'block' && bot.canDigBlock(head)) {
+      console.log(`Sufocando em ${head.name}: cavando para sair`)
+      bot.dig(head).catch(() => {})
+    }
+
     // Durante a luta, o próprio laço de combate decide quando recuar.
     if (lastHealth !== null && bot.health < lastHealth && bot.health > 0 && taskName !== 'lutar') {
       react(lastAttacker)
