@@ -930,7 +930,17 @@ async function main() {
         bot.chat(`${name} recebeu a ordem de abrir uma mina de ${length} blocos.`)
         return
       }
-      bot.chat('Uso: !construir casa | !construir fazenda | !construir mina [comprimento]')
+      if (what === 'curral') {
+        const species = husbandry.normalizeSpecies(args[1] || 'vaca')
+        if (!species) {
+          bot.chat('Uso: !construir curral <vaca|ovelha|porco|galinha|coelho|cabra|mooshroom|lhama>')
+          return
+        }
+        const result = await colony.buildAnimalPen(species)
+        bot.chat(`${result.name} recebeu a ordem de construir um curral 7x7 para ${species}.`)
+        return
+      }
+      bot.chat('Uso: !construir casa | !construir fazenda | !construir mina [comprimento] | !construir curral [animal]')
     } catch (err) {
       bot.chat(`Não consegui iniciar a construção: ${err.message}`)
     }
@@ -1192,6 +1202,45 @@ async function main() {
         bot.chat(`Não tenho alimento adequado. Aceito: ${result.feed.join(', ')}.`)
       } else {
         bot.chat(`Não há animais suficientes: encontrei ${result.nearby} ${species}.`)
+      }
+    })
+  })
+
+  commandRouter.register(['manejo', 'populacao', 'população'], async (_context, args) => {
+    const species = husbandry.normalizeSpecies(args[0])
+    const target = Math.max(2, Math.min(32, Number.parseInt(args[1], 10) || 6))
+    if (!species) {
+      bot.chat('Uso: !manejo <vaca|ovelha|porco|galinha|coelho|cabra|mooshroom|lhama> [alvo]')
+      return
+    }
+
+    const farmers = botManager.byRole('fazendeiro')
+    if (farmers.length) {
+      try {
+        const result = await colony.manageAnimalPopulation(species, target)
+        bot.chat(`${result.name} vai manejar ${species} com meta de ${result.target} animais.`)
+      } catch (err) {
+        bot.chat(`Não consegui delegar o manejo: ${err.message}`)
+      }
+      return
+    }
+
+    autonomous = false
+    clearPatrolState()
+    persistSoon()
+    runTask(`manejar população de ${species}`, async (isCancelled) => {
+      const result = await husbandry.managePopulation(bot, species, target, isCancelled, { storage })
+      if (isCancelled()) return
+      if (result.action === 'nenhuma') {
+        bot.chat(`População de ${species} já está na meta: ${result.current}/${result.target}.`)
+      } else if (result.action === 'aguardar') {
+        bot.chat(`Só encontrei ${result.current} ${species}; preciso de pelo menos dois para reproduzir.`)
+      } else if (result.ok) {
+        bot.chat(`Manejo de ${species}: atual ${result.current}, alvo ${result.target}, pares tentados ${result.pairsAttempted}.`)
+      } else if (result.reason === 'sem_alimento') {
+        bot.chat(`Manejo parado por falta de alimento: ${result.feed.join(', ')}.`)
+      } else {
+        bot.chat(`Manejo de ${species} incompleto; encontrei ${result.current} e a meta é ${result.target}.`)
       }
     })
   })
@@ -1573,8 +1622,8 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !reproduzir, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !reproduzir, !manejo, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral>, !todos voltar, !tarefas')
         break
     }
   })
