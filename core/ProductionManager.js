@@ -23,6 +23,15 @@ const ITEM_ALIASES = {
   machado_diamante: 'diamond_axe',
   espada_ferro: 'iron_sword',
   bancada: 'crafting_table',
+  fornalha: 'furnace',
+  ferro: 'iron_ingot',
+  lingote_ferro: 'iron_ingot',
+  ouro: 'gold_ingot',
+  lingote_ouro: 'gold_ingot',
+  cobre: 'copper_ingot',
+  lingote_cobre: 'copper_ingot',
+  vidro: 'glass',
+  carvao: 'coal',
   bau: 'chest',
   baú: 'chest'
 }
@@ -309,8 +318,15 @@ class ProductionManager {
   }
 
   async craftToStorage(bot, itemName, count = 1) {
-    const result = await this.craftInternal(bot, itemName, Math.max(1, Number(count) || 1))
     const normalized = normalizeItemName(itemName)
+    const wanted = Math.max(1, Number(count) || 1)
+    let result
+    try {
+      result = await this.craftInternal(bot, normalized, wanted)
+    } catch (craftError) {
+      if (!SMELT_INPUTS[normalized]) throw craftError
+      result = await this.smelt(bot, normalized, wanted)
+    }
     if (this.storage?.configured()) {
       const deposited = await this.storage.deposit(bot, normalized, result.produced)
       result.deposited = deposited
