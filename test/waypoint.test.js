@@ -107,3 +107,19 @@ test('ColonyOrchestrator direciona explorador ao redor de um waypoint', async ()
     radius: 90
   })
 })
+
+
+test('StateStore persiste a dimensão da base', async () => {
+  const dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'minecraft-mbot-base-dim-'))
+  const file = path.join(dir, 'state.json')
+  const store = new StateStore(file)
+
+  await store.save({
+    home: { x: 0, y: 64, z: 0 },
+    homeDimension: 'overworld'
+  })
+
+  const loaded = await store.load()
+  assert.equal(loaded.homeDimension, 'overworld')
+  await fs.promises.rm(dir, { recursive: true, force: true })
+})
