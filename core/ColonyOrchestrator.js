@@ -45,7 +45,8 @@ class ColonyOrchestrator {
       role: worker.role,
       state: controller.state,
       task: controller.currentTask?.type || null,
-      resource: controller.currentTask?.resource || null
+      resource: controller.currentTask?.resource || null,
+      item: controller.currentTask?.item || null
     }))
   }
 
@@ -88,6 +89,8 @@ class ColonyOrchestrator {
           return { type: 'construir_casa' }
         }
         throw new Error('construtor entende nesta etapa: casa/abrigo')
+      case 'artesao':
+        return { type: 'fabricar', item: resource, count }
       case 'ajudante':
         return { type: 'voltar' }
       default:
@@ -103,6 +106,38 @@ class ColonyOrchestrator {
       .then((result) => this.logger.log(`[colônia] ${chosen.worker.name} terminou casa:`, result))
       .catch((err) => this.logger.log(`[colônia] ${chosen.worker.name} falhou na casa: ${err.message}`))
     return chosen.worker.name
+  }
+
+  async craft(item, count = 1) {
+    const artisans = this.controllers('artesao')
+    if (!artisans.length) throw new Error('não há artesão na colônia')
+    const chosen = artisans.find(({ controller }) => controller.isIdle()) || artisans[0]
+    const task = { type: 'fabricar', item, count: Math.max(1, Number.parseInt(count, 10) || 1) }
+    chosen.controller.run(task)
+      .then((result) => this.logger.log(`[produção] ${chosen.worker.name}:`, result))
+      .catch((err) => this.logger.log(`[produção] ${chosen.worker.name} falhou: ${err.message}`))
+    return { name: chosen.worker.name, task }
+  }
+
+  async supply(workerName, item, count = 1) {
+    const worker = this.botManager.get(workerName)
+    if (!worker?.bot?.colonyController) throw new Error(`bot não encontrado: ${workerName}`)
+    const task = { type: 'retirar_estoque', item, count: Math.max(1, Number.parseInt(count, 10) || 1) }
+    worker.bot.colonyController.run(task)
+      .then((result) => this.logger.log(`[estoque] ${workerName} recebeu:`, result))
+      .catch((err) => this.logger.log(`[estoque] ${workerName} falhou: ${err.message}`))
+    return task
+  }
+
+  async depositAll() {
+    const names = []
+    for (const { worker, controller } of this.controllers()) {
+      if (!controller.isIdle()) continue
+      controller.run({ type: 'depositar' })
+        .catch((err) => this.logger.log(`[estoque] ${worker.name} não depositou: ${err.message}`))
+      names.push(worker.name)
+    }
+    return names
   }
 
   async returnAll() {

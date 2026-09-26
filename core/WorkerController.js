@@ -6,12 +6,14 @@ const { resolveBlockNames } = require('./resources')
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 class WorkerController {
-  constructor({ bot, name, role, homeProvider, ownerProvider, logger = console }) {
+  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console }) {
     this.bot = bot
     this.name = name
     this.role = role
     this.homeProvider = homeProvider
     this.ownerProvider = ownerProvider
+    this.storage = storage
+    this.production = production
     this.logger = logger
     this.state = 'conectando'
     this.currentTask = null
@@ -107,6 +109,15 @@ class WorkerController {
         case 'construir_casa':
           result = await this.buildHouse(isCancelled)
           break
+        case 'retirar_estoque':
+          result = await this.withdrawFromStorage(task.item, task.count || 1)
+          break
+        case 'fabricar':
+          result = await this.craft(task.item, task.count || 1)
+          break
+        case 'depositar':
+          result = await this.depositCargo()
+          break
         case 'voltar':
           result = await this.returnHome(isCancelled)
           break
@@ -150,6 +161,7 @@ class WorkerController {
   }
 
   async gatherBlocks(resource, count, isCancelled) {
+    await this.ensureRoleTool()
     const names = resolveBlockNames(this.bot, resource, this.role)
     if (!names.length) throw new Error(`não conheço o recurso "${resource}"`)
     const ids = names.map((name) => this.bot.registry.blocksByName[name]?.id).filter(Number.isInteger)
@@ -175,7 +187,10 @@ class WorkerController {
       await this.collectDrops(block.position, isCancelled)
     }
 
-    return { ok: gathered > 0, gathered, requested: count, resource, exhausted: gathered < count }
+    const deposited = this.storage?.configured()
+      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      : {}
+    return { ok: gathered > 0, gathered, requested: count, resource, exhausted: gathered < count, deposited }
   }
 
   async farm(count, isCancelled) {
@@ -185,7 +200,10 @@ class WorkerController {
       if (!result) break
       gathered++
     }
-    return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count }
+    const deposited = this.storage?.configured()
+      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      : {}
+    return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count, deposited }
   }
 
   async explore(radius, isCancelled) {
@@ -210,6 +228,7 @@ class WorkerController {
   }
 
   async guard(durationMs, isCancelled) {
+    await this.ensureRoleTool()
     const deadline = Date.now() + durationMs
     while (Date.now() < deadline && !isCancelled()) {
       const owner = this.ownerProvider?.()
@@ -240,6 +259,59 @@ class WorkerController {
     if (!home) throw new Error('base da colônia ainda não definida')
     await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), 30000)
     return { ok: !isCancelled() }
+  }
+
+  async ensureRoleTool() {
+    const kind = this.role === 'minerador'
+      ? 'pickaxe'
+      : this.role === 'lenhador'
+        ? 'axe'
+        : this.role === 'guarda'
+          ? 'sword'
+          : null
+    if (!kind) return null
+
+    const hasTool = this.bot.inventory.items().some((item) => item.name.endsWith(`_${kind}`))
+    if (hasTool) return null
+
+    if (this.storage?.configured()) {
+      const withdrawn = await this.storage.withdrawBestTool(this.bot, kind)
+      if (withdrawn) return withdrawn
+    }
+
+    if (this.production) {
+      const candidates = kind === 'sword'
+        ? ['iron_sword', 'stone_sword', 'wooden_sword']
+        : kind === 'pickaxe'
+          ? ['iron_pickaxe', 'stone_pickaxe', 'wooden_pickaxe']
+          : ['iron_axe', 'stone_axe', 'wooden_axe']
+
+      for (const item of candidates) {
+        try {
+          const made = await this.production.craftInternal(this.bot, item, 1)
+          if (made) return { name: item, count: 1, crafted: true }
+        } catch {}
+      }
+    }
+
+    return null
+  }
+
+  async withdrawFromStorage(item, count) {
+    if (!this.storage?.configured()) throw new Error('estoque central não configurado')
+    const withdrawn = await this.storage.withdraw(this.bot, item, count)
+    return { ok: withdrawn > 0, item, withdrawn, requested: count }
+  }
+
+  async depositCargo() {
+    if (!this.storage?.configured()) throw new Error('estoque central não configurado')
+    const deposited = await this.storage.depositCargo(this.bot)
+    return { ok: true, deposited }
+  }
+
+  async craft(item, count) {
+    if (!this.production) throw new Error('produção não configurada')
+    return this.production.craftToStorage(this.bot, item, count)
   }
 
   buildingMaterial(minimum = 23) {
@@ -281,8 +353,12 @@ class WorkerController {
   async buildHouse(isCancelled) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
-    const material = this.buildingMaterial(23)
-    if (!material) throw new Error('preciso de pelo menos 23 blocos de construção no inventário')
+    let material = this.buildingMaterial(23)
+    if (!material && this.storage?.configured()) {
+      await this.storage.withdrawBuildingMaterial(this.bot, 23)
+      material = this.buildingMaterial(23)
+    }
+    if (!material) throw new Error('preciso de pelo menos 23 blocos de construção no inventário ou estoque')
 
     const baseX = Math.floor(home.x) + 5
     const baseY = Math.floor(home.y) - 1

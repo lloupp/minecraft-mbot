@@ -26,7 +26,11 @@ const ROLE_ALIASES = {
   ajudante: 'ajudante',
   ajudantes: 'ajudante',
   helper: 'ajudante',
-  helpers: 'ajudante'
+  helpers: 'ajudante',
+  artesao: 'artesao',
+  artesaos: 'artesao',
+  artisan: 'artesao',
+  artisans: 'artesao'
 }
 
 class BotManager {

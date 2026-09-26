@@ -123,6 +123,7 @@ Papéis disponíveis nesta primeira versão:
 - `explorador`
 - `guarda`
 - `ajudante`
+- `artesao`
 
 Exemplos:
 
@@ -200,4 +201,88 @@ O modo `!colonia auto` distribui tarefas padrão apenas para workers ociosos. Or
 
 ### Construção
 
-`!construir casa` usa um construtor disponível e cria um abrigo 3x3 próximo à base. Nesta versão, o construtor precisa ter no próprio inventário pelo menos 23 blocos adequados (por exemplo, cobblestone ou planks). A logística de estoque compartilhado e transferência automática de materiais entre bots é uma próxima etapa separada.
+`!construir casa` usa um construtor disponível e cria um abrigo 3x3 próximo à base. Se ele não tiver pelo menos 23 blocos adequados no inventário, tenta retirá-los automaticamente do estoque central.
+
+
+## Estoque central e cadeia de produção
+
+A colônia pode usar um **baú, baú-armadilha ou barrel real** como estoque compartilhado.
+
+Fique próximo ao container e use:
+
+```text
+!estoque aqui
+!estoque status
+!estoque guardar
+```
+
+Depois disso:
+
+- mineradores e lenhadores descarregam automaticamente recursos coletados;
+- fazendeiros descarregam excedentes, preservando comida para sobrevivência;
+- ferramentas, armas e comida mínima ficam com os workers;
+- operações no mesmo container são serializadas para evitar dois bots manipularem o baú simultaneamente;
+- construtores retiram blocos do estoque quando precisam;
+- mineradores, lenhadores e guardas tentam retirar uma ferramenta adequada do estoque antes de produzir uma nova.
+
+### Artesão
+
+Crie pelo menos um artesão:
+
+```text
+!bot criar artesao
+```
+
+Ele pode receber ordens de produção:
+
+```text
+!fabricar picareta_ferro 2
+!fabricar machado_ferro 2
+!fabricar ferro 8
+!fabricar vidro 16
+```
+
+O sistema resolve cadeias de crafting de forma recursiva. Exemplo:
+
+```text
+iron_pickaxe
+  -> iron_ingot + stick
+  -> raw_iron -> furnace -> iron_ingot
+  -> log -> planks -> sticks
+  -> crafting_table
+  -> iron_pickaxe
+  -> estoque central
+```
+
+Se uma receita exigir bancada e não houver uma por perto, o sistema tenta obter/fabricar e posicionar uma `crafting_table`. O mesmo ocorre com a `furnace` quando é necessário fundir raw iron, raw gold, raw copper, sand ou madeira para carvão vegetal.
+
+### Abastecimento
+
+É possível mandar um worker retirar um item específico do estoque:
+
+```text
+!abastecer minerador_01 iron_pickaxe 1
+!abastecer construtor_01 cobblestone 32
+```
+
+Na rotina normal, mineradores e lenhadores já tentam se abastecer sozinhos com ferramentas.
+
+### Fluxo atual
+
+```text
+COLETA
+  ↓
+ESTOQUE CENTRAL
+  ↓
+FUNDIÇÃO
+  ↓
+CRAFTING
+  ↓
+FERRAMENTAS / MATERIAIS
+  ↓
+WORKERS / CONSTRUTORES
+  ↓
+NOVOS RECURSOS
+```
+
+A próxima evolução natural é o orquestrador passar a observar níveis mínimos do estoque e abrir ordens automaticamente por demanda, por exemplo: detectar falta de ferro, carvão, comida ou ferramentas e acionar a profissão necessária sem comando manual.

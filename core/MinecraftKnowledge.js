@@ -58,7 +58,7 @@ class MinecraftKnowledge {
     const item = result?.item
     if (!item || typeof this.bot.recipesAll !== 'function') return []
     try {
-      return this.bot.recipesAll(item.id, null, 1, null) || []
+      return this.bot.recipesAll(item.id, null, true) || []
     } catch {
       return []
     }
