@@ -12,7 +12,7 @@ sem mexer no mundo principal. Roda na porta **25566**, com seed fixa
 ## Montar
 
 ```bash
-deploy/teste-1201/setup.sh              # destino padrão: ~/minecraft-server-1201
+deploy/teste-1201/setup.sh              # destino padrão: ~/minecraft-1.20.1-teste
 deploy/teste-1201/setup.sh /outro/dir   # ou outro diretório
 ```
 
@@ -35,7 +35,7 @@ validar bots sem privilégios.
 
 ```bash
 systemd-run --user --unit=mc-teste-1201 \
-  --working-directory=$HOME/minecraft-server-1201 $HOME/minecraft-server-1201/start.sh
+  --working-directory=$HOME/minecraft-1.20.1-teste $HOME/minecraft-1.20.1-teste/start.sh
 journalctl --user -u mc-teste-1201 -f     # logs
 systemctl --user stop mc-teste-1201        # para e salva o mundo
 ```
@@ -48,8 +48,8 @@ servidor cair.
 O `start.sh` cria o FIFO `console` no diretório do servidor:
 
 ```bash
-echo "whitelist add miguinho" > ~/minecraft-server-1201/console
-echo "op construtor_01" > ~/minecraft-server-1201/console
+echo "whitelist add miguinho" > ~/minecraft-1.20.1-teste/console
+echo "op construtor_01" > ~/minecraft-1.20.1-teste/console
 ```
 
 ## Conectar o bot
