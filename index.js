@@ -26,6 +26,7 @@ const combat = require('./lib/combat')
 const equipment = require('./lib/equipment')
 const night = require('./lib/night')
 const husbandry = require('./lib/husbandry')
+const animalProducts = require('./lib/animalProducts')
 const { Autonomy } = require('./lib/autonomy')
 const { loadPlugins, startWebViews } = require('./lib/plugins')
 const { WorkerController } = require('./core/WorkerController')
@@ -1372,6 +1373,32 @@ async function main() {
     })
   })
 
+  commandRouter.register(['produto', 'produtoanimal'], async (_context, args) => {
+    const product = animalProducts.normalizeProduct(args[0])
+    const count = product === 'milk'
+      ? Math.max(1, Math.min(16, Number.parseInt(args[1], 10) || 1))
+      : product === 'eggs'
+        ? 1
+        : Math.max(1, Math.min(32, Number.parseInt(args[1], 10) || 1))
+    if (!product) {
+      bot.chat('Uso: !produto la [1-32] | !produto leite [1-16] | !produto ovos')
+      return
+    }
+
+    const farmers = botManager.byRole('fazendeiro')
+    if (!farmers.length) {
+      bot.chat('Preciso de um fazendeiro na colônia para trabalhar dentro dos currais.')
+      return
+    }
+
+    try {
+      const result = await colony.collectAnimalProduct(product, count)
+      bot.chat(`${result.name} recebeu a tarefa de coletar ${product}${product === 'eggs' ? ' disponível' : ` x${result.count}`}.`)
+    } catch (err) {
+      bot.chat(`Não consegui iniciar a produção animal: ${err.message}`)
+    }
+  })
+
   commandRouter.register(['tosquiar', 'tosquia'], async (_context, args) => {
     const count = Math.max(1, Math.min(32, Number.parseInt(args[0], 10) || 1))
     const farmers = botManager.byRole('fazendeiro')
@@ -1749,7 +1776,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral>, !todos voltar, !tarefas')
         break
     }
