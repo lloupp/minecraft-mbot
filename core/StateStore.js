@@ -10,6 +10,18 @@ function point(value) {
   return { x, y, z }
 }
 
+
+function animalTargets(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const out = {}
+  for (const [species, raw] of Object.entries(value)) {
+    const target = Number.parseInt(raw, 10)
+    if (!species || !Number.isInteger(target)) continue
+    out[species] = Math.max(2, Math.min(32, target))
+  }
+  return out
+}
+
 class StateStore {
   constructor(filePath = process.env.COLONY_STATE_FILE || '.data/colony-state.json') {
     this.filePath = path.resolve(filePath)
@@ -28,6 +40,7 @@ class StateStore {
       waypoints: {},
       workers: {},
       project: null,
+      animalTargets: {},
       updatedAt: null
     }
   }
@@ -45,7 +58,8 @@ class StateStore {
         waypoints: parsed.waypoints && typeof parsed.waypoints === 'object' && !Array.isArray(parsed.waypoints)
           ? parsed.waypoints
           : {},
-        workers: parsed.workers && typeof parsed.workers === 'object' ? parsed.workers : {}
+        workers: parsed.workers && typeof parsed.workers === 'object' ? parsed.workers : {},
+        animalTargets: animalTargets(parsed.animalTargets)
       }
     } catch (err) {
       if (err.code === 'ENOENT') return this.defaults()
@@ -63,6 +77,7 @@ class StateStore {
       ...state,
       home: point(state.home),
       storage: point(state.storage),
+      animalTargets: animalTargets(state.animalTargets),
       updatedAt: new Date().toISOString()
     }
 
@@ -79,4 +94,4 @@ class StateStore {
   }
 }
 
-module.exports = { StateStore, point }
+module.exports = { StateStore, point, animalTargets }
