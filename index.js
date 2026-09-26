@@ -463,6 +463,9 @@ async function main() {
 
     const actionDone = status.actions.filter((a) => a.status === 'concluido').length
     const actionTotal = status.actions.length
+    if (status.status !== 'ativo') {
+      return [`Projeto ${status.type}: ${status.status} | obras ${actionDone}/${actionTotal || 0}`]
+    }
     const deficits = status.deficits || {}
     const missing = Object.entries(deficits)
       .filter(([, value]) => Number(value || 0) > 0)
@@ -517,6 +520,9 @@ async function main() {
     }
 
     if (action === 'cancelar' || action === 'parar') {
+      for (const { controller } of colony.controllers()) {
+        if (controller.currentTask?.projectType) controller.cancel()
+      }
       const cancelled = projectManager.cancel()
       if (!cancelled) {
         bot.chat('Nenhum projeto para cancelar.')
@@ -604,7 +610,8 @@ async function main() {
     if (action === 'limpar' || action === 'remover') {
       colonyHome = null
       colony.setAuto(false)
-      bot.chat('Base removida. O modo automático foi desativado.')
+      if (projectManager.isActive()) projectManager.cancel()
+      bot.chat('Base removida. O modo automático foi desativado e o projeto ativo foi cancelado.')
       return
     }
 
@@ -664,7 +671,8 @@ async function main() {
     if (action === 'limpar') {
       storage.setPosition(null)
       colony.setAuto(false)
-      bot.chat('Estoque central removido. O modo automático foi desativado.')
+      if (projectManager.isActive()) projectManager.cancel()
+      bot.chat('Estoque central removido. O modo automático foi desativado e o projeto ativo foi cancelado.')
       return
     }
 
