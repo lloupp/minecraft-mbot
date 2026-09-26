@@ -118,3 +118,25 @@ test('fim de luta antiga não interrompe luta mais nova', async () => {
   await second
   assert.equal(bot.pvp.stopped, 1)
 })
+
+
+test('motor corpo a corpo respeita fallback e override', () => {
+  const saved = process.env.MBOT_MELEE
+  delete process.env.MBOT_MELEE
+  assert.equal(combat.meleeEngine({ swordpvp: {}, pvp: {} }), 'custom')
+  assert.equal(combat.meleeEngine({ pvp: {} }), 'pvp')
+  assert.equal(combat.meleeEngine({}), 'manual')
+
+  process.env.MBOT_MELEE = 'pvp'
+  assert.equal(combat.meleeEngine({ swordpvp: {}, pvp: {} }), 'pvp')
+
+  process.env.MBOT_MELEE = 'manual'
+  assert.equal(combat.meleeEngine({ swordpvp: {}, pvp: {} }), 'manual')
+
+  process.env.MBOT_MELEE = 'custom'
+  assert.equal(combat.meleeEngine({ swordpvp: {}, pvp: {} }), 'custom')
+  assert.equal(combat.meleeEngine({ pvp: {} }), 'pvp')
+
+  if (saved === undefined) delete process.env.MBOT_MELEE
+  else process.env.MBOT_MELEE = saved
+})
