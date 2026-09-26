@@ -50,7 +50,7 @@ class RunVerifier {
     // 4. Storage consistency
     if (this.storage && this.storage.verify) {
       const invCheck = this.storage.verify()
-      add('storage_consistent', invCheck.consistent, invCheck.mismatches?.length || 0 + ' mismatches')
+      add('storage_consistent', invCheck.consistent, "${invCheck.mismatches?.length || 0} mismatches" )
     } else {
       add('storage_consistent', true, 'no storage to verify')
     }
