@@ -4,6 +4,7 @@ const food = require('../lib/food')
 const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const husbandry = require('../lib/husbandry')
+const animalProducts = require('../lib/animalProducts')
 const { animalPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
 
@@ -265,6 +266,9 @@ class WorkerController {
         case 'tosquiar':
           result = await this.shearSheep(task.count || 1, isCancelled)
           break
+        case 'produto_animal':
+          result = await this.collectAnimalProduct(task.product, task.count || 1, isCancelled)
+          break
         case 'manejar_populacao':
           result = await this.manageAnimalPopulation(task.species, task.target || 6, isCancelled)
           break
@@ -470,6 +474,65 @@ class WorkerController {
       storage: this.storage,
       production: this.production
     })
+  }
+
+  async collectAnimalProduct(product, count, isCancelled) {
+    const normalized = animalProducts.normalizeProduct(product)
+    if (!normalized) throw new Error(`produto animal desconhecido: ${product}`)
+
+    if (normalized === 'wool') {
+      const pen = this.penContext('sheep')
+      if (!pen?.status?.built) return { ok: false, product: normalized, reason: 'curral_incompleto' }
+
+      const shears = await husbandry.ensureShears(this.bot, {
+        storage: this.storage,
+        production: this.production
+      })
+      if (!shears) return { ok: false, product: normalized, reason: 'sem_tesoura' }
+
+      const result = await this.withAnimalPen(pen, isCancelled, () =>
+        husbandry.shearSheep(this.bot, count, isCancelled, this.penScope(pen))
+      )
+      const deposited = this.storage?.configured()
+        ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+        : {}
+      return { ...result, product: normalized, deposited }
+    }
+
+    if (normalized === 'milk') {
+      const pen = this.penContext('cow')
+      if (!pen?.status?.built) return { ok: false, product: normalized, reason: 'curral_incompleto' }
+
+      const available = await animalProducts.ensureBuckets(this.bot, count, {
+        storage: this.storage,
+        production: this.production
+      })
+      if (available <= 0) return { ok: false, product: normalized, reason: 'sem_baldes' }
+
+      const result = await this.withAnimalPen(pen, isCancelled, () =>
+        animalProducts.milkCows(this.bot, count, isCancelled, this.penScope(pen))
+      )
+      const deposited = this.storage?.configured()
+        ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+        : {}
+      return { ...result, product: normalized, deposited }
+    }
+
+    if (normalized === 'eggs') {
+      const pen = this.penContext('chicken')
+      if (!pen?.status?.built) return { ok: false, product: normalized, reason: 'curral_incompleto' }
+
+      const center = new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z)
+      const result = await this.withAnimalPen(pen, isCancelled, () =>
+        animalProducts.collectEggs(this.bot, center, isCancelled)
+      )
+      const deposited = this.storage?.configured()
+        ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+        : {}
+      return { ...result, product: normalized, deposited }
+    }
+
+    throw new Error(`produto animal sem executor: ${normalized}`)
   }
 
   async manageAnimalPopulation(species, target, isCancelled) {
