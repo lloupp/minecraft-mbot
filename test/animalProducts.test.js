@@ -116,3 +116,33 @@ test('ColonyOrchestrator delega produto animal ao fazendeiro', async () => {
     count: 3
   })
 })
+
+
+test('ColonyOrchestrator limita leite e ignora quantidade em ovos', async () => {
+  const tasks = []
+  const controller = {
+    state: 'ocioso',
+    currentTask: null,
+    isIdle: () => true,
+    run: async (task) => { tasks.push(task); return { ok: true } }
+  }
+  const worker = {
+    name: 'fazendeiro_01',
+    role: 'fazendeiro',
+    bot: { colonyController: controller }
+  }
+  const manager = {
+    workers: new Map([[worker.name, worker]]),
+    normalizeRole: (role) => role
+  }
+  const colony = new ColonyOrchestrator({ botManager: manager, logger: silent })
+
+  const milk = await colony.collectAnimalProduct('milk', 99)
+  const eggs = await colony.collectAnimalProduct('eggs', 99)
+  await new Promise((resolve) => setImmediate(resolve))
+
+  assert.equal(milk.count, 16)
+  assert.equal(eggs.count, 1)
+  assert.equal(tasks[0].count, 16)
+  assert.equal(tasks[1].count, 1)
+})
