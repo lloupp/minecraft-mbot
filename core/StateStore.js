@@ -14,6 +14,7 @@ class StateStore {
   constructor(filePath = process.env.COLONY_STATE_FILE || '.data/colony-state.json') {
     this.filePath = path.resolve(filePath)
     this._write = Promise.resolve()
+    this.lastLoadError = null
   }
 
   defaults() {
@@ -41,6 +42,10 @@ class StateStore {
       }
     } catch (err) {
       if (err.code === 'ENOENT') return this.defaults()
+      if (err instanceof SyntaxError) {
+        this.lastLoadError = err
+        return this.defaults()
+      }
       throw err
     }
   }
