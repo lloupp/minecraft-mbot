@@ -419,10 +419,23 @@ class WorkerController {
     return { ok: gathered > 0, gathered, requested: count, resource, exhausted: gathered < count, deposited }
   }
 
+  // Currais construídos (com portão) em volta da base.
+  builtPens() {
+    const home = this.homeProvider?.()
+    if (!home) return []
+    return Object.keys(SPECIES_OFFSETS)
+      .map((species) => groundedPenPlan(this.bot, home, species))
+      .filter((plan) => inspectAnimalPen(this.bot, plan).gatePresent)
+  }
+
   async farm(count, isCancelled) {
+    // Os animais do curral são o rebanho: caçar comida não pode abatê-los
+    // (visto no 1.20.1: !colonia auto esvaziou o curral de vacas com meta 6).
+    const pens = this.builtPens()
+    const spare = (entity) => pens.some((plan) => pointInsidePen(entity.position, plan))
     let gathered = 0
     while (gathered < count && !isCancelled()) {
-      const result = await food.gatherFood(this.bot, isCancelled)
+      const result = await food.gatherFood(this.bot, isCancelled, { spare })
       if (!result) break
       gathered++
     }
