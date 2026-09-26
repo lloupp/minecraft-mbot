@@ -33,6 +33,7 @@ const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
+const { WaypointManager } = require('./core/WaypointManager')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -140,6 +141,7 @@ async function main() {
   }
   let colonyHome = savedState.home
   if (savedState.storage) storage.setPosition(savedState.storage)
+  const waypointManager = new WaypointManager(savedState.waypoints)
   const projectManager = new ProjectManager({
     storage,
     homeProvider: () => colonyHome
@@ -203,6 +205,7 @@ async function main() {
       storage: storage.getPosition(),
       auto: colony.auto,
       companionAuto: autonomous,
+      waypoints: waypointManager.exportState(),
       workers: workerRoleCounts(),
       project: projectManager.exportState()
     })
@@ -240,6 +243,8 @@ async function main() {
   let lastNightTry = 0
   let lastGearCheck = 0
   let checkingGear = false
+  let patrolActive = false
+  let patrolRoute = []
   const autonomy = new Autonomy(bot)
 
   function ownerName() {
@@ -253,6 +258,55 @@ async function main() {
 
   function ownerEntity() {
     return bot.players[ownerName()]?.entity
+  }
+
+  function currentDimension() {
+    const value = bot.game?.dimension
+    if (value == null) return null
+    if (typeof value === 'string') return value
+    if (typeof value?.name === 'string') return value.name
+    return String(value)
+  }
+
+  function waypointOrBase(name) {
+    if (String(name || '').toLowerCase() === 'base') {
+      return colonyHome
+        ? { name: 'base', position: { ...colonyHome }, dimension: currentDimension() }
+        : null
+    }
+    return waypointManager.get(name)
+  }
+
+  function assertWaypointReachable(entry) {
+    if (!entry) throw new Error('local não encontrado')
+    if (!waypointManager.sameDimension(entry, currentDimension())) {
+      throw new Error(`o local ${entry.name} está em outra dimensão (${entry.dimension})`)
+    }
+  }
+
+  async function goToPoint(position, isCancelled, radius = 2) {
+    const x = Math.floor(Number(position.x))
+    const y = Math.floor(Number(position.y))
+    const z = Math.floor(Number(position.z))
+    if (![x, y, z].every(Number.isFinite)) throw new Error('posição inválida')
+
+    let timer
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        bot.pathfinder.setGoal(null)
+        reject(new Error('caminho demorou demais'))
+      }, 60000)
+    })
+
+    try {
+      await Promise.race([
+        bot.pathfinder.goto(new goals.GoalNear(x, y, z, radius)),
+        timeout
+      ])
+      return !isCancelled()
+    } finally {
+      clearTimeout(timer)
+    }
   }
 
   function nearestHostile(maxDist) {
@@ -373,6 +427,44 @@ async function main() {
     } finally {
       checkingGear = false
     }
+  }
+
+  function travelTo(entry) {
+    assertWaypointReachable(entry)
+    autonomous = false
+    patrolActive = false
+    patrolRoute = []
+    persistSoon()
+    bot.chat(`Indo para ${entry.name}...`)
+    runTask(`ir para ${entry.name}`, async (isCancelled) => {
+      await goToPoint(entry.position, isCancelled, 2)
+      if (!isCancelled()) bot.chat(`Cheguei em ${entry.name}.`)
+    }, { resume: 'ficar' })
+  }
+
+  function startPatrol(entries) {
+    for (const entry of entries) assertWaypointReachable(entry)
+    autonomous = false
+    patrolActive = true
+    patrolRoute = entries.map((entry) => entry.name)
+    persistSoon()
+    bot.chat(`Patrulha iniciada: ${patrolRoute.join(' -> ')}.`)
+
+    runTask('patrulhar', async (isCancelled) => {
+      try {
+        while (!isCancelled() && patrolActive) {
+          for (const entry of entries) {
+            if (isCancelled() || !patrolActive) return
+            await goToPoint(entry.position, isCancelled, 2)
+            if (isCancelled() || !patrolActive) return
+            await new Promise((resolve) => setTimeout(resolve, 1200))
+          }
+        }
+      } finally {
+        patrolActive = false
+        patrolRoute = []
+      }
+    }, { resume: 'ficar' })
   }
 
   const isLiving = (entity) => entity && entity !== bot.entity && entity.isValid !== false
