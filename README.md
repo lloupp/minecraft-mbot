@@ -637,7 +637,7 @@ Para acompanhar o bot pelo navegador:
 MBOT_VIEWER_PORT=3007 MBOT_INVENTORY_PORT=3008 node index.js
 ```
 
-- `3007`: visão 3D do bot;
+- `3007`: visão 3D em primeira pessoa, acompanhando a posição e o olhar do bot;
 - `3008`: inventário web.
 
 As duas escutam só em `127.0.0.1` (os adaptadores prontos dos pacotes escutam em
