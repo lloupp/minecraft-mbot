@@ -145,3 +145,37 @@ test('ColonyOrchestrator delega captura ao fazendeiro', async () => {
   assert.equal(result.count, 3)
   assert.deepEqual(tasks[0], { type: 'capturar_animais', species: 'cow', count: 3 })
 })
+
+test('ColonyOrchestrator não manda dois fazendeiros para a mesma espécie', async () => {
+  let finish
+  const pending = new Promise((resolve) => { finish = resolve })
+  const farmer = (name) => ({
+    name,
+    role: 'fazendeiro',
+    bot: {
+      colonyController: {
+        isIdle: () => true,
+        penPopulation: () => ({ built: true, inside: 4 }),
+        run: () => pending
+      }
+    }
+  })
+  const a = farmer('fazendeiro_01')
+  const b = farmer('fazendeiro_02')
+  const manager = { workers: new Map([[a.name, a], [b.name, b]]), normalizeRole: (role) => role }
+  const colony = new ColonyOrchestrator({ botManager: manager, logger: silent })
+  colony.setAnimalTarget('cow', 8)
+
+  const first = colony.buildAnimalPlan(colony.controllers())
+  assert.equal(first.length, 1)
+  colony.runAuto(first[0].worker, first[0].controller, first[0].task)
+
+  // Tick seguinte, antes da tarefa terminar: o outro fazendeiro não pega vaca.
+  const eligible = colony.controllers().filter(({ worker }) => worker.name !== first[0].worker.name)
+  assert.deepEqual(colony.buildAnimalPlan(eligible), [])
+
+  finish({ ok: true })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(colony.animalInFlight.has('cow'), false)
+  assert.equal(colony.animalBackoff.has('cow'), true)
+})

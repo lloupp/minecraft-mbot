@@ -24,6 +24,9 @@ class ColonyOrchestrator {
     this.autoBackoff = new Map()
     this.animalBackoff = new Map()
     this.animalTargets = new Map()
+    // Espécies com tarefa de manejo em andamento: o backoff só é gravado no fim,
+    // sem isso o tick seguinte mandaria outro fazendeiro para o mesmo curral.
+    this.animalInFlight = new Set()
   }
 
   start() {
@@ -89,6 +92,7 @@ class ColonyOrchestrator {
     const used = new Set()
     const plan = []
     for (const [species, target] of this.animalTargets) {
+      if (this.animalInFlight.has(species)) continue
       if ((this.animalBackoff.get(species) || 0) > Date.now()) continue
       const chosen = farmers.find(({ worker }) => !used.has(worker.name))
       if (!chosen) break
@@ -358,7 +362,13 @@ class ColonyOrchestrator {
   }
 
   runAuto(worker, controller, task) {
+    const animalTask = task.species &&
+      ['manejar_populacao', 'capturar_animais', 'construir_curral'].includes(task.type)
+    if (animalTask) this.animalInFlight.add(task.species)
     controller.run(task)
+      .finally(() => {
+        if (animalTask) this.animalInFlight.delete(task.species)
+      })
       .then((result) => {
         if (result?.ok === false) {
           this.autoBackoff.set(worker.name, Date.now() + 15000)
