@@ -21,6 +21,8 @@ class StorageManager {
   constructor() {
     this.position = null
     this._lock = Promise.resolve()
+    this._snapshot = {}
+    this.lastUpdatedAt = 0
   }
 
   configured() {
@@ -30,6 +32,8 @@ class StorageManager {
   setPosition(position) {
     if (!position) {
       this.position = null
+      this._snapshot = {}
+      this.lastUpdatedAt = 0
       return null
     }
     this.position = {
@@ -37,7 +41,27 @@ class StorageManager {
       y: Math.floor(position.y),
       z: Math.floor(position.z)
     }
+    this._snapshot = {}
+    this.lastUpdatedAt = 0
     return { ...this.position }
+  }
+
+  updateSnapshot(items) {
+    this._snapshot = aggregateItems(items)
+    this.lastUpdatedAt = Date.now()
+    return this.cachedSummary()
+  }
+
+  cachedSummary() {
+    return { ...this._snapshot }
+  }
+
+  snapshotAgeMs() {
+    return this.lastUpdatedAt ? Date.now() - this.lastUpdatedAt : Infinity
+  }
+
+  snapshotFresh(maxAgeMs = 30000) {
+    return this.snapshotAgeMs() <= maxAgeMs
   }
 
   getPosition() {
@@ -106,7 +130,7 @@ class StorageManager {
   }
 
   async summary(bot) {
-    return this.withContainer(bot, async (container) => aggregateItems(container.containerItems()))
+    return this.withContainer(bot, async (container) => this.updateSnapshot(container.containerItems()))
   }
 
   async count(bot, itemName) {
@@ -124,6 +148,7 @@ class StorageManager {
       if (amount <= 0) return 0
       const sample = container.containerItems().find((item) => item.name === itemName)
       await container.withdraw(sample.type, null, amount)
+      this.updateSnapshot(container.containerItems())
       return amount
     })
   }
@@ -138,6 +163,7 @@ class StorageManager {
         if (available < wanted) continue
         const sample = items.find((item) => item.name === name)
         await container.withdraw(sample.type, null, wanted)
+        this.updateSnapshot(container.containerItems())
         return { name, count: wanted }
       }
       return null
@@ -151,6 +177,7 @@ class StorageManager {
       const amount = Math.min(count == null ? available : Math.max(0, Number(count) || 0), available)
       if (amount <= 0) return 0
       await container.deposit(stacks[0].type, null, amount)
+      this.updateSnapshot(container.containerItems())
       return amount
     })
   }
@@ -183,6 +210,7 @@ class StorageManager {
           // Um container cheio não deve apagar o resultado da tarefa do worker.
         }
       }
+      this.updateSnapshot(container.containerItems())
     })
     return deposited
   }
