@@ -17,7 +17,8 @@ function fakeBot({ blocks = {}, entities = {} } = {}) {
   bot.health = 20
   bot.food = 20
   bot.entities = entities
-  bot.inventory = { items: () => [] }
+  const inventoryItems = []
+  bot.inventory = { items: () => inventoryItems }
   bot.registry = {
     blocksArray: [{ id: 1, name: 'iron_ore' }, { id: 2, name: 'deepslate_iron_ore' }],
     blocksByName: { iron_ore: { id: 1 }, deepslate_iron_ore: { id: 2 } }
@@ -27,7 +28,10 @@ function fakeBot({ blocks = {}, entities = {} } = {}) {
     .filter(([, name]) => name !== 'air')
     .map(([key]) => new Vec3(...key.slice(1, -1).split(',').map(Number)))
   bot.nearestEntity = (match) => Object.values(bot.entities).find(match) || null
-  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  bot.dig = async (block) => {
+    blocks[block.position.toString()] = 'air'
+    inventoryItems.push({ name: block.name, count: 1 })
+  }
   bot.equip = async () => {}
   bot.pathfinder = {
     goal: null,
