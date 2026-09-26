@@ -166,16 +166,15 @@ async function main() {
     if (item.estado === 'pendente') memory.encerrarCompromisso(item.id, 'interrompido')
   }
   console.log(`[memória] ${memory.items.length} item(ns) carregado(s)`)
-  let colonyHome = savedState.home
-  let colonyHomeDimension = savedState.homeDimension || null
   if (savedState.storage) storage.setPosition(savedState.storage)
   const waypointManager = new WaypointManager(savedState.waypoints)
-  if (savedState.home && !waypointManager.get('base')) {
-    waypointManager.save('base', savedState.home, savedState.homeDimension)
-  }
+  // Migra o campo legado uma vez; depois disso o WaypointManager é a fonte canônica.
+  waypointManager.restoreLegacyBase(savedState.home, savedState.homeDimension)
+  const homeProvider = () => waypointManager.get('base')?.position || null
+  const homeDimension = () => waypointManager.get('base')?.dimension || null
   const projectManager = new ProjectManager({
     storage,
-    homeProvider: () => colonyHome
+    homeProvider
   })
   projectManager.restore(savedState.project)
 
@@ -188,7 +187,7 @@ async function main() {
       bot: worker,
       name,
       role,
-      homeProvider: () => colonyHome,
+      homeProvider,
       ownerProvider: () => ownerEntity(),
       storage,
       production
@@ -210,7 +209,7 @@ async function main() {
   })
   const colony = new ColonyOrchestrator({
     botManager,
-    homeProvider: () => colonyHome,
+    homeProvider,
     ownerProvider: () => ownerEntity(),
     storage,
     demandPlanner,
@@ -239,7 +238,7 @@ async function main() {
     bot,
     storage,
     botManager,
-    homeProvider: () => colonyHome,
+    homeProvider,
     projectManager,
     serverProfile
   })
@@ -252,8 +251,9 @@ async function main() {
 
   async function persistState() {
     await stateStore.save({
-      home: colonyHome,
-      homeDimension: colonyHomeDimension,
+      // Mantém campos legados vazios; a posição vive em waypoints.base.
+      home: null,
+      homeDimension: null,
       storage: storage.getPosition(),
       auto: colony.auto,
       companionAuto: autonomous,
@@ -350,7 +350,6 @@ async function main() {
       const metadata = memory.lugar(entry.name)
       add({ ...entry, origem: metadata?.origem, contexto: metadata?.contexto })
     }
-    if (colonyHome && !waypointManager.get('base')) add({ name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension })
     return [...byKey.values()]
   }
 
@@ -798,7 +797,8 @@ async function main() {
       }
       if (savedState.auto && colony.autoReadiness().ready) colony.setAuto(true)
       if (restored.length) console.log(`[estado] workers restaurados: ${restored.join(', ')}`)
-      if (colonyHome) console.log(`[estado] base restaurada: ${colonyHome.x}, ${colonyHome.y}, ${colonyHome.z}`)
+      const home = homeProvider()
+      if (home) console.log(`[estado] base restaurada: ${home.x}, ${home.y}, ${home.z}`)
       if (storage.configured()) console.log('[estado] estoque central restaurado')
       if (projectManager.isActive()) console.log(`[estado] projeto restaurado: ${projectManager.active.type}`)
       persistSoon()
@@ -934,8 +934,9 @@ async function main() {
     const roles = {}
     for (const worker of workers) roles[worker.role] = (roles[worker.role] || 0) + 1
     const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ') || 'sem workers'
-    const baseText = colonyHome
-      ? `${Math.floor(colonyHome.x)},${Math.floor(colonyHome.y)},${Math.floor(colonyHome.z)}`
+    const home = homeProvider()
+    const baseText = home
+      ? `${Math.floor(home.x)},${Math.floor(home.y)},${Math.floor(home.z)}`
       : 'NÃO'
     const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | auto: ${colony.auto ? 'ON' : 'OFF'} | base: ${baseText} | estoque: ${storage.configured() ? 'OK' : 'NÃO'} | ${roleText}`]
     for (let i = 0; i < workers.length; i += 4) {
@@ -1070,7 +1071,7 @@ async function main() {
   async function startBlueprintProject(name, buildersArg) {
     try {
       if (!name) throw new Error(`diga a planta: ${blueprint.listBlueprints().map((p) => p.name).join(', ') || 'nenhuma em plantas/'}`)
-      if (!colonyHome) throw new Error('defina a base primeiro com !base aqui')
+      if (!homeProvider()) throw new Error('defina a base primeiro com !base aqui')
       if (!storage.configured()) throw new Error('defina o estoque primeiro com !estoque aqui')
       if (projectManager.isActive()) throw new Error(`já existe projeto ativo: ${projectManager.active.type}`)
       const origin = blueprintOrigin(false)
@@ -1200,7 +1201,7 @@ async function main() {
     }
 
     try {
-      if (!colonyHome) throw new Error('defina a base primeiro com !base aqui')
+      if (!homeProvider()) throw new Error('defina a base primeiro com !base aqui')
       if (!storage.configured()) throw new Error('defina o estoque primeiro com !estoque aqui')
       if (projectManager.isActive()) throw new Error(`já existe projeto ativo: ${projectManager.active.type}`)
 
@@ -1285,17 +1286,17 @@ async function main() {
     const action = String(args[0] || 'status').toLowerCase()
 
     if (action === 'status') {
-      if (!colonyHome) {
+      const home = homeProvider()
+      const dimension = homeDimension()
+      if (!home) {
         bot.chat('Base ainda não definida. Vá ao local desejado e use !base aqui.')
         return
       }
-      bot.chat(`Base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
+      bot.chat(`Base: X=${Math.floor(home.x)}, Y=${Math.floor(home.y)}, Z=${Math.floor(home.z)}${dimension ? ` | ${dimension}` : ''}.`)
       return
     }
 
     if (action === 'limpar' || action === 'remover') {
-      colonyHome = null
-      colonyHomeDimension = null
       waypointManager.remove('base')
       memory.esquecerLugar('base')
       colony.setAuto(false)
@@ -1317,12 +1318,10 @@ async function main() {
       return
     }
 
-    colonyHome = source.clone()
-    colonyHomeDimension = currentDimension()
-    waypointManager.save('base', colonyHome, colonyHomeDimension)
+    const entry = waypointManager.save('base', source, currentDimension())
     persistSoon()
     memory.lembrarLugar('base', dito(context.username), 'base definida pelo jogador')
-    bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
+    bot.chat(`Este local agora é a base: X=${Math.floor(entry.position.x)}, Y=${Math.floor(entry.position.y)}, Z=${Math.floor(entry.position.z)}${entry.dimension ? ` | ${entry.dimension}` : ''}.`)
   })
 
   commandRouter.register(['local', 'locais'], async (context, args) => {
@@ -1554,12 +1553,13 @@ async function main() {
       bot.chat('Uso: !curral <animal> | !curral metas | !curral meta <animal> <2-32|off>')
       return
     }
-    if (!colonyHome) {
+    const home = homeProvider()
+    if (!home) {
       bot.chat('Base ainda não definida. Use !base aqui.')
       return
     }
 
-    const plan = groundedPenPlan(bot, colonyHome, species)
+    const plan = groundedPenPlan(bot, home, species)
     const status = inspectAnimalPen(bot, plan)
     const center = new Vec3(plan.center.x, plan.center.y, plan.center.z)
     const inside = husbandry.selectAnimals(bot, species, {
@@ -1581,7 +1581,7 @@ async function main() {
       bot.chat('Uso: !capturar <vaca|ovelha|porco|galinha|coelho|cabra|mooshroom|lhama> [qtd]')
       return
     }
-    if (!colonyHome) {
+    if (!homeProvider()) {
       bot.chat('Base ainda não definida. Use !base aqui.')
       return
     }
