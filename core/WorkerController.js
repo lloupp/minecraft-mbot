@@ -109,6 +109,12 @@ class WorkerController {
         case 'construir_casa':
           result = await this.buildHouse(isCancelled, task.offset)
           break
+        case 'construir_fazenda':
+          result = await this.buildFarm(isCancelled, task.offset)
+          break
+        case 'construir_mina':
+          result = await this.buildMine(isCancelled, task.length || 12)
+          break
         case 'retirar_estoque':
           result = await this.withdrawFromStorage(task.item, task.count || 1)
           break
@@ -362,6 +368,248 @@ class WorkerController {
       return true
     }
     return false
+  }
+
+
+  async ensureHoe() {
+    let hoe = this.bot.inventory.items().find((item) => item.name.endsWith('_hoe'))
+    if (hoe) return hoe
+
+    if (this.storage?.configured()) {
+      await this.storage.withdrawBestTool(this.bot, 'hoe').catch(() => null)
+      hoe = this.bot.inventory.items().find((item) => item.name.endsWith('_hoe'))
+      if (hoe) return hoe
+    }
+
+    if (this.production) {
+      for (const name of ['iron_hoe', 'stone_hoe', 'wooden_hoe']) {
+        try {
+          await this.production.craftInternal(this.bot, name, 1)
+          hoe = this.bot.inventory.items().find((item) => item.name === name)
+          if (hoe) return hoe
+        } catch {}
+      }
+    }
+
+    return null
+  }
+
+  async ensureWaterAt(position, isCancelled) {
+    const existing = this.bot.blockAt(position)
+    if (existing?.name === 'water') return true
+
+    const waterId = this.bot.registry?.blocksByName?.water?.id
+    if (Number.isInteger(waterId)) {
+      const nearby = this.bot.findBlock({
+        matching: waterId,
+        maxDistance: 8,
+        point: position
+      })
+      if (nearby && nearby.position.distanceTo(position) <= 2) return true
+    }
+
+    let bucket = this.bot.inventory.items().find((item) => item.name === 'water_bucket')
+    if (!bucket && this.storage?.configured()) {
+      await this.storage.withdraw(this.bot, 'water_bucket', 1).catch(() => 0)
+      bucket = this.bot.inventory.items().find((item) => item.name === 'water_bucket')
+    }
+    if (!bucket) return false
+
+    const current = this.bot.blockAt(position)
+    if (current && current.name !== 'air' && current.name !== 'water') {
+      await this.goTo(new goals.GoalNear(position.x, position.y, position.z, 3), 8000).catch(() => {})
+      if (isCancelled()) return false
+      if (typeof this.bot.canDigBlock !== 'function' || this.bot.canDigBlock(current)) {
+        await this.bot.dig(current).catch(() => {})
+      }
+    }
+
+    const below = this.bot.blockAt(position.offset(0, -1, 0))
+    if (!below || below.name === 'air') return false
+    await this.goTo(new goals.GoalNear(position.x, position.y, position.z, 3), 8000).catch(() => {})
+    if (isCancelled()) return false
+    await this.bot.equip(bucket, 'hand')
+    await this.bot.activateBlock(below, new Vec3(0, 1, 0)).catch(() => {})
+    await sleep(500)
+    return this.bot.blockAt(position)?.name === 'water'
+  }
+
+  async farmSeedStack() {
+    const names = ['wheat_seeds', 'carrot', 'potato', 'beetroot_seeds']
+    let item = this.bot.inventory.items().find((entry) => names.includes(entry.name))
+    if (item) return item
+
+    if (this.storage?.configured()) {
+      for (const name of names) {
+        const amount = await this.storage.withdraw(this.bot, name, 16).catch(() => 0)
+        if (amount > 0) {
+          item = this.bot.inventory.items().find((entry) => entry.name === name)
+          if (item) return item
+        }
+      }
+    }
+    return null
+  }
+
+  async buildFarm(isCancelled, offset = null) {
+    const home = this.homeProvider?.()
+    if (!home) throw new Error('base da colônia ainda não definida')
+
+    const hoe = await this.ensureHoe()
+    if (!hoe) throw new Error('não consegui obter uma enxada para preparar a fazenda')
+
+    const dx = Number(offset?.x ?? 8)
+    const dz = Number(offset?.z ?? 8)
+    const baseX = Math.floor(home.x) + dx
+    const groundY = Math.floor(home.y) - 1
+    const baseZ = Math.floor(home.z) + dz
+    const center = new Vec3(baseX + 2, groundY, baseZ + 2)
+    const irrigated = await this.ensureWaterAt(center, isCancelled)
+
+    let tilled = 0
+    let planted = 0
+    for (let x = 0; x < 5; x++) {
+      for (let z = 0; z < 5; z++) {
+        if (isCancelled()) break
+        if (x === 2 && z === 2) continue
+
+        const pos = new Vec3(baseX + x, groundY, baseZ + z)
+        let block = this.bot.blockAt(pos)
+        if (!block) continue
+
+        if (block.name !== 'farmland') {
+          let tillable = ['dirt', 'grass_block', 'dirt_path'].includes(block.name)
+
+          if (!tillable && this.storage?.configured()) {
+            let dirt = this.bot.inventory.items().find((item) => item.name === 'dirt')
+            if (!dirt) {
+              await this.storage.withdraw(this.bot, 'dirt', 1).catch(() => 0)
+              dirt = this.bot.inventory.items().find((item) => item.name === 'dirt')
+            }
+
+            if (dirt) {
+              await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 8000).catch(() => {})
+              if (isCancelled()) break
+              if (block.name !== 'air' && block.boundingBox !== 'empty') {
+                await this.bot.dig(block).catch(() => {})
+              }
+              const below = this.bot.blockAt(pos.offset(0, -1, 0))
+              if (below && below.name !== 'air') {
+                await this.bot.equip(dirt, 'hand').catch(() => {})
+                await this.bot.placeBlock(below, new Vec3(0, 1, 0)).catch(() => {})
+                await sleep(150)
+                block = this.bot.blockAt(pos)
+                tillable = ['dirt', 'grass_block', 'dirt_path'].includes(block?.name)
+              }
+            }
+          }
+
+          if (!tillable) continue
+          await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 8000).catch(() => {})
+          if (isCancelled()) break
+          await this.bot.equip(hoe, 'hand').catch(() => {})
+          await this.bot.activateBlock(block, new Vec3(0, 1, 0)).catch(() => {})
+          await sleep(180)
+          block = this.bot.blockAt(pos)
+        }
+
+        if (block?.name !== 'farmland') continue
+        tilled++
+
+        const above = this.bot.blockAt(pos.offset(0, 1, 0))
+        if (above && above.name !== 'air') continue
+        const seed = await this.farmSeedStack()
+        if (!seed) continue
+
+        await this.bot.equip(seed, 'hand').catch(() => {})
+        try {
+          await this.bot.placeBlock(block, new Vec3(0, 1, 0))
+          planted++
+        } catch {}
+      }
+    }
+
+    return {
+      ok: irrigated && tilled >= 8 && planted >= 4,
+      irrigated,
+      tilled,
+      planted,
+      requestedPlots: 24,
+      offset: { x: dx, z: dz }
+    }
+  }
+
+  async buildMine(isCancelled, length = 12) {
+    const home = this.homeProvider?.()
+    if (!home) throw new Error('base da colônia ainda não definida')
+    await this.ensureRoleTool()
+
+    const names = [
+      'stone', 'deepslate', 'cobblestone', 'cobbled_deepslate',
+      'coal_ore', 'iron_ore', 'deepslate_coal_ore', 'deepslate_iron_ore'
+    ]
+    const ids = names
+      .map((name) => this.bot.registry?.blocksByName?.[name]?.id)
+      .filter(Number.isInteger)
+    if (!ids.length) throw new Error('não conheço blocos adequados para abrir a mina')
+
+    const anchor = this.bot.findBlock({ matching: ids, maxDistance: 32 })
+    if (!anchor) throw new Error('não encontrei rocha próxima para abrir a mina')
+
+    await this.goTo(new goals.GoalNear(anchor.position.x, anchor.position.y, anchor.position.z, 2), 30000)
+
+    const dx = anchor.position.x >= home.x ? 1 : -1
+    const dz = 0
+    const wanted = Math.max(6, Math.min(32, Number(length) || 12))
+    let clearedSegments = 0
+    let dug = 0
+
+    for (let i = 0; i < wanted && !isCancelled(); i++) {
+      const foot = new Vec3(anchor.position.x + dx * i, anchor.position.y, anchor.position.z + dz * i)
+      const positions = [foot, foot.offset(0, 1, 0)]
+      let segmentOk = true
+
+      for (const pos of positions) {
+        if (isCancelled()) break
+        const block = this.bot.blockAt(pos)
+        if (!block || block.name === 'air' || block.boundingBox === 'empty') continue
+
+        const tool = this.bot.pathfinder.bestHarvestTool(block)
+        if (tool) await this.bot.equip(tool, 'hand').catch(() => {})
+        try {
+          await this.bot.dig(block)
+          dug++
+          await this.collectDrops(pos, isCancelled)
+        } catch {
+          segmentOk = false
+        }
+      }
+
+      const footNow = this.bot.blockAt(foot)
+      const headNow = this.bot.blockAt(foot.offset(0, 1, 0))
+      if (segmentOk &&
+          (!footNow || footNow.name === 'air' || footNow.boundingBox === 'empty') &&
+          (!headNow || headNow.name === 'air' || headNow.boundingBox === 'empty')) {
+        clearedSegments++
+      }
+
+      if (!isCancelled()) {
+        await this.goTo(new goals.GoalNear(foot.x, foot.y, foot.z, 1), 6000).catch(() => {})
+      }
+    }
+
+    const deposited = this.storage?.configured()
+      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      : {}
+
+    return {
+      ok: clearedSegments >= Math.ceil(wanted * 0.6),
+      length: wanted,
+      clearedSegments,
+      dug,
+      start: { x: anchor.position.x, y: anchor.position.y, z: anchor.position.z },
+      deposited
+    }
   }
 
   async buildHouse(isCancelled, offset = null) {

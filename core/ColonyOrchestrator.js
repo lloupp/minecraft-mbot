@@ -127,14 +127,26 @@ class ColonyOrchestrator {
     }
   }
 
-  async buildHouse() {
-    const builders = this.controllers('construtor')
-    if (!builders.length) throw new Error('não há construtor na colônia')
-    const chosen = builders.find(({ controller }) => controller.isIdle()) || builders[0]
-    chosen.controller.run({ type: 'construir_casa' })
-      .then((result) => this.logger.log(`[colônia] ${chosen.worker.name} terminou casa:`, result))
-      .catch((err) => this.logger.log(`[colônia] ${chosen.worker.name} falhou na casa: ${err.message}`))
+  runRoleTask(role, task, label = task.type) {
+    const candidates = this.controllers(role)
+    if (!candidates.length) throw new Error(`não há ${role} na colônia`)
+    const chosen = candidates.find(({ controller }) => controller.isIdle()) || candidates[0]
+    chosen.controller.run(task)
+      .then((result) => this.logger.log(`[colônia] ${chosen.worker.name} terminou ${label}:`, result))
+      .catch((err) => this.logger.log(`[colônia] ${chosen.worker.name} falhou em ${label}: ${err.message}`))
     return chosen.worker.name
+  }
+
+  async buildHouse() {
+    return this.runRoleTask('construtor', { type: 'construir_casa' }, 'casa')
+  }
+
+  async buildFarm() {
+    return this.runRoleTask('fazendeiro', { type: 'construir_fazenda', offset: { x: 8, z: 8 } }, 'fazenda')
+  }
+
+  async buildMine(length = 12) {
+    return this.runRoleTask('minerador', { type: 'construir_mina', length }, 'mina')
   }
 
   async craft(item, count = 1) {

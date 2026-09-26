@@ -29,6 +29,8 @@ const { StorageManager } = require('./core/StorageManager')
 const { ProductionManager, normalizeItemName } = require('./core/ProductionManager')
 const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
+const { StateStore } = require('./core/StateStore')
+const { SmokeTest } = require('./core/SmokeTest')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -128,11 +130,18 @@ async function main() {
   const storage = new StorageManager()
   const production = new ProductionManager({ storage })
   const demandPlanner = new DemandPlanner()
-  let colonyHome = null
+  const stateStore = new StateStore()
+  const savedState = await stateStore.load()
+  if (stateStore.lastLoadError) {
+    console.log('[estado] arquivo local inválido; iniciando com estado vazio')
+  }
+  let colonyHome = savedState.home
+  if (savedState.storage) storage.setPosition(savedState.storage)
   const projectManager = new ProjectManager({
     storage,
     homeProvider: () => colonyHome
   })
+  projectManager.restore(savedState.project)
 
   function createWorker({ name, role }) {
     const worker = mineflayer.createBot({ ...CONFIG, username: name })
@@ -172,7 +181,42 @@ async function main() {
     demandPlanner,
     projectManager
   })
+  const smokeTest = new SmokeTest({
+    bot,
+    storage,
+    botManager,
+    homeProvider: () => colonyHome,
+    projectManager
+  })
+
+  function workerRoleCounts() {
+    const counts = {}
+    for (const worker of botManager.list()) counts[worker.role] = (counts[worker.role] || 0) + 1
+    return counts
+  }
+
+  async function persistState() {
+    await stateStore.save({
+      home: colonyHome,
+      storage: storage.getPosition(),
+      auto: colony.auto,
+      workers: workerRoleCounts(),
+      project: projectManager.exportState()
+    })
+  }
+
+  let persistTimer = null
+  function persistSoon() {
+    if (persistTimer) clearTimeout(persistTimer)
+    persistTimer = setTimeout(() => {
+      persistTimer = null
+      persistState().catch((err) => console.log(`[estado] não consegui salvar: ${err.message}`))
+    }, 250)
+    persistTimer.unref?.()
+  }
+
   colony.start()
+  setInterval(() => persistState().catch(() => {}), 15000).unref?.()
 
   // ========== ESTADO ==========
   let mode = 'seguir'       // 'seguir' | 'ficar' | 'tarefa'
@@ -338,7 +382,8 @@ async function main() {
   }
 
   // ========== EVENTOS ==========
-  bot.on('spawn', () => {
+  let restoredWorkers = false
+  bot.on('spawn', async () => {
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
     console.log(`Posição: X=${bot.entity.position.x.toFixed(1)}, Y=${bot.entity.position.y.toFixed(1)}, Z=${bot.entity.position.z.toFixed(1)}`)
@@ -351,6 +396,35 @@ async function main() {
     followMoves.allow1by1towers = false
     workMoves = new Movements(bot)
     bot.pathfinder.thinkTimeout = 10000 // caminhos até blocos subterrâneos demoram a calcular
+
+    if (!restoredWorkers) {
+      restoredWorkers = true
+      const restored = []
+      for (const [role, count] of Object.entries(savedState.workers || {})) {
+        const amount = Math.min(Number(count) || 0, botManager.capacity())
+        if (amount <= 0) continue
+        try {
+          const workers = await botManager.create(role, amount)
+          restored.push(...workers.map((worker) => worker.name))
+        } catch (err) {
+          console.log(`[estado] não consegui restaurar ${role}: ${err.message}`)
+        }
+      }
+      if (projectManager.isActive()) {
+        try {
+          const extra = await ensureProjectWorkers(projectManager.active.type)
+          restored.push(...extra)
+        } catch (err) {
+          console.log(`[estado] projeto restaurado, mas faltam workers: ${err.message}`)
+        }
+      }
+      if (savedState.auto && colony.autoReadiness().ready) colony.setAuto(true)
+      if (restored.length) console.log(`[estado] workers restaurados: ${restored.join(', ')}`)
+      if (colonyHome) console.log(`[estado] base restaurada: ${colonyHome.x}, ${colonyHome.y}, ${colonyHome.z}`)
+      if (storage.configured()) console.log('[estado] estoque central restaurado')
+      if (projectManager.isActive()) console.log(`[estado] projeto restaurado: ${projectManager.active.type}`)
+      persistSoon()
+    }
   })
 
   bot.once('health', () => {
@@ -429,8 +503,9 @@ async function main() {
   // Queda inesperada (servidor reiniciou, rede caiu, kick): sai com erro para o
   // supervisor (systemd ou `npm run sempre`) reconectar. !parar sai com código 0.
   let quitRequested = false
-  bot.on('end', (reason) => {
+  bot.on('end', async (reason) => {
     colony.stop()
+    try { await persistState() } catch {}
     botManager.stopAll()
     stopLan()
     console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
@@ -478,6 +553,7 @@ async function main() {
 
       if (!enabled) {
         colony.setAuto(false)
+        persistSoon()
         bot.chat('Modo automático da colônia: DESATIVADO.')
         return
       }
@@ -489,6 +565,7 @@ async function main() {
       }
 
       colony.setAuto(true)
+      persistSoon()
       bot.chat('Modo automático por demanda: ATIVADO.')
       return
     }
@@ -581,6 +658,7 @@ async function main() {
         if (controller.currentTask?.projectType) controller.cancel()
       }
       const cancelled = projectManager.cancel()
+      persistSoon()
       if (!cancelled) {
         bot.chat('Nenhum projeto para cancelar.')
         return
@@ -605,6 +683,7 @@ async function main() {
       const created = await ensureProjectWorkers(action)
       projectManager.start(action)
       colony.setAuto(true)
+      persistSoon()
 
       bot.chat(`Projeto ${action} iniciado. Orquestração automática ativada.`)
       if (created.length) bot.chat(`Bots criados para o projeto: ${created.join(', ')}`)
@@ -640,13 +719,25 @@ async function main() {
   })
 
   commandRouter.register('construir', async (_context, args) => {
-    if (!['casa', 'abrigo'].includes(String(args[0] || '').toLowerCase())) {
-      bot.chat('Uso: !construir casa')
-      return
-    }
+    const what = String(args[0] || '').toLowerCase()
     try {
-      const name = await colony.buildHouse()
-      bot.chat(`${name} recebeu a ordem de construir um abrigo 3x3.`)
+      if (['casa', 'abrigo'].includes(what)) {
+        const name = await colony.buildHouse()
+        bot.chat(`${name} recebeu a ordem de construir um abrigo 3x3.`)
+        return
+      }
+      if (what === 'fazenda') {
+        const name = await colony.buildFarm()
+        bot.chat(`${name} recebeu a ordem de preparar uma fazenda física 5x5.`)
+        return
+      }
+      if (what === 'mina') {
+        const length = parseCount(args[1], 12)
+        const name = await colony.buildMine(length)
+        bot.chat(`${name} recebeu a ordem de abrir uma mina de ${length} blocos.`)
+        return
+      }
+      bot.chat('Uso: !construir casa | !construir fazenda | !construir mina [comprimento]')
     } catch (err) {
       bot.chat(`Não consegui iniciar a construção: ${err.message}`)
     }
@@ -668,6 +759,7 @@ async function main() {
       colonyHome = null
       colony.setAuto(false)
       if (projectManager.isActive()) projectManager.cancel()
+      persistSoon()
       bot.chat('Base removida. O modo automático foi desativado e o projeto ativo foi cancelado.')
       return
     }
@@ -685,7 +777,18 @@ async function main() {
     }
 
     colonyHome = source.clone()
+    persistSoon()
     bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
+  })
+
+  commandRouter.register('smoke', async () => {
+    bot.chat('Executando smoke test da colônia...')
+    const result = await smokeTest.run()
+    const status = result.ok ? 'PASSOU' : 'FALHOU'
+    bot.chat(`Smoke: ${status} | ${result.passed} ok | ${result.failed} falha(s).`)
+    for (const check of result.checks) {
+      if (check.ok === false) bot.chat(`FALHA ${check.name}: ${check.detail}`)
+    }
   })
 
   commandRouter.register('tarefas', async () => {
@@ -708,6 +811,7 @@ async function main() {
       try {
         const block = storage.configureNearest(bot, 8)
         await storage.summary(bot)
+        persistSoon()
         bot.chat(`Estoque central definido: ${block.name} em X=${block.position.x}, Y=${block.position.y}, Z=${block.position.z}.`)
       } catch (err) {
         bot.chat(`Não consegui definir o estoque: ${err.message}`)
@@ -729,6 +833,7 @@ async function main() {
       storage.setPosition(null)
       colony.setAuto(false)
       if (projectManager.isActive()) projectManager.cancel()
+      persistSoon()
       bot.chat('Estoque central removido. O modo automático foi desativado e o projeto ativo foi cancelado.')
       return
     }
@@ -816,6 +921,7 @@ async function main() {
       }
       try {
         const created = await botManager.create(role, count)
+        persistSoon()
         bot.chat(`Criados ${created.length}: ${created.map((w) => w.name).join(', ')}`)
       } catch (err) {
         bot.chat(`Não consegui criar bot: ${err.message}`)
@@ -829,7 +935,9 @@ async function main() {
         bot.chat('Uso: !bot remover <nome>')
         return
       }
-      bot.chat(botManager.remove(name) ? `${name} removido da colônia.` : `Não encontrei ${name}.`)
+      const removed = botManager.remove(name)
+      if (removed) persistSoon()
+      bot.chat(removed ? `${name} removido da colônia.` : `Não encontrei ${name}.`)
       return
     }
 
@@ -889,8 +997,9 @@ async function main() {
     switch (cmd) {
       case '!parar':
         console.log(`Comando !parar recebido de ${username}. Encerrando bot e colônia...`)
-        botManager.stopAll()
         quitRequested = true
+        await persistState().catch(() => {})
+        botManager.stopAll()
         bot.quit()
         break
       case '!seguir':
@@ -988,7 +1097,7 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir casa, !todos voltar, !tarefas')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
         break
     }
   })
