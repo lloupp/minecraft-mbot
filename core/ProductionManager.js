@@ -33,7 +33,9 @@ const ITEM_ALIASES = {
   vidro: 'glass',
   carvao: 'coal',
   bau: 'chest',
-  baú: 'chest'
+  baú: 'chest',
+  tocha: 'torch',
+  tochas: 'torch'
 }
 
 function normalizeItemName(value) {
