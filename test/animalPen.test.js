@@ -161,3 +161,12 @@ test('curral usa o chão do local, não a altura da base', () => {
   for (const f of animalPenPlan({ ...home, y: 95 }, 'cow').fences) fences.add(`${f.x},${f.y},${f.z}`)
   assert.equal(penGroundY(blockAt, home, 'cow'), 95)
 })
+
+test('animal no vão do portão não conta como capturado com a margem da captura', () => {
+  const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
+  const noPortao = { x: plan.gate.x + 0.5, z: plan.gate.z + 0.5 }
+  const noCentro = { x: plan.center.x + 0.5, z: plan.center.z + 0.5 }
+  assert.equal(pointInsidePen(noPortao, plan), true) // margem padrão: conta
+  assert.equal(pointInsidePen(noPortao, plan, 1.0), false)
+  assert.equal(pointInsidePen(noCentro, plan, 1.0), true)
+})

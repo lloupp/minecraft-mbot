@@ -162,3 +162,11 @@ test('WorkerController dá tempo proporcional à distância para voltar à base'
   await worker.run({ type: 'voltar' })
   assert.equal(timeout, 30000)
 })
+
+test('waitUntil espera a condição ou desiste no tempo limite', async () => {
+  const { waitUntil } = require('../core/WorkerController')
+  let ok = false
+  setTimeout(() => { ok = true }, 60)
+  assert.equal(await waitUntil(() => ok, 1000, 20), true)
+  assert.equal(await waitUntil(() => false, 50, 20), false)
+})

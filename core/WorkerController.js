@@ -9,6 +9,22 @@ const { resolveBlockNames } = require('./resources')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+async function waitUntil(check, timeoutMs, stepMs = 250) {
+  for (let waited = 0; ; waited += stepMs) {
+    if (check()) return true
+    if (waited >= timeoutMs) return false
+    await sleep(stepMs)
+  }
+}
+
+// O animal atraído vem 1-3 blocos atrás do fazendeiro; com 1,2 s de espera o
+// portão fechava antes de ele passar (visto no 1.20.1: 3 vacas coladas no
+// portão, 0 capturadas).
+const LURE_WAIT_MS = 10000
+// "Dentro" para a captura é além da linha de cercas: com a margem padrão, uma
+// vaca parada no vão do portão já contava como capturada e o portão fechava.
+const PAST_FENCE_MARGIN = 1.0
+
 const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
 const FLEE_MS = 4000      // tempo fugindo
@@ -492,6 +508,18 @@ class WorkerController {
     const kit = await this.ensurePenKit(plan)
     if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
 
+    // Nivela o interior: um bloco de terreno na altura da cerca, encostado nela,
+    // vira degrau e os animais pulavam para fora com o portão fechado.
+    let leveled = 0
+    for (let dx = 1; dx < plan.size - 1 && !isCancelled(); dx++) {
+      for (let dz = 1; dz < plan.size - 1 && !isCancelled(); dz++) {
+        const block = this.bot.blockAt(new Vec3(plan.origin.x + dx, plan.origin.y, plan.origin.z + dz))
+        if (!block || block.boundingBox !== 'block') continue
+        await this.goTo(new goals.GoalNear(block.position.x, block.position.y, block.position.z, 3), 8000).catch(() => {})
+        if (await this.bot.dig(block).then(() => true, () => false)) leveled++
+      }
+    }
+
     let fencesPlaced = 0
     for (const position of plan.fences) {
       if (isCancelled()) break
@@ -510,6 +538,7 @@ class WorkerController {
       fencesPlaced,
       fencesRequested: plan.fenceCount,
       gatePlaced,
+      leveled,
       center: plan.center,
       offset: plan.offset,
       fenceItem: kit.fence,
@@ -582,6 +611,12 @@ class WorkerController {
 
   async leaveAnimalPen(plan, isCancelled) {
     await this.bot.unequip?.('hand').catch?.(() => {})
+    // Os animais acabaram de seguir o fazendeiro e ficam colados nele: abrir o
+    // portão na hora deixava um escapar. Espera se afastarem do portão.
+    const gateCenter = new Vec3(plan.gate.x + 0.5, plan.gate.y, plan.gate.z + 0.5)
+    await waitUntil(() => !Object.values(this.bot.entities || {}).some((entity) =>
+      entity.name === plan.species && entity.position?.distanceTo(gateCenter) < 2.5
+    ), 6000)
     if (!(await this.setPenGate(plan, true, isCancelled))) return false
     try {
       const out = plan.outside
@@ -621,9 +656,14 @@ class WorkerController {
 
     let captured = 0
     let attempted = 0
+    // Um animal que já passou da cerca conta como capturado. Contar só o alvo de
+    // cada tentativa fazia o fazendeiro reabrir o portão para buscar um animal
+    // que já estava dentro, e os capturados escapavam.
+    const pastFence = (entity) => entity.isValid !== false && pointInsidePen(entity.position, pen.plan, PAST_FENCE_MARGIN)
     for (const entity of candidates) {
+      captured = candidates.filter(pastFence).length
       if (captured >= wanted || isCancelled()) break
-      if (entity.isValid === false) continue
+      if (entity.isValid === false || pastFence(entity)) continue
       attempted++
 
       const currentFeed = this.bot.inventory.items().find((entry) => entry.name === feed.name)
@@ -655,15 +695,25 @@ class WorkerController {
         const entry = pen.plan.insideEntry
         await this.bot.equip(currentFeed, 'hand').catch(() => {})
         await this.goTo(new goals.GoalNear(entry.x, entry.y, entry.z, 1), 12000).catch(() => {})
-        await sleep(1200)
-        inside = entity.isValid !== false && pointInsidePen(entity.position, pen.plan)
+        // Vai ao fundo do curral: o animal atraído para a ~2,5 blocos de quem segura
+        // a comida, então com o fazendeiro perto do portão ele parava no vão.
+        const back = { x: pen.plan.gate.x, y: pen.plan.gate.y, z: pen.plan.origin.z + pen.plan.size - 2 }
+        await this.goTo(new goals.GoalBlock(back.x, back.y, back.z), 8000).catch(() => {})
+        inside = await waitUntil(
+          () => isCancelled() || (entity.isValid !== false && pointInsidePen(entity.position, pen.plan, PAST_FENCE_MARGIN)),
+          LURE_WAIT_MS
+        ) && !isCancelled()
       } finally {
+        // Guarda a comida ainda no fundo: com ela na mão, os animais o seguiam
+        // até o portão e um escapava quando ele saía.
+        await this.bot.unequip?.('hand').catch?.(() => {})
         await this.setPenGate(pen.plan, false, () => false).catch(() => {})
       }
 
-      if (inside) captured++
+      if (!inside) this.logger.log?.(`[animais] ${this.name}: ${pen.canonical} não entrou no curral`)
       if (!isCancelled()) await this.leaveAnimalPen(pen.plan, isCancelled).catch(() => {})
     }
+    captured = candidates.filter(pastFence).length
 
     const insideNow = husbandry.selectAnimals(this.bot, pen.canonical, {
       center,
@@ -1154,4 +1204,4 @@ class WorkerController {
   }
 }
 
-module.exports = { WorkerController }
+module.exports = { WorkerController, waitUntil }
