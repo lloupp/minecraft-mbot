@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check": "node --check index.js && node --check core/CommandRouter.js && node --check core/MinecraftKnowledge.js && node --check core/Planner.js && node --check core/BotManager.js && node --check lib/food.js && node --check lib/perception.js && node --check lib/protocol.js",
+    "test": "node --test"
   },
   "keywords": [
     "minecraft",
