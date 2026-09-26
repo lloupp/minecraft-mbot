@@ -697,8 +697,10 @@ async function main() {
   })
 
   bot.on('chat', async (username, message) => {
-    if (username === bot.username) return
-    if (OWNER && username !== OWNER) return
+    if (username === bot.username || botManager.get(username)) return
+    const owner = ownerName()
+    if (owner && username !== owner) return
+    if (!resolvedOwner) resolvedOwner = username
     if (await commandRouter.dispatch({ bot, username }, message)) return
     const [cmd, ...args] = message.toLowerCase().trim().split(/\s+/)
 
