@@ -11,6 +11,10 @@ Environment=MINECRAFT_PORT=25565
 Environment=MINECRAFT_OWNER=eduardo
 # Faz o servidor aparecer em "Jogos em LAN" nos outros PCs da rede.
 Environment=MINECRAFT_LAN_ANNOUNCE=1
+Environment=STATUS_PORT=3080
+Environment=STATUS_SERVER=1
+Environment=COLONY_EVENT_LOG=.data/colony-events.jsonl
+Environment=COLONY_PROOF_FILE=.data/colony-proof.json
 # Shell de login para achar o `node` do PATH do usuário.
 ExecStart=/bin/bash -lc 'exec node index.js'
 # Queda de conexão sai com erro e reconecta; !parar sai com 0 e fica desligado.
