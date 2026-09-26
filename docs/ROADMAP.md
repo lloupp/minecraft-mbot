@@ -107,6 +107,31 @@ Antes de promover:
 
 Se houver incompatibilidade, avaliar `@nxg-org/mineflayer-static-statemachine` apenas como experimento alternativo.
 
+### Spike automatizado de compatibilidade
+
+O repositório possui um teste isolado em `scripts/statemachine-spike.js` e
+`.github/workflows/statemachine-spike.yml`.
+
+Esse spike NÃO adiciona o pacote ao runtime. O CI instala temporariamente
+`mineflayer-statemachine@1.7.0` e verifica:
+
+- Node 22;
+- carregamento do pacote;
+- `StateTransition` e `NestedStateMachine`;
+- transição disparada por tick;
+- resolução da mesma instalação de `mineflayer` usada pelo projeto;
+- resolução da mesma instalação de `mineflayer-pathfinder`;
+- comportamento de listener do `BotStateMachine`;
+- presença do alias legado `physicTick` no Mineflayer instalado.
+
+O spike também documenta duas limitações da versão 1.7.0: `BotStateMachine`
+registra o evento legado `physicTick` (sem "s") e não expõe `dispose()`.
+O Mineflayer atual ainda emite esse alias para compatibilidade, mas o marca como
+deprecated e pode removê-lo no futuro. Por isso, uma integração futura não deve
+criar uma instância nova a cada tarefa e deve encapsular o tick atrás de um
+adapter. A estratégia preferida é uma máquina reutilizável por worker ou
+atualização manual de `NestedStateMachine`.
+
 ### Critério para promoção
 
 1. CI verde;
