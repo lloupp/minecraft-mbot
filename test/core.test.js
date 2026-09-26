@@ -574,3 +574,16 @@ test('SmokeTest falha quando base e estoque estão ausentes', async () => {
   assert.equal(result.checks.find((c) => c.name === 'base').ok, false)
   assert.equal(result.checks.find((c) => c.name === 'estoque').ok, false)
 })
+
+
+test('StateStore inicia vazio quando JSON persistido está corrompido', async () => {
+  const dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'minecraft-mbot-corrupt-'))
+  const file = path.join(dir, 'state.json')
+  await fs.promises.writeFile(file, '{nao-json', 'utf8')
+  const store = new StateStore(file)
+  const loaded = await store.load()
+  assert.equal(loaded.home, null)
+  assert.equal(loaded.project, null)
+  assert.equal(store.lastLoadError instanceof SyntaxError, true)
+  await fs.promises.rm(dir, { recursive: true, force: true })
+})
