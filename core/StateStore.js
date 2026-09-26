@@ -21,9 +21,11 @@ class StateStore {
     return {
       version: 1,
       home: null,
+      homeDimension: null,
       storage: null,
       auto: false,
       companionAuto: false,
+      waypoints: {},
       workers: {},
       project: null,
       updatedAt: null
@@ -38,7 +40,11 @@ class StateStore {
         ...this.defaults(),
         ...parsed,
         home: point(parsed.home),
+        homeDimension: parsed.homeDimension == null ? null : String(parsed.homeDimension),
         storage: point(parsed.storage),
+        waypoints: parsed.waypoints && typeof parsed.waypoints === 'object' && !Array.isArray(parsed.waypoints)
+          ? parsed.waypoints
+          : {},
         workers: parsed.workers && typeof parsed.workers === 'object' ? parsed.workers : {}
       }
     } catch (err) {

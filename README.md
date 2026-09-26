@@ -122,6 +122,15 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
+| `!local salvar <nome>` | Salva sua posição atual como local persistente |
+| `!local listar` | Lista os locais salvos |
+| `!local remover <nome>` | Remove um local salvo |
+| `!ir <local>` | Manda o EduardoBot até um local e ficar lá |
+| `!voltar [local]` | Volta para `base` por padrão ou outro local salvo |
+| `!patrulha <a> <b> [...]` | Patrulha continuamente entre locais salvos |
+| `!patrulha off` | Encerra a patrulha |
+| `!enviar <bot> <local>` | Manda um worker específico até um local |
+| `!explorar <local> [raio]` | Manda um explorador reconhecer a região de um local |
 
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
@@ -554,3 +563,64 @@ Periodicamente o EduardoBot:
 - mantém combate/fuga como reflexos de maior prioridade.
 
 O estado de `!autonomo` é persistido junto com base, estoque, workers e projetos.
+
+
+## Locais, navegação e patrulha
+
+Além da base, é possível salvar até 64 locais nomeados. Eles são persistidos no mesmo estado local da colônia.
+
+Exemplo:
+
+```text
+!local salvar vila
+!local salvar mina
+!local salvar fazenda
+!local listar
+```
+
+O nome é normalizado, então `Mina de Ferro` vira `mina-de-ferro`.
+
+Para mover o EduardoBot:
+
+```text
+!ir mina
+!voltar base
+!voltar vila
+```
+
+Ao chegar com `!ir` ou `!voltar`, ele fica parado no destino. Uma ordem manual de navegação desliga o modo autônomo do companheiro.
+
+### Patrulha
+
+É possível criar uma rota contínua com dois ou mais locais:
+
+```text
+!patrulha base vila mina
+!patrulha status
+!patrulha off
+```
+
+A patrulha não é retomada automaticamente depois de reiniciar o processo. Os locais continuam salvos, mas a rota precisa ser iniciada novamente. Isso evita que o bot comece a se deslocar sem uma nova ordem depois de uma queda/restart.
+
+Se combate, fuga ou outra ordem manual interromper a patrulha, ela é encerrada.
+
+### Workers em locais específicos
+
+Um bot auxiliar também pode ser enviado para um ponto salvo:
+
+```text
+!enviar minerador_01 mina
+!enviar guarda_01 vila
+```
+
+Para exploração dirigida:
+
+```text
+!explorar mina 96
+```
+
+O orquestrador escolhe um worker com papel `explorador` e faz a exploração em torno daquele ponto, em vez de usar somente a base como centro.
+
+### Dimensões
+
+Cada local registra a dimensão em que foi salvo quando essa informação está disponível. O bot recusa navegação direta para um waypoint de outra dimensão; atravessar portais será tratado por uma camada específica de Nether/End em uma evolução posterior.

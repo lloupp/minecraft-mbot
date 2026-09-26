@@ -33,6 +33,7 @@ const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
+const { WaypointManager } = require('./core/WaypointManager')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -139,7 +140,9 @@ async function main() {
     console.log('[estado] arquivo local inválido; iniciando com estado vazio')
   }
   let colonyHome = savedState.home
+  let colonyHomeDimension = savedState.homeDimension || null
   if (savedState.storage) storage.setPosition(savedState.storage)
+  const waypointManager = new WaypointManager(savedState.waypoints)
   const projectManager = new ProjectManager({
     storage,
     homeProvider: () => colonyHome
@@ -200,9 +203,11 @@ async function main() {
   async function persistState() {
     await stateStore.save({
       home: colonyHome,
+      homeDimension: colonyHomeDimension,
       storage: storage.getPosition(),
       auto: colony.auto,
       companionAuto: autonomous,
+      waypoints: waypointManager.exportState(),
       workers: workerRoleCounts(),
       project: projectManager.exportState()
     })
@@ -240,6 +245,9 @@ async function main() {
   let lastNightTry = 0
   let lastGearCheck = 0
   let checkingGear = false
+  let patrolActive = false
+  let patrolRoute = []
+  let patrolVersion = 0
   const autonomy = new Autonomy(bot)
 
   function ownerName() {
@@ -253,6 +261,55 @@ async function main() {
 
   function ownerEntity() {
     return bot.players[ownerName()]?.entity
+  }
+
+  function currentDimension() {
+    const value = bot.game?.dimension
+    if (value == null) return null
+    if (typeof value === 'string') return value
+    if (typeof value?.name === 'string') return value.name
+    return String(value)
+  }
+
+  function waypointOrBase(name) {
+    if (String(name || '').toLowerCase() === 'base') {
+      return colonyHome
+        ? { name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension }
+        : null
+    }
+    return waypointManager.get(name)
+  }
+
+  function assertWaypointReachable(entry) {
+    if (!entry) throw new Error('local não encontrado')
+    if (!waypointManager.sameDimension(entry, currentDimension())) {
+      throw new Error(`o local ${entry.name} está em outra dimensão (${entry.dimension})`)
+    }
+  }
+
+  async function goToPoint(position, isCancelled, radius = 2) {
+    const x = Math.floor(Number(position.x))
+    const y = Math.floor(Number(position.y))
+    const z = Math.floor(Number(position.z))
+    if (![x, y, z].every(Number.isFinite)) throw new Error('posição inválida')
+
+    let timer
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        bot.pathfinder.setGoal(null)
+        reject(new Error('caminho demorou demais'))
+      }, 60000)
+    })
+
+    try {
+      await Promise.race([
+        bot.pathfinder.goto(new goals.GoalNear(x, y, z, radius)),
+        timeout
+      ])
+      return !isCancelled()
+    } finally {
+      clearTimeout(timer)
+    }
   }
 
   function nearestHostile(maxDist) {
@@ -373,6 +430,52 @@ async function main() {
     } finally {
       checkingGear = false
     }
+  }
+
+  function clearPatrolState() {
+    patrolVersion++
+    patrolActive = false
+    patrolRoute = []
+  }
+
+  function travelTo(entry) {
+    assertWaypointReachable(entry)
+    autonomous = false
+    clearPatrolState()
+    persistSoon()
+    bot.chat(`Indo para ${entry.name}...`)
+    runTask(`ir para ${entry.name}`, async (isCancelled) => {
+      await goToPoint(entry.position, isCancelled, 2)
+      if (!isCancelled()) bot.chat(`Cheguei em ${entry.name}.`)
+    }, { resume: 'ficar' })
+  }
+
+  function startPatrol(entries) {
+    for (const entry of entries) assertWaypointReachable(entry)
+    autonomous = false
+    const myPatrol = ++patrolVersion
+    patrolActive = true
+    patrolRoute = entries.map((entry) => entry.name)
+    persistSoon()
+    bot.chat(`Patrulha iniciada: ${patrolRoute.join(' -> ')}.`)
+
+    runTask('patrulhar', async (isCancelled) => {
+      try {
+        while (!isCancelled() && patrolActive && patrolVersion === myPatrol) {
+          for (const entry of entries) {
+            if (isCancelled() || !patrolActive || patrolVersion !== myPatrol) return
+            await goToPoint(entry.position, isCancelled, 2)
+            if (isCancelled() || !patrolActive || patrolVersion !== myPatrol) return
+            await new Promise((resolve) => setTimeout(resolve, 1200))
+          }
+        }
+      } finally {
+        if (patrolVersion === myPatrol) {
+          patrolActive = false
+          patrolRoute = []
+        }
+      }
+    }, { resume: 'ficar' })
   }
 
   const isLiving = (entity) => entity && entity !== bot.entity && entity.isValid !== false
@@ -840,12 +943,13 @@ async function main() {
         bot.chat('Base ainda não definida. Vá ao local desejado e use !base aqui.')
         return
       }
-      bot.chat(`Base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
+      bot.chat(`Base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
       return
     }
 
     if (action === 'limpar' || action === 'remover') {
       colonyHome = null
+      colonyHomeDimension = null
       colony.setAuto(false)
       if (projectManager.isActive()) projectManager.cancel()
       persistSoon()
@@ -866,8 +970,182 @@ async function main() {
     }
 
     colonyHome = source.clone()
+    colonyHomeDimension = currentDimension()
     persistSoon()
-    bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
+    bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
+  })
+
+  commandRouter.register(['local', 'locais'], async (context, args) => {
+    const action = String(args[0] || 'listar').toLowerCase()
+
+    if (['listar', 'lista', 'status'].includes(action) && !args[1]) {
+      const points = waypointManager.list()
+      if (!points.length) {
+        bot.chat('Nenhum local salvo. Use !local salvar <nome>.')
+        return
+      }
+      for (let i = 0; i < points.length; i += 4) {
+        bot.chat(points.slice(i, i + 4).map((entry) =>
+          `${entry.name}(${Math.floor(entry.position.x)},${Math.floor(entry.position.y)},${Math.floor(entry.position.z)})`
+        ).join(', '))
+      }
+      return
+    }
+
+    if (action === 'salvar' || action === 'aqui') {
+      const name = args.slice(1).join(' ')
+      if (!name) {
+        bot.chat('Uso: !local salvar <nome>')
+        return
+      }
+      const player = bot.players[context.username]?.entity
+      const source = player?.position || bot.entity?.position
+      if (!source) {
+        bot.chat('Não consigo determinar sua posição agora.')
+        return
+      }
+      try {
+        const entry = waypointManager.save(name, source, currentDimension())
+        persistSoon()
+        bot.chat(`Local ${entry.name} salvo em X=${Math.floor(entry.position.x)}, Y=${Math.floor(entry.position.y)}, Z=${Math.floor(entry.position.z)}.`)
+      } catch (err) {
+        bot.chat(`Não consegui salvar o local: ${err.message}`)
+      }
+      return
+    }
+
+    if (action === 'remover' || action === 'apagar') {
+      const name = args.slice(1).join(' ')
+      if (!name) {
+        bot.chat('Uso: !local remover <nome>')
+        return
+      }
+      const removed = waypointManager.remove(name)
+      if (removed) persistSoon()
+      bot.chat(removed ? `Local ${name} removido.` : `Não encontrei o local ${name}.`)
+      return
+    }
+
+    const name = action === 'status' ? args.slice(1).join(' ') : args.join(' ')
+    const entry = waypointOrBase(name)
+    if (!entry) {
+      bot.chat(`Não encontrei o local ${name}.`)
+      return
+    }
+    bot.chat(`${entry.name}: X=${Math.floor(entry.position.x)}, Y=${Math.floor(entry.position.y)}, Z=${Math.floor(entry.position.z)}${entry.dimension ? ` | ${entry.dimension}` : ''}.`)
+  })
+
+  commandRouter.register(['ir', 'viajar'], async (_context, args) => {
+    const name = args.join(' ')
+    if (!name) {
+      bot.chat('Uso: !ir <local>  ex.: !ir mina')
+      return
+    }
+    const entry = waypointOrBase(name)
+    if (!entry) {
+      bot.chat(`Não encontrei o local ${name}. Use !local listar.`)
+      return
+    }
+    try {
+      travelTo(entry)
+    } catch (err) {
+      bot.chat(`Não consigo ir para ${name}: ${err.message}`)
+    }
+  })
+
+  commandRouter.register('voltar', async (_context, args) => {
+    const name = args.length ? args.join(' ') : 'base'
+    const entry = waypointOrBase(name)
+    if (!entry) {
+      bot.chat(name === 'base' ? 'Base ainda não definida.' : `Não encontrei o local ${name}.`)
+      return
+    }
+    try {
+      travelTo(entry)
+    } catch (err) {
+      bot.chat(`Não consigo voltar para ${name}: ${err.message}`)
+    }
+  })
+
+  commandRouter.register('patrulha', async (_context, args) => {
+    const action = String(args[0] || 'status').toLowerCase()
+
+    if (action === 'status') {
+      bot.chat(patrolActive
+        ? `Patrulha ativa: ${patrolRoute.join(' -> ')}.`
+        : 'Nenhuma patrulha ativa.')
+      return
+    }
+
+    if (['off', 'parar', 'cancelar'].includes(action)) {
+      clearPatrolState()
+      if (taskName === 'patrulhar') cancelTask()
+      mode = 'ficar'
+      bot.chat('Patrulha encerrada.')
+      return
+    }
+
+    if (args.length < 2) {
+      bot.chat('Uso: !patrulha <local1> <local2> [local3...] | !patrulha off')
+      return
+    }
+
+    const entries = args.map((name) => waypointOrBase(name))
+    const missingIndex = entries.findIndex((entry) => !entry)
+    if (missingIndex >= 0) {
+      bot.chat(`Não encontrei o local ${args[missingIndex]}.`)
+      return
+    }
+
+    try {
+      startPatrol(entries)
+    } catch (err) {
+      bot.chat(`Não consegui iniciar a patrulha: ${err.message}`)
+    }
+  })
+
+  commandRouter.register('enviar', async (_context, args) => {
+    const workerName = String(args[0] || '').toLowerCase()
+    const locationName = args.slice(1).join(' ')
+    if (!workerName || !locationName) {
+      bot.chat('Uso: !enviar <bot> <local>')
+      return
+    }
+    const entry = waypointOrBase(locationName)
+    if (!entry) {
+      bot.chat(`Não encontrei o local ${locationName}.`)
+      return
+    }
+    try {
+      assertWaypointReachable(entry)
+      await colony.sendTo(workerName, entry.position)
+      bot.chat(`${workerName} recebeu a ordem de ir para ${entry.name}.`)
+    } catch (err) {
+      bot.chat(`Não consegui enviar ${workerName}: ${err.message}`)
+    }
+  })
+
+  commandRouter.register('explorar', async (_context, args) => {
+    const parts = [...args]
+    let radius = 64
+    if (/^\d+$/.test(parts.at(-1) || '')) radius = Number.parseInt(parts.pop(), 10)
+    const locationName = parts.join(' ')
+    if (!locationName) {
+      bot.chat('Uso: !explorar <local> [raio]')
+      return
+    }
+    const entry = waypointOrBase(locationName)
+    if (!entry) {
+      bot.chat(`Não encontrei o local ${locationName}.`)
+      return
+    }
+    try {
+      assertWaypointReachable(entry)
+      const result = await colony.exploreAt(entry.position, radius)
+      bot.chat(`${result.name} vai explorar ao redor de ${entry.name} (raio ${result.radius}).`)
+    } catch (err) {
+      bot.chat(`Não consegui iniciar a exploração: ${err.message}`)
+    }
   })
 
   commandRouter.register('smoke', async () => {
@@ -1093,6 +1371,7 @@ async function main() {
         break
       case '!seguir':
         autonomous = false
+        clearPatrolState()
         persistSoon()
         cancelTask()
         mode = 'seguir'
@@ -1131,6 +1410,7 @@ async function main() {
       }
       case '!autonomo':
       case '!autônomo':
+        clearPatrolState()
         if (args[0] === 'off' || args[0] === 'parar') {
           autonomous = false
           cancelTask()
@@ -1153,6 +1433,7 @@ async function main() {
         break
       case '!ficar':
         autonomous = false
+        clearPatrolState()
         persistSoon()
         cancelTask()
         mode = 'ficar'
@@ -1160,6 +1441,7 @@ async function main() {
         break
       case '!cancelar':
         autonomous = false
+        clearPatrolState()
         persistSoon()
         cancelTask()
         mode = 'seguir'
@@ -1213,7 +1495,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
         break
     }
