@@ -58,6 +58,8 @@ const FLEE_DISTANCE = 16    // distância que tenta manter do agressor
 const FLEE_MS = 4000        // tempo fugindo depois de tomar dano
 const DEFEND_RANGE = 5      // hostil mais perto que isso: o bot reage (luta ou foge)
 const CREEPER_RANGE = 6     // creeper mais perto que isso: foge antes que exploda
+const CHAIN_RANGE = 8       // depois de matar, emenda luta com hostil até essa distância
+const CHAIN_FIGHTS = 6      // máximo de lutas emendadas numa mesma tarefa
 const HUNGRY = 14           // abaixo disso come (ou vai buscar comida)
 const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram certo
 const OWNER_NEAR = 32
@@ -574,18 +576,29 @@ async function main() {
 
   // Luta com `target` até ele morrer; com vida baixa, recua.
   function defend(target) {
+    // Já lutando com ele (defesa automática + !atacar): não reinicia a luta.
+    if (mode === 'tarefa' && taskName === 'lutar' && fightTarget === target) return
     const resume = mode === 'ficar' || (mode === 'tarefa' && taskName === 'lutar' && fightResume === 'ficar') ? 'ficar' : 'seguir'
     if (mode === 'tarefa' && taskName !== 'lutar') bot.chat(`Parei de ${taskName} para lutar com ${target.name}.`)
     fightTarget = target
     fightResume = resume
     console.log(`Lutando com ${target.name} (HP ${Math.round(bot.health)})`)
     runTask('lutar', async (isCancelled) => {
-      const result = await combat.fight(bot, target, isCancelled)
-      console.log(`Luta com ${target.name}: ${result}`)
-      if (result === 'recuei') {
-        flee(target)
-      } else if (result === 'morto') {
-        await food.collectDrops(bot, target.position.clone(), isCancelled)
+      // Emenda lutas: matou um e há outro hostil perto, continua (se ainda compensa lutar).
+      let current = target
+      for (let fights = 0; current && fights < CHAIN_FIGHTS && !isCancelled(); fights++) {
+        fightTarget = current
+        const result = await combat.fight(bot, current, isCancelled)
+        console.log(`Luta com ${current.name}: ${result}`)
+        if (result === 'recuei') {
+          flee(current)
+          return
+        }
+        if (result !== 'morto') return
+        const next = combat.proactiveTarget(bot, CHAIN_RANGE)
+        await food.collectDrops(bot, current.position.clone(), isCancelled)
+        current = next && next.isValid !== false && combat.decide(bot, next) === 'lutar' ? next : null
+        if (current) console.log(`Próximo: ${current.name}`)
       }
     }, { resume })
   }
