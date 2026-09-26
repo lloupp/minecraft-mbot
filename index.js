@@ -1,5 +1,5 @@
 // minecraft-mbot/index.js
-// Bot de automação Minecraft Forge 26.3 (protocolo 777)
+// Bot de automação Minecraft Java. Alvo principal: 1.20.1.
 //
 // INSTRUÇÕES:
 // 1. Abra o Minecraft via TLauncher, entre no mundo "Novo mundo"
@@ -31,6 +31,7 @@ const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
+const { resolveRuntimeProfile, profileSummary } = require('./core/RuntimeProfile')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -93,22 +94,25 @@ async function main() {
   }
 
   // ========== CONFIGURAÇÃO ==========
+  const runtime = resolveRuntimeProfile({
+    serverVersion: server.version,
+    envVersion: process.env.MINECRAFT_VERSION,
+    compat: process.env.MINECRAFT_COMPAT
+  })
   const CONFIG = {
     host: HOST,
     port: server.port,
     username: process.env.MINECRAFT_BOT_NAME || 'eduardo_bot',
     password: '',
-    // version: false trava na detecção automática; usa a versão do ping.
-    version: process.env.MINECRAFT_VERSION || server.version,
-    // O 26.3 ainda tem pacotes que a biblioteca não lê (ex.: partículas); não são
-    // fatais, só enchem o console. DEBUG_PROTOCOL=1 mostra esses erros.
-    hideErrors: !process.env.DEBUG_PROTOCOL
+    version: runtime.version,
+    hideErrors: process.env.DEBUG_PROTOCOL ? false : runtime.hideErrors
   }
-  console.log(`Conectando a ${CONFIG.host}:${CONFIG.port} (versão ${CONFIG.version})...`)
+  console.log(`Conectando a ${CONFIG.host}:${CONFIG.port}...`)
+  console.log(`Runtime: ${profileSummary(runtime)}`)
 
   // ========== CRIAÇÃO DO BOT ==========
   const bot = mineflayer.createBot(CONFIG)
-  autoVersionForge(bot._client)
+  if (runtime.forge) autoVersionForge(bot._client)
 
   // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
   let stopLan = () => {}
@@ -119,8 +123,10 @@ async function main() {
       console.log('[lan] anúncio só funciona para servidor neste PC (MINECRAFT_HOST local)')
     }
   }
-  fixEntityMovement(bot._client)
-  fixOutgoingPackets(bot._client)
+  if (runtime.protocolPatches) {
+    fixEntityMovement(bot._client)
+    fixOutgoingPackets(bot._client)
+  }
   bot.loadPlugin(pathfinder)
 
   // ========== ORQUESTRAÇÃO ==========
@@ -145,9 +151,11 @@ async function main() {
 
   function createWorker({ name, role }) {
     const worker = mineflayer.createBot({ ...CONFIG, username: name })
-    autoVersionForge(worker._client)
-    fixEntityMovement(worker._client)
-    fixOutgoingPackets(worker._client)
+    if (runtime.forge) autoVersionForge(worker._client)
+    if (runtime.protocolPatches) {
+      fixEntityMovement(worker._client)
+      fixOutgoingPackets(worker._client)
+    }
     worker.loadPlugin(pathfinder)
     worker.colonyController = new WorkerController({
       bot: worker,
@@ -186,7 +194,8 @@ async function main() {
     storage,
     botManager,
     homeProvider: () => colonyHome,
-    projectManager
+    projectManager,
+    runtime
   })
 
   function workerRoleCounts() {
@@ -781,6 +790,11 @@ async function main() {
     bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}.`)
   })
 
+  commandRouter.register('runtime', async () => {
+    bot.chat(`Runtime: ${profileSummary(runtime)}`)
+    bot.chat(`Servidor anunciou: ${server.version} | porta: ${server.port}`)
+  })
+
   commandRouter.register('smoke', async () => {
     bot.chat('Executando smoke test da colônia...')
     const result = await smokeTest.run()
@@ -1097,7 +1111,7 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Comandos: !seguir, !ficar, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !runtime, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina>, !todos voltar, !tarefas')
         break
     }
   })
