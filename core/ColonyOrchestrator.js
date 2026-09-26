@@ -149,6 +149,26 @@ class ColonyOrchestrator {
     return this.runRoleTask('minerador', { type: 'construir_mina', length }, 'mina')
   }
 
+  async breedAnimals(species, pairs = 1) {
+    const normalizedPairs = Math.max(1, Math.min(16, Number.parseInt(pairs, 10) || 1))
+    const name = this.runRoleTask(
+      'fazendeiro',
+      { type: 'reproduzir_animais', species, pairs: normalizedPairs },
+      `reprodução de ${species}`
+    )
+    return { name, species, pairs: normalizedPairs }
+  }
+
+  async shearSheep(count = 1) {
+    const normalizedCount = Math.max(1, Math.min(32, Number.parseInt(count, 10) || 1))
+    const name = this.runRoleTask(
+      'fazendeiro',
+      { type: 'tosquiar', count: normalizedCount },
+      'tosquia'
+    )
+    return { name, count: normalizedCount }
+  }
+
   async exploreAt(position, radius = 64) {
     const normalizedRadius = Math.max(16, Math.min(256, Number.parseInt(radius, 10) || 64))
     const name = this.runRoleTask(
