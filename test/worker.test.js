@@ -122,3 +122,29 @@ test('StorageManager não segura a trava do baú enquanto o bot caminha', async 
   ])
   assert.deepEqual(order, ['perto', 'longe'])
 })
+
+test('StorageManager serializa operações do mesmo bot (não troca o objetivo no meio)', async () => {
+  const storage = new StorageManager()
+  storage.setPosition({ x: 0, y: 64, z: 0 })
+  const chest = { name: 'chest', position: new Vec3(0, 64, 0) }
+  // Como o pathfinder real: um goto novo rejeita o que estava em andamento.
+  let current = null
+  const bot = {
+    blockAt: () => chest,
+    pathfinder: {
+      setGoal: () => {},
+      goto: () => {
+        current?.reject(new Error('The goal was changed before it could be completed!'))
+        return new Promise((resolve, reject) => {
+          const entry = { reject }
+          current = entry
+          setTimeout(() => { if (current === entry) current = null; resolve() }, 20)
+        })
+      }
+    },
+    openContainer: async () => ({ containerItems: () => [{ name: 'coal', count: 3 }], close: () => {} })
+  }
+
+  const results = await Promise.all([storage.summary(bot), storage.summary(bot), storage.count(bot, 'coal')])
+  assert.deepEqual(results, [{ coal: 3 }, { coal: 3 }, 3])
+})

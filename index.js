@@ -354,6 +354,29 @@ async function main() {
     }
   }
 
+  // Ações do próprio orquestrador que andam (ler o baú, smoke test). No modo
+  // seguir, o laço principal troca o objetivo do pathfinder a cada 500 ms e o
+  // goto falharia com "The goal was changed before it could be completed!".
+  // O contador cobre chamadas sobrepostas: só volta a seguir quando a última acaba.
+  let pausedFollowing = 0
+  let pauseName = null
+  async function withoutFollowing(name, fn) {
+    if (mode !== 'seguir' && !pausedFollowing) return fn()
+    if (!pausedFollowing++) {
+      mode = 'tarefa'
+      taskName = pauseName = name
+    }
+    try {
+      return await fn()
+    } finally {
+      // Outra tarefa pode ter começado no meio (runTask troca taskName): não a sobrescreve.
+      if (!--pausedFollowing && mode === 'tarefa' && taskName === pauseName) {
+        mode = 'seguir'
+        taskName = null
+      }
+    }
+  }
+
   // Executa uma tarefa longa. `fn` recebe isCancelled() e deve parar quando for true
   // (fuga, !cancelar, outra tarefa). No fim, volta a seguir o dono (ou a `resume`).
   async function runTask(name, fn, { resume = 'seguir' } = {}) {
@@ -781,7 +804,7 @@ async function main() {
         return
       }
       try {
-        if (!storage.snapshotFresh(5000)) await storage.summary(bot)
+        if (!storage.snapshotFresh(5000)) await withoutFollowing('ler o estoque', () => storage.summary(bot))
         const report = colony.demandReport()
         const d = report?.deficits || {}
         bot.chat(`Faltas: comida ${d.food || 0}, madeira ${d.wood || 0}, combustível ${d.fuel || 0}, ferro ${d.ironTotal || 0}, construção ${d.building || 0}.`)
@@ -1373,7 +1396,7 @@ async function main() {
 
   commandRouter.register('smoke', async () => {
     bot.chat('Executando smoke test da colônia...')
-    const result = await smokeTest.run()
+    const result = await withoutFollowing('smoke test', () => smokeTest.run())
     const status = result.ok ? 'PASSOU' : 'FALHOU'
     bot.chat(`Smoke: ${status} | ${result.passed} ok | ${result.failed} falha(s).`)
     for (const check of result.checks) {
@@ -1400,7 +1423,7 @@ async function main() {
     if (action === 'aqui' || action === 'definir') {
       try {
         const block = storage.configureNearest(bot, 8)
-        await storage.summary(bot)
+        await withoutFollowing('ler o estoque', () => storage.summary(bot))
         persistSoon()
         bot.chat(`Estoque central definido: ${block.name} em X=${block.position.x}, Y=${block.position.y}, Z=${block.position.z}.`)
       } catch (err) {
@@ -1434,7 +1457,7 @@ async function main() {
     }
 
     try {
-      const counts = await storage.summary(bot)
+      const counts = await withoutFollowing('ler o estoque', () => storage.summary(bot))
       const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
       if (!entries.length) {
         bot.chat('Estoque central está vazio.')
