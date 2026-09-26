@@ -111,3 +111,11 @@ test('autonomia pula metas já cumpridas e respeita cooldown de falha', () => {
   autonomy.failed(first)
   assert.notEqual(autonomy.next()?.name, first.name)
 })
+
+
+test('Forge 1.20.1 usa camada Forge sem patches exclusivos do 26.3', () => {
+  const profile = detectProfile('Forge 1.20.1')
+  assert.equal(profile.id, PROFILE_IDS.FORGE)
+  assert.equal(profile.useForge, true)
+  assert.equal(profile.useProtocolPatches, false)
+})
