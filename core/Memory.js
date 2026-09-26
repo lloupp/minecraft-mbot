@@ -30,7 +30,7 @@ const TIPO_ALIASES = {
 }
 
 function tipoDe(value) {
-  const key = String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+  const key = String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
   return TIPO_ALIASES[key] || null
 }
 
@@ -38,7 +38,7 @@ function tipoDe(value) {
 function normalizarChave(value) {
   return String(value || '')
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9._-]+/g, '_')
@@ -388,5 +388,6 @@ module.exports = {
   inferido,
   formatar,
   idade,
-  fmtPos
+  fmtPos,
+  fmtOrigem
 }

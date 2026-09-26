@@ -84,7 +84,7 @@ const BLOCK_ALIASES = {
 }
 
 function aliasKey(value) {
-  return String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 }
 
 // Blocos que uma palavra pode significar. Nome exato do registro não é ambíguo.
