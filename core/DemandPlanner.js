@@ -1,6 +1,7 @@
 const FOOD_NAMES = new Set([
-  'bread', 'baked_potato', 'carrot', 'apple', 'sweet_berries', 'glow_berries',
-  'cooked_beef', 'cooked_porkchop', 'cooked_chicken', 'cooked_mutton',
+  'bread', 'baked_potato', 'potato', 'carrot', 'beetroot', 'apple',
+  'sweet_berries', 'glow_berries', 'beef', 'porkchop', 'mutton', 'rabbit',
+  'cod', 'salmon', 'cooked_beef', 'cooked_porkchop', 'cooked_chicken', 'cooked_mutton',
   'cooked_rabbit', 'cooked_cod', 'cooked_salmon', 'beetroot_soup',
   'mushroom_stew', 'rabbit_stew', 'pumpkin_pie', 'melon_slice'
 ])
@@ -120,20 +121,21 @@ class DemandPlanner {
         task = { type: 'fazenda', resource: 'comida', count, reason: 'estoque_baixo_comida' }
         m.food += count
       } else if (role === 'artesao') {
+        const hasStickMaterial = m.logs >= 1 || m.planks >= 2
         if (need.ironIngot > 0 && m.rawIron > 0 && m.fuel > 0) {
           const count = Math.min(8, need.ironIngot, m.rawIron)
           task = { type: 'fabricar', item: 'iron_ingot', count, reason: 'converter_ferro_bruto' }
           m.rawIron -= count
           m.ironIngot += count
-        } else if (need.ironPickaxe > 0 && m.ironIngot >= 3 && m.wood >= 1) {
+        } else if (need.ironPickaxe > 0 && m.ironIngot >= 3 && hasStickMaterial) {
           task = { type: 'fabricar', item: 'iron_pickaxe', count: 1, reason: 'reserva_picaretas' }
           m.ironPickaxe += 1
           m.ironIngot -= 3
-        } else if (need.ironAxe > 0 && m.ironIngot >= 3 && m.wood >= 1) {
+        } else if (need.ironAxe > 0 && m.ironIngot >= 3 && hasStickMaterial) {
           task = { type: 'fabricar', item: 'iron_axe', count: 1, reason: 'reserva_machados' }
           m.ironAxe += 1
           m.ironIngot -= 3
-        } else if (need.ironSword > 0 && m.ironIngot >= 2 && m.wood >= 1) {
+        } else if (need.ironSword > 0 && m.ironIngot >= 2 && hasStickMaterial) {
           task = { type: 'fabricar', item: 'iron_sword', count: 1, reason: 'reserva_espadas' }
           m.ironSword += 1
           m.ironIngot -= 2
