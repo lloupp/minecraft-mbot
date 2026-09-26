@@ -96,3 +96,16 @@ test('ColonyOrchestrator delega reprodução e tosquia ao fazendeiro', async () 
   assert.deepEqual(tasks[0], { type: 'reproduzir_animais', species: 'cow', pairs: 2 })
   assert.deepEqual(tasks[1], { type: 'tosquiar', count: 3 })
 })
+
+
+test('husbandry prefere alimento com quantidade suficiente entre alternativas', async () => {
+  const carrot = { name: 'carrot', count: 1, type: 1 }
+  const potato = { name: 'potato', count: 2, type: 2 }
+  const bot = fakeBot({ species: 'pig', animalCount: 2, items: [carrot, potato] })
+
+  const result = await husbandry.breed(bot, 'porco', 1)
+
+  assert.equal(result.ok, true)
+  assert.equal(result.feed, 'potato')
+  assert.equal(bot.equipped[0][0], 'potato')
+})
