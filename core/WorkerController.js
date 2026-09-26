@@ -5,6 +5,7 @@ const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const husbandry = require('../lib/husbandry')
 const animalProducts = require('../lib/animalProducts')
+const stateMachineExplore = require('../lib/stateMachineExplore')
 const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = require('./AnimalPen')
 const { resolveBlockNames } = require('./resources')
 
@@ -989,9 +990,23 @@ class WorkerController {
       ? Math.floor(Number(home.y))
       : Math.floor(this.bot.entity.position.y)
 
+    const target = { x, y, z, radius: distance }
+    if (process.env.MBOT_STATEMACHINE === '1') {
+      const result = await stateMachineExplore.runExploreStateMachine({
+        target,
+        move: (point) => this.goTo(new goals.GoalNear(point.x, point.y, point.z, 3), 30000),
+        isCancelled,
+        logger: this.logger
+      })
+      if (!result.fallback) {
+        return { ...result, x, y, z, radius: distance }
+      }
+      this.logger.log?.('[statemachine] plugin indisponível; usando exploração clássica')
+    }
+
     await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
     if (isCancelled()) return { ok: false, cancelled: true }
-    return { ok: true, x, y, z, radius: distance }
+    return { ok: true, x, y, z, radius: distance, stateMachine: false }
   }
 
   async goToPoint(position, isCancelled) {
