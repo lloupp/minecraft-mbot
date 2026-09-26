@@ -201,7 +201,7 @@ O modo `!colonia auto` distribui tarefas padrão apenas para workers ociosos. Or
 
 ### Construção
 
-`!construir casa` usa um construtor disponível e cria um abrigo 3x3 próximo à base. Nesta versão, o construtor precisa ter no próprio inventário pelo menos 23 blocos adequados (por exemplo, cobblestone ou planks). A logística de estoque compartilhado e transferência automática de materiais entre bots é uma próxima etapa separada.
+`!construir casa` usa um construtor disponível e cria um abrigo 3x3 próximo à base. Se ele não tiver pelo menos 23 blocos adequados no inventário, tenta retirá-los automaticamente do estoque central.
 
 
 ## Estoque central e cadeia de produção
