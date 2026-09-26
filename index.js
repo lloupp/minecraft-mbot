@@ -116,7 +116,10 @@ async function main() {
   console.log(`Perfil: ${describeProfile(serverProfile)}`)
 
   // ========== CRIAÇÃO DO BOT ==========
-  const bot = mineflayer.createBot(CONFIG)
+  // Cópia: o mineflayer grava no objeto de opções (client, connect, auth...).
+  // Os workers usam {...CONFIG}; herdar o `connect` deste bot os deixava presos em
+  // "conectando" sem nunca abrir a conexão.
+  const bot = mineflayer.createBot({ ...CONFIG })
   configureClient(bot, serverProfile)
 
   // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
