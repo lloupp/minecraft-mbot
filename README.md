@@ -565,6 +565,16 @@ Ou pulados individualmente:
 MBOT_PLUGINS_SKIP=pvp,hawkeye node index.js
 ```
 
+O corpo a corpo escolhe o melhor backend disponível: custom-pvp → mineflayer-pvp → implementação própria. Pode forçar o backend:
+
+```bash
+MBOT_MELEE=custom node index.js
+MBOT_MELEE=pvp node index.js
+MBOT_MELEE=manual node index.js
+```
+
+Se `custom` não estiver disponível, cai para pvp e depois manual.
+
 A coleta própria continua sendo o padrão. O `mineflayer-collectblock` só assume quando explicitamente habilitado:
 
 ```bash
