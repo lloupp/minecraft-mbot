@@ -103,6 +103,25 @@ test('abrigo evita caverna e água lateral', () => {
   assert.equal(night.safeToDig(water, ground), false)
 })
 
+test('abrigo não escolhe tronco nem folhas como superfície', () => {
+  const treeBlocks = {
+    [new Vec3(0, 63, 0).toString()]: 'birch_leaves',
+    [new Vec3(0, 62, 0).toString()]: 'birch_log',
+    [new Vec3(0, 61, 0).toString()]: 'air',
+    [new Vec3(0, 60, 0).toString()]: 'dirt'
+  }
+  for (let x = -8; x <= 8; x++) {
+    for (let z = -8; z <= 8; z++) treeBlocks[new Vec3(x, 64, z).toString()] = 'air'
+  }
+  const bot = fakeBot({ blocks: treeBlocks })
+  bot.entity = { position: new Vec3(0, 64, 0) }
+  const spot = night.findShelterSpot(bot)
+
+  assert.ok(spot)
+  assert.equal(spot.toString(), new Vec3(0, 60, 0).toString())
+  assert.ok(['dirt', 'stone', 'cobblestone', 'grass_block'].includes(bot.blockAt(spot).name))
+})
+
 test('autonomia pula metas já cumpridas e respeita cooldown de falha', () => {
   const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace']], food: 20 })
   const autonomy = new Autonomy(bot)
