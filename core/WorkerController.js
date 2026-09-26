@@ -23,6 +23,10 @@ const NATURAL_TERRAIN = /^(grass_block|dirt|coarse_dirt|rooted_dirt|podzol|mycel
 // (40 ms de A* por tick), 7 workers calculando caminhos longos ao mesmo tempo
 // saturavam a CPU e o servidor os derrubava por "Timed out".
 const PATH_TICK_MS = 8
+// O thinkTimeout conta tempo de relógio, não de cálculo: com 8 ms por tick o
+// padrão de 5 s dá ~0,8 s de A* e caminhos longos falhavam com "Took to long".
+// 25 s mantém o mesmo cálculo que 5 s com o tickTimeout padrão de 40 ms.
+const PATH_THINK_MS = 25000
 // Tempo para uma viagem longa: ~700 ms por bloco (medido ~2 blocos/s com vários
 // workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
 const MS_PER_BLOCK = 700
@@ -88,6 +92,7 @@ class WorkerController {
       protectPenBlocks(this.penMoves, bot.registry)
       bot.pathfinder.setMovements(this.workMoves)
       bot.pathfinder.tickTimeout = PATH_TICK_MS
+      bot.pathfinder.thinkTimeout = PATH_THINK_MS
       this.state = 'ocioso'
       this.survivalTimer = setInterval(() => this.survivalTick(), 1000)
       this.survivalTimer.unref?.()

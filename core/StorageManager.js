@@ -93,8 +93,14 @@ class StorageManager {
     return block
   }
 
-  async goNear(bot, position, timeoutMs = 15000) {
+  async goNear(bot, position, timeoutMs = null) {
     if (!bot.pathfinder) throw new Error('pathfinder indisponível')
+    // Longe da base, 15 s não bastam: ~700 ms por bloco, como nas viagens dos workers.
+    if (timeoutMs == null) {
+      const from = bot.entity?.position
+      const distance = from ? Math.hypot(from.x - position.x, from.y - position.y, from.z - position.z) : 0
+      timeoutMs = Math.max(15000, Math.round(distance * 700))
+    }
     let timer
     const timeout = new Promise((_, reject) => {
       timer = setTimeout(() => {
@@ -124,7 +130,10 @@ class StorageManager {
     try {
       // Anda até o baú antes de entrar na fila: a trava só cobre abrir e mexer
       // nos itens, para um bot longe não segurar os outros enquanto caminha.
-      await this.goNear(bot, this.block(bot).position)
+      // Vai pela posição salva: longe da base o chunk do baú ainda não está
+      // carregado e this.block() falharia antes de o bot sair do lugar.
+      if (!this.position) throw new Error('estoque central ainda não foi definido')
+      await this.goNear(bot, this.position)
 
       const previous = this._lock
       let release
