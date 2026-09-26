@@ -134,6 +134,8 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!animais [raio]` | Conta animais suportados próximos |
 | `!reproduzir <animal> [pares]` | Alimenta pares para tentar reprodução |
 | `!tosquiar [qtd]` | Tenta tosquiar ovelhas próximas |
+| `!manejo <animal> [alvo]` | Tenta elevar a população até uma meta limitada |
+| `!construir curral [animal]` | Constrói um curral físico 7x7 para a espécie |
 
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
@@ -677,3 +679,44 @@ O sistema reporta quantos animais foram **alimentados** e quantos pares foram te
 Para tosquia, o bot procura `shears` no inventário, depois no estoque central e, se necessário, tenta fabricar uma tesoura usando a cadeia de produção. A lã coletada é enviada de volta ao estoque quando possível.
 
 A reprodução ainda não roda automaticamente no projeto de fazenda. Ela permanece sob comando explícito até existir uma camada de curral/cercado que impeça dispersão dos animais e consumo descontrolado de alimento.
+
+
+## Currais e manejo populacional
+
+A criação animal agora possui uma camada física e uma camada de controle de população.
+
+Para construir um curral:
+
+```text
+!construir curral vaca
+!construir curral ovelha
+!construir curral porco
+```
+
+O blueprint padrão tem **7x7 blocos**, com 23 cercas e 1 portão. O sistema tenta usar uma família de madeira disponível no inventário/estoque e, quando possível, fabricar as peças restantes pela cadeia de produção.
+
+Cada espécie possui um offset padrão diferente em relação à base para evitar sobreposição entre currais.
+
+O construtor é preferido para a obra. Se não houver construtor, um fazendeiro pode executar a construção.
+
+### Meta populacional
+
+Em vez de reprodução sem limite:
+
+```text
+!manejo vaca 8
+!manejo ovelha 10
+!manejo galinha 12
+```
+
+O sistema conta os animais próximos e calcula quantos pares devem ser tentados. Se a população já estiver na meta, não consome alimento. O número de tentativas também é limitado pela quantidade de animais disponíveis.
+
+Exemplo:
+
+```text
+4 vacas + meta 8
+-> déficit 4
+-> no máximo 2 pares disponíveis naquele ciclo
+```
+
+O comando não abate animais acima da meta. Nesta etapa, o limite serve para impedir reprodução desnecessária; descarte/abate seletivo só será adicionado com regras explícitas de reserva mínima.
