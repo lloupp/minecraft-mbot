@@ -14,8 +14,20 @@ test('animalPenPlan cria curral 7x7 com 23 cercas e um portão', () => {
   assert.equal(plan.fenceCount, 23)
   assert.equal(plan.gateCount, 1)
   assert.equal(plan.fences.length, 23)
-  assert.deepEqual(plan.gate, { x: 15, y: 64, z: 8 })
-  assert.deepEqual(plan.center, { x: 15, y: 64, z: 11 })
+  assert.deepEqual(plan.gate, { x: 23, y: 64, z: 8 })
+  assert.deepEqual(plan.center, { x: 23, y: 64, z: 11 })
+})
+
+test('animalPenPlan deixa livre o acesso ao portão de todos os currais', () => {
+  const home = { x: 0, y: 64, z: 0 }
+  const plans = Object.keys(SPECIES_OFFSETS).map((species) => animalPenPlan(home, species))
+  const fences = new Set(plans.flatMap((plan) => [...plan.fences, plan.gate].map((p) => `${p.x},${p.z}`)))
+  for (const plan of plans) {
+    // Os dois blocos entre o portão e o ponto de espera (e ele mesmo) ficam vazios.
+    for (let dz = 1; dz <= 2; dz++) {
+      assert.equal(fences.has(`${plan.gate.x},${plan.gate.z - dz}`), false, `${plan.species} dz=${dz}`)
+    }
+  }
 })
 
 test('animalPenPlan separa espécies em offsets diferentes', () => {
@@ -93,8 +105,8 @@ test('ColonyOrchestrator delega curral ao construtor e manejo ao fazendeiro', as
 
 test('pointInsidePen distingue interior, borda e exterior', () => {
   const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
-  assert.equal(pointInsidePen(new Vec3(15, 64, 11), plan), true)
-  assert.equal(pointInsidePen(new Vec3(12, 64, 8), plan), false)
+  assert.equal(pointInsidePen(new Vec3(23, 64, 11), plan), true)
+  assert.equal(pointInsidePen(new Vec3(20, 64, 8), plan), false)
   assert.equal(pointInsidePen(new Vec3(30, 64, 30), plan), false)
 })
 

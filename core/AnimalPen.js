@@ -2,20 +2,24 @@ const { Vec3 } = require('vec3')
 
 const PEN_SIZE = 7
 
+// Passo de 10 blocos (curral de 7 + 3 livres): o acesso ao portão (2 blocos ao
+// norte) não cai na cerca do curral vizinho. Começa em x=20 para não invadir
+// as casas e fazendas dos projetos (até x=16, z=12).
+const PEN_STEP = 10
 const SPECIES_OFFSETS = {
-  cow: { x: 12, z: 8 },
-  sheep: { x: 20, z: 8 },
-  pig: { x: 12, z: 16 },
-  chicken: { x: 20, z: 16 },
-  rabbit: { x: 28, z: 8 },
-  goat: { x: 28, z: 16 },
-  mooshroom: { x: 12, z: 24 },
-  llama: { x: 20, z: 24 }
+  cow: { x: 20, z: 8 },
+  sheep: { x: 20 + PEN_STEP, z: 8 },
+  rabbit: { x: 20 + 2 * PEN_STEP, z: 8 },
+  pig: { x: 20, z: 8 + PEN_STEP },
+  chicken: { x: 20 + PEN_STEP, z: 8 + PEN_STEP },
+  goat: { x: 20 + 2 * PEN_STEP, z: 8 + PEN_STEP },
+  mooshroom: { x: 20, z: 8 + 2 * PEN_STEP },
+  llama: { x: 20 + PEN_STEP, z: 8 + 2 * PEN_STEP }
 }
 
 function animalPenPlan(home, species = 'cow', offset = null) {
   if (!home) throw new Error('base da colônia ainda não definida')
-  const chosen = offset || SPECIES_OFFSETS[species] || { x: 12, z: 8 }
+  const chosen = offset || SPECIES_OFFSETS[species] || SPECIES_OFFSETS.cow
   const x0 = Math.floor(Number(home.x)) + Number(chosen.x || 0)
   const y = Math.floor(Number(home.y))
   const z0 = Math.floor(Number(home.z)) + Number(chosen.z || 0)

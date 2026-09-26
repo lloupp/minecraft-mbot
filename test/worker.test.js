@@ -207,6 +207,41 @@ test('WorkerController cancelado dentro do curral: a próxima tarefa sai pelo po
   assert.equal(worker.activePen, null)
 })
 
+test('WorkerController recoloca portão virado de lado, olhando de fora do curral', async () => {
+  const plan = animalPenPlan({ x: 0, y: 64, z: 0 }, 'cow')
+  const gatePos = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z)
+  const blocks = new Map()
+  const gateBlock = (facing) => ({ name: 'oak_fence_gate', boundingBox: 'block', position: gatePos, getProperties: () => ({ facing, open: false }) })
+  blocks.set(gatePos.toString(), gateBlock('east'))
+
+  const bot = fakeBot()
+  bot.entity.position = new Vec3(plan.gate.x + 3.5, 64, plan.gate.z + 0.5) // ao lado do portão
+  bot.inventory = { items: () => [{ name: 'oak_fence_gate', count: 1 }] }
+  bot.blockAt = (pos) => blocks.get(pos.toString()) ||
+    (pos.y < 64 ? { name: 'grass_block', boundingBox: 'block', position: pos } : { name: 'air', boundingBox: 'empty', position: pos })
+  const dug = []
+  bot.dig = async (block) => { dug.push(block.position.toString()); blocks.delete(block.position.toString()) }
+  bot.pathfinder.goto = async (goal) => {
+    if (goal.isEnd?.(bot.entity.position.floored())) return
+    bot.entity.position = new Vec3(goal.x + 0.5, goal.y, goal.z + 0.5)
+  }
+  // Como no jogo: o portão fica virado para onde o bot está olhando.
+  bot.placeBlock = async (ref, face) => {
+    const pos = ref.position.plus(face)
+    const dx = pos.x + 0.5 - bot.entity.position.x
+    const dz = pos.z + 0.5 - bot.entity.position.z
+    const facing = Math.abs(dz) >= Math.abs(dx) ? (dz > 0 ? 'south' : 'north') : (dx > 0 ? 'east' : 'west')
+    blocks.set(pos.toString(), gateBlock(facing))
+  }
+  const worker = readyWorker(bot, { role: 'fazendeiro' })
+
+  const ok = await worker.placePenGate(plan, 'oak_fence_gate', () => false)
+
+  assert.equal(ok, true)
+  assert.deepEqual(dug, [gatePos.toString()])
+  assert.equal(bot.blockAt(gatePos).getProperties().facing, 'south')
+})
+
 test('StorageManager não segura a trava do baú enquanto o bot caminha', async () => {
   const storage = new StorageManager()
   storage.setPosition({ x: 0, y: 64, z: 0 })

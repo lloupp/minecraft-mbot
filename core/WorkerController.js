@@ -541,6 +541,37 @@ class WorkerController {
     }
   }
 
+  // O portão fica virado para onde o bot olha ao colocá-lo. O portão fica na
+  // parede norte: precisa estar virado norte/sul, senão fica atravessado e deixa
+  // fresta. Coloca estando em plan.outside, olhando para o curral, e confere.
+  async placePenGate(plan, itemName, isCancelled) {
+    const pos = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z)
+    const facing = (block) => block?.getProperties?.().facing
+    const aligned = (block) => {
+      const value = facing(block)
+      return value === undefined || value === 'north' || value === 'south'
+    }
+
+    for (let attempt = 0; attempt < 2 && !isCancelled(); attempt++) {
+      const current = this.bot.blockAt(pos)
+      if (current?.name?.endsWith('_fence_gate')) {
+        if (aligned(current)) return true
+        // Virado de lado: tira para recolocar.
+        await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 10000).catch(() => {})
+        if (isCancelled()) return false
+        await this.bot.dig(current).catch(() => {})
+      }
+
+      const out = plan.outside
+      await this.goTo(new goals.GoalBlock(out.x, out.y, out.z), 10000).catch(() => {})
+      if (isCancelled()) return false
+      await this.bot.lookAt?.(pos.offset(0.5, 0.5, 0.5), true)?.catch?.(() => {})
+      if (!(await this.placeGroundItem(pos, itemName, isCancelled))) return false
+      if (aligned(this.bot.blockAt(pos))) return true
+    }
+    return false
+  }
+
   async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
     const home = this.homeProvider?.()
     const canonical = husbandry.normalizeSpecies(species) || species
@@ -556,7 +587,7 @@ class WorkerController {
 
     let gatePlaced = false
     if (!isCancelled()) {
-      gatePlaced = await this.placeGroundItem(plan.gate, kit.gate, isCancelled)
+      gatePlaced = await this.placePenGate(plan, kit.gate, isCancelled)
     }
 
     return {
