@@ -525,6 +525,16 @@ Exemplo de preparação:
 Esse comando é o smoke test E2E disponível para o ambiente real. Ele precisa ser executado no seu mundo porque o GitHub Actions não possui acesso ao servidor LAN da sua máquina.
 
 
+## Plugins avaliados para 1.20.1
+
+A matriz de plugins Mineflayer e Paper/Spigot avaliados para esta versão está em
+[`docs/plugins-1.20.1.md`](docs/plugins-1.20.1.md).
+
+A recomendação atual é manter o comportamento crítico do bot com fallback próprio.
+O primeiro plugin Mineflayer a ser testado como backend opcional será
+`mineflayer-collectblock`. Para servidor Paper, CoreProtect e Chunky são os
+candidatos operacionais mais úteis para uma colônia autônoma.
+
 ## Perfil recomendado: servidor 1.20.1
 
 Para o novo servidor, o perfil recomendado é Minecraft Java **1.20.1**. O bot detecta essa versão pelo ping e usa o protocolo normal, sem aplicar as correções específicas do Forge 26.3.

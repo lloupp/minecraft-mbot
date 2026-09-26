@@ -622,6 +622,7 @@ async function main() {
       console.log(`Sufocando em ${head.name}: cavando para sair`)
       bot.dig(head).catch(() => {})
     }
+
     // Durante a luta, o próprio laço de combate decide quando recuar.
     if (lastHealth !== null && bot.health < lastHealth && bot.health > 0 && taskName !== 'lutar') {
       react(lastAttacker)
