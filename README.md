@@ -53,6 +53,8 @@ minecraft-mbot/
 ├── index.js          # Conexão, estados, fuga e comandos
 ├── lib/
 │   ├── food.js       # Comer e buscar comida
+│   ├── craft.js      # Fabricar (com mesa) e usar a fornalha
+│   ├── gather.js     # Coletar blocos (pula os inalcançáveis)
 │   └── perception.js # Reconhecer blocos e entidades em volta
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
@@ -87,6 +89,8 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!seguir` | Segue o dono (padrão ao entrar) |
 | `!ficar` | Fica parado onde está |
 | `!minerar <bloco> [qtd]` | Minera blocos próximos, ex.: `!minerar oak_log 5` |
+| `!fabricar <item> [qtd]` | Fabrica o item, coletando madeira/pedra e fazendo a mesa se precisar, ex.: `!fabricar wooden_pickaxe` |
+| `!cozinhar [item] [qtd]` | Sem item: cozinha a comida crua. Com item: usa a fornalha, ex.: `!cozinhar raw_iron` |
 | `!comer` | Come a melhor comida do inventário |
 | `!comida` | Sai para buscar comida |
 | `!ver` | Descreve o que vê: bloco sob os pés, recursos e mobs por perto |
