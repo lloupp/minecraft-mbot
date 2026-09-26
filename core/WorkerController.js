@@ -311,7 +311,7 @@ class WorkerController {
     const gathered = await gather.mineBlocks(this.bot, (name) => wanted.has(name), count, isCancelled)
 
     const deposited = this.storage?.configured()
-      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
       : {}
     return { ok: gathered > 0, gathered, requested: count, resource, exhausted: gathered < count, deposited }
   }
@@ -324,7 +324,7 @@ class WorkerController {
       gathered++
     }
     const deposited = this.storage?.configured()
-      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
       : {}
     return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count, deposited }
   }
@@ -1083,7 +1083,7 @@ class WorkerController {
     }
 
     const deposited = this.storage?.configured()
-      ? await this.storage.depositCargo(this.bot).catch(() => ({}))
+      ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
       : {}
 
     return {

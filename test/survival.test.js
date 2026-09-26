@@ -119,3 +119,12 @@ test('Forge 1.20.1 usa camada Forge sem patches exclusivos do 26.3', () => {
   assert.equal(profile.useForge, true)
   assert.equal(profile.useProtocolPatches, false)
 })
+
+test('abrigo espera a terra cavada entrar no inventário antes de desistir', async () => {
+  const items = []
+  const bot = { inventory: { items: () => items } }
+  setTimeout(() => items.push({ name: 'dirt', count: 3 }), 300) // pega o drop depois
+  const item = await night.waitForCoverItem(bot, 2000)
+  assert.equal(item?.name, 'dirt')
+  assert.equal(await night.waitForCoverItem({ inventory: { items: () => [] } }, 200), null)
+})
