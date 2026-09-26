@@ -1344,9 +1344,13 @@ async function main() {
 
   commandRouter.register(['produto', 'produtoanimal'], async (_context, args) => {
     const product = animalProducts.normalizeProduct(args[0])
-    const count = Math.max(1, Math.min(32, Number.parseInt(args[1], 10) || 1))
+    const count = product === 'milk'
+      ? Math.max(1, Math.min(16, Number.parseInt(args[1], 10) || 1))
+      : product === 'eggs'
+        ? 1
+        : Math.max(1, Math.min(32, Number.parseInt(args[1], 10) || 1))
     if (!product) {
-      bot.chat('Uso: !produto <la|leite|ovos> [qtd]')
+      bot.chat('Uso: !produto la [1-32] | !produto leite [1-16] | !produto ovos')
       return
     }
 
@@ -1358,7 +1362,7 @@ async function main() {
 
     try {
       const result = await colony.collectAnimalProduct(product, count)
-      bot.chat(`${result.name} recebeu a tarefa de coletar ${product}${product === 'eggs' ? '' : ` x${result.count}`}.`)
+      bot.chat(`${result.name} recebeu a tarefa de coletar ${product}${product === 'eggs' ? ' disponível' : ` x${result.count}`}.`)
     } catch (err) {
       bot.chat(`Não consegui iniciar a produção animal: ${err.message}`)
     }
