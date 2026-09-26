@@ -43,8 +43,9 @@ class BotManager {
     const normalized = this.normalizeRole(role)
     if (!normalized) throw new Error(`papel desconhecido: ${role}`)
 
-    const requested = Math.max(1, Math.min(Number(count) || 1, this.capacity()))
-    if (requested <= 0) throw new Error(`limite da colônia atingido (${this.maxBots} bots contando o orquestrador)`)
+    const capacity = this.capacity()
+    if (capacity <= 0) throw new Error(`limite da colônia atingido (${this.maxBots} bots contando o orquestrador)`)
+    const requested = Math.max(1, Math.min(Number(count) || 1, capacity))
 
     const created = []
     for (let i = 0; i < requested; i++) {
