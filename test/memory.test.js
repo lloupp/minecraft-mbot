@@ -170,6 +170,22 @@ test('reinício restaura coordenadas pelo StateStore e metadados sem coordenadas
   assert.equal(Object.hasOwn(restartedMemory.lugar('casa'), 'dimensao'), false)
 })
 
+test('base legada migra para waypoint e deixa de persistir coordenadas em home', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'minecraft-mbot-base-migration-'))
+  const statePath = path.join(dir, 'state.json')
+  const store = new StateStore(statePath)
+  await store.save({ home: { x: 5, y: 64, z: -9 }, homeDimension: 'overworld' })
+
+  const oldState = await store.load()
+  const waypoints = new WaypointManager(oldState.waypoints)
+  waypoints.restoreLegacyBase(oldState.home, oldState.homeDimension)
+  await store.save({ home: null, homeDimension: null, waypoints: waypoints.exportState() })
+
+  const restored = await store.load()
+  assert.equal(restored.home, null)
+  assert.deepEqual(new WaypointManager(restored.waypoints).get('base').position, { x: 5, y: 64, z: -9 })
+})
+
 test('parseValor e tipoDe interpretam o chat', () => {
   assert.equal(parseValor('64'), 64)
   assert.equal(parseValor('sim'), true)
