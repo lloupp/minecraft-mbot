@@ -38,15 +38,12 @@ const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
-const { WaypointManager } = require('./core/WaypointManager')
-const { groundedPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
-const { EventLog, getEventLog } = require('./lib/event-log')
-const { DeathRecovery } = require('./lib/death-recovery')
-const { InventorySync } = require('./lib/inventory-sync')
-const { ReplanningEngine } = require('./lib/replanning')
-const { RouteMemory } = require('./lib/route-memory')
-const { StatusServer } = require('./lib/status-server')
-const { RunVerifier } = require('./core/RunVerifier')
+const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
+const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
+const { resolveReference, blockVariants, searchTerms } = require('./core/References')
+const { Clarifier } = require('./core/Clarifier')
+const { attachMemoryCapture } = require('./lib/memoryCapture')
+const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -144,6 +141,7 @@ async function main() {
   }
   bot.loadPlugin(pathfinder)
   loadPlugins(bot)
+  const clarifier = new Clarifier({ say: (text) => bot.chat(text) })
 
   // ========== ORQUESTRAÇÃO ==========
   const knowledge = new MinecraftKnowledge(bot)
@@ -157,6 +155,14 @@ async function main() {
   if (stateStore.lastLoadError) {
     console.log('[estado] arquivo local inválido; iniciando com estado vazio')
   }
+  // Memória tipada (lugares, preferências, compromissos, fatos) com proveniência.
+  const memory = await new Memory().load()
+  if (memory.lastLoadError) console.log('[memória] arquivo inválido; iniciando com memória vazia')
+  // Tarefas não sobrevivem a um reinício: compromissos pendentes ficam interrompidos.
+  for (const item of memory.listar('compromisso')) {
+    if (item.estado === 'pendente') memory.encerrarCompromisso(item.id, 'interrompido')
+  }
+  console.log(`[memória] ${memory.items.length} item(ns) carregado(s)`)
   let colonyHome = savedState.home
   let colonyHomeDimension = savedState.homeDimension || null
   if (savedState.storage) storage.setPosition(savedState.storage)
@@ -319,13 +325,83 @@ async function main() {
     return String(value)
   }
 
+  // Lugar da memória no formato de waypoint ({ name, position, dimension }).
+  function memoryPlace(name) {
+    const item = memory.lugar(name)
+    return item ? { name: item.nome, position: { ...item.posicao }, dimension: item.dimensao, origem: item.origem } : null
+  }
+
   function waypointOrBase(name) {
     if (String(name || '').toLowerCase() === 'base') {
-      return colonyHome
-        ? { name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension }
-        : null
+      if (colonyHome) return { name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension }
+      // Sem base da colônia, a "casa" lembrada serve de destino padrão.
+      return memoryPlace('base') || memoryPlace('casa')
     }
-    return waypointManager.get(name)
+    return waypointManager.get(name) || memoryPlace(name)
+  }
+
+  // Todos os lugares conhecidos (memória, base e locais salvos), sem repetir nomes.
+  function placeEntries() {
+    const byKey = new Map()
+    const add = (entry) => {
+      const key = normalizeWaypointName(entry?.name)
+      if (key && !byKey.has(key)) byKey.set(key, entry)
+    }
+    for (const item of memory.lugares()) add(memoryPlace(item.chave))
+    if (colonyHome) add({ name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension })
+    for (const entry of waypointManager.list()) add(entry)
+    return [...byKey.values()]
+  }
+
+  const placeLabel = (entry) => `${entry.name} ${fmtPos(entry.position)}`
+
+  // Depois de uma escolha, oferece torná-la padrão (sem travar a tarefa).
+  function offerDefault(key, value, username) {
+    clarifier.confirm('Usar sempre essa? sim/não', { who: username, timeoutMs: 20000, quiet: true })
+      .then((yes) => {
+        if (!yes) return
+        memory.definirPreferencia(key, value, dito(username))
+        bot.chat('Ok, vou lembrar.')
+      })
+      .catch(() => {})
+  }
+
+  // Resolve "casa", "mina"... Se houver mais de um lugar parecido, PERGUNTA ao dono.
+  // Retorna a entrada ou null (desconhecido, cancelado ou sem resposta).
+  async function resolvePlace(query, username) {
+    const prefKey = `ref.lugar.${normalizeWaypointName(query)}`
+    const result = resolveReference(query, placeEntries(), { preferido: memory.preferencia(prefKey) })
+    if (result.match) return result.match
+    if (!result.candidates.length) {
+      bot.chat(`Não conheço "${query}". Use !lembrar ${query} aqui ou !memoria lugares.`)
+      return null
+    }
+    const question = result.reason === 'parecido' ? `Não achei "${query}". Quis dizer:` : `Qual ${query}?`
+    const choice = await clarifier.ask(question, result.candidates.map(placeLabel), { who: username })
+    if (!choice) return null
+    const entry = result.candidates[choice.index]
+    if (result.reason === 'ambiguo') offerDefault(prefKey, entry.name, username)
+    return entry
+  }
+
+  // "ferro" pode ser iron_ore ou deepslate_iron_ore: pergunta, a menos que já haja preferência.
+  async function resolveBlocks(word, username) {
+    const variants = blockVariants(word, bot.registry.blocksByName)
+    if (!variants.length) {
+      bot.chat(`Não conheço o bloco "${word}". Use o nome em inglês, ex.: stone, oak_log, iron_ore.`)
+      return null
+    }
+    if (variants.length === 1) return variants
+    const prefKey = `minerar.${normalizarChave(word)}`
+    const saved = memory.preferencia(prefKey)
+    if (saved === 'qualquer') return variants
+    if (variants.includes(saved)) return [saved]
+
+    const choice = await clarifier.ask(`Qual ${word}?`, [...variants, 'qualquer um'], { who: username })
+    if (!choice) return null
+    const any = choice.index === variants.length
+    offerDefault(prefKey, any ? 'qualquer' : variants[choice.index], username)
+    return any ? variants : [variants[choice.index]]
   }
 
   function assertWaypointReachable(entry) {
@@ -368,7 +444,8 @@ async function main() {
     const owner = ownerEntity()
     if (!owner) return
     bot.pathfinder.setMovements(followMoves)
-    bot.pathfinder.setGoal(new goals.GoalFollow(owner, FOLLOW_DISTANCE), true)
+    const distance = memory.preferenciaNumero('seguir.distancia', FOLLOW_DISTANCE, 1, 16)
+    bot.pathfinder.setGoal(new goals.GoalFollow(owner, distance), true)
   }
 
   function cancelTask() {
@@ -537,7 +614,7 @@ async function main() {
     autonomous = false
     clearPatrolState()
     persistSoon()
-    bot.chat(`Indo para ${entry.name}...`)
+    bot.chat(`Indo para ${placeLabel(entry)}...`)
     runTask(`ir para ${entry.name}`, async (isCancelled) => {
       await goToPoint(entry.position, isCancelled, 2)
       if (!isCancelled()) bot.chat(`Cheguei em ${entry.name}.`)
@@ -611,26 +688,40 @@ async function main() {
     else flee(threat)
   }
 
-  function mine(blockName, count) {
-    const blockType = bot.registry.blocksByName[blockName]
-    if (!blockType) {
-      bot.chat(`Não conheço o bloco "${blockName}". Use o nome em inglês, ex.: stone, oak_log, iron_ore.`)
-      return
+  // Anota o que o bot prometeu fazer; o estado final fica na memória.
+  // fn retorna true (feito), false (falhou) ou undefined (interrompido).
+  async function withCommitment(description, fn) {
+    const item = memory.prometer(description, { para: ownerName() }, inferido())
+    let ok
+    try {
+      ok = await fn()
+    } finally {
+      memory.encerrarCompromisso(item.id, ok === true ? 'feito' : ok === false ? 'falhou' : 'interrompido')
     }
-    bot.chat(`Minerando ${count}x ${blockName}...`)
-    runTask('minerar', async (isCancelled) => {
-      const mined = await gather.mineBlocks(bot, (name) => name === blockName, count, isCancelled)
-      if (isCancelled()) return
-      if (mined < count) bot.chat(`Só consegui ${mined}x ${blockName} (não achei mais ou não alcancei).`)
-      else bot.chat(`Minerei ${mined}x ${blockName}.`)
-    })
+  }
+
+  function mine(blockNames, count) {
+    const names = new Set(blockNames)
+    const label = blockNames.length > 2 ? `${blockNames[0]} e parecidos` : blockNames.join('/')
+    bot.chat(`Minerando ${count}x ${label}...`)
+    withCommitment(`minerar ${count}x ${label}`, async () => {
+      let result
+      await runTask('minerar', async (isCancelled) => {
+        const mined = await gather.mineBlocks(bot, (name) => names.has(name), count, isCancelled)
+        if (isCancelled()) return
+        result = mined >= count
+        if (mined < count) bot.chat(`Só consegui ${mined}x ${label} (não achei mais ou não alcancei).`)
+        else bot.chat(`Minerei ${mined}x ${label}.`)
+      })
+      return result
+    }).catch(() => {})
   }
 
   async function eatNow() {
     if (eating) return
     eating = true
     try {
-      const eaten = await food.eat(bot)
+      const eaten = await food.eat(bot, { preferred: memory.preferencia('comida.preferida') || null })
       if (eaten) {
         console.log(`Comi ${eaten} (fome ${bot.food}/20)`)
         warnedNoFood = false
@@ -664,6 +755,7 @@ async function main() {
   // ========== EVENTOS ==========
   let restoredWorkers = false
   bot.once('spawn', () => startWebViews(bot))
+  bot.once('spawn', () => attachMemoryCapture(bot, memory, { log: (msg) => console.log(msg) }))
   bot.on('spawn', async () => {
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
@@ -813,6 +905,7 @@ async function main() {
   bot.on('end', async (reason) => {
     colony.stop()
     try { await persistState() } catch {}
+    try { await memory.save() } catch {}
     botManager.stopAll()
     stopLan()
     console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
@@ -1196,6 +1289,7 @@ async function main() {
     if (action === 'limpar' || action === 'remover') {
       colonyHome = null
       colonyHomeDimension = null
+      memory.esquecer('base')
       colony.setAuto(false)
       if (projectManager.isActive()) projectManager.cancel()
       persistSoon()
@@ -1218,6 +1312,7 @@ async function main() {
     colonyHome = source.clone()
     colonyHomeDimension = currentDimension()
     persistSoon()
+    memory.lembrarLugar('base', colonyHome, colonyHomeDimension, dito(context.username))
     bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
   })
 
@@ -1281,17 +1376,14 @@ async function main() {
     bot.chat(`${entry.name}: X=${Math.floor(entry.position.x)}, Y=${Math.floor(entry.position.y)}, Z=${Math.floor(entry.position.z)}${entry.dimension ? ` | ${entry.dimension}` : ''}.`)
   })
 
-  commandRouter.register(['ir', 'viajar'], async (_context, args) => {
+  commandRouter.register(['ir', 'viajar'], async (context, args) => {
     const name = args.join(' ')
     if (!name) {
       bot.chat('Uso: !ir <local>  ex.: !ir mina')
       return
     }
-    const entry = waypointOrBase(name)
-    if (!entry) {
-      bot.chat(`Não encontrei o local ${name}. Use !local listar.`)
-      return
-    }
+    const entry = await resolvePlace(name, context.username)
+    if (!entry) return
     try {
       travelTo(entry)
     } catch (err) {
@@ -1706,10 +1798,16 @@ async function main() {
     }
     const target = craft.countItem(bot, item.id) + count
     bot.chat(`Fabricando ${count}x ${item.name}...`)
-    runTask('fabricar', async (isCancelled) => {
-      await craft.craftItem(bot, item.name, target, isCancelled)
-      if (!isCancelled()) bot.chat(`Pronto! Tenho ${craft.countItem(bot, item.id)}x ${item.name}.`)
-    })
+    withCommitment(`fabricar ${count}x ${item.name}`, async () => {
+      let result
+      await runTask('fabricar', async (isCancelled) => {
+        await craft.craftItem(bot, item.name, target, isCancelled)
+        if (isCancelled()) return
+        result = craft.countItem(bot, item.id) >= target
+        bot.chat(`Pronto! Tenho ${craft.countItem(bot, item.id)}x ${item.name}.`)
+      })
+      return result
+    }).catch(() => {})
   }
 
   commandRouter.register('fabricar', async (_context, args) => {
@@ -1717,9 +1815,11 @@ async function main() {
       bot.chat('Uso: !fabricar <item> [qtd]. Ex.: !fabricar picareta_ferro 2')
       return
     }
-    let count = 1
+    let count = null
     if (/^\d+$/.test(args.at(-1))) count = Math.max(1, Number.parseInt(args.pop(), 10))
     const item = normalizeItemName(args.join('_'))
+    // Sem quantidade: usa a preferência lembrada (ex.: tochas.quantidade=64).
+    if (count == null) count = item === 'torch' ? memory.preferenciaNumero('tochas.quantidade', 1, 1, 256) : 1
     // Sem estoque central da colônia, o próprio bot fabrica para si.
     if (!storage.configured()) {
       craftSelf(item, count)
@@ -1825,11 +1925,125 @@ async function main() {
     bot.chat(`Para ${count}x ${plan.target} faltam: ${plan.missing.map((m) => `${m.name}x${m.needed}`).join(', ')}`)
   })
 
+  // ========== MEMÓRIA ==========
+  // Distância (em blocos) do bot até uma posição, para as respostas do !onde.
+  function distanceText(position) {
+    if (!bot.entity || !position) return ''
+    const dx = position.x - bot.entity.position.x
+    const dz = position.z - bot.entity.position.z
+    return ` | a ${Math.round(Math.hypot(dx, dz))} blocos`
+  }
+
+  commandRouter.register('lembrar', async (context, args) => {
+    const text = args.join(' ').trim()
+    if (!text) {
+      bot.chat('Uso: !lembrar <nome> aqui | !lembrar <chave> = <valor> | !lembrar <anotação>')
+      return
+    }
+
+    // Preferência: "!lembrar tochas.quantidade = 64"
+    const eq = text.indexOf('=')
+    if (eq > 0) {
+      const key = normalizarChave(text.slice(0, eq))
+      let value = parseValor(text.slice(eq + 1))
+      if (!key || value === '') {
+        bot.chat('Uso: !lembrar <chave> = <valor>  ex.: !lembrar seguir.distancia = 3')
+        return
+      }
+      if (key === 'comida.preferida') value = normalizeItemName(value)
+      memory.definirPreferencia(key, value, dito(context.username))
+      bot.chat(`Anotado: ${key}=${value}.`)
+      if (key === 'seguir.distancia' && mode === 'seguir' && !autonomous) follow()
+      return
+    }
+
+    // Lugar: "!lembrar casa aqui" (posição de quem falou).
+    if (args.length >= 2 && args.at(-1).toLowerCase() === 'aqui') {
+      const name = args.slice(0, -1).join(' ')
+      const source = bot.players[context.username]?.entity?.position || bot.entity?.position
+      if (!source) {
+        bot.chat('Não consigo determinar sua posição agora.')
+        return
+      }
+      try {
+        const item = memory.lembrarLugar(name, source, currentDimension(), dito(context.username))
+        bot.chat(`Vou lembrar: ${item.nome} ${fmtPos(item.posicao)}.`)
+      } catch (err) {
+        bot.chat(`Não consegui lembrar: ${err.message}`)
+      }
+      return
+    }
+
+    // Qualquer outra coisa vira uma anotação dita pelo jogador.
+    memory.registrarFato(text, { assunto: 'nota' }, dito(context.username))
+    bot.chat('Anotado.')
+  })
+
+  commandRouter.register('esquecer', async (_context, args) => {
+    const name = args.join(' ').trim()
+    if (!name) {
+      bot.chat('Uso: !esquecer <nome>')
+      return
+    }
+    let removed = memory.esquecer(name)
+    if (waypointManager.remove(name)) {
+      removed++
+      persistSoon()
+    }
+    bot.chat(removed ? `Esqueci ${name}.` : `Não lembro de nada chamado ${name}.`)
+  })
+
+  commandRouter.register(['memoria', 'memória'], async (_context, args) => {
+    const raw = args[0]
+    const type = raw ? tipoDe(raw) : null
+    if (raw && !type) {
+      bot.chat('Uso: !memoria [lugares|preferencias|compromissos|fatos]')
+      return
+    }
+    const counts = TIPOS.map((t) => `${memory.listar(t).length} ${t}`).join(', ')
+    const items = memory.listar(type).slice(0, 6)
+    bot.chat(`Memória: ${counts}.`)
+    if (!items.length) {
+      bot.chat(type ? `Nada do tipo ${type}.` : 'Ainda não lembro de nada. Use !lembrar <nome> aqui.')
+      return
+    }
+    for (let i = 0; i < items.length; i += 2) {
+      bot.chat(items.slice(i, i + 2).map((item) => memory.formatar(item)).join(' | ').slice(0, 250))
+    }
+  })
+
+  commandRouter.register('onde', async (_context, args) => {
+    const query = args.join(' ').trim()
+    if (!query) {
+      bot.chat('Uso: !onde <coisa>  ex.: !onde casa, !onde diamante, !onde morri')
+      return
+    }
+    const place = resolveReference(query, placeEntries())
+    const entry = place.match || (place.reason === 'ambiguo' ? place.candidates[0] : null)
+    const facts = memory.buscarFatos(searchTerms(query))
+    if (!entry && !facts.length) {
+      bot.chat(`Não sei onde fica ${query}. Use !lembrar ${query} aqui.`)
+      return
+    }
+    if (entry) {
+      const tag = entry.origem ? ` ${fmtOrigem(entry.origem)}` : ''
+      const others = place.reason === 'ambiguo' ? ` (também: ${place.candidates.slice(1, 3).map((e) => e.name).join(', ')})` : ''
+      bot.chat(`${placeLabel(entry)}${tag}${distanceText(entry.position)}${others}`.slice(0, 250))
+    }
+    if (facts.length) {
+      const [fact] = facts
+      const more = facts.length > 1 ? ` (+${facts.length - 1})` : ''
+      bot.chat(`${memory.formatar(fact)}${distanceText(fact.posicao)}${more}`.slice(0, 250))
+    }
+  })
+
   bot.on('chat', async (username, message) => {
     if (username === bot.username || botManager.get(username)) return
     const owner = ownerName()
     if (owner && username !== owner) return
     if (!resolvedOwner) resolvedOwner = username
+    // Resposta a uma pergunta pendente ("Qual casa? 1) ... 2) ...").
+    if (clarifier.handleMessage(username, message)) return
     if (await commandRouter.dispatch({ bot, username }, message)) return
     const [cmd, ...args] = message.toLowerCase().trim().split(/\s+/)
 
@@ -1924,7 +2138,10 @@ async function main() {
           bot.chat('Uso: !minerar <bloco> [quantidade]  ex.: !minerar oak_log 5')
           return
         }
-        mine(args[0], parseCount(args[1]))
+        const count = parseCount(args[1])
+        resolveBlocks(args[0], username)
+          .then((blocks) => blocks && mine(blocks, count))
+          .catch((err) => bot.chat(`Não consegui minerar: ${err.message}`))
         break
       }
       case '!cozinhar': {
@@ -1967,7 +2184,8 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral>, !todos voltar, !tarefas')
         bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
         break
