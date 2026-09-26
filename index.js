@@ -12,6 +12,8 @@ const mineflayer = require('mineflayer')
 const { ping } = require('minecraft-protocol')
 const { autoVersionForge } = require('minecraft-protocol-forge')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
+const food = require('./lib/food')
+const perception = require('./lib/perception')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -23,6 +25,8 @@ const FLEE_DISTANCE = 16    // distância que tenta manter do agressor
 const FLEE_MS = 4000        // tempo fugindo depois de tomar dano
 const LOW_HEALTH = 10       // com HP baixo, foge de hostis próximos antes de apanhar
 const MINE_RANGE = 32       // raio de busca de blocos para minerar
+const HUNGRY = 14           // abaixo disso come (ou vai buscar comida)
+const FOOD_RETRY_MS = 30000 // espera entre buscas de comida que não deram certo
 
 function envPort(value) {
   const port = Number(value)
@@ -146,7 +150,10 @@ async function main() {
     username: 'eduardo_bot',
     password: '',
     // version: false trava na detecção automática; usa a versão do ping.
-    version: process.env.MINECRAFT_VERSION || server.version
+    version: process.env.MINECRAFT_VERSION || server.version,
+    // O 26.3 ainda tem pacotes que a biblioteca não lê (ex.: partículas); não são
+    // fatais, só enchem o console. DEBUG_PROTOCOL=1 mostra esses erros.
+    hideErrors: !process.env.DEBUG_PROTOCOL
   }
   console.log(`Conectando a ${CONFIG.host}:${CONFIG.port} (versão ${CONFIG.version})...`)
 
@@ -157,7 +164,11 @@ async function main() {
   bot.loadPlugin(pathfinder)
 
   // ========== ESTADO ==========
-  let mode = 'seguir'       // 'seguir' | 'ficar' | 'minerar'
+  let mode = 'seguir'       // 'seguir' | 'ficar' | 'tarefa'
+  let taskName = null       // descrição da tarefa em andamento
+  let eating = false
+  let warnedNoFood = false  // já avisou no chat que não acha comida
+  let lastFoodSearch = Date.now() - FOOD_RETRY_MS + 10000 // 1ª busca após 10s (entidades carregando)
   let fleeingUntil = 0
   let lastHealth = null
   let lastAttacker = null
@@ -185,16 +196,17 @@ async function main() {
 
   function cancelTask() {
     taskId++
+    taskName = null
     if (bot.targetDigBlock) bot.stopDigging()
     bot.pathfinder.setGoal(null)
   }
 
   // Foge do agressor (ou do hostil mais próximo); sem ameaça visível, corre para o dono.
   function flee(attacker) {
-    if (mode === 'minerar') {
+    if (mode === 'tarefa') {
+      bot.chat(`Estou apanhando! Parei de ${taskName}.`)
       cancelTask()
       mode = 'seguir'
-      bot.chat('Estou apanhando! Parei de minerar.')
     }
     fleeingUntil = Date.now() + FLEE_MS
     const threat = attacker && attacker !== bot.entity && attacker.isValid !== false ? attacker : nearestHostile(FLEE_DISTANCE)
@@ -207,42 +219,86 @@ async function main() {
     }
   }
 
-  async function mine(blockName, count) {
+  // Executa uma tarefa longa. `fn` recebe isCancelled() e deve parar quando for true
+  // (fuga, !cancelar, outra tarefa). No fim, volta a seguir o dono.
+  async function runTask(name, fn) {
+    cancelTask()
+    const myTask = taskId
+    const isCancelled = () => myTask !== taskId
+    mode = 'tarefa'
+    taskName = name
+    bot.pathfinder.setMovements(workMoves)
+    try {
+      await fn(isCancelled)
+    } catch (err) {
+      if (!isCancelled()) bot.chat(`Não consegui ${name}: ${err.message}`)
+    }
+    if (isCancelled()) return
+    mode = 'seguir'
+    taskName = null
+    follow()
+  }
+
+  function mine(blockName, count) {
     const blockType = bot.registry.blocksByName[blockName]
     if (!blockType) {
       bot.chat(`Não conheço o bloco "${blockName}". Use o nome em inglês, ex.: stone, oak_log, iron_ore.`)
       return
     }
-    cancelTask()
-    const myTask = taskId
-    mode = 'minerar'
-    let mined = 0
     bot.chat(`Minerando ${count}x ${blockName}...`)
-    try {
-      while (mined < count && myTask === taskId) {
+    runTask('minerar', async (isCancelled) => {
+      let mined = 0
+      while (mined < count && !isCancelled()) {
         const block = bot.findBlock({ matching: blockType.id, maxDistance: MINE_RANGE })
         if (!block) {
           bot.chat(`Não encontrei mais ${blockName} num raio de ${MINE_RANGE} blocos.`)
           break
         }
-        bot.pathfinder.setMovements(workMoves)
-        await bot.pathfinder.goto(new goals.GoalGetToBlock(block.position.x, block.position.y, block.position.z))
-        if (myTask !== taskId) return
+        await food.goTo(bot, new goals.GoalGetToBlock(block.position.x, block.position.y, block.position.z))
+        if (isCancelled()) return
         const tool = bot.pathfinder.bestHarvestTool(block)
         if (tool) await bot.equip(tool, 'hand')
         await bot.dig(block)
         mined++
         // Anda até onde o bloco estava para pegar o item.
-        await bot.pathfinder.goto(new goals.GoalBlock(block.position.x, block.position.y, block.position.z)).catch(() => {})
+        await food.goTo(bot, new goals.GoalBlock(block.position.x, block.position.y, block.position.z), 6000).catch(() => {})
       }
+      if (!isCancelled()) bot.chat(`Minerei ${mined}x ${blockName}.`)
+    })
+  }
+
+  async function eatNow() {
+    if (eating) return
+    eating = true
+    try {
+      const eaten = await food.eat(bot)
+      if (eaten) {
+        console.log(`Comi ${eaten} (fome ${bot.food}/20)`)
+        warnedNoFood = false
+      }
+      return eaten
     } catch (err) {
-      if (myTask !== taskId) return // cancelado (fuga, !cancelar etc.)
-      bot.chat(`Não consegui minerar: ${err.message}`)
+      console.log(`Não consegui comer: ${err.message}`)
+    } finally {
+      eating = false
     }
-    if (myTask !== taskId) return
-    bot.chat(`Minerei ${mined}x ${blockName}.`)
-    mode = 'seguir'
-    follow()
+  }
+
+  function searchFood(announce) {
+    lastFoodSearch = Date.now()
+    if (announce) bot.chat('Vou procurar comida.')
+    runTask('buscar comida', async (isCancelled) => {
+      // Continua até ter comida no inventário (máx. 5 fontes por busca).
+      for (let i = 0; i < 5 && !food.hasFood(bot) && !isCancelled(); i++) {
+        const done = await food.gatherFood(bot, isCancelled)
+        if (!done) {
+          if (!isCancelled() && i === 0) bot.chat('Não achei comida por perto (animais, plantações ou frutas).')
+          break
+        }
+        console.log(`Busca de comida: ${done}`)
+      }
+      if (!isCancelled() && food.hasFood(bot)) await eatNow()
+    })
   }
 
   // ========== EVENTOS ==========
@@ -295,6 +351,20 @@ async function main() {
       flee()
       return
     }
+    // Fome: come se tiver comida; senão, sai para buscar (só quando está livre).
+    const needsFood = bot.food <= HUNGRY || (bot.food < 18 && bot.health < 20)
+    if (needsFood && !eating && (mode !== 'tarefa' || bot.food <= 6) && food.hasFood(bot)) {
+      eatNow()
+    } else if (bot.food <= HUNGRY && mode === 'seguir' && !food.hasFood(bot) &&
+        Date.now() - lastFoodSearch > FOOD_RETRY_MS) {
+      lastFoodSearch = Date.now()
+      if (food.findFoodSource(bot)) {
+        searchFood(true)
+        return
+      }
+      if (!warnedNoFood) bot.chat('Estou com fome e não acho comida por perto. Me leve até animais ou plantações, ou me dê comida.')
+      warnedNoFood = true
+    }
     if (mode === 'seguir') {
       const owner = ownerEntity()
       if (owner && bot.pathfinder.goal?.entity !== owner) follow()
@@ -337,6 +407,20 @@ async function main() {
           bot.chat('Não estou te vendo; vou seguir quando você chegar perto.')
         }
         break
+      case '!comer':
+        if (!food.hasFood(bot)) {
+          bot.chat('Não tenho comida. Use !comida para eu buscar.')
+          return
+        }
+        eatNow().then((eaten) => eaten && bot.chat(`Comi ${eaten}. Fome: ${bot.food}/20`))
+        break
+      case '!comida':
+        searchFood(true)
+        break
+      case '!ver':
+        if (!bot.entity) return
+        for (const line of perception.describe(bot)) bot.chat(line)
+        break
       case '!ficar':
         cancelTask()
         mode = 'ficar'
@@ -361,7 +445,7 @@ async function main() {
           bot.chat('Ainda estou entrando no mundo.')
           return
         }
-        bot.chat(`HP: ${Math.round(bot.health)}/20 | Fome: ${bot.food}/20 | Itens: ${bot.inventory.items().length} | Modo: ${mode}`)
+        bot.chat(`HP: ${Math.round(bot.health)}/20 | Fome: ${bot.food}/20 | Itens: ${bot.inventory.items().length} | Modo: ${taskName ?? mode}`)
         const pos = bot.entity.position
         bot.chat(`Posição: X=${pos.x.toFixed(1)}, Y=${pos.y.toFixed(1)}, Z=${pos.z.toFixed(1)}`)
         break
@@ -374,7 +458,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
-        bot.chat('Comandos: !seguir, !ficar, !minerar <bloco> [qtd], !cancelar, !status, !pos, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !minerar <bloco> [qtd], !comer, !comida, !ver, !cancelar, !status, !pos, !parar')
         break
     }
   })

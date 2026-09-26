@@ -47,7 +47,10 @@ node index.js
 
 ```
 minecraft-mbot/
-├── index.js          # Código principal do bot
+├── index.js          # Conexão, estados, fuga e comandos
+├── lib/
+│   ├── food.js       # Comer e buscar comida
+│   └── perception.js # Reconhecer blocos e entidades em volta
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
 └── README.md         # Este arquivo
@@ -81,6 +84,9 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!seguir` | Segue o dono (padrão ao entrar) |
 | `!ficar` | Fica parado onde está |
 | `!minerar <bloco> [qtd]` | Minera blocos próximos, ex.: `!minerar oak_log 5` |
+| `!comer` | Come a melhor comida do inventário |
+| `!comida` | Sai para buscar comida |
+| `!ver` | Descreve o que vê: bloco sob os pés, recursos e mobs por perto |
 | `!cancelar` | Cancela a tarefa e volta a seguir |
 | `!status` / `!pos` | Mostra vida, fome, itens e posição |
 | `!ajuda` | Lista os comandos |
@@ -89,3 +95,10 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 O dono é o primeiro jogador online, ou o definido em `MINECRAFT_OWNER`
 (nesse caso só ele pode dar comandos). Ao tomar dano, o bot foge do agressor;
 com HP baixo, foge de mobs hostis próximos antes de apanhar.
+
+### Fome
+Com fome (≤ 14), o bot come a melhor comida que tiver (evita carne podre, frango
+cru etc., salvo em emergência). Sem comida, busca a fonte mais próxima num raio
+de 48 blocos: caça vacas, porcos, ovelhas, galinhas e coelhos (poupando os 2
+últimos de cada espécie para se reproduzirem), colhe cenoura, batata e beterraba
+maduras (replantando) e frutas de arbustos. Se não achar nada, avisa uma vez no chat.
