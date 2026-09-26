@@ -87,6 +87,9 @@ class WorkerController {
     this.state = 'trabalhando'
 
     try {
+      if (this.bot.food <= 14 && food.hasFood(this.bot)) {
+        await food.eat(this.bot).catch(() => {})
+      }
       let result
       switch (task.type) {
         case 'coletar_blocos':
@@ -282,7 +285,7 @@ class WorkerController {
     if (!material) throw new Error('preciso de pelo menos 23 blocos de construção no inventário')
 
     const baseX = Math.floor(home.x) + 5
-    const baseY = Math.floor(home.y)
+    const baseY = Math.floor(home.y) - 1
     const baseZ = Math.floor(home.z) + 2
     const targets = []
 
