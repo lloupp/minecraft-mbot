@@ -344,3 +344,20 @@ IMPLEMENTAÇÃO
 ```
 
 Nunca considerar uma integração de plugin pronta apenas porque carrega sem erro.
+## Estabilização aplicada — despacho e produção automática
+
+- O orquestrador reserva o worker antes de iniciar a tarefa assíncrona e libera
+  a reserva ao terminar, inclusive quando o executor lança um erro síncrono.
+- Apenas uma sincronização automática do estoque pode ficar em andamento.
+- Falhas consecutivas de um worker aumentam a espera até 10 minutos; um sucesso
+  zera a sequência. Essa espera não substitui diagnóstico e escolha de outra rota.
+- Na produção padrão de ferro e ferramentas, o planejador distingue insumos já
+  disponíveis de resultados previstos. Reservas de combustível, ferro e madeira
+  evitam reutilizar esses insumos entre artesãos no mesmo ciclo de planejamento.
+- Um projeto só termina quando todas as ações estão concluídas; uma fatia que
+  esgotou suas tentativas permanece visível como falha.
+
+Regressões locais: `node --test test/auto-reliability.test.js test/core.test.js test/blueprint.test.js`.
+Ainda falta validar esses cenários no servidor: estoque lento com dois workers,
+recurso inacessível repetidamente e construção parcialmente bloqueada. Reservas
+persistentes entre ciclos e recuperação por estratégia alternativa continuam pendentes.

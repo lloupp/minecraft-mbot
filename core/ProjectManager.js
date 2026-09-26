@@ -435,7 +435,7 @@ class ProjectManager {
     if (!this.isActive()) return false
     // Planta termina quando as obras terminam; as metas de estoque são só meio.
     if (this.active.type !== 'planta' && !this.actionReady(report)) return false
-    if (this.pendingActions().length || this.inProgressActions().length) return false
+    if (this.active.actions.some((action) => action.status !== 'concluido')) return false
     this.active.status = 'concluido'
     this.active.completedAt = Date.now()
     this.history.push(this.active)
