@@ -145,7 +145,7 @@ O limite padrão é de **12 bots contando o orquestrador**. Pode ser alterado co
 MAX_COLONY_BOTS=8 node index.js
 ```
 
-Nesta etapa os bots auxiliares já entram no mundo, recebem um papel e são gerenciados pelo `BotManager`. A execução autônoma específica de cada profissão será construída sobre essa base.
+Os bots auxiliares entram no mundo, recebem um papel e agora executam tarefas reais. O orquestrador divide ordens entre os bots da mesma profissão, acompanha o estado de cada um e pode operar a colônia em modo automático.
 
 ## Arquitetura do orquestrador
 
@@ -167,3 +167,41 @@ eduardo_bot
 - **MinecraftKnowledge**: consulta itens, blocos, alimentos e receitas do registro carregado pelo Minecraft.
 - **Planner**: calcula o que já pode ser fabricado e quais ingredientes ainda faltam.
 - **BotManager**: cria, acompanha e encerra os bots auxiliares.
+
+
+## Ordens e autonomia
+
+Comandos principais:
+
+```text
+!ordem mineradores ferro 64
+!ordem lenhadores madeira 128
+!ordem fazendeiros comida 10
+!ordem exploradores explorar 96
+!ordem guardas proteger 20
+
+!todos voltar
+!base aqui
+!tarefas
+
+!construir casa
+
+!colonia auto
+!colonia auto off
+```
+
+### Comportamento por profissão
+
+- **minerador**: procura e minera o recurso solicitado, equipa automaticamente a melhor ferramenta disponível e recolhe drops;
+- **lenhador**: localiza troncos e corta madeira;
+- **fazendeiro**: procura comida, caça de forma conservadora e colhe/replanta culturas suportadas;
+- **explorador**: percorre pontos progressivamente mais distantes da base;
+- **guarda**: acompanha o dono e ataca hostis próximos;
+- **construtor**: executa o blueprint inicial de um abrigo 3x3;
+- **ajudante**: pode retornar à base e receber futuras tarefas genéricas.
+
+O modo `!colonia auto` distribui tarefas padrão apenas para workers ociosos. Ordens manuais substituem a tarefa atual do worker.
+
+### Construção
+
+`!construir casa` usa um construtor disponível e cria um abrigo 3x3 próximo à base. Nesta versão, o construtor precisa ter no próprio inventário pelo menos 23 blocos adequados (por exemplo, cobblestone ou planks). A logística de estoque compartilhado e transferência automática de materiais entre bots é uma próxima etapa separada.

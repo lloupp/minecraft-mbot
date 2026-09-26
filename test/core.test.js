@@ -6,6 +6,8 @@ const { CommandRouter } = require('../core/CommandRouter')
 const { MinecraftKnowledge } = require('../core/MinecraftKnowledge')
 const { Planner } = require('../core/Planner')
 const { BotManager } = require('../core/BotManager')
+const { ColonyOrchestrator } = require('../core/ColonyOrchestrator')
+const { resolveBlockNames } = require('../core/resources')
 
 test('CommandRouter interpreta e despacha comandos', async () => {
   const router = new CommandRouter()
@@ -95,4 +97,96 @@ test('BotManager respeita o limite total da colônia', async () => {
   await assert.rejects(() => manager.create('lenhador', 1), /limite da colônia/)
   assert.equal(manager.remove(workers[0].name), true)
   assert.equal(manager.list().length, 1)
+})
+
+
+test('BotManager aceita nomes plurais das profissões', () => {
+  const manager = new BotManager({ createBot: async () => new EventEmitter() })
+  assert.equal(manager.normalizeRole('mineradores'), 'minerador')
+  assert.equal(manager.normalizeRole('lenhadores'), 'lenhador')
+  assert.equal(manager.normalizeRole('construtores'), 'construtor')
+})
+
+test('resources resolve madeira e minérios conhecidos', () => {
+  const bot = {
+    registry: {
+      blocksArray: [
+        { name: 'oak_log' },
+        { name: 'spruce_log' },
+        { name: 'stone' },
+        { name: 'iron_ore' },
+        { name: 'deepslate_iron_ore' }
+      ],
+      blocksByName: {
+        oak_log: { id: 1 },
+        spruce_log: { id: 2 },
+        stone: { id: 3 },
+        iron_ore: { id: 4 },
+        deepslate_iron_ore: { id: 5 }
+      }
+    }
+  }
+  assert.deepEqual(resolveBlockNames(bot, 'madeira', 'lenhador'), ['oak_log', 'spruce_log'])
+  assert.deepEqual(resolveBlockNames(bot, 'ferro', 'minerador'), ['iron_ore', 'deepslate_iron_ore'])
+})
+
+test('ColonyOrchestrator divide uma ordem entre trabalhadores da profissão', async () => {
+  const received = []
+  const fakeController = (name) => ({
+    state: 'ocioso',
+    currentTask: null,
+    isIdle: () => true,
+    cancel: () => {},
+    run: async (task) => { received.push({ name, task }); return { ok: true } }
+  })
+  const workers = new Map([
+    ['minerador_01', { name: 'minerador_01', role: 'minerador', bot: { colonyController: fakeController('minerador_01') } }],
+    ['minerador_02', { name: 'minerador_02', role: 'minerador', bot: { colonyController: fakeController('minerador_02') } }]
+  ])
+  const manager = {
+    workers,
+    normalizeRole: (role) => role.startsWith('minerador') ? 'minerador' : null
+  }
+  const colony = new ColonyOrchestrator({ botManager: manager, homeProvider: () => null, ownerProvider: () => null })
+  const assigned = await colony.assign('mineradores', 'ferro', 5)
+
+  assert.equal(assigned.length, 2)
+  assert.equal(assigned[0].task.count + assigned[1].task.count, 5)
+  assert.equal(assigned.every((entry) => entry.task.type === 'coletar_blocos'), true)
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(received.length, 2)
+})
+
+test('ColonyOrchestrator modo automático só envia tarefa para ocioso', async () => {
+  const tasks = []
+  const workers = new Map([
+    ['lenhador_01', {
+      name: 'lenhador_01',
+      role: 'lenhador',
+      bot: { colonyController: {
+        state: 'ocioso',
+        currentTask: null,
+        isIdle: () => true,
+        run: async (task) => { tasks.push(task); return { ok: true } }
+      } }
+    }],
+    ['minerador_01', {
+      name: 'minerador_01',
+      role: 'minerador',
+      bot: { colonyController: {
+        state: 'trabalhando',
+        currentTask: { type: 'coletar_blocos' },
+        isIdle: () => false,
+        run: async (task) => { tasks.push(task); return { ok: true } }
+      } }
+    }]
+  ])
+  const manager = { workers, normalizeRole: (role) => role }
+  const colony = new ColonyOrchestrator({ botManager: manager })
+  colony.setAuto(true)
+  await colony.tick()
+  await new Promise((resolve) => setImmediate(resolve))
+
+  assert.equal(tasks.length, 1)
+  assert.equal(tasks[0].resource, 'madeira')
 })
