@@ -1219,7 +1219,7 @@ async function main() {
         production
       })
       if (isCancelled()) return
-      if (result.ok) bot.chat(`Tosquiei ${result.sheared} ovelha(s).`)
+      if (result.ok) bot.chat(`Tentei tosquiar ${result.sheared} ovelha(s); recolhi os drops disponíveis.`)
       else bot.chat(result.reason === 'sem_tesoura'
         ? 'Não consegui uma tesoura.'
         : 'Não encontrei ovelhas disponíveis por perto.')
