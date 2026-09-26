@@ -404,6 +404,29 @@ test('WorkerController dá tempo proporcional à distância para voltar à base'
   assert.equal(timeout, 30000)
 })
 
+test('WorkerController tira degrau posto dentro do curral durante a obra, antes do portão', async () => {
+  const home = { x: 0, y: 64, z: 0 }
+  const plan = animalPenPlan(home, 'cow')
+  const inside = new Vec3(plan.origin.x + 4, plan.origin.y, plan.origin.z + 1) // encostado na cerca
+  const blocks = {}
+  const bot = fakeBot()
+  bot.blockAt = (pos) => {
+    const name = blocks[pos.toString()] || 'air'
+    return { name, position: pos, boundingBox: name === 'air' ? 'empty' : 'block' }
+  }
+  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  const worker = readyWorker(bot, { role: 'construtor', homeProvider: () => home })
+  worker.ensurePenKit = async () => ({ fence: 'oak_fence', gate: 'oak_fence_gate' })
+  worker.placeGroundItem = async () => { blocks[inside.toString()] = 'dirt'; return true } // andaime do pathfinder
+  let stepAtGate = null
+  worker.placePenGate = async () => { stepAtGate = blocks[inside.toString()]; return true }
+
+  const result = await worker.buildAnimalPen(() => false, 'cow')
+  assert.equal(stepAtGate, 'air')
+  assert.equal(result.leveled, 1)
+  assert.equal(result.ok, true)
+})
+
 test('WorkerController cava terreno natural na linha da cerca, mas não blocos construídos', async () => {
   const blocks = { '(1, 64, 0)': 'grass_block', '(2, 64, 0)': 'oak_planks' }
   const bot = fakeBot()

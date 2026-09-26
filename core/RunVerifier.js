@@ -13,7 +13,7 @@
 const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
-const { EventLog, getEventLog } = require('../lib/event-log')
+const { getEventLog } = require('../lib/event-log')
 
 const PROOF_FILE = process.env.COLONY_PROOF_FILE || '.data/colony-proof.json'
 
@@ -32,7 +32,7 @@ class RunVerifier {
    */
   verify() {
     const checks = []
-    const add = (name, ok, detail = '') => checks.push({ name, ok: Boolean(ok), detail })
+    const add = (name, ok, detail = '') => checks.push({ name, ok: ok == null ? null : Boolean(ok), detail })
 
     // 1. Event log exists and has events
     const eventCount = this.eventLog.size
@@ -48,20 +48,28 @@ class RunVerifier {
     add('worker_deaths', deaths.length === 0, `${deaths.length} worker deaths recorded`)
 
     // 4. Storage consistency
-    if (this.storage && this.storage.verify) {
-      const invCheck = this.storage.verify()
-      add('storage_consistent', invCheck.consistent, invCheck.mismatches?.length || 0 + ' mismatches')
+    if (typeof this.storage?.verify === 'function') {
+      try {
+        const invCheck = this.storage.verify()
+        add('storage_consistent', invCheck?.consistent, `${invCheck?.mismatches?.length || 0} mismatches`)
+      } catch (err) {
+        add('storage_consistent', false, `verification failed: ${err.message}`)
+      }
     } else {
-      add('storage_consistent', true, 'no storage to verify')
+      add('storage_consistent', null, this.storage ? 'storage has no verification contract' : 'storage unavailable')
     }
 
-    // 5. Source provenance (if freeze was done)
-    const sourceManifest = this._findSourceManifest()
-    if (sourceManifest) {
-      const hashesValid = this._checkSourceHashes(sourceManifest)
-      add('source_provenance', hashesValid, 'source hashes verified')
+    // 5. Source provenance is checked from the session directory written by freeze-colony.
+    try {
+      const sourceManifest = this._findSourceManifest()
+      if (sourceManifest) {
+        add('source_provenance', this._checkSourceHashes(sourceManifest), 'source hashes checked')
+      } else {
+        add('source_provenance', null, 'no freeze manifest found')
+      }
+    } catch (err) {
+      add('source_provenance', false, `manifest verification failed: ${err.message}`)
     }
-    // If no manifest, skip source_provenance check entirely
 
     // 6. No operator guidance events
     const operatorEvents = this.eventLog.getEvents({ type: 'operator_guidance' })
@@ -71,13 +79,15 @@ class RunVerifier {
     if (this.botManager) {
       const workers = this.botManager.list?.() || []
       const active = workers.filter(w => w.status !== 'disconnected' && w.status !== 'error')
-      add('workers_active', active.length > 0, `${active.length}/${workers.length} workers active`)
+      add('workers_active', workers.length ? active.length > 0 : null,
+        workers.length ? `${active.length}/${workers.length} workers active` : 'no workers to verify')
     }
 
     // 8. Projects completed or progressing
     if (this.projectManager) {
       const projects = this.projectManager.status?.() || []
-      add('projects_exist', projects.length > 0, `${projects.length} projects`)
+      add('projects_exist', projects.length ? true : null,
+        projects.length ? `${projects.length} projects` : 'no active projects to verify')
     }
 
     this.proof = {
@@ -105,12 +115,19 @@ class RunVerifier {
    * @private
    */
   _findSourceManifest() {
-    const dataDir = path.resolve('.data')
-    if (!fs.existsSync(dataDir)) return null
-    const files = fs.readdirSync(dataDir).filter(f => f.includes('source-manifest'))
-    if (files.length === 0) return null
-    const manifestPath = path.join(dataDir, files[files.length - 1])
-    return JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+    const sessionsDir = path.resolve('.data/sessions')
+    if (!fs.existsSync(sessionsDir)) return null
+    const candidates = fs.readdirSync(sessionsDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => path.join(sessionsDir, entry.name, 'source-manifest.json'))
+      .filter((manifestPath) => fs.existsSync(manifestPath))
+      .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)
+    if (!candidates.length) return null
+    try {
+      return JSON.parse(fs.readFileSync(candidates[0], 'utf8'))
+    } catch (err) {
+      throw new Error(`invalid source manifest: ${err.message}`)
+    }
   }
 
   /**

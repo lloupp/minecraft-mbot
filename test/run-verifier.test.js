@@ -12,7 +12,7 @@ const { RunVerifier } = require('../core/RunVerifier')
 const testLogPath = path.resolve('.data/test-verifier-events.jsonl')
 const proofPath = path.resolve('.data/colony-proof.json')
 
-test('verify returns proof with all checks passing when tasks complete', () => {
+test('verify reports missing evidence instead of claiming complete success', () => {
   try { fs.unlinkSync(testLogPath) } catch {}
   try { fs.unlinkSync(proofPath) } catch {}
 
@@ -26,12 +26,49 @@ test('verify returns proof with all checks passing when tasks complete', () => {
     botManager: null,
     projectManager: null
   })
+  verifier._findSourceManifest = () => null
   const proof = verifier.verify()
 
   assert.ok(proof.checks)
   assert.ok(proof.passed >= 0)
   assert.equal(proof.failed, 0)
-  assert.equal(proof.allPassed, true)
+  assert.ok(proof.skipped >= 1)
+  assert.equal(proof.allPassed, false)
+  assert.equal(proof.checks.find((check) => check.name === 'source_provenance').ok, null)
+})
+
+test('storage without verify contract is skipped, not marked consistent', () => {
+  try { fs.unlinkSync(testLogPath) } catch {}
+  const eventLog = new EventLog(testLogPath)
+  eventLog.log('colony_start')
+  const verifier = new RunVerifier({ eventLog, storage: { cachedSummary: () => ({}) } })
+  verifier._findSourceManifest = () => null
+  const proof = verifier.verify()
+  const storageCheck = proof.checks.find((check) => check.name === 'storage_consistent')
+  assert.equal(storageCheck.ok, null)
+  assert.equal(proof.allPassed, false)
+})
+
+test('finds freeze manifests under .data/sessions and checks source hashes', () => {
+  const sessionsDir = path.resolve('.data/sessions')
+  fs.mkdirSync(sessionsDir, { recursive: true })
+  const sessionDir = fs.mkdtempSync(path.join(sessionsDir, 'verifier-test-'))
+  const sourcePath = path.join(sessionDir, 'source.txt')
+  const manifestPath = path.join(sessionDir, 'source-manifest.json')
+  fs.writeFileSync(sourcePath, 'verified source')
+  const relativeSource = path.relative(process.cwd(), sourcePath)
+  const hash = require('node:crypto').createHash('sha256').update('verified source').digest('hex')
+  fs.writeFileSync(manifestPath, JSON.stringify({ sessionId: path.basename(sessionDir), files: { [relativeSource]: hash } }))
+  try {
+    const verifier = new RunVerifier()
+    const manifest = verifier._findSourceManifest()
+    assert.equal(manifest.sessionId, path.basename(sessionDir))
+    assert.equal(verifier._checkSourceHashes(manifest), true)
+    fs.writeFileSync(sourcePath, 'changed source')
+    assert.equal(verifier._checkSourceHashes(manifest), false)
+  } finally {
+    fs.rmSync(sessionDir, { recursive: true, force: true })
+  }
 })
 
 test('task_consistency fails when tasks incomplete', () => {
