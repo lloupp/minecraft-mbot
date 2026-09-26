@@ -403,3 +403,21 @@ test('WorkerController dá tempo proporcional à distância para voltar à base'
   await worker.run({ type: 'voltar' })
   assert.equal(timeout, 30000)
 })
+
+test('WorkerController cava terreno natural na linha da cerca, mas não blocos construídos', async () => {
+  const blocks = { '(1, 64, 0)': 'grass_block', '(2, 64, 0)': 'oak_planks' }
+  const bot = fakeBot()
+  bot.blockAt = (pos) => {
+    const name = blocks[pos.toString()] || (pos.y < 64 ? 'dirt' : 'air')
+    return { name, position: pos, boundingBox: name === 'air' ? 'empty' : 'block' }
+  }
+  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  bot.inventory = { items: () => [{ name: 'oak_fence', count: 2 }] }
+  bot.placeBlock = async (below) => { blocks[below.position.offset(0, 1, 0).toString()] = 'oak_fence' }
+  const worker = readyWorker(bot)
+
+  assert.equal(await worker.placeGroundItem({ x: 1, y: 64, z: 0 }, 'oak_fence', () => false), true)
+  assert.equal(blocks['(1, 64, 0)'], 'oak_fence')
+  assert.equal(await worker.placeGroundItem({ x: 2, y: 64, z: 0 }, 'oak_fence', () => false), false)
+  assert.equal(blocks['(2, 64, 0)'], 'oak_planks')
+})
