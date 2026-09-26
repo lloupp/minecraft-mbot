@@ -41,6 +41,8 @@ class StateStore {
       workers: {},
       project: null,
       animalTargets: {},
+      routeMemory: null,
+      deathRecords: {},
       updatedAt: null
     }
   }
@@ -78,6 +80,8 @@ class StateStore {
       home: point(state.home),
       storage: point(state.storage),
       animalTargets: animalTargets(state.animalTargets),
+      routeMemory: state.routeMemory || null,
+      deathRecords: state.deathRecords || {},
       updatedAt: new Date().toISOString()
     }
 
