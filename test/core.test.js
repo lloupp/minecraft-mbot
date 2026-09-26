@@ -399,7 +399,7 @@ test('ProjectManager inicia vila com workforce e ações previstas', () => {
   const status = manager.start('vila')
   assert.equal(status.type, 'vila')
   assert.equal(status.status, 'ativo')
-  assert.equal(status.actions.length, 3)
+  assert.equal(status.actions.length, 5)
   assert.equal(status.requiredRoles.minerador, 2)
   assert.equal(status.requiredRoles.construtor, 1)
   assert.equal(PROJECT_DEFINITIONS.vila.targets.building, 256)
