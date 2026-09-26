@@ -28,6 +28,7 @@ const night = require('./lib/night')
 const husbandry = require('./lib/husbandry')
 const { Autonomy } = require('./lib/autonomy')
 const { loadPlugins, startWebViews } = require('./lib/plugins')
+const { createBot } = require('./lib/botFactory')
 const { WorkerController } = require('./core/WorkerController')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
@@ -119,7 +120,7 @@ async function main() {
   console.log(`Perfil: ${describeProfile(serverProfile)}`)
 
   // ========== CRIAÇÃO DO BOT ==========
-  const bot = mineflayer.createBot(CONFIG)
+  const bot = createBot(mineflayer, CONFIG)
   configureClient(bot, serverProfile)
 
   // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
@@ -157,7 +158,7 @@ async function main() {
   projectManager.restore(savedState.project)
 
   function createWorker({ name, role }) {
-    const worker = mineflayer.createBot({ ...CONFIG, username: name })
+    const worker = createBot(mineflayer, CONFIG, { username: name })
     configureClient(worker, serverProfile)
     worker.loadPlugin(pathfinder)
     loadPlugins(worker, { log: (msg) => console.log(`[colônia] ${name} ${msg}`) })
