@@ -466,3 +466,28 @@ test('WorkerController nivela a entrada do portão antes de colocá-lo', async (
   assert.equal(approachAtGate, 'air')
   assert.equal(result.ok, true)
 })
+
+test('caçar comida poupa os animais do curral', async () => {
+  const food = require('../lib/food')
+  const { home, plan, bot } = penWorld({ cows: 3 }) // 3 vacas dentro: acima do mínimo poupado
+  bot.food = 20
+  bot.findBlock = () => null
+  const outside = { id: 99, name: 'cow', isValid: true, position: new Vec3(plan.gate.x + 0.5, 64, plan.gate.z - 6.5) }
+  const worker = readyWorker(bot, { role: 'fazendeiro', homeProvider: () => home })
+
+  let options = null
+  const original = food.gatherFood
+  food.gatherFood = async (_bot, _isCancelled, opts) => { options = opts; return null }
+  try {
+    await worker.run({ type: 'fazenda', count: 1 })
+  } finally {
+    food.gatherFood = original
+  }
+  assert.equal(typeof options?.spare, 'function')
+  assert.equal(options.spare(bot.entities[1]), true)
+  assert.equal(options.spare(outside), false)
+
+  // Só vacas do curral por perto: nenhuma fonte de comida.
+  assert.equal(food.findFoodSource(bot, options), null)
+  assert.equal(food.findFoodSource(bot)?.entity?.name, 'cow') // sem poupar, caçaria uma delas
+})
