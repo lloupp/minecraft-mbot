@@ -44,6 +44,8 @@ const { resolveReference, blockVariants, searchTerms } = require('./core/Referen
 const { Clarifier } = require('./core/Clarifier')
 const { attachMemoryCapture } = require('./lib/memoryCapture')
 const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
+const blueprint = require('./lib/blueprint')
+const { buildBlueprint, describeReport } = require('./lib/blueprintBuilder')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -2186,8 +2188,7 @@ async function main() {
       case '!ajuda':
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
         bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral>, !todos voltar, !tarefas')
-        bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
         break
       case '!verify': {
         const proof = runVerifier.verify()
