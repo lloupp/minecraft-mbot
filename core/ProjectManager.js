@@ -27,7 +27,9 @@ const PROJECT_DEFINITIONS = {
       ironIngot: 12,
       ironAxe: 1
     },
-    actions: []
+    actions: [
+      { id: 'fazenda-fisica', role: 'fazendeiro', task: { type: 'construir_fazenda', offset: { x: 8, z: 8 } } }
+    ]
   },
   mina: {
     label: 'Mina',
@@ -43,7 +45,9 @@ const PROJECT_DEFINITIONS = {
       ironAxe: 1,
       ironSword: 1
     },
-    actions: []
+    actions: [
+      { id: 'mina-fisica', role: 'minerador', task: { type: 'construir_mina', length: 12 } }
+    ]
   },
   vila: {
     label: 'Vila',
@@ -70,7 +74,9 @@ const PROJECT_DEFINITIONS = {
     actions: [
       { id: 'vila-casa-1', role: 'construtor', task: { type: 'construir_casa', offset: { x: 5, z: 2 } } },
       { id: 'vila-casa-2', role: 'construtor', task: { type: 'construir_casa', offset: { x: 11, z: 2 } } },
-      { id: 'vila-casa-3', role: 'construtor', task: { type: 'construir_casa', offset: { x: 5, z: 8 } } }
+      { id: 'vila-casa-3', role: 'construtor', task: { type: 'construir_casa', offset: { x: 5, z: 8 } } },
+      { id: 'vila-fazenda', role: 'fazendeiro', task: { type: 'construir_fazenda', offset: { x: 12, z: 8 } } },
+      { id: 'vila-mina', role: 'minerador', task: { type: 'construir_mina', length: 10 } }
     ]
   }
 }
@@ -126,6 +132,46 @@ class ProjectManager {
       }))
     }
     return this.status()
+  }
+
+  restore(state) {
+    if (!state || !state.type || !this.definition(state.type)) return false
+    const definition = this.definition(state.type)
+    this.active = {
+      type: state.type,
+      label: definition.label,
+      status: state.status === 'concluido' ? 'concluido' : 'ativo',
+      startedAt: Number(state.startedAt) || Date.now(),
+      completedAt: state.completedAt ? Number(state.completedAt) : null,
+      actions: definition.actions.map((action) => {
+        const saved = (state.actions || []).find((entry) => entry.id === action.id)
+        return {
+          id: action.id,
+          role: action.role,
+          task: JSON.parse(JSON.stringify(action.task)),
+          status: saved?.status === 'concluido' ? 'concluido' : 'pendente',
+          attempts: Number(saved?.attempts || 0),
+          lastError: saved?.lastError || null
+        }
+      })
+    }
+    return true
+  }
+
+  exportState() {
+    if (!this.active) return null
+    return {
+      type: this.active.type,
+      status: this.active.status,
+      startedAt: this.active.startedAt,
+      completedAt: this.active.completedAt,
+      actions: this.active.actions.map((action) => ({
+        id: action.id,
+        status: action.status,
+        attempts: action.attempts,
+        lastError: action.lastError
+      }))
+    }
   }
 
   cancel() {
