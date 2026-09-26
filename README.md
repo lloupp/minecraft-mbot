@@ -500,6 +500,10 @@ Exemplo de preparação:
 Esse comando é o smoke test E2E disponível para o ambiente real. Ele precisa ser executado no seu mundo porque o GitHub Actions não possui acesso ao servidor LAN da sua máquina.
 
 
+## Roadmap
+
+O roadmap técnico do projeto está em [`docs/ROADMAP.md`](docs/ROADMAP.md). Ele inclui a avaliação e a estratégia de adoção para `mineflayer-statemachine` e `mineflayer-builder`.
+
 ## Plugins avaliados para 1.20.1
 
 A matriz de plugins Mineflayer e Paper/Spigot avaliados para esta versão está em
