@@ -574,6 +574,7 @@ async function main() {
 
   // Luta com `target` até ele morrer; com vida baixa, recua.
   function defend(target) {
+    if (mode === 'tarefa' && taskName === 'lutar' && fightTarget === target) return
     const resume = mode === 'ficar' || (mode === 'tarefa' && taskName === 'lutar' && fightResume === 'ficar') ? 'ficar' : 'seguir'
     if (mode === 'tarefa' && taskName !== 'lutar') bot.chat(`Parei de ${taskName} para lutar com ${target.name}.`)
     fightTarget = target
