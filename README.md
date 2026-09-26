@@ -510,6 +510,51 @@ O primeiro plugin Mineflayer a ser testado como backend opcional será
 `mineflayer-collectblock`. Para servidor Paper, CoreProtect e Chunky são os
 candidatos operacionais mais úteis para uma colônia autônoma.
 
+
+## Plugins de runtime opcionais
+
+O bot pode carregar plugins da comunidade sem remover os fallbacks próprios.
+
+```text
+mineflayer-pvp
+minecrafthawkeye
+mineflayer-tool
+mineflayer-collectblock
+prismarine-viewer
+mineflayer-web-inventory
+```
+
+Todos podem ser desligados:
+
+```bash
+MBOT_PLUGINS=0 node index.js
+```
+
+Ou pulados individualmente:
+
+```bash
+MBOT_PLUGINS_SKIP=pvp,hawkeye node index.js
+```
+
+A coleta própria continua sendo o padrão. O `mineflayer-collectblock` só assume quando explicitamente habilitado:
+
+```bash
+MBOT_COLLECTBLOCK=1 node index.js
+```
+
+Nos testes reais em 1.20.1, a coleta própria foi mais confiável em minério subterrâneo, então esse plugin permanece experimental.
+
+Para acompanhar o bot pelo navegador:
+
+```bash
+MBOT_VIEWER_PORT=3007 MBOT_INVENTORY_PORT=3008 node index.js
+```
+
+- `3007`: visão 3D do bot;
+- `3008`: inventário web.
+
+Se um plugin não carregar ou não suportar a versão conectada, o bot registra a falha e continua com sua implementação própria.
+
 ## Perfil recomendado: servidor 1.20.1
 
 Para o novo servidor, o perfil recomendado é Minecraft Java **1.20.1**. O bot detecta essa versão pelo ping e usa o protocolo normal, sem aplicar as correções específicas do Forge 26.3.

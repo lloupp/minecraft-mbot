@@ -4,7 +4,7 @@ const { Vec3 } = require('vec3')
 
 const equipment = require('../lib/equipment')
 const night = require('../lib/night')
-const { Autonomy } = require('../lib/autonomy')
+const { Autonomy, FIRST_RETRY_MS } = require('../lib/autonomy')
 const { detectProfile, normalizeVersion, PROFILE_IDS } = require('../lib/serverProfile')
 
 function fakeBot({ items = [], armor = {}, blocks = {}, food = 20, time = 1000, copper = false } = {}) {
@@ -118,4 +118,25 @@ test('Forge 1.20.1 usa camada Forge sem patches exclusivos do 26.3', () => {
   assert.equal(profile.id, PROFILE_IDS.FORGE)
   assert.equal(profile.useForge, true)
   assert.equal(profile.useProtocolPatches, false)
+})
+
+
+test('autonomia aumenta backoff progressivamente e zera após sucesso', () => {
+  const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace']], food: 20 })
+  const autonomy = new Autonomy(bot)
+  const goal = autonomy.next()
+  const before = Date.now()
+
+  autonomy.failed(goal)
+  const firstUntil = autonomy.blockedUntil.get(goal.name)
+  assert.ok(firstUntil >= before + FIRST_RETRY_MS - 1000)
+
+  autonomy.failed(goal)
+  const secondUntil = autonomy.blockedUntil.get(goal.name)
+  assert.ok(secondUntil > firstUntil)
+  assert.equal(autonomy.failures.get(goal.name), 2)
+
+  autonomy.succeeded(goal)
+  assert.equal(autonomy.failures.has(goal.name), false)
+  assert.equal(autonomy.blockedUntil.has(goal.name), false)
 })
