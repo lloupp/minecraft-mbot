@@ -50,6 +50,11 @@ class WaypointManager {
     }
   }
 
+  restoreLegacyBase(position, dimension = null) {
+    if (!this.get('base') && position) return this.save('base', position, dimension)
+    return this.get('base')
+  }
+
   save(name, position, dimension = null) {
     const normalized = normalizeWaypointName(name)
     if (!normalized) throw new Error('nome de local inválido')
