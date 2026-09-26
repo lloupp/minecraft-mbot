@@ -655,3 +655,21 @@ test('ColonyOrchestrator restaura e remove metas de animais', () => {
   assert.equal(colony.clearAnimalTarget('cow'), true)
   assert.deepEqual(colony.animalTargetsSnapshot(), { sheep: 32 })
 })
+
+
+test('ColonyOrchestrator respeita cooldown por espécie no modo automático', () => {
+  const manager = { workers: new Map(), normalizeRole: (role) => role }
+  const colony = new ColonyOrchestrator({ botManager: manager })
+  colony.setAnimalTarget('cow', 8)
+  colony.animalBackoff.set('cow', Date.now() + 60000)
+
+  const plan = colony.buildAnimalPlan([{
+    worker: { name: 'fazendeiro_01', role: 'fazendeiro' },
+    controller: {
+      isIdle: () => true,
+      penPopulation: () => ({ built: true, inside: 2 })
+    }
+  }])
+
+  assert.deepEqual(plan, [])
+})
