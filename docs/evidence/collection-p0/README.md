@@ -77,7 +77,7 @@ No runtime mesclado, executado o harness versionado acima: três rodadas com doi
 | 2 | 8 → 9 | 5 → 6 | 6.226 / 4.123 | 20/11 / 20/17 | PASS |
 | 3 | 9 → 10 | 6 → 7 | 6.184 / 5.252 | 20/10 / 20/16 | PASS |
 
-Também repetido o caso crítico: pedra à mão removida, reposição de uma tábua física, cobblestone **5 → 5**, delta zero, `ITEM_NOT_CONFIRMED`, `ok=false`, bloco air no observador. **Zero falsos positivos corrigidos**. Vida 20 e fome 9 ao terminar esse negativo; a bateria foi encerrada, sem prolongar trabalho. Antes dos próximos testes, abastecer comida em survival.
+Também repetido o caso crítico: pedra à mão removida, reposição de uma tábua física, cobblestone **5 → 5**, delta zero, `ITEM_NOT_CONFIRMED`, `ok=false`, bloco air no observador. **Nenhum falso positivo no reteste corrigido**. Vida 20 e fome 9 ao terminar esse negativo; a bateria foi encerrada, sem prolongar trabalho. Antes dos próximos testes, abastecer comida em survival.
 
 Seis rodadas principais no total (3 antes + 3 depois), 12/12 tarefas normais, 6 oak_log e 6 cobblestone adquiridos nelas. Casos complementares: birch_log 0→1 com 35 slots, cobblestone +1 do worker não cancelado e oak_log +1 em pedido parcial que corretamente falhou. Os ensaios preliminares e reproduções não entram nessas seis rodadas.
 
