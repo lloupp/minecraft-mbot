@@ -1,0 +1,240 @@
+[
+  {
+    "id": "hunger",
+    "expected": "eat",
+    "availableActions": [
+      "eat",
+      "gather",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 5,
+      "objective": {
+        "type": "gather",
+        "resource": "iron_ore"
+      },
+      "inventory": {
+        "bread": 2
+      }
+    }
+  },
+  {
+    "id": "gather",
+    "expected": "gather",
+    "availableActions": [
+      "gather",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "objective": {
+        "type": "gather",
+        "resource": "spruce_log",
+        "quantity": 6
+      },
+      "inventory": {}
+    }
+  },
+  {
+    "id": "craft",
+    "expected": "craft",
+    "availableActions": [
+      "craft",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "objective": {
+        "type": "craft",
+        "item": "furnace",
+        "quantity": 1
+      },
+      "inventory": {
+        "cobblestone": 8
+      }
+    }
+  },
+  {
+    "id": "smelt",
+    "expected": "smelt",
+    "availableActions": [
+      "smelt",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "objective": {
+        "type": "smelt",
+        "item": "gold_ingot",
+        "quantity": 2
+      },
+      "inventory": {
+        "raw_gold": 2,
+        "coal": 1
+      }
+    }
+  },
+  {
+    "id": "move",
+    "expected": "move",
+    "availableActions": [
+      "move",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "objective": {
+        "type": "move_to",
+        "destination": "storage"
+      },
+      "position": {
+        "x": 90,
+        "y": 64,
+        "z": -30
+      }
+    }
+  },
+  {
+    "id": "deposit",
+    "expected": "deposit",
+    "availableActions": [
+      "deposit",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "objective": {
+        "type": "deposit"
+      },
+      "inventory": {
+        "raw_iron": 12
+      }
+    }
+  },
+  {
+    "id": "withdraw",
+    "expected": "withdraw",
+    "availableActions": [
+      "withdraw",
+      "craft",
+      "gather",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "objective": {
+        "type": "withdraw",
+        "item": "stone_pickaxe"
+      },
+      "inventory": {}
+    }
+  },
+  {
+    "id": "fight",
+    "expected": "fight",
+    "availableActions": [
+      "fight",
+      "move",
+      "wait"
+    ],
+    "state": {
+      "health": 14,
+      "food": 18,
+      "objective": {
+        "type": "fight"
+      },
+      "threats": [
+        {
+          "name": "zombie",
+          "distance": 3
+        }
+      ],
+      "inventory": {
+        "stone_axe": 1
+      }
+    }
+  },
+  {
+    "id": "cancel",
+    "expected": "stop",
+    "availableActions": [
+      "stop",
+      "wait"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "cancellationRequested": true,
+      "objective": {
+        "type": "gather"
+      },
+      "progress": {
+        "completed": 3,
+        "requested": 6
+      }
+    }
+  },
+  {
+    "id": "complete",
+    "expected": "wait",
+    "availableActions": [
+      "wait",
+      "stop"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "alreadyComplete": true,
+      "objective": {
+        "type": "craft"
+      }
+    }
+  },
+  {
+    "id": "creeper",
+    "expected": "move",
+    "availableActions": [
+      "move",
+      "fight",
+      "wait"
+    ],
+    "state": {
+      "health": 6,
+      "food": 16,
+      "objective": {
+        "type": "fight"
+      },
+      "threats": [
+        {
+          "name": "creeper",
+          "distance": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "unreachable",
+    "expected": "stop",
+    "availableActions": [
+      "gather",
+      "wait",
+      "stop"
+    ],
+    "state": {
+      "health": 20,
+      "food": 20,
+      "objective": {
+        "type": "gather"
+      },
+      "consecutiveFailures": 4,
+      "alternativeRoute": false
+    }
+  }
+]
