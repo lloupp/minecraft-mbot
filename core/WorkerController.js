@@ -425,12 +425,18 @@ class WorkerController {
     if (!wanted.size) throw new Error(`nenhum bloco compatível com "${resource}"`)
 
     // gather pula blocos inalcançáveis em vez de insistir sempre no mesmo.
-    const gathered = await gather.mineBlocks(this.bot, (name) => wanted.has(name), count, isCancelled)
+    const evidence = []
+    const gathered = await gather.mineBlocks(this.bot, (name) => wanted.has(name), count, isCancelled, {
+      onAttempt: (attempt) => { evidence.push(attempt); if (evidence.length > 20) evidence.shift() }
+    })
 
-    const deposited = this.storage?.configured()
+    const deposited = !isCancelled() && this.storage?.configured()
       ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
       : {}
-    return { ok: gathered > 0, gathered, requested: count, resource, exhausted: gathered < count, deposited }
+    const ok = !isCancelled() && gathered >= count
+    const code = isCancelled() ? gather.COLLECTION_FAILURE.CANCELLED
+      : ok ? undefined : evidence.findLast((attempt) => attempt.code)?.code || gather.COLLECTION_FAILURE.RESOURCE_NOT_FOUND
+    return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, evidence }
   }
 
   // Currais construídos (com portão) em volta da base.

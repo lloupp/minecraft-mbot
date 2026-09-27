@@ -495,3 +495,52 @@ test('caçar comida poupa os animais do curral', async () => {
   assert.equal(food.findFoodSource(bot, options), null)
   assert.equal(food.findFoodSource(bot)?.entity?.name, 'cow') // sem poupar, caçaria uma delas
 })
+
+test('coleta parcial não anuncia conclusão da quantidade solicitada', async () => {
+  const pos = new Vec3(2, 63, 0)
+  const bot = fakeBot({ blocks: { [pos.toString()]: 'iron_ore' } })
+  const result = await readyWorker(bot).run({ type: 'coletar_blocos', resource: 'ferro', count: 2 })
+  assert.equal(result.gathered, 1)
+  assert.equal(result.ok, false)
+  assert.equal(result.verified, false)
+})
+
+test('cancelamento após dig não retorna sucesso nem inicia depósito', async () => {
+  const pos = new Vec3(2, 63, 0)
+  const bot = fakeBot({ blocks: { [pos.toString()]: 'iron_ore' } })
+  const storage = { configured: () => true, withdrawBestTool: async () => null,
+    depositCargo: async () => assert.fail('não deve depositar após cancelamento') }
+  const worker = readyWorker(bot, { storage })
+  const dig = bot.dig
+  bot.dig = async block => { await dig(block); worker.cancel() }
+  const result = await worker.run({ type: 'coletar_blocos', resource: 'ferro', count: 1 })
+  assert.equal(result.ok, false)
+  assert.equal(result.code, 'CANCELLED')
+})
+
+test('cancelamento durante aproximação ao drop não confirma nem deposita a coleta', async () => {
+  const pos = new Vec3(2, 63, 0)
+  const bot = fakeBot({ blocks: { [pos.toString()]: 'iron_ore' } })
+  const storage = { configured: () => true, withdrawBestTool: async () => null,
+    depositCargo: async () => assert.fail('depósito após cancelamento') }
+  const worker = readyWorker(bot, { storage })
+  let removed = false
+  bot.blockAt = p => ({ name: p.equals(pos) && !removed ? 'iron_ore' : 'air', position: p })
+  bot.findBlocks = () => removed ? [] : [pos]
+  bot.dig = async () => {
+    removed = true
+    bot.entities[7] = { name: 'item', isValid: true, position: pos, getDroppedItem: () => ({ name: 'iron_ore' }) }
+  }
+  let navigation = 0
+  bot.pathfinder.goto = async () => {
+    if (++navigation === 2) {
+      bot.inventory.items().push({ name: 'iron_ore', count: 1 })
+      worker.cancel()
+    }
+  }
+  const result = await worker.run({ type: 'coletar_blocos', resource: 'ferro', count: 1 })
+  assert.equal(navigation, 2)
+  assert.equal(result.ok, false)
+  assert.equal(result.code, 'CANCELLED')
+  assert.equal(result.gathered, 0)
+})
