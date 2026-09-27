@@ -330,7 +330,10 @@ class ColonyOrchestrator {
     if (!worker?.bot?.colonyController) throw new Error(`bot não encontrado: ${workerName}`)
     const task = { type: 'ir_local', position: { ...position } }
     worker.bot.colonyController.run(task)
-      .then((result) => this.logger.log(`[navegação] ${workerName} chegou ao local:`, result))
+      .then((result) => {
+        const confirmed = result?.ok === true && result.evidence?.type === 'position_confirmed'
+        this.logger.log(`[navegação] ${workerName} chegada ${confirmed ? 'confirmada' : 'não confirmada'}:`, result)
+      })
       .catch((err) => this.logger.log(`[navegação] ${workerName} falhou: ${err.message}`))
     return task
   }

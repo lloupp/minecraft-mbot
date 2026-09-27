@@ -1,0 +1,427 @@
+{
+  "startedAt": "2026-09-27T13:31:11.080Z",
+  "minecraftVersion": "1.20.1",
+  "profile": "forge",
+  "port": 25586,
+  "bots": [
+    {
+      "name": "eduardo_bot",
+      "position": {
+        "x": 47.5,
+        "y": 64,
+        "z": -1.5
+      },
+      "dimension": "overworld",
+      "gameMode": "survival",
+      "health": 20,
+      "food": 20,
+      "version": "1.20.1"
+    },
+    {
+      "name": "minerador_01",
+      "position": {
+        "x": 23.5,
+        "y": 63,
+        "z": -11.49946586425012
+      },
+      "dimension": "overworld",
+      "gameMode": "survival",
+      "health": 20,
+      "food": 20,
+      "version": "1.20.1"
+    },
+    {
+      "name": "lenhador_01",
+      "position": {
+        "x": 15.5,
+        "y": 63,
+        "z": 5.527132614776639
+      },
+      "dimension": "overworld",
+      "gameMode": "survival",
+      "health": 20,
+      "food": 20,
+      "version": "1.20.1"
+    }
+  ],
+  "navigation": [
+    {
+      "name": "lenhador_01",
+      "before": {
+        "name": "lenhador_01",
+        "position": {
+          "x": 15.5,
+          "y": 63,
+          "z": 5.527132614776639
+        },
+        "dimension": "overworld",
+        "gameMode": "survival",
+        "health": 20,
+        "food": 20,
+        "version": "1.20.1"
+      },
+      "goal": {
+        "x": 21,
+        "y": 63,
+        "z": 5
+      },
+      "result": {
+        "ok": true,
+        "x": 21,
+        "y": 63,
+        "z": 5,
+        "evidence": {
+          "type": "position_confirmed",
+          "position": {
+            "x": 20.5,
+            "y": 63,
+            "z": 5.510141373527324
+          },
+          "dimension": "overworld",
+          "target": {
+            "x": 21.5,
+            "y": 63,
+            "z": 5.5
+          },
+          "tolerance": 2,
+          "distance": 1.0000514224063783
+        }
+      },
+      "after": {
+        "name": "lenhador_01",
+        "position": {
+          "x": 20.5,
+          "y": 63,
+          "z": 5.510141373527324
+        },
+        "dimension": "overworld",
+        "gameMode": "survival",
+        "health": 20,
+        "food": 20,
+        "version": "1.20.1"
+      },
+      "distance": 1.0000514224063783,
+      "cancellation": {
+        "inFlight": true,
+        "result": {
+          "ok": false,
+          "cancelled": true,
+          "x": 21,
+          "y": 63,
+          "z": 5
+        },
+        "drift": 0.20322832388935552,
+        "goalCleared": true,
+        "state": "ocioso"
+      },
+      "verified": false,
+      "elapsedMs": 2851.092662
+    },
+    {
+      "name": "minerador_01",
+      "before": {
+        "name": "minerador_01",
+        "position": {
+          "x": 23.5,
+          "y": 63,
+          "z": -11.49946586425012
+        },
+        "dimension": "overworld",
+        "gameMode": "survival",
+        "health": 20,
+        "food": 20,
+        "version": "1.20.1"
+      },
+      "goal": {
+        "x": 17,
+        "y": 63,
+        "z": -12
+      },
+      "result": {
+        "ok": true,
+        "x": 17,
+        "y": 63,
+        "z": -12,
+        "evidence": {
+          "type": "position_confirmed",
+          "position": {
+            "x": 18.5,
+            "y": 63,
+            "z": -11.49946588605232
+          },
+          "dimension": "overworld",
+          "target": {
+            "x": 17.5,
+            "y": 63,
+            "z": -11.5
+          },
+          "tolerance": 2,
+          "distance": 1.0000001426388443
+        }
+      },
+      "after": {
+        "name": "minerador_01",
+        "position": {
+          "x": 18.5,
+          "y": 63,
+          "z": -11.49946588605232
+        },
+        "dimension": "overworld",
+        "gameMode": "survival",
+        "health": 20,
+        "food": 20,
+        "version": "1.20.1"
+      },
+      "distance": 1.0000001426388443,
+      "cancellation": {
+        "inFlight": true,
+        "result": {
+          "ok": false,
+          "cancelled": true,
+          "x": 17,
+          "y": 63,
+          "z": -12
+        },
+        "drift": 0.20329798931626897,
+        "goalCleared": true,
+        "state": "ocioso"
+      },
+      "verified": false,
+      "elapsedMs": 2839.2564700000003
+    }
+  ],
+  "samples": [
+    {
+      "at": "2026-09-27T13:31:14.273Z",
+      "bots": [
+        {
+          "name": "eduardo_bot",
+          "position": {
+            "x": 47.5,
+            "y": 64,
+            "z": -1.5
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "lenhador_01",
+          "position": {
+            "x": 15.975203565892835,
+            "y": 63,
+            "z": 5.525601897382589
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "minerador_01",
+          "position": {
+            "x": 23.024633537230127,
+            "y": 63,
+            "z": -11.49946586580742
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-27T13:31:15.273Z",
+      "bots": [
+        {
+          "name": "eduardo_bot",
+          "position": {
+            "x": 47.5,
+            "y": 64,
+            "z": -1.5
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "lenhador_01",
+          "position": {
+            "x": 17.197621406260087,
+            "y": 63,
+            "z": 5.518713735733392
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "minerador_01",
+          "position": {
+            "x": 21.80193414641685,
+            "y": 63,
+            "z": -11.49946587359392
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-27T13:31:16.273Z",
+      "bots": [
+        {
+          "name": "eduardo_bot",
+          "position": {
+            "x": 47.5,
+            "y": 64,
+            "z": -1.5
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "lenhador_01",
+          "position": {
+            "x": 20.5,
+            "y": 63,
+            "z": 5.510141373527324
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "minerador_01",
+          "position": {
+            "x": 18.5,
+            "y": 63,
+            "z": -11.49946588605232
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-27T13:31:17.273Z",
+      "bots": [
+        {
+          "name": "eduardo_bot",
+          "position": {
+            "x": 47.5,
+            "y": 64,
+            "z": -1.5
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "lenhador_01",
+          "position": {
+            "x": 20.5,
+            "y": 63,
+            "z": 5.510141373527324
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "minerador_01",
+          "position": {
+            "x": 18.5,
+            "y": 63,
+            "z": -11.49946588605232
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-27T13:31:18.273Z",
+      "bots": [
+        {
+          "name": "eduardo_bot",
+          "position": {
+            "x": 47.5,
+            "y": 64,
+            "z": -1.5
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "lenhador_01",
+          "position": {
+            "x": 20.5,
+            "y": 63,
+            "z": 5.510141373527324
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        },
+        {
+          "name": "minerador_01",
+          "position": {
+            "x": 18.5,
+            "y": 63,
+            "z": -11.49946588605232
+          },
+          "dimension": "overworld",
+          "gameMode": "survival",
+          "health": 20,
+          "food": 20,
+          "version": "1.20.1"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "No collection/crafting/furnace/build/combat/restart tested",
+    "Short natural-terrain navigation only"
+  ],
+  "cpu": {
+    "user": 725794,
+    "system": 37135,
+    "wallMs": 5852.5101700000005,
+    "percentOneCore": 13.035910927609127
+  },
+  "ok": false,
+  "finishedAt": "2026-09-27T13:31:19.125Z"
+}

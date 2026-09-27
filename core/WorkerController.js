@@ -30,6 +30,7 @@ const PATH_THINK_MS = 25000
 // Tempo para uma viagem longa: ~700 ms por bloco (medido ~2 blocos/s com vários
 // workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
 const MS_PER_BLOCK = 700
+const POINT_ARRIVAL_RADIUS = 2
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
   const d = Math.hypot(from.x - to.x, from.y - to.y, from.z - to.z)
@@ -1070,13 +1071,39 @@ class WorkerController {
     const y = Number(position?.y)
     const z = Number(position?.z)
     if (![x, y, z].every(Number.isFinite)) throw new Error('posição de destino inválida')
-    await this.goTo(new goals.GoalNear(Math.floor(x), Math.floor(y), Math.floor(z), 2), 45000)
-    return {
-      ok: !isCancelled(),
-      x: Math.floor(x),
-      y: Math.floor(y),
-      z: Math.floor(z)
+    const target = { x: Math.floor(x), y: Math.floor(y), z: Math.floor(z) }
+    const center = new Vec3(target.x + 0.5, target.y, target.z + 0.5)
+    const deadline = Date.now() + 45000
+    // GoalNear encerra usando coordenadas discretas: goto resolvido não confirma
+    // o raio físico. Uma única aproximação mais curta pode corrigir esse desvio.
+    for (let attempt = 0; attempt <= 2; attempt++) {
+      if (isCancelled()) return { ok: false, cancelled: true, ...target }
+      const actual = this.bot.entity?.position
+      const distance = actual ? actual.distanceTo(center) : Infinity
+      if (distance <= POINT_ARRIVAL_RADIUS) {
+        return {
+          ok: true,
+          ...target,
+          evidence: {
+            type: 'position_confirmed',
+            position: { x: actual.x, y: actual.y, z: actual.z },
+            dimension: this.bot.game?.dimension || null,
+            target: { x: center.x, y: center.y, z: center.z },
+            tolerance: POINT_ARRIVAL_RADIUS,
+            distance
+          }
+        }
+      }
+      if (attempt === 2 || Date.now() >= deadline) break
+      try {
+        await this.goTo(new goals.GoalNear(target.x, target.y, target.z, attempt === 0 ? 2 : 1), deadline - Date.now())
+      } catch (err) {
+        if (isCancelled()) return { ok: false, cancelled: true, ...target }
+        err.code ||= 'PATH_FAILED'
+        throw err
+      }
     }
+    return { ok: false, ...target, failure: { code: 'PATH_FAILED', message: 'Posição final fora do raio de chegada confirmado' } }
   }
 
   async guard(durationMs, isCancelled) {
