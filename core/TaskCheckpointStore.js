@@ -58,6 +58,11 @@ class TaskCheckpointStore {
     const taskId = id || crypto.randomUUID()
     if (!safeId(taskId)) throw new Error('task id inválido')
     if (!safeId(worker)) throw new Error('worker inválido')
+    if (this.state.tasks[taskId]) {
+      const err = new Error('task id já existe')
+      err.code = 'TASK_ID_EXISTS'
+      throw err
+    }
     const now = new Date().toISOString()
     const task = {
       id: taskId,
@@ -107,6 +112,11 @@ class TaskCheckpointStore {
     task.result = { success: false, reason }
     task.updatedAt = new Date().toISOString()
     return clone(task)
+  }
+
+  get(id) {
+    const task = this.state.tasks[id]
+    return task ? clone(task) : null
   }
 
   require(id) {
