@@ -19,7 +19,7 @@ Picareta de madeira fabricada e entregue via estoque em survival; mesa colocada 
 
 A busca do harness usa `findBlocks` real, com predicado de posição dentro de `useExtraInfo` para delimitar a fixture antes de limitar resultados. Não simula navegação, dig, drops ou inventários. Uma versão inicial filtrava após a lista truncada e alguns negativos não chegaram a dig: esses casos **não** são prova dos respectivos cenários. Foram repetidos corretamente. O predicado não altera o runtime de produção.
 
-O contador isolado por bot confirma aquisição do item, mas não identifica por si só a origem de drops do mesmo tipo misturados no mesmo local. Por isso as rodadas registram `playerCollect` com ID do próprio worker, item e posição, além do bloco final visto pelo observador. Os dois alvos independentes e itens diferentes permitem atribuição física nessas rodadas; isso não prova concorrência sobre o mesmo bloco.
+O contador isolado por bot confirma aquisição do item, mas não identifica por si só a origem de drops do mesmo tipo misturados no mesmo local. Por isso as rodadas registram `playerCollect` filtrado pelo ID do próprio worker, item e posição, além do bloco final visto pelo observador. Os dois alvos independentes e itens diferentes permitem atribuição física nessas rodadas; isso não prova concorrência sobre o mesmo bloco.
 
 ## Rodadas normais finais antes da PR
 
@@ -53,7 +53,7 @@ Nenhum falso positivo nos casos finais corrigidos. Nenhum stuck ou conflito de p
 
 Review local conferiu chamadores de mineBlocks, fallback/plugin, limites de tentativas/pickup, dados simples de evidência, isolamento por inventário e cancelamento antes de depósito. Corrigiu a derivação de Silk Touch para usar a ferramenta escolhida, não a previamente segurada. `git diff --check` aprovado. A preparação de crafting em lote mostrou inventário diferido e oak_button inesperado; não é prova de crafting aprovado e deve ser investigada no próximo gate.
 
-PR/CI/merge e reteste pós-merge: pendentes no momento deste registro. Somente CI verde e reteste real permitirão declarar o gate aprovado. P0 completo continua **pendente**; próximo gate é crafting real, em outra branch. Nada de checkpoint, planner, Julia, logística nova ou state machine nesta PR.
+[PR #63](https://github.com/lloupp/minecraft-mbot/pull/63) mesclada com CI e compatibility verdes em `69771d843193c4ed841ae09869a8b43bcc5c88d5`. Reteste real pós-merge aprovado; os detalhes estão em `post-merge.json`. **Gate de coleta aprovado neste escopo**, incluindo fixture declarada e evidência adicional de pickup. P0 completo continua **pendente**; próximo gate é crafting real, em outra branch. Nada de checkpoint, planner, Julia, logística nova ou state machine nesta PR.
 
 `results.json` contém tarefas completas, inventários, posições, tempos, saúde/fome, pickups, erros e hashes dos arquivos brutos. As flags iniciais `cancelFalsePositive`/`itemMismatchFalsePositive` de before eram rótulos defeituosos do harness: o listener de cancelamento não disparou; não são utilizadas como prova de cancelamento.
 
@@ -66,3 +66,21 @@ COLLECTION_REPORT=.data/forge-p0/collection/normal-retest.json node docs/evidenc
 ```
 
 O harness executa exatamente três rodadas com dois workers. `FORGE_TEST_DIR` pode informar a pasta do servidor que contém o FIFO `console`; por padrão usa o servidor separado deste workspace. Aborta com vida <18 ou fome <8. A preparação de ferramenta é survival; não equivale à aprovação do gate de crafting. Não executar em servidor de produção.
+
+## Reteste pós-merge
+
+No runtime mesclado, executado o harness versionado acima: três rodadas com dois workers simultâneos, **6/6 tarefas PASS**, bloco removido visto pelo observador, delta 1 e pickup próprio em cada tarefa.
+
+| Rodada | lenhador: oak_log antes/depois | minerador: cobblestone antes/depois | Tempo lenhador/minerador (s) | Vida/fome lenhador / minerador | Resultado |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 7 → 8 | 4 → 5 | 6.345 / 4.087 | 20/11 / 20/18 | PASS |
+| 2 | 8 → 9 | 5 → 6 | 6.226 / 4.123 | 20/11 / 20/17 | PASS |
+| 3 | 9 → 10 | 6 → 7 | 6.184 / 5.252 | 20/10 / 20/16 | PASS |
+
+Também repetido o caso crítico: pedra à mão removida, reposição de uma tábua física, cobblestone **5 → 5**, delta zero, `ITEM_NOT_CONFIRMED`, `ok=false`, bloco air no observador. **Zero falsos positivos corrigidos**. Vida 20 e fome 9 ao terminar esse negativo; a bateria foi encerrada, sem prolongar trabalho. Antes dos próximos testes, abastecer comida em survival.
+
+Seis rodadas principais no total (3 antes + 3 depois), 12/12 tarefas normais, 6 oak_log e 6 cobblestone adquiridos nelas. Casos complementares: birch_log 0→1 com 35 slots, cobblestone +1 do worker não cancelado e oak_log +1 em pedido parcial que corretamente falhou. Os ensaios preliminares e reproduções não entram nessas seis rodadas.
+
+CPU Node pós-merge: 51.31% de um core em 32.92 s, máximo RSS 237.69 MiB, incluindo inicialização, diagnósticos, fixture e navegação. Amostra curta; nenhum novo stuck/conflito observado. Não aprova o gate de desempenho prolongado.
+
+Hashes dos três arquivos de runtime pós-merge coincidem com os ensaios anteriores. A atualização pós-merge é somente documentação; não muda execução. Próximo gate: crafting real (a observação de preparação em lote descrita acima deve ser reproduzida). Furnace, alternativas, retomada, stuck, restart, checkpoints, construção bloqueada, combate e desempenho prolongado permanecem pendentes.
