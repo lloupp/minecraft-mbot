@@ -90,3 +90,17 @@ test('path failure remains an error with stable failure code', async () => {
   worker.goTo = async () => { throw new Error('unreachable') }
   await assert.rejects(worker.goToPoint(destination, () => false), { code: 'PATH_FAILED' })
 })
+
+const { ColonyOrchestrator } = require('../core/ColonyOrchestrator')
+for (const result of [{ ok: false }, { ok: true }, { ok: true, evidence: { type: 'position_confirmed' } }]) {
+  test(`sendTo announces arrival only with confirmed evidence: ${JSON.stringify(result)}`, async () => {
+    const messages = []
+    const colony = new ColonyOrchestrator({
+      botManager: { get: () => ({ bot: { colonyController: { run: async () => result } } }) },
+      logger: { log: message => messages.push(message) }
+    })
+    await colony.sendTo('lenhador_01', destination)
+    assert.equal(messages.length, 1)
+    assert.equal(messages[0].includes('chegada não confirmada'), !result.evidence)
+  })
+}

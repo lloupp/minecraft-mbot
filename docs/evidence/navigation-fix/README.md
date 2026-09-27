@@ -10,7 +10,7 @@ Ambiente real: 127.0.0.1:25586, Minecraft Java 1.20.1, Forge 47.4.10, survival n
 
 ## Correção mínima
 
-Somente goToPoint/ir_local: preserva GoalNear raio 2 como primeiro caminho e confirma distância tridimensional ao centro do bloco de destino (x+0,5 / y / z+0,5). Só retorna ok=true com position_confirmed, posição copiada, dimensão, alvo, distância e tolerância 2. Se já estiver dentro, não inicia movimento. Se goto terminar fora, tenta uma única aproximação GoalNear raio 1, mantendo prazo total de 45 segundos. Se ainda estiver fora retorna ok=false / PATH_FAILED. Erros de caminho seguem lançados com código; cancelamento antes/durante navegação retorna cancelled e não inicia aproximação adicional.
+No executor goToPoint/ir_local: preserva GoalNear raio 2 como primeiro caminho e confirma distância tridimensional ao centro do bloco de destino (x+0,5 / y / z+0,5). Só retorna ok=true com position_confirmed, posição copiada, dimensão, alvo, distância e tolerância 2. Se já estiver dentro, não inicia movimento. Se goto terminar fora, tenta uma única aproximação GoalNear raio 1, mantendo prazo total de 45 segundos. Se ainda estiver fora retorna ok=false / PATH_FAILED. Erros de caminho seguem lançados com código; cancelamento antes/durante navegação retorna cancelled e não inicia aproximação adicional.
 
 Sem plugins novos, mudança da arquitetura, alteração do cancel() ou mudanças nos executores de coleta/estoque/construção. Não generaliza a correção para todos os usos de goTo.
 
@@ -28,8 +28,8 @@ Evidências JSON estão neste diretório; executores e logs completos em `.data/
 
 ## Validação e review
 
-Oito regressões novas: sucesso físico após aproximação, goto resolvido sem chegada, idempotência, snapshot independente, cancelamento antes e durante caminho resolvido/rejeitado, distância vertical/entidade ausente, código estável em erro de caminho. npm run check e npm test com Node 22.22.3 via script-shell temporário: **276/276**, zero falhas/skips. git diff --check aprovado.
+Onze regressões novas (oito do executor e três do anúncio no orquestrador): sucesso físico após aproximação, goto resolvido sem chegada, idempotência, snapshot independente, cancelamento antes e durante caminho resolvido/rejeitado, distância vertical/entidade ausente, código estável em erro de caminho. npm run check e npm test com Node 22.22.3 via script-shell temporário: **279/279**, zero falhas/skips. git diff --check aprovado.
 
-Review local: checados prazo global, limite de aproximações, cancelamento antes de cada nova ação, evidência só em chegada confirmada e dados simples da evidência. Nenhuma ação antiga toma o pathfinder após cancelamento. Não valida obstáculos/rota longa, combate, crafting, estoque, construção ou checkpoint/restart de objetivo.
+Review local: checados prazo global, limite de aproximações, cancelamento antes de cada nova ação, evidência só em chegada confirmada e dados simples da evidência. Nenhuma nova aproximação toma o pathfinder após cancelamento. O review encontrou sendTo anunciando chegada mesmo com ok=false: corrigido para exigir ok=true e position_confirmed; resultados sem evidência ficam como chegada não confirmada. Não valida obstáculos/rota longa, combate, crafting, estoque, construção ou checkpoint/restart de objetivo.
 
 Gate final: CI verde, merge da PR e repetição do smoke no Forge com o commit mesclado; registrar resultado final local em `.data/forge-p0/navigation-fix/post-merge.json`.
