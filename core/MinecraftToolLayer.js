@@ -107,6 +107,33 @@ class MinecraftToolLayer {
     if (reason) return this.record(decision?.action || null, { success: false, rejected: true, reason })
     const action = decision.action
     const args = decision.args || {}
+
+    if (this.checkpointStore && decision.task_id && !action.startsWith('get_')) {
+      const existing = this.checkpointStore.get?.(decision.task_id)
+      if (existing) {
+        const sameRequest = existing.worker === this.workerId &&
+          existing.action === action &&
+          JSON.stringify(existing.args || {}) === JSON.stringify(args)
+        if (!sameRequest) {
+          return this.record(action, {
+            success: false, rejected: true, reason: 'task_id_conflict', task_id: decision.task_id
+          })
+        }
+        if (['completed', 'failed', 'cancelled'].includes(existing.status)) {
+          return this.record(action, {
+            ...(existing.result || { success: false }),
+            task_id: decision.task_id,
+            replayed: true
+          })
+        }
+        return this.record(action, {
+          success: false, rejected: true,
+          reason: existing.status === 'interrupted' ? 'task_recovery_required' : 'task_in_progress',
+          task_id: decision.task_id
+        })
+      }
+    }
+
     const before = inventory(this.worker.bot)
     const started = Date.now()
     let checkpoint = null
