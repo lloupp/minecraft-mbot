@@ -52,12 +52,13 @@ function validateArgs(spec, args = {}) {
 }
 
 class MinecraftToolLayer {
-  constructor({ worker, workerId, logger = console, maxFailures = 3 }) {
+  constructor({ worker, workerId, logger = console, maxFailures = 3, checkpointStore = null }) {
     if (!worker || !workerId) throw new Error('worker e workerId são obrigatórios')
     this.worker = worker
     this.workerId = workerId
     this.logger = logger
     this.maxFailures = maxFailures
+    this.checkpointStore = checkpointStore
     this.lastAction = null
     this.lastResult = null
     this.consecutiveFailures = 0
@@ -108,6 +109,19 @@ class MinecraftToolLayer {
     const args = decision.args || {}
     const before = inventory(this.worker.bot)
     const started = Date.now()
+    let checkpoint = null
+    if (this.checkpointStore && !action.startsWith('get_')) {
+      checkpoint = this.checkpointStore.create({
+        id: decision.task_id || null,
+        worker: this.workerId,
+        action,
+        args,
+        objective: decision.objective || null,
+        stateHash: this.stateHash(decision.objective)
+      })
+      this.checkpointStore.start(checkpoint.id, { stateHash: checkpoint.stateHash })
+      await this.checkpointStore.save()
+    }
     try {
       let result
       if (action === 'get_state') result = this.state(decision.objective)
@@ -122,9 +136,19 @@ class MinecraftToolLayer {
         result = await this.worker.run(task)
       }
       const success = this.verify(action, args, before, result)
-      return this.record(action, { success, result, duration_ms: Date.now() - started })
+      const payload = { success, result, duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
+      if (checkpoint) {
+        this.checkpointStore.finish(checkpoint.id, payload)
+        await this.checkpointStore.save()
+      }
+      return this.record(action, payload)
     } catch (error) {
-      return this.record(action, { success: false, error: error.message, duration_ms: Date.now() - started })
+      const payload = { success: false, error: error.message, duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
+      if (checkpoint) {
+        this.checkpointStore.finish(checkpoint.id, payload)
+        await this.checkpointStore.save()
+      }
+      return this.record(action, payload)
     }
   }
 
