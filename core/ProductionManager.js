@@ -353,6 +353,10 @@ class ProductionManager {
   async craftToStorage(bot, itemName, count = 1) {
     const normalized = normalizeItemName(itemName)
     const wanted = Math.max(1, Number(count) || 1)
+    const countLocal = () => bot.inventory.items()
+      .filter((item) => item.name === normalized)
+      .reduce((sum, item) => sum + item.count, 0)
+    const inventoryBefore = countLocal()
     let result
     try {
       result = await this.craftInternal(bot, normalized, wanted)
@@ -360,9 +364,26 @@ class ProductionManager {
       if (!SMELT_INPUTS[normalized]) throw craftError
       result = await this.smelt(bot, normalized, wanted)
     }
+    const inventoryAfterCraft = countLocal()
+    const inventoryDelta = inventoryAfterCraft - inventoryBefore
+    const itemConfirmed = inventoryDelta >= wanted
+    result.inventoryBefore = inventoryBefore
+    result.inventoryAfterCraft = inventoryAfterCraft
+    result.inventoryDelta = inventoryDelta
+    result.itemConfirmed = itemConfirmed
+
     if (this.storage?.configured()) {
       const deposited = await this.storage.deposit(bot, normalized, result.produced)
       result.deposited = deposited
+      result.storageConfirmed = deposited >= wanted
+    } else {
+      result.storageConfirmed = true
+    }
+
+    result.verified = itemConfirmed && result.storageConfirmed
+    result.ok = result.verified
+    if (!result.verified) {
+      result.code = !itemConfirmed ? 'CRAFT_ITEM_NOT_CONFIRMED' : 'CRAFT_STORAGE_NOT_CONFIRMED'
     }
     return result
   }
