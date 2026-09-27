@@ -65,3 +65,18 @@ test('serializes minimal Minecraft state', () => {
   assert.deepEqual(state.position, { x: 1, y: 64, z: -3 })
   assert.equal(state.food, 9)
 })
+
+
+test('sends dynamic available-actions mask to remote model', async t => {
+  enabledEnv(t)
+  let body
+  const engine = new DecisionEngine({
+    endpoint: 'http://local/decision',
+    fetchImpl: async (_url, options) => {
+      body = JSON.parse(options.body)
+      return { ok: true, json: async () => ({ action: 'gather', confidence: 0.9, trusted: true }) }
+    }
+  })
+  await engine.decide({ objective: 'wood', availableActions: ['gather', 'wait', 'bash'] }, { action: 'wait' })
+  assert.deepEqual(body.available_actions, ['gather', 'wait'])
+})
