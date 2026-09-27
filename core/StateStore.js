@@ -51,6 +51,11 @@ class StateStore {
     try {
       const raw = await fs.promises.readFile(this.filePath, 'utf8')
       const parsed = JSON.parse(raw)
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || parsed.version !== 1) {
+        const err = new Error('Estado incompatível: esperado version=1; migração explícita necessária')
+        err.code = 'STATE_SCHEMA_UNSUPPORTED'
+        throw err
+      }
       return {
         ...this.defaults(),
         ...parsed,
@@ -65,7 +70,7 @@ class StateStore {
       }
     } catch (err) {
       if (err.code === 'ENOENT') return this.defaults()
-      if (err instanceof SyntaxError) {
+      if (err instanceof SyntaxError || err.code === 'STATE_SCHEMA_UNSUPPORTED') {
         this.lastLoadError = err
         return this.defaults()
       }
@@ -74,9 +79,16 @@ class StateStore {
   }
 
   async save(state) {
+    // Não apagar a única evidência de corrupção/incompatibilidade no próximo autosave.
+    if (this.lastLoadError) {
+      const err = new Error('Salvamento bloqueado: preserve e recupere o arquivo de estado inválido antes de reiniciar')
+      err.code = 'STATE_RECOVERY_REQUIRED'
+      throw err
+    }
     const data = {
       ...this.defaults(),
       ...state,
+      version: 1,
       home: point(state.home),
       storage: point(state.storage),
       animalTargets: animalTargets(state.animalTargets),
@@ -88,8 +100,14 @@ class StateStore {
     const run = async () => {
       await fs.promises.mkdir(path.dirname(this.filePath), { recursive: true })
       const tmp = `${this.filePath}.tmp-${process.pid}`
-      await fs.promises.writeFile(tmp, JSON.stringify(data, null, 2) + '\n', 'utf8')
-      await fs.promises.rename(tmp, this.filePath)
+      try {
+        await fs.promises.writeFile(tmp, JSON.stringify(data, null, 2) + '\n', 'utf8')
+        const written = JSON.parse(await fs.promises.readFile(tmp, 'utf8'))
+        if (written.version !== 1) throw new Error('Versão inválida no arquivo temporário')
+        await fs.promises.rename(tmp, this.filePath)
+      } finally {
+        await fs.promises.rm(tmp, { force: true })
+      }
       return data
     }
 
