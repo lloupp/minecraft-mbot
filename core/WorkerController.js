@@ -1521,6 +1521,9 @@ class WorkerController {
       offset: { x: dx, z: dz }
     }
   }
+
+  // Constrói a fatia `task.region` da planta `task.planta` com origem em
+  // `task.origin`, levando do estoque central o material da fatia.
   async buildBlueprintRegion(isCancelled, task) {
     if (!task.planta || !task.origin) throw new Error('ordem de planta sem nome ou origem')
     const plan = await blueprint.loadBlueprint(task.planta, { version: this.bot.version || blueprint.DEFAULT_VERSION })
@@ -1536,7 +1539,7 @@ class WorkerController {
       if (got) withdrawn[item] = (withdrawn[item] || 0) + got
       return got
     }
-
+    // Uma ida ao baú no começo; o resto só se acabar no meio da obra.
     const inventory = blueprint.inventoryCounts(this.bot.inventory.items())
     for (const [item, count] of Object.entries(blueprint.missingMaterials(needed, inventory))) {
       if (isCancelled()) break
@@ -1547,26 +1550,39 @@ class WorkerController {
       isCancelled,
       clear: blueprint.clearForRegion(plan, region),
       acquire: async (item) => (await take(item, Math.min(64, needed[item] || 1))) > 0,
-      log: (msg) => this.logger.log('[planta] ' + this.name + ' ' + msg)
+      log: (msg) => this.logger.log(`[planta] ${this.name} ${msg}`)
     })
 
+    // Sobras voltam para o estoque, para outro construtor ou a próxima tentativa.
     const deposited = this.storage?.configured()
       ? await this.storage.depositCargo(this.bot).catch(() => ({}))
       : {}
 
-    const obstructed = new Set(report.obstructed.map((o) => [o.x, o.y, o.z].join(',')))
+    // Material que ainda falta para os blocos que não ficaram prontos.
+    // Obstruídos ficam de fora: não adianta esperar material para eles.
+    const obstructed = new Set(report.obstructed.map((o) => `${o.x},${o.y},${o.z}`))
     const remainingSteps = steps.filter((step) =>
-      !obstructed.has([origin.x + step.x, origin.y + step.y, origin.z + step.z].join(',')) &&
+      !obstructed.has(`${origin.x + step.x},${origin.y + step.y},${origin.z + step.z}`) &&
       !this.blockMatches(origin, step))
     const remaining = blueprint.materialList(remainingSteps).materials
     const missingCount = Object.values(report.missing).reduce((a, b) => a + b, 0)
 
     return {
       ok: !report.cancelled && report.failed.length === 0 && missingCount === 0,
-      planta: task.planta, region, total: report.total, alreadyOk: report.alreadyOk,
-      placed: report.placed, cleared: report.cleared, wrongOrientation: report.wrongOrientation,
-      obstructed: report.obstructed, failed: report.failed.length, missing: report.missing,
-      remaining, withdrawn, deposited, durationMs: report.durationMs
+      planta: task.planta,
+      region,
+      total: report.total,
+      alreadyOk: report.alreadyOk,
+      placed: report.placed,
+      cleared: report.cleared,
+      wrongOrientation: report.wrongOrientation,
+      obstructed: report.obstructed,
+      failed: report.failed.length,
+      missing: report.missing,
+      remaining,
+      withdrawn,
+      deposited,
+      durationMs: report.durationMs
     }
   }
 
@@ -1574,7 +1590,6 @@ class WorkerController {
     const block = this.bot.blockAt(new Vec3(origin.x + step.x, origin.y + step.y, origin.z + step.z))
     return block?.name === step.name
   }
-
 }
 
 module.exports = { WorkerController, protectPenBlocks }
