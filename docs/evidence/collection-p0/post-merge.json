@@ -1,0 +1,916 @@
+{
+  "productionPR": "https://github.com/lloupp/minecraft-mbot/pull/63",
+  "mergedRuntimeCommit": "69771d843193c4ed841ae09869a8b43bcc5c88d5",
+  "CI": "SUCCESS",
+  "compatibility": "SUCCESS",
+  "runtimeSHA256": {
+    "lib/gather.js": "39db56fa4d30c33353390c4b19a0fb5744338fb2234de83245bf545b0135a62a",
+    "lib/food.js": "de7df35f8da2af0a17a523bff78e6ef377f826a09360b4f71df7a63548ec5238",
+    "core/WorkerController.js": "5549161c3affd1aab5b99468e71c8f53f41c493fec9b7e599ebc8423eaabbee1"
+  },
+  "reports": {
+    "post-merge": {
+      "startedAt": "2026-09-27T15:22:44.974Z",
+      "minecraftVersion": "1.20.1",
+      "forgeVersion": "47.4.10",
+      "server": "127.0.0.1:25586",
+      "mode": "survival",
+      "intervention": "Small setblock keep fixture, thin snow cleared in survival. Tools crafted in survival from declared stock. Real findBlocks scoped to declared positions (position predicate inside findBlocks, not post-filtering a truncated list); no give, Creative or OP. Collection runs without auto-deposit to retain inventory proof.",
+      "tasks": [
+        {
+          "discovery": {
+            "default": true,
+            "full": true
+          },
+          "worker": "lenhador_01",
+          "targetBlock": "oak_log",
+          "targetPosition": {
+            "x": 42,
+            "y": 63,
+            "z": 2
+          },
+          "expectedItem": "oak_log",
+          "expectedQuantity": 1,
+          "inventoryBefore": 7,
+          "inventoryAllBefore": {
+            "oak_planks": 27,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 7,
+            "oak_button": 1
+          },
+          "startedAt": "2026-09-27T15:22:50.731Z",
+          "digEvents": [
+            {
+              "at": "2026-09-27T15:22:53.266Z",
+              "block": "oak_log",
+              "position": {
+                "x": 42,
+                "y": 63,
+                "z": 2
+              },
+              "workerPosition": {
+                "x": 41.5,
+                "y": 63,
+                "z": 2.4992062492134424
+              }
+            }
+          ],
+          "initialPosition": {
+            "x": 30.446965128764194,
+            "y": 63,
+            "z": -0.6864330630385727
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "gathered": 1,
+            "requested": 1,
+            "resource": "oak_log",
+            "exhausted": false,
+            "deposited": {},
+            "evidence": [
+              {
+                "targetBlock": "oak_log",
+                "targetPosition": {
+                  "x": 42,
+                  "y": 63,
+                  "z": 2
+                },
+                "expectedItems": [
+                  "oak_log"
+                ],
+                "inventoryBefore": 7,
+                "inventoryAfter": 8,
+                "delta": 1,
+                "itemConfirmed": true
+              }
+            ]
+          },
+          "pickupEvents": [
+            {
+              "name": "oak_log",
+              "count": 1,
+              "position": {
+                "x": 42.37538192070867,
+                "y": 63.22016897323677,
+                "z": 2.3481358635578817
+              }
+            }
+          ],
+          "finalPosition": {
+            "x": 42.31497810903208,
+            "y": 63,
+            "z": 2.4995395099542885
+          },
+          "inventoryAfter": 8,
+          "delta": 1,
+          "inventoryAllAfter": {
+            "birch_log": 1,
+            "oak_planks": 27,
+            "cobblestone": 5,
+            "oak_log": 8,
+            "oak_button": 1
+          },
+          "blockFinal": "air",
+          "observerBlockFinal": "air",
+          "blockRemoved": true,
+          "itemConfirmed": true,
+          "falsePositive": false,
+          "health": 20,
+          "food": 11,
+          "elapsedMs": 6344.665028,
+          "scenario": "normal-concurrent",
+          "round": 1
+        },
+        {
+          "discovery": {
+            "default": true,
+            "full": true
+          },
+          "worker": "minerador_01",
+          "targetBlock": "stone",
+          "targetPosition": {
+            "x": 42,
+            "y": 63,
+            "z": -8
+          },
+          "expectedItem": "cobblestone",
+          "expectedQuantity": 1,
+          "inventoryBefore": 4,
+          "inventoryAllBefore": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 4
+          },
+          "startedAt": "2026-09-27T15:22:50.947Z",
+          "digEvents": [
+            {
+              "at": "2026-09-27T15:22:53.272Z",
+              "block": "stone",
+              "position": {
+                "x": 42,
+                "y": 63,
+                "z": -8
+              },
+              "workerPosition": {
+                "x": 41.5,
+                "y": 63,
+                "z": -7.499349601893447
+              }
+            }
+          ],
+          "initialPosition": {
+            "x": 31.474310008871893,
+            "y": 63,
+            "z": -9.5
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "gathered": 1,
+            "requested": 1,
+            "resource": "stone",
+            "exhausted": false,
+            "deposited": {},
+            "evidence": [
+              {
+                "targetBlock": "stone",
+                "targetPosition": {
+                  "x": 42,
+                  "y": 63,
+                  "z": -8
+                },
+                "expectedItems": [
+                  "cobblestone"
+                ],
+                "inventoryBefore": 4,
+                "inventoryAfter": 5,
+                "delta": 1,
+                "itemConfirmed": true
+              }
+            ]
+          },
+          "pickupEvents": [
+            {
+              "name": "cobblestone",
+              "count": 1,
+              "position": {
+                "x": 42.39035843639084,
+                "y": 63.33534291757172,
+                "z": -7.737866332784011
+              }
+            }
+          ],
+          "finalPosition": {
+            "x": 41.5,
+            "y": 63,
+            "z": -7.499349601893447
+          },
+          "inventoryAfter": 5,
+          "delta": 1,
+          "inventoryAllAfter": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 5
+          },
+          "blockFinal": "air",
+          "observerBlockFinal": "air",
+          "blockRemoved": true,
+          "itemConfirmed": true,
+          "falsePositive": false,
+          "health": 20,
+          "food": 18,
+          "elapsedMs": 4086.663404000001,
+          "scenario": "normal-concurrent",
+          "round": 1
+        },
+        {
+          "discovery": {
+            "default": true,
+            "full": true
+          },
+          "worker": "lenhador_01",
+          "targetBlock": "oak_log",
+          "targetPosition": {
+            "x": 42,
+            "y": 63,
+            "z": 2
+          },
+          "expectedItem": "oak_log",
+          "expectedQuantity": 1,
+          "inventoryBefore": 8,
+          "inventoryAllBefore": {
+            "birch_log": 1,
+            "oak_planks": 27,
+            "cobblestone": 5,
+            "oak_log": 8,
+            "oak_button": 1
+          },
+          "startedAt": "2026-09-27T15:23:01.375Z",
+          "digEvents": [
+            {
+              "at": "2026-09-27T15:23:03.793Z",
+              "block": "oak_log",
+              "position": {
+                "x": 42,
+                "y": 63,
+                "z": 2
+              },
+              "workerPosition": {
+                "x": 41.5,
+                "y": 63,
+                "z": 2.4980366933973532
+              }
+            }
+          ],
+          "initialPosition": {
+            "x": 31.5,
+            "y": 63,
+            "z": 0.5004678900017955
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "gathered": 1,
+            "requested": 1,
+            "resource": "oak_log",
+            "exhausted": false,
+            "deposited": {},
+            "evidence": [
+              {
+                "targetBlock": "oak_log",
+                "targetPosition": {
+                  "x": 42,
+                  "y": 63,
+                  "z": 2
+                },
+                "expectedItems": [
+                  "oak_log"
+                ],
+                "inventoryBefore": 8,
+                "inventoryAfter": 9,
+                "delta": 1,
+                "itemConfirmed": true
+              }
+            ]
+          },
+          "pickupEvents": [
+            {
+              "name": "oak_log",
+              "count": 1,
+              "position": {
+                "x": 42.60343444810233,
+                "y": 63.18111484112681,
+                "z": 2.382215250895233
+              }
+            }
+          ],
+          "finalPosition": {
+            "x": 42.314975753697844,
+            "y": 63,
+            "z": 2.4993705506494917
+          },
+          "inventoryAfter": 9,
+          "delta": 1,
+          "inventoryAllAfter": {
+            "oak_planks": 27,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 9,
+            "oak_button": 1
+          },
+          "blockFinal": "air",
+          "observerBlockFinal": "air",
+          "blockRemoved": true,
+          "itemConfirmed": true,
+          "falsePositive": false,
+          "health": 20,
+          "food": 11,
+          "elapsedMs": 6225.929791000002,
+          "scenario": "normal-concurrent",
+          "round": 2
+        },
+        {
+          "discovery": {
+            "default": true,
+            "full": true
+          },
+          "worker": "minerador_01",
+          "targetBlock": "stone",
+          "targetPosition": {
+            "x": 42,
+            "y": 63,
+            "z": -8
+          },
+          "expectedItem": "cobblestone",
+          "expectedQuantity": 1,
+          "inventoryBefore": 5,
+          "inventoryAllBefore": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 5
+          },
+          "startedAt": "2026-09-27T15:23:01.566Z",
+          "digEvents": [
+            {
+              "at": "2026-09-27T15:23:03.879Z",
+              "block": "stone",
+              "position": {
+                "x": 42,
+                "y": 63,
+                "z": -8
+              },
+              "workerPosition": {
+                "x": 41.5,
+                "y": 63,
+                "z": -7.499452343121272
+              }
+            }
+          ],
+          "initialPosition": {
+            "x": 31.5,
+            "y": 63,
+            "z": -9.477643831608813
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "gathered": 1,
+            "requested": 1,
+            "resource": "stone",
+            "exhausted": false,
+            "deposited": {},
+            "evidence": [
+              {
+                "targetBlock": "stone",
+                "targetPosition": {
+                  "x": 42,
+                  "y": 63,
+                  "z": -8
+                },
+                "expectedItems": [
+                  "cobblestone"
+                ],
+                "inventoryBefore": 5,
+                "inventoryAfter": 6,
+                "delta": 1,
+                "itemConfirmed": true
+              }
+            ]
+          },
+          "pickupEvents": [
+            {
+              "name": "cobblestone",
+              "count": 1,
+              "position": {
+                "x": 42.286266435536184,
+                "y": 63.37246989156228,
+                "z": -7.630597426359869
+              }
+            }
+          ],
+          "finalPosition": {
+            "x": 41.5,
+            "y": 63,
+            "z": -7.499452343121272
+          },
+          "inventoryAfter": 6,
+          "delta": 1,
+          "inventoryAllAfter": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 6
+          },
+          "blockFinal": "air",
+          "observerBlockFinal": "air",
+          "blockRemoved": true,
+          "itemConfirmed": true,
+          "falsePositive": false,
+          "health": 20,
+          "food": 17,
+          "elapsedMs": 4123.0060330000015,
+          "scenario": "normal-concurrent",
+          "round": 2
+        },
+        {
+          "discovery": {
+            "default": true,
+            "full": true
+          },
+          "worker": "lenhador_01",
+          "targetBlock": "oak_log",
+          "targetPosition": {
+            "x": 42,
+            "y": 63,
+            "z": 2
+          },
+          "expectedItem": "oak_log",
+          "expectedQuantity": 1,
+          "inventoryBefore": 9,
+          "inventoryAllBefore": {
+            "oak_planks": 27,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 9,
+            "oak_button": 1
+          },
+          "startedAt": "2026-09-27T15:23:11.705Z",
+          "digEvents": [
+            {
+              "at": "2026-09-27T15:23:14.086Z",
+              "block": "oak_log",
+              "position": {
+                "x": 42,
+                "y": 63,
+                "z": 2
+              },
+              "workerPosition": {
+                "x": 41.5,
+                "y": 63,
+                "z": 2.4980293913677807
+              }
+            }
+          ],
+          "initialPosition": {
+            "x": 31.5,
+            "y": 63,
+            "z": 0.5006845732363467
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "gathered": 1,
+            "requested": 1,
+            "resource": "oak_log",
+            "exhausted": false,
+            "deposited": {},
+            "evidence": [
+              {
+                "targetBlock": "oak_log",
+                "targetPosition": {
+                  "x": 42,
+                  "y": 63,
+                  "z": 2
+                },
+                "expectedItems": [
+                  "oak_log"
+                ],
+                "inventoryBefore": 9,
+                "inventoryAfter": 10,
+                "delta": 1,
+                "itemConfirmed": true
+              }
+            ]
+          },
+          "pickupEvents": [
+            {
+              "name": "oak_log",
+              "count": 1,
+              "position": {
+                "x": 42.51314606775554,
+                "y": 63.53912635264657,
+                "z": 2.3082933425646965
+              }
+            }
+          ],
+          "finalPosition": {
+            "x": 42.314975753697844,
+            "y": 63,
+            "z": 2.499363248619919
+          },
+          "inventoryAfter": 10,
+          "delta": 1,
+          "inventoryAllAfter": {
+            "oak_planks": 27,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 10,
+            "oak_button": 1
+          },
+          "blockFinal": "air",
+          "observerBlockFinal": "air",
+          "blockRemoved": true,
+          "itemConfirmed": true,
+          "falsePositive": false,
+          "health": 20,
+          "food": 10,
+          "elapsedMs": 6184.189771999998,
+          "scenario": "normal-concurrent",
+          "round": 3
+        },
+        {
+          "discovery": {
+            "default": true,
+            "full": true
+          },
+          "worker": "minerador_01",
+          "targetBlock": "stone",
+          "targetPosition": {
+            "x": 42,
+            "y": 63,
+            "z": -8
+          },
+          "expectedItem": "cobblestone",
+          "expectedQuantity": 1,
+          "inventoryBefore": 6,
+          "inventoryAllBefore": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 6
+          },
+          "startedAt": "2026-09-27T15:23:11.894Z",
+          "digEvents": [
+            {
+              "at": "2026-09-27T15:23:14.192Z",
+              "block": "stone",
+              "position": {
+                "x": 42,
+                "y": 63,
+                "z": -8
+              },
+              "workerPosition": {
+                "x": 41.5,
+                "y": 63,
+                "z": -7.499478747015595
+              }
+            }
+          ],
+          "initialPosition": {
+            "x": 31.5,
+            "y": 63,
+            "z": -9.477471415105692
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "gathered": 1,
+            "requested": 1,
+            "resource": "stone",
+            "exhausted": false,
+            "deposited": {},
+            "evidence": [
+              {
+                "targetBlock": "stone",
+                "targetPosition": {
+                  "x": 42,
+                  "y": 63,
+                  "z": -8
+                },
+                "expectedItems": [
+                  "cobblestone"
+                ],
+                "inventoryBefore": 6,
+                "inventoryAfter": 7,
+                "delta": 1,
+                "itemConfirmed": true
+              }
+            ]
+          },
+          "pickupEvents": [
+            {
+              "name": "cobblestone",
+              "count": 1,
+              "position": {
+                "x": 43.172922461666104,
+                "y": 63,
+                "z": -7.447186054989047
+              }
+            }
+          ],
+          "finalPosition": {
+            "x": 43.52639819209081,
+            "y": 63,
+            "z": -7.5
+          },
+          "inventoryAfter": 7,
+          "delta": 1,
+          "inventoryAllAfter": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 7
+          },
+          "blockFinal": "air",
+          "observerBlockFinal": "air",
+          "blockRemoved": true,
+          "itemConfirmed": true,
+          "falsePositive": false,
+          "health": 20,
+          "food": 16,
+          "elapsedMs": 5251.568156999998,
+          "scenario": "normal-concurrent",
+          "round": 3
+        }
+      ],
+      "events": [
+        {
+          "reusedDeclaredFixture": {
+            "x": 42,
+            "y": 63,
+            "z": 2
+          },
+          "block": "oak_log"
+        },
+        {
+          "at": "2026-09-27T15:22:48.515Z",
+          "consoleCommand": "setblock 42 63 -8 minecraft:stone keep"
+        },
+        {
+          "at": "2026-09-27T15:22:59.197Z",
+          "consoleCommand": "setblock 42 63 2 minecraft:oak_log keep"
+        },
+        {
+          "at": "2026-09-27T15:22:59.297Z",
+          "consoleCommand": "setblock 42 63 -8 minecraft:stone keep"
+        },
+        {
+          "at": "2026-09-27T15:23:09.760Z",
+          "consoleCommand": "setblock 42 63 2 minecraft:oak_log keep"
+        },
+        {
+          "at": "2026-09-27T15:23:09.862Z",
+          "consoleCommand": "setblock 42 63 -8 minecraft:stone keep"
+        }
+      ],
+      "stockBefore": {},
+      "workerInventoriesBefore": [
+        {
+          "worker": "eduardo_bot",
+          "inventory": {
+            "spruce_log": 1
+          }
+        },
+        {
+          "worker": "lenhador_01",
+          "inventory": {
+            "oak_planks": 27,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 7,
+            "oak_button": 1
+          }
+        },
+        {
+          "worker": "minerador_01",
+          "inventory": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 4
+          }
+        }
+      ],
+      "resources": [
+        {
+          "worker": "lenhador_01",
+          "item": "oak_log",
+          "before": 7,
+          "after": 8,
+          "delta": 1
+        },
+        {
+          "worker": "minerador_01",
+          "item": "cobblestone",
+          "before": 4,
+          "after": 5,
+          "delta": 1
+        },
+        {
+          "worker": "lenhador_01",
+          "item": "oak_log",
+          "before": 8,
+          "after": 9,
+          "delta": 1
+        },
+        {
+          "worker": "minerador_01",
+          "item": "cobblestone",
+          "before": 5,
+          "after": 6,
+          "delta": 1
+        },
+        {
+          "worker": "lenhador_01",
+          "item": "oak_log",
+          "before": 9,
+          "after": 10,
+          "delta": 1
+        },
+        {
+          "worker": "minerador_01",
+          "item": "cobblestone",
+          "before": 6,
+          "after": 7,
+          "delta": 1
+        }
+      ],
+      "falsePositives": 0,
+      "normalPasses": 6,
+      "ok": true,
+      "inventoryNearFull": "not executed yet: no cheat-supplied inventory",
+      "processSample": {
+        "wallMs": 32916.59628,
+        "cpuUserMs": 16577.433,
+        "cpuSystemMs": 312.428,
+        "maxRssKiB": 243396,
+        "scope": "short complete smoke process, not prolonged load test"
+      },
+      "finishedAt": "2026-09-27T15:23:17.891Z",
+      "rawEvidence": {
+        "path": ".data/forge-p0/collection/post-merge.json",
+        "sha256": "a93a5fc623535fb921774448ec7c94d2cb9e917c204750af0f33cbb2145521a1"
+      }
+    },
+    "post-merge-no-drop": {
+      "startedAt": "2026-09-27T15:23:37.147Z",
+      "minecraftVersion": "1.20.1",
+      "forgeVersion": "47.4.10",
+      "server": "127.0.0.1:25586",
+      "mode": "survival",
+      "intervention": "Small setblock keep fixture, thin snow cleared in survival. Tools crafted in survival from declared stock. Real findBlocks scoped to declared positions (position predicate inside findBlocks, not post-filtering a truncated list); no give, Creative or OP. Collection runs without auto-deposit to retain inventory proof.",
+      "tasks": [
+        {
+          "worker": "lenhador_01",
+          "targetBlock": "stone",
+          "targetPosition": {
+            "x": 42,
+            "y": 63,
+            "z": -8
+          },
+          "expectedItem": "cobblestone",
+          "expectedQuantity": 1,
+          "inventoryBefore": 5,
+          "inventoryAllBefore": {
+            "oak_planks": 26,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 10,
+            "oak_button": 1
+          },
+          "startedAt": "2026-09-27T15:23:45.925Z",
+          "digEvents": [
+            {
+              "at": "2026-09-27T15:23:48.635Z",
+              "block": "stone",
+              "position": {
+                "x": 42,
+                "y": 63,
+                "z": -8
+              },
+              "workerPosition": {
+                "x": 41.42531431918131,
+                "y": 63,
+                "z": -7.514645663163557
+              }
+            }
+          ],
+          "initialPosition": {
+            "x": 30.446820663281994,
+            "y": 63,
+            "z": -0.6859526843902253
+          },
+          "result": {
+            "ok": false,
+            "verified": false,
+            "code": "ITEM_NOT_CONFIRMED",
+            "gathered": 0,
+            "requested": 1,
+            "resource": "stone",
+            "exhausted": true,
+            "deposited": {},
+            "evidence": [
+              {
+                "targetBlock": "stone",
+                "targetPosition": {
+                  "x": 42,
+                  "y": 63,
+                  "z": -8
+                },
+                "expectedItems": [
+                  "cobblestone"
+                ],
+                "inventoryBefore": 5,
+                "inventoryAfter": 5,
+                "delta": 0,
+                "itemConfirmed": false,
+                "code": "ITEM_NOT_CONFIRMED"
+              }
+            ]
+          },
+          "pickupEvents": [],
+          "finalPosition": {
+            "x": 33.5,
+            "y": 63,
+            "z": -5.502167797982707
+          },
+          "inventoryAfter": 5,
+          "delta": 0,
+          "inventoryAllAfter": {
+            "oak_planks": 27,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 10,
+            "oak_button": 1
+          },
+          "blockFinal": "air",
+          "observerBlockFinal": "air",
+          "blockRemoved": true,
+          "itemConfirmed": false,
+          "falsePositive": false,
+          "health": 20,
+          "food": 9,
+          "elapsedMs": 15120.38354,
+          "scenario": "dig-without-expected-item-unrelated-stock-replenishment"
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-09-27T15:23:45.782Z",
+          "consoleCommand": "setblock 42 63 -8 minecraft:stone keep"
+        },
+        {
+          "physicalIntervention": "withdraw one previously deposited survival plank after stone hand-dig; reproduces unrelated inventory growth"
+        }
+      ],
+      "stockBefore": {},
+      "workerInventoriesBefore": [
+        {
+          "worker": "eduardo_bot",
+          "inventory": {
+            "spruce_log": 1
+          }
+        },
+        {
+          "worker": "lenhador_01",
+          "inventory": {
+            "oak_planks": 27,
+            "birch_log": 1,
+            "cobblestone": 5,
+            "oak_log": 10,
+            "oak_button": 1
+          }
+        },
+        {
+          "worker": "minerador_01",
+          "inventory": {
+            "wooden_pickaxe": 1,
+            "cobblestone": 7
+          }
+        }
+      ],
+      "ok": true,
+      "resources": [],
+      "falsePositives": 0,
+      "normalPasses": 0,
+      "inventoryNearFull": "not executed yet: no cheat-supplied inventory",
+      "finishedAt": "2026-09-27T15:24:01.046Z",
+      "rawEvidence": {
+        "path": ".data/forge-p0/collection/post-merge-no-drop.json",
+        "sha256": "63812ce59b8bf0c2d0cedc4673d6b5bc060ea5942b8ea1e2212e7a0feb3f6a38"
+      }
+    }
+  },
+  "assessment": {
+    "collectionGate": "approved",
+    "normalRoundsBeforeMerge": 3,
+    "normalRoundsAfterMerge": 3,
+    "normalTasksPassed": 12,
+    "falsePositivesAfterFix": 0,
+    "criticalPostMerge": "ITEM_NOT_CONFIRMED, expected item delta zero, block air confirmed by observer",
+    "P0Complete": false,
+    "nextGate": "crafting real",
+    "foodMinimumObserved": 9
+  }
+}
