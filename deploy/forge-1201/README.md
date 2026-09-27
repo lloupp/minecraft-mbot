@@ -35,10 +35,11 @@ Use estado separado, para não restaurar projetos do servidor anterior:
 MINECRAFT_HOST=127.0.0.1 MINECRAFT_PORT=25586 \
 MINECRAFT_VERSION=1.20.1 MINECRAFT_PROFILE=forge MINECRAFT_OWNER=eduardo \
 MAX_COLONY_BOTS=2 COLONY_STATE_FILE=.data/forge-p0/colony-state.json \
+MEMORY_FILE=.data/forge-p0/memory.json COLONY_EVENT_LOG=.data/forge-p0/events.jsonl \
 node index.js
 ```
 
-A memória geral e EventLog ainda usam suas configurações atuais; este comando isola apenas o StateStore. Um teste por executor dedicado deve evitar importação de estado dos outros mundos. A instalação do servidor não comprova crafting, coleta, combate, logística ou checkpoint: cada cenário precisa de evidência própria.
+O comando isola StateStore, memória e EventLog dos outros mundos usando as variáveis existentes. A instalação do servidor não comprova crafting, coleta, combate, logística ou checkpoint: cada cenário precisa de evidência própria.
 
 ## Smoke limitado com dois workers
 
