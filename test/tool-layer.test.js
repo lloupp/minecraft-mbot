@@ -103,3 +103,47 @@ test('read-only tools do not create checkpoints', async () => {
   const out = await layer.execute({ action: 'get_state', args: {} })
   assert.equal(out.success, true)
 })
+
+
+test('repeated completed task_id replays result without re-execution', async () => {
+  const { worker, layer } = fixture()
+  let runs = 0
+  worker.run = async () => { runs++; return { ok: true, verified: true, gathered: 1 } }
+  const stored = {
+    id: 'same-1', worker: 'worker-a', action: 'gather',
+    args: { resource: 'oak_log', quantity: 1 },
+    status: 'completed',
+    result: { success: true, result: { ok: true, verified: true, gathered: 1 }, duration_ms: 5, task_id: 'same-1' }
+  }
+  layer.checkpointStore = { get: () => stored }
+  const out = await layer.execute({ task_id: 'same-1', action: 'gather', args: { resource: 'oak_log', quantity: 1 } })
+  assert.equal(out.success, true)
+  assert.equal(out.replayed, true)
+  assert.equal(runs, 0)
+})
+
+test('reused task_id with different request is rejected', async () => {
+  const { worker, layer } = fixture()
+  let runs = 0
+  worker.run = async () => { runs++; return { ok: true } }
+  layer.checkpointStore = {
+    get: () => ({ id: 'same-2', worker: 'worker-a', action: 'gather', args: { resource: 'oak_log', quantity: 1 }, status: 'completed' })
+  }
+  const out = await layer.execute({ task_id: 'same-2', action: 'craft', args: { item: 'stick', quantity: 1 } })
+  assert.equal(out.rejected, true)
+  assert.equal(out.reason, 'task_id_conflict')
+  assert.equal(runs, 0)
+})
+
+test('interrupted task_id requires recovery instead of automatic retry', async () => {
+  const { worker, layer } = fixture()
+  let runs = 0
+  worker.run = async () => { runs++; return { ok: true } }
+  layer.checkpointStore = {
+    get: () => ({ id: 'same-3', worker: 'worker-a', action: 'gather', args: { resource: 'oak_log', quantity: 1 }, status: 'interrupted' })
+  }
+  const out = await layer.execute({ task_id: 'same-3', action: 'gather', args: { resource: 'oak_log', quantity: 1 } })
+  assert.equal(out.rejected, true)
+  assert.equal(out.reason, 'task_recovery_required')
+  assert.equal(runs, 0)
+})
