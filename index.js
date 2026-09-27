@@ -169,7 +169,7 @@ async function main() {
   const stateStore = new StateStore()
   const savedState = await stateStore.load()
   if (stateStore.lastLoadError) {
-    console.log('[estado] arquivo local inválido; iniciando com estado vazio')
+    console.log(`[estado] ${stateStore.lastLoadError.message}; restauração automática desativada e arquivo preservado. Salvamento bloqueado até recuperação manual e reinício.`)
   }
   // Memória tipada (lugares, preferências, compromissos, fatos) com proveniência.
   const memory = await new Memory().load()
