@@ -31,6 +31,7 @@ const PATH_THINK_MS = 25000
 // workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
 const MS_PER_BLOCK = 700
 const POINT_ARRIVAL_RADIUS = 2
+const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
   const d = Math.hypot(from.x - to.x, from.y - to.y, from.z - to.z)
@@ -1074,15 +1075,19 @@ class WorkerController {
     const target = { x: Math.floor(x), y: Math.floor(y), z: Math.floor(z) }
     const center = new Vec3(target.x + 0.5, target.y, target.z + 0.5)
     const deadline = Date.now() + 45000
+    let finalDistance = null
     // GoalNear encerra usando coordenadas discretas: goto resolvido não confirma
     // o raio físico. Uma única aproximação mais curta pode corrigir esse desvio.
     for (let attempt = 0; attempt <= 2; attempt++) {
-      if (isCancelled()) return { ok: false, cancelled: true, ...target }
+      if (isCancelled()) return { ok: false, verified: false, cancelled: true, ...target }
       const actual = this.bot.entity?.position
       const distance = actual ? actual.distanceTo(center) : Infinity
+      finalDistance = Number.isFinite(distance) ? distance : null
       if (distance <= POINT_ARRIVAL_RADIUS) {
         return {
           ok: true,
+          verified: true,
+          distance,
           ...target,
           evidence: {
             type: 'position_confirmed',
@@ -1098,12 +1103,18 @@ class WorkerController {
       try {
         await this.goTo(new goals.GoalNear(target.x, target.y, target.z, attempt === 0 ? 2 : 1), deadline - Date.now())
       } catch (err) {
-        if (isCancelled()) return { ok: false, cancelled: true, ...target }
+        if (isCancelled()) return { ok: false, verified: false, cancelled: true, ...target }
         err.code ||= 'PATH_FAILED'
         throw err
       }
     }
-    return { ok: false, ...target, failure: { code: 'PATH_FAILED', message: 'Posição final fora do raio de chegada confirmado' } }
+    return {
+      ok: false,
+      verified: false,
+      distance: finalDistance,
+      ...target,
+      failure: { code: NAVIGATION_POSITION_NOT_CONFIRMED, message: 'Posição final fora do raio de chegada confirmado' }
+    }
   }
 
   async guard(durationMs, isCancelled) {

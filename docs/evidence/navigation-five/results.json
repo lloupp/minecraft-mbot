@@ -1,0 +1,723 @@
+{
+  "schemaVersion": 1,
+  "kind": "test_evidence_not_checkpoint",
+  "runtimeSourceCommit": "793292c234f23ab596854fa31daa07461bced608",
+  "minecraftVersion": "1.20.1",
+  "forgeVersion": "47.4.10",
+  "server": "127.0.0.1:25586",
+  "mode": "survival",
+  "workersOp": false,
+  "smokeSourceSha256": "1d32f5e6d3f92e62b3b3491941e79f3374ca7cdf74fb64ad7483ff1231a8ad14",
+  "toleranceExternal": 2.01,
+  "toleranceExecutor": 2,
+  "roundsCount": 5,
+  "successes": 5,
+  "failures": 0,
+  "workerArrivalsConfirmed": 10,
+  "failureReasons": [],
+  "observedWorkerStuck": false,
+  "observedPathfinderConflict": false,
+  "observationsLimit": "No stuck-specific or conflict-injection scenario; short navigation over existing natural terrain including ice, not long-range or prolonged CPU approval.",
+  "rounds": [
+    {
+      "round": 1,
+      "startedAt": "2026-09-27T13:48:45.183Z",
+      "finishedAt": "2026-09-27T13:48:51.599Z",
+      "exitCode": 0,
+      "reportOk": true,
+      "workers": [
+        {
+          "name": "lenhador_01",
+          "before": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 20.5,
+              "y": 63,
+              "z": 5.50087943807401
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": 14,
+            "y": 63,
+            "z": 5
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1.000000164528168,
+            "x": 14,
+            "y": 63,
+            "z": 5,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": 15.5,
+                "y": 63,
+                "z": 5.50057363434594
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": 14.5,
+                "y": 63,
+                "z": 5.5
+              },
+              "tolerance": 2,
+              "distance": 1.000000164528168
+            }
+          },
+          "after": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 15.5,
+              "y": 63,
+              "z": 5.50057363434594
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1.000000164528168,
+          "verified": true,
+          "elapsedMs": 1316.726501
+        },
+        {
+          "name": "minerador_01",
+          "before": {
+            "name": "minerador_01",
+            "position": {
+              "x": 8.5,
+              "y": 63,
+              "z": -11.499542430422398
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": 2,
+            "y": 63,
+            "z": -12
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1.0000001046849536,
+            "x": 2,
+            "y": 63,
+            "z": -12,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": 3.5,
+                "y": 63,
+                "z": -11.499542430422398
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": 2.5,
+                "y": 63,
+                "z": -11.5
+              },
+              "tolerance": 2,
+              "distance": 1.0000001046849536
+            }
+          },
+          "after": {
+            "name": "minerador_01",
+            "position": {
+              "x": 3.5,
+              "y": 63,
+              "z": -11.499542430422398
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1.0000001046849536,
+          "verified": true,
+          "elapsedMs": 1341.2034550000003
+        }
+      ],
+      "cpu": {
+        "user": 585527,
+        "system": 18386,
+        "wallMs": 4343.819746,
+        "percentOneCore": 13.9027813087546
+      },
+      "sessionErrors": [],
+      "rawEvidenceSha256": "71c8c25619528bcb239b35a9bb4e8164d83260cadb7d5fac031eb68fac8f21bd",
+      "runtimeLogSha256": "e3655ba32171e6e32c4c0b82e9522e6cf818b7c6564adef94ac5044a43282b63"
+    },
+    {
+      "round": 2,
+      "startedAt": "2026-09-27T13:48:53.199Z",
+      "finishedAt": "2026-09-27T13:48:59.800Z",
+      "exitCode": 0,
+      "reportOk": true,
+      "workers": [
+        {
+          "name": "lenhador_01",
+          "before": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 15.5,
+              "y": 63,
+              "z": 5.50057363434594
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": 21,
+            "y": 63,
+            "z": 5
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1.0000000882329336,
+            "x": 21,
+            "y": 63,
+            "z": 5,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": 20.5,
+                "y": 63,
+                "z": 5.500420078415418
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": 21.5,
+                "y": 63,
+                "z": 5.5
+              },
+              "tolerance": 2,
+              "distance": 1.0000000882329336
+            }
+          },
+          "after": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 20.5,
+              "y": 63,
+              "z": 5.500420078415418
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1.0000000882329336,
+          "verified": true,
+          "elapsedMs": 1362.79243
+        },
+        {
+          "name": "minerador_01",
+          "before": {
+            "name": "minerador_01",
+            "position": {
+              "x": 3.5,
+              "y": 63,
+              "z": -11.499542430422398
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": -3,
+            "y": 63,
+            "z": -12
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1.0000001046849536,
+            "x": -3,
+            "y": 63,
+            "z": -12,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": -1.5,
+                "y": 63,
+                "z": -11.499542430422398
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": -2.5,
+                "y": 63,
+                "z": -11.5
+              },
+              "tolerance": 2,
+              "distance": 1.0000001046849536
+            }
+          },
+          "after": {
+            "name": "minerador_01",
+            "position": {
+              "x": -1.5,
+              "y": 63,
+              "z": -11.499542430422398
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1.0000001046849536,
+          "verified": true,
+          "elapsedMs": 1382.8533130000005
+        }
+      ],
+      "cpu": {
+        "user": 753886,
+        "system": 34390,
+        "wallMs": 4384.31329,
+        "percentOneCore": 17.979434802897245
+      },
+      "sessionErrors": [],
+      "rawEvidenceSha256": "d36a0bd2b54b006af61a7d04f797d225cb0d590efc845c4020720e048be3a8ee",
+      "runtimeLogSha256": "7e857c35476c6f4b818fbc34edadbbeb953f92504d7d11a58a83500e630eaa85"
+    },
+    {
+      "round": 3,
+      "startedAt": "2026-09-27T13:49:02.353Z",
+      "finishedAt": "2026-09-27T13:49:09.179Z",
+      "exitCode": 0,
+      "reportOk": true,
+      "workers": [
+        {
+          "name": "lenhador_01",
+          "before": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 20.5,
+              "y": 63,
+              "z": 5.500420078415418
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": 14,
+            "y": 63,
+            "z": 5
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1.0000000884292994,
+            "x": 14,
+            "y": 63,
+            "z": 5,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": 15.5,
+                "y": 63,
+                "z": 5.500420545605891
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": 14.5,
+                "y": 63,
+                "z": 5.5
+              },
+              "tolerance": 2,
+              "distance": 1.0000000884292994
+            }
+          },
+          "after": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 15.5,
+              "y": 63,
+              "z": 5.500420545605891
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1.0000000884292994,
+          "verified": true,
+          "elapsedMs": 1532.5960390000005
+        },
+        {
+          "name": "minerador_01",
+          "before": {
+            "name": "minerador_01",
+            "position": {
+              "x": -1.5,
+              "y": 63,
+              "z": -11.499542430422398
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": -2,
+            "y": 63,
+            "z": -18
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1,
+            "x": -2,
+            "y": 63,
+            "z": -18,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": -1.5000000000000866,
+                "y": 63,
+                "z": -16.5
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": -1.5,
+                "y": 63,
+                "z": -17.5
+              },
+              "tolerance": 2,
+              "distance": 1
+            }
+          },
+          "after": {
+            "name": "minerador_01",
+            "position": {
+              "x": -1.5000000000000866,
+              "y": 63,
+              "z": -16.5
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1,
+          "verified": true,
+          "elapsedMs": 1559.1511990000004
+        }
+      ],
+      "cpu": {
+        "user": 596834,
+        "system": 26025,
+        "wallMs": 4563.167782,
+        "percentOneCore": 13.649676220946649
+      },
+      "sessionErrors": [],
+      "rawEvidenceSha256": "5b3bf75098b485da97f68a78802914199ba72918a1122241578c0d79b461bee3",
+      "runtimeLogSha256": "a7c8b8557700c73905a707b549fa3d7153b59646f657c38c4ffc679a8a220898"
+    },
+    {
+      "round": 4,
+      "startedAt": "2026-09-27T13:49:14.922Z",
+      "finishedAt": "2026-09-27T13:49:21.475Z",
+      "exitCode": 0,
+      "reportOk": true,
+      "workers": [
+        {
+          "name": "lenhador_01",
+          "before": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 15.5,
+              "y": 63,
+              "z": 5.500420545605891
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": 21,
+            "y": 63,
+            "z": 5
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1.0000000882329336,
+            "x": 21,
+            "y": 63,
+            "z": 5,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": 20.5,
+                "y": 63,
+                "z": 5.500420078415418
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": 21.5,
+                "y": 63,
+                "z": 5.5
+              },
+              "tolerance": 2,
+              "distance": 1.0000000882329336
+            }
+          },
+          "after": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 20.5,
+              "y": 63,
+              "z": 5.500420078415418
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1.0000000882329336,
+          "verified": true,
+          "elapsedMs": 1528.566608
+        },
+        {
+          "name": "minerador_01",
+          "before": {
+            "name": "minerador_01",
+            "position": {
+              "x": -1.5000000000000866,
+              "y": 63,
+              "z": -16.5
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": -8,
+            "y": 63,
+            "z": -17
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1,
+            "x": -8,
+            "y": 63,
+            "z": -17,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": -6.5,
+                "y": 63,
+                "z": -16.500000000000107
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": -7.5,
+                "y": 63,
+                "z": -16.5
+              },
+              "tolerance": 2,
+              "distance": 1
+            }
+          },
+          "after": {
+            "name": "minerador_01",
+            "position": {
+              "x": -6.5,
+              "y": 63,
+              "z": -16.500000000000107
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1,
+          "verified": true,
+          "elapsedMs": 1559.7735589999998
+        }
+      ],
+      "cpu": {
+        "user": 634275,
+        "system": 38205,
+        "wallMs": 4560.948904,
+        "percentOneCore": 14.744266612131064
+      },
+      "sessionErrors": [],
+      "rawEvidenceSha256": "6cbce2b54341095cda70d82e27b30f6c2423518bad23ce5777a8f04a23142a88",
+      "runtimeLogSha256": "72e13d92f261cecdc0c1ddf4d2513fdf3e6aa56d8b6f7929334f427580bed3c7"
+    },
+    {
+      "round": 5,
+      "startedAt": "2026-09-27T13:49:24.798Z",
+      "finishedAt": "2026-09-27T13:49:31.270Z",
+      "exitCode": 0,
+      "reportOk": true,
+      "workers": [
+        {
+          "name": "lenhador_01",
+          "before": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 20.5,
+              "y": 63,
+              "z": 5.500420078415418
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": 14,
+            "y": 63,
+            "z": 5
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1.0000000884292994,
+            "x": 14,
+            "y": 63,
+            "z": 5,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": 15.5,
+                "y": 63,
+                "z": 5.500420545605891
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": 14.5,
+                "y": 63,
+                "z": 5.5
+              },
+              "tolerance": 2,
+              "distance": 1.0000000884292994
+            }
+          },
+          "after": {
+            "name": "lenhador_01",
+            "position": {
+              "x": 15.5,
+              "y": 63,
+              "z": 5.500420545605891
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1.0000000884292994,
+          "verified": true,
+          "elapsedMs": 1416.49627
+        },
+        {
+          "name": "minerador_01",
+          "before": {
+            "name": "minerador_01",
+            "position": {
+              "x": -6.5,
+              "y": 63,
+              "z": -16.500000000000107
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "goal": {
+            "x": -7,
+            "y": 63,
+            "z": -23
+          },
+          "result": {
+            "ok": true,
+            "verified": true,
+            "distance": 1,
+            "x": -7,
+            "y": 63,
+            "z": -23,
+            "evidence": {
+              "type": "position_confirmed",
+              "position": {
+                "x": -6.50000000000008,
+                "y": 63,
+                "z": -21.5
+              },
+              "dimension": "overworld",
+              "target": {
+                "x": -6.5,
+                "y": 63,
+                "z": -22.5
+              },
+              "tolerance": 2,
+              "distance": 1
+            }
+          },
+          "after": {
+            "name": "minerador_01",
+            "position": {
+              "x": -6.50000000000008,
+              "y": 63,
+              "z": -21.5
+            },
+            "dimension": "overworld",
+            "gameMode": "survival",
+            "health": 20,
+            "food": 20,
+            "version": "1.20.1"
+          },
+          "distance": 1,
+          "verified": true,
+          "elapsedMs": 1394.00086
+        }
+      ],
+      "cpu": {
+        "user": 576526,
+        "system": 22166,
+        "wallMs": 4418.302145,
+        "percentOneCore": 13.550240052047343
+      },
+      "sessionErrors": [],
+      "rawEvidenceSha256": "ae407cacccd9c4fd9743a9115b49c2de1d14ed1b3ffa5b1caea43624af961371",
+      "runtimeLogSha256": "a22a5171a09b3970d5e1f3fc11c79f92dbaab8015b3e132d6193907496487ff6"
+    }
+  ]
+}
