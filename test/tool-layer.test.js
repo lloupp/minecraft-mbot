@@ -79,3 +79,27 @@ test('stop cancels current worker only', async () => {
   assert.equal(a.worker.currentTask, null)
   assert.deepEqual(b.worker.currentTask, { type: 'fabricar' })
 })
+
+
+test('mutating tool execution is checkpointed and terminalized', async () => {
+  const { layer } = fixture('worker-a')
+  const calls = []
+  const store = {
+    create(value) { calls.push(['create', value]); return { id: value.id || 'task-1', stateHash: value.stateHash } },
+    start(id) { calls.push(['start', id]) },
+    finish(id, result) { calls.push(['finish', id, result.success]) },
+    async save() { calls.push(['save']) }
+  }
+  layer.checkpointStore = store
+  const out = await layer.execute({ task_id: 'task-1', action: 'gather', args: { resource: 'oak_log', quantity: 1 } })
+  assert.equal(out.success, true)
+  assert.equal(out.task_id, 'task-1')
+  assert.deepEqual(calls.map(x => x[0]), ['create', 'start', 'save', 'finish', 'save'])
+})
+
+test('read-only tools do not create checkpoints', async () => {
+  const { layer } = fixture()
+  layer.checkpointStore = { create() { assert.fail('read must not checkpoint') } }
+  const out = await layer.execute({ action: 'get_state', args: {} })
+  assert.equal(out.success, true)
+})
