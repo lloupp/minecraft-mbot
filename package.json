@@ -31,7 +31,8 @@
     "prismarine-nbt": "^2.8.0",
     "prismarine-schematic": "^1.3.0",
     "prismarine-viewer": "^1.33.0",
-    "vec3": "^0.2.0"
+    "vec3": "^0.2.0",
+    "@nxg-org/mineflayer-custom-pvp": "^1.7.16"
   },
   "overrides": {
     "mineflayer": "$mineflayer",

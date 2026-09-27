@@ -43,9 +43,13 @@ const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtP
 const { resolveReference, blockVariants, searchTerms } = require('./core/References')
 const { Clarifier } = require('./core/Clarifier')
 const { attachMemoryCapture } = require('./lib/memoryCapture')
-const { animalPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
+const { groundedPenPlan, pointInsidePen, inspectAnimalPen } = require('./core/AnimalPen')
 const blueprint = require('./lib/blueprint')
 const { buildBlueprint, describeReport } = require('./lib/blueprintBuilder')
+const { getEventLog } = require('./lib/event-log')
+const { StatusServer } = require('./lib/status-server')
+const { RunVerifier } = require('./core/RunVerifier')
+const { describeBot, describeWorkers, ConsoleBuffer } = require('./lib/dashboard-snapshot')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -107,7 +111,17 @@ async function findServer() {
   return null
 }
 
+// Visualizações para o painel: sem funções, só porta/endereço/estado.
+function publicViews(views) {
+  if (!views) return null
+  const pick = (view) => view && { port: view.port, address: view.address, status: view.status, error: view.error }
+  return { viewer: pick(views.viewer), inventory: pick(views.inventory) }
+}
+
 async function main() {
+  // Painel de testes local (opt-in). Captura o console desde o início para o painel mostrar a conexão.
+  const dashboardEnabled = process.env.MBOT_DASHBOARD === '1'
+  const consoleBuffer = dashboardEnabled ? new ConsoleBuffer().capture() : null
   const server = await findServer()
   if (!server) {
     console.error(`Nenhum servidor Minecraft encontrado em ${HOST}. Abra o mundo para LAN (Esc > "Abrir para LAN") ou defina MINECRAFT_PORT.`)
@@ -165,13 +179,15 @@ async function main() {
     if (item.estado === 'pendente') memory.encerrarCompromisso(item.id, 'interrompido')
   }
   console.log(`[memória] ${memory.items.length} item(ns) carregado(s)`)
-  let colonyHome = savedState.home
-  let colonyHomeDimension = savedState.homeDimension || null
   if (savedState.storage) storage.setPosition(savedState.storage)
   const waypointManager = new WaypointManager(savedState.waypoints)
+  // Migra o campo legado uma vez; depois disso o WaypointManager é a fonte canônica.
+  waypointManager.restoreLegacyBase(savedState.home, savedState.homeDimension)
+  const homeProvider = () => waypointManager.get('base')?.position || null
+  const homeDimension = () => waypointManager.get('base')?.dimension || null
   const projectManager = new ProjectManager({
     storage,
-    homeProvider: () => colonyHome
+    homeProvider
   })
   projectManager.restore(savedState.project)
 
@@ -184,7 +200,7 @@ async function main() {
       bot: worker,
       name,
       role,
-      homeProvider: () => colonyHome,
+      homeProvider,
       ownerProvider: () => ownerEntity(),
       storage,
       production
@@ -206,7 +222,7 @@ async function main() {
   })
   const colony = new ColonyOrchestrator({
     botManager,
-    homeProvider: () => colonyHome,
+    homeProvider,
     ownerProvider: () => ownerEntity(),
     storage,
     demandPlanner,
@@ -216,35 +232,54 @@ async function main() {
 
   // ========== AUDITABILIDADE E RESILIÊNCIA ==========
   const eventLog = getEventLog()
-  const deathRecovery = new DeathRecovery({ storage, eventLog, logger: console })
-  const inventorySync = new InventorySync({ storage, bot, eventLog, logger: console })
-  const routeMemory = new RouteMemory(storage)
-  const replanning = new ReplanningEngine({ storage, eventLog, logger: console })
-  const statusServer = new StatusServer({ botManager, storage, projectManager, eventLog })
+  const statusPort = Number(process.env.STATUS_PORT || 3080)
+  const statusServer = new StatusServer({ botManager, storage, projectManager, eventLog, port: statusPort })
   const runVerifier = new RunVerifier({ eventLog, storage, botManager, projectManager })
 
-  // Carregar route memory
-  routeMemory.load()
+  // O servidor de status é opt-in. Os módulos experimentais de recovery/replanning
+  // ficam disponíveis no código, mas não são ativados até integração real com workers.
+  if (process.env.STATUS_SERVER === '1') statusServer.start()
 
-  // Iniciar inventory sync e status server
-  inventorySync.start()
-  const statusPort = Number(process.env.STATUS_PORT || 3080)
-  statusServer.port = statusPort
-  if (process.env.STATUS_SERVER !== '0') statusServer.start()
+  // Painel: mesmo StatusServer (rotas antigas continuam), com a página, o retrato
+  // do bot/workers e os cenários do RunVerifier. Só em 127.0.0.1.
+  let webViews = null
+  const dashboardServer = dashboardEnabled
+    ? new StatusServer({
+      botManager,
+      storage,
+      projectManager,
+      eventLog,
+      port: envPort(process.env.MBOT_DASHBOARD_PORT) || 3006,
+      dashboard: {
+        runVerifier,
+        views: () => webViews,
+        snapshot: () => ({
+          profile: { id: serverProfile.id, version: bot.version || serverProfile.version, server: `${CONFIG.host}:${CONFIG.port}` },
+          main: describeBot(bot, { role: 'orquestrador', status: bot.entity ? 'conectado' : 'desconectado', mode, task: taskName, owner: ownerName() || null }),
+          workers: describeWorkers(botManager),
+          views: publicViews(webViews),
+          logs: consoleBuffer ? consoleBuffer.recent(200) : []
+        })
+      }
+    })
+    : null
+  if (dashboardServer) {
+    dashboardServer.start()
+    console.log(`[painel] http://127.0.0.1:${dashboardServer.port}/dashboard`)
+  }
 
   // Registrar evento de início da colônia
   eventLog.log('colony_start', {
     version: serverProfile.version,
     profile: serverProfile.id,
-    bots: maxColonyBots,
-    home: colonyHome
+    bots: maxColonyBots
   })
 
   const smokeTest = new SmokeTest({
     bot,
     storage,
     botManager,
-    homeProvider: () => colonyHome,
+    homeProvider,
     projectManager,
     serverProfile
   })
@@ -257,8 +292,9 @@ async function main() {
 
   async function persistState() {
     await stateStore.save({
-      home: colonyHome,
-      homeDimension: colonyHomeDimension,
+      // Mantém campos legados vazios; a posição vive em waypoints.base.
+      home: null,
+      homeDimension: null,
       storage: storage.getPosition(),
       auto: colony.auto,
       companionAuto: autonomous,
@@ -327,15 +363,17 @@ async function main() {
     return String(value)
   }
 
-  // Lugar da memória no formato de waypoint ({ name, position, dimension }).
+  // A memória referencia um waypoint, mas suas coordenadas vivem somente no WaypointManager.
   function memoryPlace(name) {
-    const item = memory.lugar(name)
-    return item ? { name: item.nome, position: { ...item.posicao }, dimension: item.dimensao, origem: item.origem } : null
+    const metadata = memory.lugar(name)
+    const entry = waypointManager.get(metadata?.waypoint || name)
+    return entry ? { ...entry, origem: metadata?.origem, contexto: metadata?.contexto } : null
   }
 
   function waypointOrBase(name) {
     if (String(name || '').toLowerCase() === 'base') {
-      if (colonyHome) return { name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension }
+      const base = waypointManager.get('base')
+      if (base) return base
       // Sem base da colônia, a "casa" lembrada serve de destino padrão.
       return memoryPlace('base') || memoryPlace('casa')
     }
@@ -349,9 +387,10 @@ async function main() {
       const key = normalizeWaypointName(entry?.name)
       if (key && !byKey.has(key)) byKey.set(key, entry)
     }
-    for (const item of memory.lugares()) add(memoryPlace(item.chave))
-    if (colonyHome) add({ name: 'base', position: { ...colonyHome }, dimension: colonyHomeDimension })
-    for (const entry of waypointManager.list()) add(entry)
+    for (const entry of waypointManager.list()) {
+      const metadata = memory.lugar(entry.name)
+      add({ ...entry, origem: metadata?.origem, contexto: metadata?.contexto })
+    }
     return [...byKey.values()]
   }
 
@@ -756,8 +795,53 @@ async function main() {
 
   // ========== EVENTOS ==========
   let restoredWorkers = false
-  bot.once('spawn', () => startWebViews(bot))
-  bot.once('spawn', () => attachMemoryCapture(bot, memory, { log: (msg) => console.log(msg) }))
+  bot.once('spawn', () => { webViews = startWebViews(bot) })
+
+  // Contexto dos cenários do painel: só ações já existentes, com o bot real.
+  const LOG_BLOCK_IDS = () => Object.values(bot.registry.blocksByName).filter((b) => /_log$/.test(b.name)).map((b) => b.id)
+  runVerifier.setScenarioContext({
+    get bot() { return bot },
+    storage,
+    botManager,
+    dimension: () => currentDimension(),
+    views: () => webViews,
+    countLogsNearby: () => bot.findBlocks({ matching: LOG_BLOCK_IDS(), maxDistance: 32, count: 256 }).length,
+    // measure() roda ainda dentro da tarefa, antes de o bot voltar a seguir.
+    mineLog: async (isCancelled, measure) => {
+      const ids = new Set(LOG_BLOCK_IDS().map((id) => bot.registry.blocks[id].name))
+      let mined = 0
+      let inventoryAfter = null
+      let interrupted = true
+      await runTask('teste: coletar madeira', async (taskCancelled) => {
+        mined = await gather.mineBlocks(bot, (name) => ids.has(name), 1, () => taskCancelled() || isCancelled())
+        inventoryAfter = await measure()
+        // Luta, fuga ou outro comando cancelam a tarefa no meio.
+        interrupted = taskCancelled()
+      })
+      return { mined, inventoryAfter, interrupted }
+    },
+    runSmoke: () => withoutFollowing('smoke test', () => smokeTest.run()),
+    createWorker: async () => {
+      const created = await botManager.create('ajudante', 1)
+      persistSoon()
+      return created
+    }
+  })
+  let memoryCapture = null
+  bot.once('spawn', () => {
+    memoryCapture = attachMemoryCapture(bot, memory, {
+      log: (msg) => console.log(msg),
+      rememberWaypoint: (name, position, dimension, context, provenance) => {
+        try {
+          waypointManager.save(name, position, dimension)
+          memory.lembrarLugar(name, provenance, context)
+          persistSoon()
+        } catch (err) {
+          console.log(`[memória] não consegui registrar waypoint automático: ${err.message}`)
+        }
+      }
+    })
+  })
   bot.on('spawn', async () => {
     console.log('=== Bot conectado! ===')
     console.log(`Jogador: ${bot.username}`)
@@ -795,7 +879,8 @@ async function main() {
       }
       if (savedState.auto && colony.autoReadiness().ready) colony.setAuto(true)
       if (restored.length) console.log(`[estado] workers restaurados: ${restored.join(', ')}`)
-      if (colonyHome) console.log(`[estado] base restaurada: ${colonyHome.x}, ${colonyHome.y}, ${colonyHome.z}`)
+      const home = homeProvider()
+      if (home) console.log(`[estado] base restaurada: ${home.x}, ${home.y}, ${home.z}`)
       if (storage.configured()) console.log('[estado] estoque central restaurado')
       if (projectManager.isActive()) console.log(`[estado] projeto restaurado: ${projectManager.active.type}`)
       persistSoon()
@@ -908,7 +993,12 @@ async function main() {
     colony.stop()
     try { await persistState() } catch {}
     try { await memory.save() } catch {}
+    memoryCapture?.stop()
     botManager.stopAll()
+    statusServer.stop()
+    dashboardServer?.stop()
+    webViews?.viewer?.close?.()
+    webViews?.inventory?.close?.()
     stopLan()
     console.log(`Conexão encerrada${reason ? ` (${reason})` : ''}.`)
     setTimeout(() => process.exit(quitRequested ? 0 : 1), 500)
@@ -929,8 +1019,9 @@ async function main() {
     const roles = {}
     for (const worker of workers) roles[worker.role] = (roles[worker.role] || 0) + 1
     const roleText = Object.entries(roles).map(([role, n]) => `${role}x${n}`).join(', ') || 'sem workers'
-    const baseText = colonyHome
-      ? `${Math.floor(colonyHome.x)},${Math.floor(colonyHome.y)},${Math.floor(colonyHome.z)}`
+    const home = homeProvider()
+    const baseText = home
+      ? `${Math.floor(home.x)},${Math.floor(home.y)},${Math.floor(home.z)}`
       : 'NÃO'
     const lines = [`Colônia: ${workers.length + 1}/${maxColonyBots} | auto: ${colony.auto ? 'ON' : 'OFF'} | base: ${baseText} | estoque: ${storage.configured() ? 'OK' : 'NÃO'} | ${roleText}`]
     for (let i = 0; i < workers.length; i += 4) {
@@ -1065,7 +1156,7 @@ async function main() {
   async function startBlueprintProject(name, buildersArg) {
     try {
       if (!name) throw new Error(`diga a planta: ${blueprint.listBlueprints().map((p) => p.name).join(', ') || 'nenhuma em plantas/'}`)
-      if (!colonyHome) throw new Error('defina a base primeiro com !base aqui')
+      if (!homeProvider()) throw new Error('defina a base primeiro com !base aqui')
       if (!storage.configured()) throw new Error('defina o estoque primeiro com !estoque aqui')
       if (projectManager.isActive()) throw new Error(`já existe projeto ativo: ${projectManager.active.type}`)
       const origin = blueprintOrigin(false)
@@ -1195,7 +1286,7 @@ async function main() {
     }
 
     try {
-      if (!colonyHome) throw new Error('defina a base primeiro com !base aqui')
+      if (!homeProvider()) throw new Error('defina a base primeiro com !base aqui')
       if (!storage.configured()) throw new Error('defina o estoque primeiro com !estoque aqui')
       if (projectManager.isActive()) throw new Error(`já existe projeto ativo: ${projectManager.active.type}`)
 
@@ -1280,18 +1371,19 @@ async function main() {
     const action = String(args[0] || 'status').toLowerCase()
 
     if (action === 'status') {
-      if (!colonyHome) {
+      const home = homeProvider()
+      const dimension = homeDimension()
+      if (!home) {
         bot.chat('Base ainda não definida. Vá ao local desejado e use !base aqui.')
         return
       }
-      bot.chat(`Base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
+      bot.chat(`Base: X=${Math.floor(home.x)}, Y=${Math.floor(home.y)}, Z=${Math.floor(home.z)}${dimension ? ` | ${dimension}` : ''}.`)
       return
     }
 
     if (action === 'limpar' || action === 'remover') {
-      colonyHome = null
-      colonyHomeDimension = null
-      memory.esquecer('base')
+      waypointManager.remove('base')
+      memory.esquecerLugar('base')
       colony.setAuto(false)
       if (projectManager.isActive()) projectManager.cancel()
       persistSoon()
@@ -1311,11 +1403,10 @@ async function main() {
       return
     }
 
-    colonyHome = source.clone()
-    colonyHomeDimension = currentDimension()
+    const entry = waypointManager.save('base', source, currentDimension())
     persistSoon()
-    memory.lembrarLugar('base', colonyHome, colonyHomeDimension, dito(context.username))
-    bot.chat(`Este local agora é a base: X=${Math.floor(colonyHome.x)}, Y=${Math.floor(colonyHome.y)}, Z=${Math.floor(colonyHome.z)}${colonyHomeDimension ? ` | ${colonyHomeDimension}` : ''}.`)
+    memory.lembrarLugar('base', dito(context.username), 'base definida pelo jogador')
+    bot.chat(`Este local agora é a base: X=${Math.floor(entry.position.x)}, Y=${Math.floor(entry.position.y)}, Z=${Math.floor(entry.position.z)}${entry.dimension ? ` | ${entry.dimension}` : ''}.`)
   })
 
   commandRouter.register(['local', 'locais'], async (context, args) => {
@@ -1349,6 +1440,7 @@ async function main() {
       }
       try {
         const entry = waypointManager.save(name, source, currentDimension())
+        memory.lembrarLugar(entry.name, dito(context.username), 'local salvo pelo jogador')
         persistSoon()
         bot.chat(`Local ${entry.name} salvo em X=${Math.floor(entry.position.x)}, Y=${Math.floor(entry.position.y)}, Z=${Math.floor(entry.position.z)}.`)
       } catch (err) {
@@ -1364,7 +1456,10 @@ async function main() {
         return
       }
       const removed = waypointManager.remove(name)
-      if (removed) persistSoon()
+      if (removed) {
+        memory.esquecerLugar(name)
+        persistSoon()
+      }
       bot.chat(removed ? `Local ${name} removido.` : `Não encontrei o local ${name}.`)
       return
     }
@@ -1543,12 +1638,13 @@ async function main() {
       bot.chat('Uso: !curral <animal> | !curral metas | !curral meta <animal> <2-32|off>')
       return
     }
-    if (!colonyHome) {
+    const home = homeProvider()
+    if (!home) {
       bot.chat('Base ainda não definida. Use !base aqui.')
       return
     }
 
-    const plan = groundedPenPlan(bot, colonyHome, species)
+    const plan = groundedPenPlan(bot, home, species)
     const status = inspectAnimalPen(bot, plan)
     const center = new Vec3(plan.center.x, plan.center.y, plan.center.z)
     const inside = husbandry.selectAnimals(bot, species, {
@@ -1570,7 +1666,7 @@ async function main() {
       bot.chat('Uso: !capturar <vaca|ovelha|porco|galinha|coelho|cabra|mooshroom|lhama> [qtd]')
       return
     }
-    if (!colonyHome) {
+    if (!homeProvider()) {
       bot.chat('Base ainda não definida. Use !base aqui.')
       return
     }
@@ -1959,17 +2055,19 @@ async function main() {
       return
     }
 
-    // Lugar: "!lembrar casa aqui" (posição de quem falou).
-    if (args.length >= 2 && args.at(-1).toLowerCase() === 'aqui') {
-      const name = args.slice(0, -1).join(' ')
+    // Lugar: "!lembrar casa" (ou a forma antiga "!lembrar casa aqui").
+    if (args.length >= 1 && (args.length === 1 || args.at(-1).toLowerCase() === 'aqui')) {
+      const name = args.at(-1).toLowerCase() === 'aqui' ? args.slice(0, -1).join(' ') : args.join(' ')
       const source = bot.players[context.username]?.entity?.position || bot.entity?.position
       if (!source) {
         bot.chat('Não consigo determinar sua posição agora.')
         return
       }
       try {
-        const item = memory.lembrarLugar(name, source, currentDimension(), dito(context.username))
-        bot.chat(`Vou lembrar: ${item.nome} ${fmtPos(item.posicao)}.`)
+        const entry = waypointManager.save(name, source, currentDimension())
+        const item = memory.lembrarLugar(entry.name, dito(context.username), 'local lembrado pelo jogador')
+        persistSoon()
+        bot.chat(`Vou lembrar: ${entry.name} ${fmtPos(entry.position)} ${fmtOrigem(item.origem)}.`)
       } catch (err) {
         bot.chat(`Não consegui lembrar: ${err.message}`)
       }
@@ -2169,6 +2267,12 @@ async function main() {
         break
       }
       case '!status':
+        if (args[0] === 'server') {
+          bot.chat(process.env.STATUS_SERVER === '1'
+            ? `Status server: http://127.0.0.1:${statusServer.port}`
+            : 'Status server desativado. Defina STATUS_SERVER=1 para ativar.')
+          break
+        }
         if (!bot.entity) {
           bot.chat('Ainda estou entrando no mundo.')
           return
@@ -2187,8 +2291,9 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
+        bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
         break
       case '!verify': {
         const proof = runVerifier.verify()
@@ -2197,7 +2302,7 @@ async function main() {
         break
       }
       case '!events': {
-        const limit = Number(args[1]) || 10
+        const limit = Math.max(1, Math.min(50, Number(args[0]) || 10))
         const events = eventLog.getRecent(limit)
         bot.chat(`Últimos ${events.length} eventos:`)
         for (const e of events.slice(-5)) {
@@ -2206,19 +2311,14 @@ async function main() {
         break
       }
       case '!freeze': {
-        const name = args[1] || `freeze-${Date.now()}`
+        const name = args[0] || `freeze-${Date.now()}`
         bot.chat(`Freeze iniciado: ${name}`)
-        const { execSync } = require('child_process')
         try {
-          execSync(`node scripts/freeze-colony.js ${name}`, { cwd: process.cwd(), timeout: 30000 })
+          execFileSync(process.execPath, ['scripts/freeze-colony.js', name], { cwd: process.cwd(), timeout: 30000 })
           bot.chat(`Freeze concluído: ${name}`)
         } catch (err) {
           bot.chat(`Freeze erro: ${err.message}`)
         }
-        break
-      }
-      case '!status server': {
-        bot.chat(`Status server: http://127.0.0.1:${statusServer.port}`)
         break
       }
     }

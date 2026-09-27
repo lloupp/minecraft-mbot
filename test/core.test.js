@@ -289,6 +289,26 @@ test('StorageManager guarda e recupera posição do estoque', () => {
   assert.equal(storage.configured(), true)
 })
 
+test('StorageManager anda até o estoque mesmo com o chunk do baú descarregado', async () => {
+  const storage = new StorageManager()
+  storage.setPosition({ x: 300, y: 64, z: 0 })
+  let loaded = false
+  const chest = { name: 'chest', position: { x: 300, y: 64, z: 0 } }
+  const walked = []
+  const bot = {
+    // Longe da base o blockAt devolve null até o bot chegar perto.
+    blockAt: () => (loaded ? chest : null),
+    openContainer: async () => ({ containerItems: () => [{ name: 'oak_log', count: 5 }], close() {} })
+  }
+  storage.goNear = async (_bot, position) => {
+    walked.push(position)
+    loaded = true
+  }
+
+  assert.deepEqual(await storage.summary(bot), { oak_log: 5 })
+  assert.deepEqual(walked, [{ x: 300, y: 64, z: 0 }])
+})
+
 test('ProductionManager normaliza aliases e ingredientes', () => {
   assert.equal(normalizeItemName('picareta ferro'), 'iron_pickaxe')
   assert.equal(normalizeItemName('baú'), 'chest')

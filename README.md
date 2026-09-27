@@ -65,8 +65,13 @@ minecraft-mbot/
 │   ├── combat.js     # Lutar ou fugir, arma e recarga do golpe
 │   ├── perception.js # Reconhecer blocos e entidades em volta
 │   ├── blueprint.js  # Ler plantas, materiais, ordem e divisão entre construtores
-│   └── blueprintBuilder.js # Construir a planta no mundo e conferir bloco a bloco
-├── plantas/          # Plantas de exemplo (.schem) e o gerador
+│   ├── blueprintBuilder.js # Construir a planta e conferir bloco a bloco
+│   └── memoryCapture.js # Captura limitada de eventos e contexto
+├── plantas/          # Plantas de exemplo (.schem) e gerador
+├── core/
+│   ├── Memory.js     # Memória tipada com proveniência (.data/memory.json)
+│   ├── References.js # Resolve nomes e detecta ambiguidade
+│   └── Clarifier.js  # Perguntas de esclarecimento com opções numeradas
 ├── package.json      # Dependências
 ├── node_modules/     # Pacotes instalados
 └── README.md         # Este arquivo
@@ -125,12 +130,12 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!bots` / `!colonia` | Mostra tamanho, papéis e estado da colônia |
 | `!item <nome>` | Consulta item/bloco no registro do Minecraft |
 | `!receita <item> [qtd]` | Verifica receita e materiais que faltam no inventário |
-| `!local salvar <nome>` | Salva sua posição atual como local persistente |
+| `!local salvar <nome>` | Salva sua posição atual como waypoint persistente e registra proveniência |
 | `!local listar` | Lista os locais salvos |
 | `!local remover <nome>` | Remove um local salvo |
 | `!ir <local>` | Manda o EduardoBot até um local (memória, base ou local salvo) e ficar lá; pergunta se o nome for ambíguo |
 | `!voltar [local]` | Volta para `base` por padrão (ou para a `casa` lembrada, se não houver base) |
-| `!lembrar <nome> aqui` | Lembra a sua posição atual como lugar, ex.: `!lembrar casa aqui` |
+| `!lembrar <nome>` | Salva a posição atual como waypoint canônico e registra a proveniência; `... aqui` também é aceito |
 | `!lembrar <chave> = <valor>` | Guarda uma preferência, ex.: `!lembrar tochas.quantidade = 64` |
 | `!lembrar <anotação>` | Guarda uma anotação livre, ex.: `!lembrar a vila fica ao norte` |
 | `!esquecer <nome>` | Esquece um lugar, preferência ou local salvo |
@@ -182,9 +187,9 @@ com HP baixo, foge de mobs hostis próximos antes de apanhar.
 O bot mantém uma memória tipada em `.data/memory.json` (fora do git; mude com
 `MEMORY_FILE`). Cada item guarda a **origem** — `visto` (percepção do bot),
 `dito` (e por quem) ou `inferido` — com data e confiança, e `!memoria` mostra
-isso, ex.: `casa (-300,64,-520) [dito por eduardo]`.
+isso, ex.: `casa [dito por eduardo]`. Coordenadas e dimensão de lugares são lidas exclusivamente do `WaypointManager`.
 
-- **lugar**: nome, posição e dimensão (`!lembrar casa aqui`, `!base aqui`, cama, baú, mesa, fornalha);
+- **lugar**: referência e proveniência. Nome, posição, dimensão e persistência pertencem ao `WaypointManager`; capturas automáticas limitadas criam waypoints `auto-*`.
 - **preferencia**: chave → valor. Usadas hoje: `tochas.quantidade` (`!fabricar tocha` sem número),
   `seguir.distancia` (1–16), `comida.preferida` (come essa primeiro), e as escolhas
   salvas `ref.lugar.<nome>` / `minerar.<palavra>`;
@@ -194,8 +199,9 @@ isso, ex.: `casa (-300,64,-520) [dito por eduardo]`.
 
 Captura automática, sem falar no chat: onde e por quem morreu; minérios valiosos
 num raio de 16 blocos (diamante, esmeralda, ouro, ferro, ancient debris; varredura a cada
-10 s, sem repetir o mesmo veio e esquecendo o que foi minerado); a cama onde dormiu;
-o último baú/barril/mesa/fornalha usado. O limite é de 500 itens (os fatos mais antigos saem primeiro).
+10 s, sem repetir o mesmo veio e esquecendo o que foi minerado); cama e estações utilizadas.
+Esses locais usam waypoints `auto-*` limitados por tipo e cooldown; Memory guarda apenas metadados.
+O limite é de 500 itens (os fatos mais antigos saem primeiro).
 
 Quando a ordem é ambígua, o bot pergunta com opções numeradas e espera 60 s:
 
@@ -634,6 +640,16 @@ Ou pulados individualmente:
 MBOT_PLUGINS_SKIP=pvp,hawkeye node index.js
 ```
 
+O corpo a corpo escolhe o melhor backend disponível: custom-pvp → mineflayer-pvp → implementação própria. Pode forçar o backend:
+
+```bash
+MBOT_MELEE=custom node index.js
+MBOT_MELEE=pvp node index.js
+MBOT_MELEE=manual node index.js
+```
+
+Se `custom` não estiver disponível, cai para pvp e depois manual.
+
 A coleta própria continua sendo o padrão. O `mineflayer-collectblock` só assume quando explicitamente habilitado:
 
 ```bash
@@ -648,10 +664,40 @@ Para acompanhar o bot pelo navegador:
 MBOT_VIEWER_PORT=3007 MBOT_INVENTORY_PORT=3008 node index.js
 ```
 
-- `3007`: visão 3D do bot;
+- `3007`: visão 3D em primeira pessoa, acompanhando a posição e o olhar do bot;
 - `3008`: inventário web.
 
+As duas escutam só em `127.0.0.1` (os adaptadores prontos dos pacotes escutam em
+todas as interfaces; veja `lib/web-views.js`).
+
 Se um plugin não carregar ou não suportar a versão conectada, o bot registra a falha e continua com sua implementação própria.
+
+## Painel de testes ao vivo
+
+Painel local para acompanhar o bot e rodar cenários de teste com evidência,
+sem recarregar a página:
+
+```bash
+MBOT_DASHBOARD=1 MBOT_VIEWER_PORT=3007 MBOT_INVENTORY_PORT=3008 node index.js
+# abra http://127.0.0.1:3006/dashboard
+```
+
+- Desligado por padrão; porta em `MBOT_DASHBOARD_PORT` (padrão 3006). Tudo em `127.0.0.1`.
+- Mostra: 3D do bot principal (se `MBOT_VIEWER_PORT`), inventário (lista, ou a
+  página web se `MBOT_INVENTORY_PORT`), posição, dimensão, vida/fome, modo e
+  tarefa, workers (clique numa linha para ver o inventário dele), projeto,
+  logs do console e eventos com filtros, e o histórico da sessão.
+- Cenários (`core/scenarios.js`): conexão, inventário, coletar 1 tronco, smoke,
+  criar worker e visualizador. Estados `PENDING`, `RUNNING`, `PASS`, `FAIL`,
+  `SKIPPED` e `BLOCKED`. `PASS` só com a evidência completa e validada no
+  servidor; pré-condição não atendida vira `BLOCKED`. Cada transição vai para o
+  `EventLog` (`scenario_status`). O histórico vale para a sessão atual.
+- Segurança: a API só executa ids do catálogo (nenhum comando, código ou
+  argumento vindo do navegador), aceita só `Host` de loopback e o POST exige o
+  cabeçalho `X-Mbot-Dashboard` e origem local.
+- Limites: 3D e inventário web só do bot principal. Se o bot cair, o processo
+  sai e o painel mostra "offline" até o supervisor (`npm run sempre` ou systemd)
+  reconectar; a página se recupera sozinha.
 
 ## Perfil recomendado: servidor 1.20.1
 

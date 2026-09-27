@@ -58,8 +58,16 @@ function computeHashes(files) {
   return hashes
 }
 
-function main() {
-  const sessionName = process.argv[2] || `session-${Date.now()}`
+function validateSessionName(value) {
+  const name = String(value || '').trim()
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(name)) {
+    throw new Error('nome inválido; use 1–64 caracteres alfanuméricos, hífen ou underscore')
+  }
+  return name
+}
+
+function main(sessionNameInput = process.argv[2]) {
+  const sessionName = validateSessionName(sessionNameInput || `session-${Date.now()}`)
   const sessionDir = path.resolve(OUTPUT_DIR, sessionName)
 
   // Create session directory
@@ -123,11 +131,10 @@ function main() {
 }
 
 function freezeColony(name) {
-  process.argv[2] = name
-  main()
+  main(name)
 }
 
-module.exports = { freezeColony }
+module.exports = { freezeColony, validateSessionName }
 
 if (require.main === module) {
   main()

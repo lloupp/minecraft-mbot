@@ -17,7 +17,8 @@ function fakeBot({ blocks = {}, entities = {} } = {}) {
   bot.health = 20
   bot.food = 20
   bot.entities = entities
-  bot.inventory = { items: () => [] }
+  const inventoryItems = []
+  bot.inventory = { items: () => inventoryItems }
   bot.registry = {
     blocksArray: [{ id: 1, name: 'iron_ore' }, { id: 2, name: 'deepslate_iron_ore' }],
     blocksByName: { iron_ore: { id: 1 }, deepslate_iron_ore: { id: 2 } }
@@ -27,7 +28,10 @@ function fakeBot({ blocks = {}, entities = {} } = {}) {
     .filter(([, name]) => name !== 'air')
     .map(([key]) => new Vec3(...key.slice(1, -1).split(',').map(Number)))
   bot.nearestEntity = (match) => Object.values(bot.entities).find(match) || null
-  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  bot.dig = async (block) => {
+    blocks[block.position.toString()] = 'air'
+    inventoryItems.push({ name: block.name, count: 1 })
+  }
   bot.equip = async () => {}
   bot.pathfinder = {
     goal: null,
@@ -402,4 +406,92 @@ test('WorkerController dá tempo proporcional à distância para voltar à base'
   bot.entity.position = new Vec3(165, 64, 0) // perto: mantém o mínimo de 30 s
   await worker.run({ type: 'voltar' })
   assert.equal(timeout, 30000)
+})
+
+test('WorkerController tira degrau posto dentro do curral durante a obra, antes do portão', async () => {
+  const home = { x: 0, y: 64, z: 0 }
+  const plan = animalPenPlan(home, 'cow')
+  const inside = new Vec3(plan.origin.x + 4, plan.origin.y, plan.origin.z + 1) // encostado na cerca
+  const blocks = {}
+  const bot = fakeBot()
+  bot.blockAt = (pos) => {
+    const name = blocks[pos.toString()] || 'air'
+    return { name, position: pos, boundingBox: name === 'air' ? 'empty' : 'block' }
+  }
+  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  const worker = readyWorker(bot, { role: 'construtor', homeProvider: () => home })
+  worker.ensurePenKit = async () => ({ fence: 'oak_fence', gate: 'oak_fence_gate' })
+  worker.placeGroundItem = async () => { blocks[inside.toString()] = 'dirt'; return true } // andaime do pathfinder
+  let stepAtGate = null
+  worker.placePenGate = async () => { stepAtGate = blocks[inside.toString()]; return true }
+
+  const result = await worker.buildAnimalPen(() => false, 'cow')
+  assert.equal(stepAtGate, 'air')
+  assert.equal(result.leveled, 1)
+  assert.equal(result.ok, true)
+})
+
+test('WorkerController cava terreno natural na linha da cerca, mas não blocos construídos', async () => {
+  const blocks = { '(1, 64, 0)': 'grass_block', '(2, 64, 0)': 'oak_planks' }
+  const bot = fakeBot()
+  bot.blockAt = (pos) => {
+    const name = blocks[pos.toString()] || (pos.y < 64 ? 'dirt' : 'air')
+    return { name, position: pos, boundingBox: name === 'air' ? 'empty' : 'block' }
+  }
+  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  bot.inventory = { items: () => [{ name: 'oak_fence', count: 2 }] }
+  bot.placeBlock = async (below) => { blocks[below.position.offset(0, 1, 0).toString()] = 'oak_fence' }
+  const worker = readyWorker(bot)
+
+  assert.equal(await worker.placeGroundItem({ x: 1, y: 64, z: 0 }, 'oak_fence', () => false), true)
+  assert.equal(blocks['(1, 64, 0)'], 'oak_fence')
+  assert.equal(await worker.placeGroundItem({ x: 2, y: 64, z: 0 }, 'oak_fence', () => false), false)
+  assert.equal(blocks['(2, 64, 0)'], 'oak_planks')
+})
+
+test('WorkerController nivela a entrada do portão antes de colocá-lo', async () => {
+  const home = { x: 0, y: 64, z: 0 }
+  const plan = animalPenPlan(home, 'cow')
+  const approach = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z - 1)
+  const blocks = { [approach.toString()]: 'grass_block' } // terreno de fora 1 bloco mais alto
+  const bot = fakeBot()
+  bot.blockAt = (pos) => {
+    const name = blocks[pos.toString()] || 'air'
+    return { name, position: pos, boundingBox: name === 'air' ? 'empty' : 'block' }
+  }
+  bot.dig = async (block) => { blocks[block.position.toString()] = 'air' }
+  const worker = readyWorker(bot, { role: 'construtor', homeProvider: () => home })
+  worker.ensurePenKit = async () => ({ fence: 'oak_fence', gate: 'oak_fence_gate' })
+  worker.placeGroundItem = async () => true
+  let approachAtGate = null
+  worker.placePenGate = async () => { approachAtGate = blocks[approach.toString()]; return true }
+
+  const result = await worker.buildAnimalPen(() => false, 'cow')
+  assert.equal(approachAtGate, 'air')
+  assert.equal(result.ok, true)
+})
+
+test('caçar comida poupa os animais do curral', async () => {
+  const food = require('../lib/food')
+  const { home, plan, bot } = penWorld({ cows: 3 }) // 3 vacas dentro: acima do mínimo poupado
+  bot.food = 20
+  bot.findBlock = () => null
+  const outside = { id: 99, name: 'cow', isValid: true, position: new Vec3(plan.gate.x + 0.5, 64, plan.gate.z - 6.5) }
+  const worker = readyWorker(bot, { role: 'fazendeiro', homeProvider: () => home })
+
+  let options = null
+  const original = food.gatherFood
+  food.gatherFood = async (_bot, _isCancelled, opts) => { options = opts; return null }
+  try {
+    await worker.run({ type: 'fazenda', count: 1 })
+  } finally {
+    food.gatherFood = original
+  }
+  assert.equal(typeof options?.spare, 'function')
+  assert.equal(options.spare(bot.entities[1]), true)
+  assert.equal(options.spare(outside), false)
+
+  // Só vacas do curral por perto: nenhuma fonte de comida.
+  assert.equal(food.findFoodSource(bot, options), null)
+  assert.equal(food.findFoodSource(bot)?.entity?.name, 'cow') // sem poupar, caçaria uma delas
 })

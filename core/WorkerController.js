@@ -17,10 +17,16 @@ const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
 const FLEE_MS = 4000      // tempo fugindo
 const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
+// Blocos naturais que podem ser cavados para abrir a linha do curral.
+const NATURAL_TERRAIN = /^(grass_block|dirt|coarse_dirt|rooted_dirt|podzol|mycelium|mud|clay|sand|red_sand|gravel|stone|andesite|diorite|granite|tuff|snow_block)$/
 // Todos os workers dividem o mesmo processo Node. Com o padrão do pathfinder
 // (40 ms de A* por tick), 7 workers calculando caminhos longos ao mesmo tempo
 // saturavam a CPU e o servidor os derrubava por "Timed out".
 const PATH_TICK_MS = 8
+// O thinkTimeout conta tempo de relógio, não de cálculo: com 8 ms por tick o
+// padrão de 5 s dá ~0,8 s de A* e caminhos longos falhavam com "Took to long".
+// 25 s mantém o mesmo cálculo que 5 s com o tickTimeout padrão de 40 ms.
+const PATH_THINK_MS = 25000
 // Tempo para uma viagem longa: ~700 ms por bloco (medido ~2 blocos/s com vários
 // workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
 const MS_PER_BLOCK = 700
@@ -70,7 +76,9 @@ class WorkerController {
 
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
-      this.workMoves.canDig = true
+      // Navegação não escava atalhos (nem pedra à mão, nem construções).
+      // Coleta e obras continuam cavando explicitamente com bot.dig.
+      this.workMoves.canDig = false
       // Subir empilhando blocos (terra/pedregulho do próprio inventário) é o único
       // jeito de sair de um poço 1x1 que o worker cavou minerando para baixo.
       this.workMoves.allow1by1towers = true
@@ -80,9 +88,13 @@ class WorkerController {
       this.penMoves.canDig = false
       this.penMoves.allow1by1towers = false
       this.penMoves.allowSprinting = false
+      // Sem andaimes: um bloco de terra posto dentro do curral vira degrau e os
+      // animais pulavam a cerca (visto no 1.20.1 após !reproduzir).
+      this.penMoves.scafoldingBlocks = []
       protectPenBlocks(this.penMoves, bot.registry)
       bot.pathfinder.setMovements(this.workMoves)
       bot.pathfinder.tickTimeout = PATH_TICK_MS
+      bot.pathfinder.thinkTimeout = PATH_THINK_MS
       this.state = 'ocioso'
       this.survivalTimer = setInterval(() => this.survivalTick(), 1000)
       this.survivalTimer.unref?.()
@@ -419,10 +431,23 @@ class WorkerController {
     return { ok: gathered > 0, gathered, requested: count, resource, exhausted: gathered < count, deposited }
   }
 
+  // Currais construídos (com portão) em volta da base.
+  builtPens() {
+    const home = this.homeProvider?.()
+    if (!home) return []
+    return Object.keys(SPECIES_OFFSETS)
+      .map((species) => groundedPenPlan(this.bot, home, species))
+      .filter((plan) => inspectAnimalPen(this.bot, plan).gatePresent)
+  }
+
   async farm(count, isCancelled) {
+    // Os animais do curral são o rebanho: caçar comida não pode abatê-los
+    // (visto no 1.20.1: !colonia auto esvaziou o curral de vacas com meta 6).
+    const pens = this.builtPens()
+    const spare = (entity) => pens.some((plan) => pointInsidePen(entity.position, plan))
     let gathered = 0
     while (gathered < count && !isCancelled()) {
-      const result = await food.gatherFood(this.bot, isCancelled)
+      const result = await food.gatherFood(this.bot, isCancelled, { spare })
       if (!result) break
       gathered++
     }
@@ -623,6 +648,14 @@ class WorkerController {
     let current = this.bot.blockAt(pos)
     if (current?.name === itemName) return true
 
+    // Terreno 1 bloco acima do chão do curral (grama, terra...) ocupa a linha da
+    // cerca: cava para a cerca ficar no nível das outras (visto no 1.20.1: 18/23).
+    if (current && NATURAL_TERRAIN.test(current.name)) {
+      await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 10000).catch(() => {})
+      if (isCancelled()) return false
+      await this.bot.dig(current).catch(() => {})
+      current = this.bot.blockAt(pos)
+    }
     if (current && current.name !== 'air' && current.boundingBox !== 'empty') return false
     if (current && current.name !== 'air' && current.boundingBox === 'empty') {
       await this.bot.dig(current).catch(() => {})
@@ -678,15 +711,9 @@ class WorkerController {
     return false
   }
 
-  async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
-    const home = this.homeProvider?.()
-    const canonical = husbandry.normalizeSpecies(species) || species
-    const plan = groundedPenPlan(this.bot, home, canonical, offset)
-    const kit = await this.ensurePenKit(plan)
-    if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
-
-    // Nivela o interior: um bloco de terreno na altura da cerca, encostado nela,
-    // vira degrau e os animais pulavam para fora com o portão fechado.
+  // Nivela o interior: um bloco na altura da cerca, encostado nela, vira degrau
+  // e os animais pulavam para fora com o portão fechado.
+  async levelPenInterior(plan, isCancelled) {
     let leveled = 0
     for (let dx = 1; dx < plan.size - 1 && !isCancelled(); dx++) {
       for (let dz = 1; dz < plan.size - 1 && !isCancelled(); dz++) {
@@ -696,11 +723,35 @@ class WorkerController {
         if (await this.bot.dig(block).then(() => true, () => false)) leveled++
       }
     }
+    return leveled
+  }
+
+  async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
+    const home = this.homeProvider?.()
+    const canonical = husbandry.normalizeSpecies(species) || species
+    const plan = groundedPenPlan(this.bot, home, canonical, offset)
+    const kit = await this.ensurePenKit(plan)
+    if (!kit) throw new Error('não consegui obter cercas e portão suficientes para o curral')
+
+    let leveled = await this.levelPenInterior(plan, isCancelled)
 
     let fencesPlaced = 0
     for (const position of plan.fences) {
       if (isCancelled()) break
       if (await this.placeGroundItem(position, kit.fence, isCancelled)) fencesPlaced++
+    }
+    // De novo antes do portão: o pathfinder pode ter posto terra lá dentro durante a obra.
+    leveled += await this.levelPenInterior(plan, isCancelled)
+
+    // Acesso ao portão no nível do curral: com a célula da frente 1 bloco mais
+    // alta o fazendeiro não conseguia entrar e o portão ficava aberto até o
+    // tempo acabar, soltando os animais (visto no 1.20.1).
+    const approach = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z - 1)
+    for (const pos of [approach, approach.offset(0, 1, 0)]) {
+      const block = this.bot.blockAt(pos)
+      if (isCancelled() || !NATURAL_TERRAIN.test(block?.name || '')) continue
+      await this.goTo(new goals.GoalNear(pos.x, pos.y, pos.z, 3), 8000).catch(() => {})
+      await this.bot.dig(block).catch(() => {})
     }
 
     let gatePlaced = false

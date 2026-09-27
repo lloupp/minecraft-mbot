@@ -13,7 +13,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const { normalizeWaypointName, waypointPoint, normalizeDimension } = require('./WaypointManager')
+const { normalizeWaypointName, waypointPoint } = require('./WaypointManager')
 
 const TIPOS = ['lugar', 'preferencia', 'compromisso', 'fato']
 const ORIGENS = ['visto', 'dito', 'inferido']
@@ -100,7 +100,7 @@ function formatar(item, now = Date.now()) {
   const tag = fmtOrigem(item.origem, now)
   switch (item.tipo) {
     case 'lugar':
-      return `${item.nome} ${fmtPos(item.posicao)} ${tag}`
+      return `${item.nome} ${tag}`
     case 'preferencia':
       return `${item.chave}=${item.valor} ${tag}`
     case 'compromisso':
@@ -154,9 +154,13 @@ class Memory {
       if (!raw || !TIPOS.includes(raw.tipo)) continue
       const item = { ...raw, origem: raw.origem ? origem(raw.origem.tipo, raw.origem) : inferido() }
       if (item.tipo === 'lugar') {
-        item.posicao = waypointPoint(item.posicao)
-        item.chave = normalizeWaypointName(item.nome)
-        if (!item.posicao || !item.chave) continue
+        // Compatibilidade: ignore posições antigas. Coordenadas pertencem somente ao WaypointManager.
+        delete item.posicao
+        delete item.dimensao
+        item.nome = String(item.nome || item.waypoint || '').trim().slice(0, 32)
+        item.waypoint = normalizeWaypointName(item.waypoint || item.nome)
+        item.chave = item.waypoint
+        if (!item.waypoint || !item.nome) continue
       }
       if (item.tipo === 'preferencia') {
         item.chave = normalizarChave(item.chave)
@@ -218,18 +222,12 @@ class Memory {
     return item
   }
 
-  lembrarLugar(nome, posicao, dimensao = null, prov = inferido()) {
-    const chave = normalizeWaypointName(nome)
-    const pos = waypointPoint(posicao)
-    if (!chave) throw new Error('nome de lugar inválido')
-    if (!pos) throw new Error('posição inválida')
-    const campos = {
-      nome: String(nome).trim().slice(0, 32),
-      chave,
-      posicao: { x: Math.floor(pos.x), y: Math.floor(pos.y), z: Math.floor(pos.z) },
-      dimensao: normalizeDimension(dimensao)
-    }
-    const atual = this.items.find((i) => i.tipo === 'lugar' && i.chave === chave)
+  lembrarLugar(nome, prov = inferido(), contexto = null) {
+    const waypoint = normalizeWaypointName(nome)
+    if (!waypoint) throw new Error('nome de lugar inválido')
+    const campos = { nome: String(nome).trim().slice(0, 32), waypoint, chave: waypoint }
+    if (contexto) campos.contexto = String(contexto).slice(0, 120)
+    const atual = this.items.find((i) => i.tipo === 'lugar' && i.waypoint === waypoint)
     // O que o jogador disse vale mais do que o que o bot viu sozinho.
     if (atual && atual.origem?.tipo === 'dito' && prov.tipo !== 'dito') return atual
     return atual ? this._atualizar(atual, campos, prov) : this._novo('lugar', campos, prov)
@@ -280,6 +278,15 @@ class Memory {
     }, prov)
   }
 
+  esquecerLugar(nome) {
+    const waypoint = normalizeWaypointName(nome)
+    const antes = this.items.length
+    this.items = this.items.filter((item) => item.tipo !== 'lugar' || item.waypoint !== waypoint)
+    const removidos = antes - this.items.length
+    if (removidos) this.saveSoon()
+    return removidos
+  }
+
   // Esquece lugares/preferências/fatos pelo nome (ou assunto). Retorna quantos saíram.
   esquecer(nome) {
     const chaveLugar = normalizeWaypointName(nome)
@@ -328,7 +335,7 @@ class Memory {
 
   lugar(nome) {
     const chave = normalizeWaypointName(nome)
-    return this.items.find((i) => i.tipo === 'lugar' && i.chave === chave) || null
+    return this.items.find((i) => i.tipo === 'lugar' && i.waypoint === chave) || null
   }
 
   lugares() {

@@ -1,15 +1,31 @@
 # Servidor 24h com o bot
 
-Servidor vanilla 26.3 em `~/minecraft-server` e o bot como serviços do systemd
+Servidor vanilla 26.3 em `~/minecraft-26.3` e o bot como serviços do systemd
 de usuário: o mundo fica sempre ligado na porta fixa 25565, o bot reconecta
 sozinho se cair, e outros PCs da rede (ex.: Windows) entram pelo IP deste PC.
+
+Para um servidor de **teste** vanilla 1.20.1 separado (porta 25566), veja
+[teste-1201/README.md](teste-1201/README.md).
+
+## Pastas dos servidores
+
+Cada pasta tem no nome a versão do jogo e um `README.md` com os passos para subir o servidor:
+
+| Pasta | Versão (TLauncher) | Porta | Uso |
+|---|---|---|---|
+| `~/minecraft-26.3` | Release 26.3 | 25565 | principal 24h (serviço `minecraft-server`) |
+| `~/minecraft-26.3-teste` | Release 26.3 | 25567 | teste 26.3 |
+| `~/minecraft-1.20.1-teste` | Release 1.20.1 | 25566 | teste 1.20.1 |
+| `~/minecraft-1.20.1-forge-zomboid` | Forge 1.20.1-47.4.0 | 25567 | modpack (não instalado) |
+
+`minecraft-26.3-teste` e `minecraft-1.20.1-forge-zomboid` usam a mesma porta: não suba os dois juntos.
 
 ## 1. Servidor
 
 ```bash
-mkdir -p ~/minecraft-server && cd ~/minecraft-server
+mkdir -p ~/minecraft-26.3 && cd ~/minecraft-26.3
 # server.jar: link "server" em https://piston-meta.mojang.com/mc/game/version_manifest_v2.json (versão 26.3)
-# Java 25 (o 26.3 exige): JRE Temurin 25 extraído em ~/minecraft-server/jre
+# Java 25 (o 26.3 exige): JRE Temurin 25 extraído em ~/minecraft-26.3/jre
 ```
 
 `start.sh`:
@@ -35,7 +51,7 @@ qualquer nome. Mantenha o servidor só na rede local — não abra a porta no ro
 ### Levar um mundo do singleplayer
 
 Com o mundo **fechado** no jogo (Salvar e sair), copie `~/.minecraft/saves/<mundo>`
-para `~/minecraft-server/world` e apague `session.lock`. No 26.x os dados do
+para `~/minecraft-26.3/world` e apague `session.lock`. No 26.x os dados do
 dono do mundo ficam em `players/data/<uuid-da-conta>.dat` (o UUID está em
 `singleplayer_uuid` no `level.dat`); no servidor offline o jogador usa o UUID
 offline do nome, então copie `data`, `stats` e `advancements` para esse UUID:
