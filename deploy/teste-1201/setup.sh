@@ -1,10 +1,10 @@
 #!/bin/sh
 # Monta o servidor de TESTE vanilla 1.20.1 (ver deploy/teste-1201/README.md).
-# Uso: deploy/teste-1201/setup.sh [destino]   (padrão: ~/minecraft-server-1201)
+# Uso: deploy/teste-1201/setup.sh [destino]   (padrão: ~/minecraft-1.20.1-teste)
 set -eu
 
 SRC="$(cd "$(dirname "$0")" && pwd)"
-DEST="${1:-$HOME/minecraft-server-1201}"
+DEST="${1:-$HOME/minecraft-1.20.1-teste}"
 JAR_URL=https://piston-data.mojang.com/v1/objects/84194a2f286ef7c14ed7ce0090dba59902951553/server.jar
 JAR_SHA1=84194a2f286ef7c14ed7ce0090dba59902951553
 OWNER="${MINECRAFT_OWNER:-eduardo}"

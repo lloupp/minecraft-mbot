@@ -1,11 +1,11 @@
-# Servidor Minecraft 26.3 vanilla em ~/minecraft-server (ver deploy/README.md).
+# Servidor Minecraft 26.3 vanilla em ~/minecraft-26.3 (ver deploy/README.md).
 [Unit]
 Description=Servidor Minecraft 26.3 (LAN)
 After=network-online.target
 
 [Service]
-WorkingDirectory=%h/minecraft-server
-ExecStart=%h/minecraft-server/start.sh
+WorkingDirectory=%h/minecraft-26.3
+ExecStart=%h/minecraft-26.3/start.sh
 Restart=on-failure
 RestartSec=20
 # Com SIGTERM o servidor salva o mundo antes de desligar.
