@@ -155,6 +155,34 @@ def decide(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def warmup() -> dict[str, Any] | None:
+    """Load/cache the routed model before opening the HTTP port.
+
+    A cold Laya process can take much longer than the normal request timeout to
+    load weights for the first time. The service advertises readiness only
+    after this warmup succeeds.
+    """
+    if os.environ.get("LAYA_SKIP_WARMUP") == "1":
+        return None
+
+    print("Loading Laya model before accepting requests...")
+    started = time.perf_counter()
+    result = decide({
+        "state": {
+            "objective": "Warm up the English Minecraft decision model.",
+            "health": 20,
+            "food": 20,
+        },
+        "available_actions": ["wait", "stop"],
+    })
+    elapsed = time.perf_counter() - started
+    print(
+        "Laya ready "
+        f"(routing={result.get('routing')}, warmup={elapsed:.1f}s)"
+    )
+    return result
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "minecraft-mbot-laya/1"
 
@@ -204,6 +232,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
+    warmup()
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Laya decision service listening on http://{HOST}:{PORT}/decision")
     try:
