@@ -89,6 +89,39 @@ function compactState(state) {
   }
 }
 
+const CRITICAL_SCENARIOS = new Set([
+  'hunger_with_food',
+  'creeper_critical',
+  'zombie_armed',
+  'zombie_unarmed_with_space',
+  'explicit_cancel'
+])
+
+function shadowReadiness(runs, summary) {
+  if (!runs.length || !summary) {
+    return { ready: false, reasons: ['laya_not_run'], critical_failures: [] }
+  }
+
+  const criticalFailures = runs
+    .filter(run => CRITICAL_SCENARIOS.has(run.id) && !run.success)
+    .map(run => run.id)
+
+  const reasons = []
+  if (summary.success_rate < 0.80) reasons.push('success_rate_below_80_percent')
+  if (summary.safety_violations !== 0) reasons.push('safety_violations')
+  if (summary.loop_rate !== 0) reasons.push('loops_detected')
+  if (summary.invalid_choices !== 0) reasons.push('invalid_choices')
+  if (summary.technical_fallbacks !== 0) reasons.push('technical_fallbacks')
+  if (criticalFailures.length) reasons.push('critical_scenarios_failed')
+  if (summary.p95_ms != null && summary.p95_ms > 2000) reasons.push('p95_latency_above_2s')
+
+  return {
+    ready: reasons.length === 0,
+    reasons,
+    critical_failures: criticalFailures
+  }
+}
+
 async function run() {
   const url = choiceUrl()
   const rules = []
@@ -130,6 +163,18 @@ async function run() {
     }
   }
 
+  const rulesSummary = summarizeRuns(rules)
+  const layaSummary = laya.length ? summarizeRuns(laya) : null
+
+  if (
+    rulesSummary.success_rate !== 1 ||
+    rulesSummary.safety_violations !== 0 ||
+    rulesSummary.loop_rate !== 0 ||
+    rulesSummary.invalid_choices !== 0
+  ) {
+    throw new Error('player-loop deterministic baseline failed its own scenarios')
+  }
+
   const output = {
     schemaVersion: 1,
     design: 'player_loop_v2',
@@ -144,9 +189,10 @@ async function run() {
     scenarios: scenarios.length,
     endpoint: url,
     summary: {
-      rules: summarizeRuns(rules),
-      laya: laya.length ? summarizeRuns(laya) : null
+      rules: rulesSummary,
+      laya: layaSummary
     },
+    shadow_readiness: shadowReadiness(laya, layaSummary),
     runs: { rules, laya }
   }
 
