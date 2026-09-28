@@ -68,3 +68,52 @@ test('candidate validation rejects unknown and duplicate model actions', () => {
     { id: 'gather', tool: 'gather' }
   ]), /duplicado/)
 })
+
+test('Laya can select only one of the prepared safe candidates', async () => {
+  const laya = {
+    async decide(state) {
+      assert.deepEqual(state.availableActions, ['gather', 'wait'])
+      assert.deepEqual(state.candidateReasons, {
+        gather: null,
+        wait: null
+      })
+      return { source: 'laya', action: 'gather', confidence: 0.82, trusted: true }
+    }
+  }
+
+  const coordinator = new DecisionCoordinator({
+    mode: 'laya',
+    laya,
+    logger: { log() {} }
+  })
+
+  const chosen = await coordinator.choose({
+    state: { worker: 'wood-1' },
+    candidates,
+    fallbackId: 'wait'
+  })
+
+  assert.equal(chosen.source, 'laya')
+  assert.equal(chosen.selected.id, 'gather')
+  assert.equal(chosen.confidence, 0.82)
+})
+
+test('Laya rejection falls back to prepared deterministic candidate', async () => {
+  const laya = {
+    async decide() {
+      return { source: 'deterministic', action: 'wait', reason: 'timeout' }
+    }
+  }
+
+  const coordinator = new DecisionCoordinator({ mode: 'laya', laya })
+  const chosen = await coordinator.choose({
+    state: { worker: 'wood-1' },
+    candidates,
+    fallbackId: 'wait'
+  })
+
+  assert.equal(chosen.source, 'deterministic')
+  assert.equal(chosen.selected.id, 'wait')
+  assert.equal(chosen.fallback, true)
+  assert.equal(chosen.reason, 'timeout')
+})
