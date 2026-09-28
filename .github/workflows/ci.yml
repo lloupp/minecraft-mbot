@@ -24,6 +24,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m py_compile scripts/laya-decision-server.py
+      - run: python -m py_compile scripts/nanoandy-decision-server.py
       - run: python -m unittest discover -s test -p 'test_laya_sidecar.py'
+      - run: python -m unittest discover -s test -p 'test_nanoandy_sidecar.py'
       - run: npm test
       - run: npm run gauntlet:player-loop > /tmp/player-loop-v2.json
