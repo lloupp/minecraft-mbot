@@ -27,20 +27,38 @@ class DecisionCoordinator {
   constructor({
     mode = process.env.MBOT_DECISION_ENGINE || 'deterministic',
     conversa = null,
+    laya = null,
     juliaShadow = null,
     logger = console
   } = {}) {
     this.mode = mode
     this.conversa = conversa
+    this.laya = laya
     this.juliaShadow = juliaShadow
     this.logger = logger
+  }
+
+  activeEngine() {
+    if (this.mode === 'conversa-llm' && this.conversa) {
+      return { engine: this.conversa, source: 'conversa-llm' }
+    }
+    if (this.mode === 'laya' && this.laya) {
+      return { engine: this.laya, source: 'laya' }
+    }
+    return null
   }
 
   async choose({ state, candidates, fallbackId }) {
     const options = normalizeCandidates(candidates)
     if (!options.length) throw new Error('nenhum candidate disponível')
     const fallback = options.find(option => option.id === fallbackId) || options[0]
-    const maskedState = { ...state, availableActions: options.map(option => option.id) }
+    const maskedState = {
+      ...state,
+      availableActions: options.map(option => option.id),
+      candidateReasons: Object.fromEntries(
+        options.map(option => [option.id, option.reason || null])
+      )
+    }
 
     let shadow = null
     if (this.juliaShadow) {
@@ -51,17 +69,19 @@ class DecisionCoordinator {
       }
     }
 
-    if (this.mode !== 'conversa-llm' || !this.conversa) {
+    const active = this.activeEngine()
+    if (!active) {
       return { selected: fallback, source: 'deterministic', fallback: false, shadow }
     }
 
-    const decision = await this.conversa.decide(maskedState, {
+    const decision = await active.engine.decide(maskedState, {
       action: fallback.id,
       confidence: 1,
       trusted: true
     })
     const selected = options.find(option => option.id === decision.action)
-    if (!selected || decision.source !== 'conversa-llm' || decision.trusted !== true) {
+
+    if (!selected || decision.source !== active.source || decision.trusted !== true) {
       return {
         selected: fallback,
         source: 'deterministic',
@@ -74,7 +94,7 @@ class DecisionCoordinator {
 
     return {
       selected,
-      source: 'conversa-llm',
+      source: active.source,
       fallback: false,
       confidence: decision.confidence,
       modelDecision: decision,
