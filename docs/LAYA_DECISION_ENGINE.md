@@ -1,9 +1,30 @@
 # Laya como decision model do minecraft-mbot
 
-Esta integração é **opt-in**. O comportamento padrão do bot continua
-determinístico.
+Esta etapa prepara e valida a integração do Laya **antes** de colocá-lo no
+runtime real do bot.
 
-## Arquitetura
+## Status desta branch
+
+Implementado:
+
+- serviço local Laya em Python;
+- cliente Node para o endpoint Laya;
+- suporte do `DecisionCoordinator` ao engine `laya`;
+- validação de ações contra `availableActions`;
+- fallback determinístico em erro, timeout ou ação inválida;
+- Laya incluído no Minecraft Decision Gauntlet;
+- CI verifica a sintaxe do sidecar Python.
+
+Ainda **não** implementado nesta branch:
+
+- `index.js` não instancia o `DecisionCoordinator`;
+- o loop real da colônia ainda não entrega decisões ao Laya;
+- definir `MBOT_DECISION_ENGINE=laya` sozinho **não muda o comportamento do bot**.
+
+Isso é intencional. Primeiro validamos o modelo em estados de Minecraft sem
+permitir efeitos no mundo. A próxima fase será shadow mode no runtime real.
+
+## Arquitetura preparada
 
 ```
 Minecraft state + objetivo
@@ -16,17 +37,15 @@ ID de uma ação já permitida
         ↓
 DecisionCoordinator
         ↓
-tool + args previamente preparados
-        ↓
-MinecraftToolLayer
+fallback determinístico se necessário
 ```
 
-O modelo **não gera argumentos de ferramentas**. Ele escolhe apenas entre IDs
-de ações preparados pelo código determinístico.
+O modelo não gera argumentos de ferramentas. Ferramentas e argumentos continuam
+sendo preparados pelo código determinístico.
 
 A integração usa o padrão que teve melhor comportamento no laboratório
-VizDoom: uma única pergunta `choice` sobre ações mutuamente exclusivas,
-sem `survival_priority`, gates Boolean ou threshold calibrado no benchmark.
+VizDoom: uma única pergunta `choice` sobre ações mutuamente exclusivas, sem
+`survival_priority`, gates Boolean ou threshold calibrado no benchmark.
 
 ## 1. Preparar o serviço local
 
@@ -48,57 +67,82 @@ python -m pip install -r scripts/requirements-laya.txt
 
 ## 2. Iniciar o Laya
 
+Linux/macOS:
+
 ```bash
 USE_TF=0 python scripts/laya-decision-server.py
 ```
 
+PowerShell:
+
+```powershell
+$env:USE_TF="0"
+python scripts/laya-decision-server.py
+```
+
 Por padrão:
 
-- host: `127.0.0.1`
-- porta: `8765`
-- health: `http://127.0.0.1:8765/healthz`
-- decision: `http://127.0.0.1:8765/decision`
+- host: `127.0.0.1`;
+- porta: `8765`;
+- health: `http://127.0.0.1:8765/healthz`;
+- decision: `http://127.0.0.1:8765/decision`.
 
 O `Router` escolhe o checkpoint apropriado. Não é forçado o checkpoint
 especialista `typed-decisions`.
 
-## 3. Rodar primeiro o Minecraft Decision Gauntlet
+## 3. Rodar o Minecraft Decision Gauntlet
 
 Em outro terminal:
 
+Linux/macOS:
+
 ```bash
-LAYA_DECISION_URL=http://127.0.0.1:8765/decision \
+LAYA_DECISION_URL=http://127.0.0.1:8765/decision npm run gauntlet:decision
+```
+
+PowerShell:
+
+```powershell
+$env:LAYA_DECISION_URL="http://127.0.0.1:8765/decision"
 npm run gauntlet:decision
 ```
 
-O Gauntlet compara Laya com o baseline determinístico sem executar ações no
+O Gauntlet compara o Laya ao baseline determinístico sem executar ações no
 servidor Minecraft.
 
-## 4. Ativar o engine
+Critérios mínimos antes da próxima fase:
 
-Somente depois de validar o Gauntlet:
+- zero ações inválidas;
+- zero crashes;
+- observar explicitamente decisões de segurança como fome, creeper,
+  cancelamento e tarefa bloqueada;
+- latência registrada;
+- revisar divergências contra as regras em vez de assumir que discordância é
+  automaticamente erro.
 
-```bash
-MBOT_DECISION_ENGINE=laya \
-LAYA_DECISION_URL=http://127.0.0.1:8765/decision \
-node index.js
-```
+## Próxima fase
 
-`LAYA_DECISION_THRESHOLD` é opcional e fica desativado por padrão. Não defina
-um threshold apenas com base nos resultados do benchmark.
+Depois de validar o Gauntlet, o próximo PR deve ligar o Laya em **shadow mode**
+ao `ColonyOrchestrator`: o modelo observa estados e candidatos reais e seus
+resultados são logados, mas o plano determinístico continua sendo executado.
 
-## Segurança
+Somente depois dessa evidência runtime deve existir uma opção para o Laya
+selecionar a ação executada.
+
+## Segurança já implementada
 
 - ações desconhecidas são rejeitadas;
 - ação fora de `availableActions` é rejeitada;
 - timeout, HTTP error ou inference error causam fallback determinístico;
 - candidatos e argumentos são preparados fora do modelo;
-- o serviço fica em localhost por padrão;
-- o modo padrão do bot continua `deterministic`.
+- serviço em localhost por padrão;
+- threshold Laya desativado por padrão;
+- nenhuma integração automática com o mundo nesta fase.
 
 ## Variáveis
 
 ```text
+# Usadas pelo cliente/benchmark e reservadas para a fase runtime.
 MBOT_DECISION_ENGINE=deterministic|conversa-llm|laya
 LAYA_DECISION_URL=http://127.0.0.1:8765/decision
 LAYA_DECISION_TIMEOUT_MS=4000
