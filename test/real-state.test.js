@@ -51,6 +51,19 @@ test('detecta ameaça hostil dentro do raio de fuga, mas não fora dele', () => 
   const state = realStateSnapshot(bot, null, { fleeDistance: 16 })
   assert.equal(state.threat.type, 'zombie')
   assert.equal(state.threat.distance, 3)
+  assert.equal(state.threat.count, 1)
+})
+
+test('conta todos os hostis no raio, não só o mais próximo (enxame força fuga em candidateIntents)', () => {
+  const a = { name: 'zombie', type: 'hostile', position: new Vec3(3, 64, 0) }
+  const b = { name: 'zombie', type: 'hostile', position: new Vec3(5, 64, 0) }
+  const c = { name: 'zombie', type: 'hostile', position: new Vec3(6, 64, 0) }
+  const outOfRange = { name: 'zombie', type: 'hostile', position: new Vec3(30, 64, 0) }
+  const bot = fakeBot({ entities: { 1: a, 2: b, 3: c, 4: outOfRange } })
+  const state = realStateSnapshot(bot, null, { fleeDistance: 16 })
+  assert.equal(state.threat.type, 'zombie')
+  assert.equal(state.threat.distance, 3)
+  assert.equal(state.threat.count, 3)
 })
 
 test('sem ameaça hostil por perto, threat fica null', () => {
