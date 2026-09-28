@@ -13,7 +13,7 @@ Implementado:
 - validação de ações contra `availableActions`;
 - fallback determinístico em erro, timeout ou ação inválida;
 - Laya incluído no Minecraft Decision Gauntlet;
-- CI verifica a sintaxe do sidecar Python.
+- CI verifica sintaxe e protocolo do sidecar Python sem baixar os pesos.
 
 Ainda **não** implementado nesta branch:
 
@@ -79,6 +79,18 @@ PowerShell:
 $env:USE_TF="0"
 python scripts/laya-decision-server.py
 ```
+
+Na primeira inicialização, o Router pode precisar baixar/carregar o checkpoint.
+O processo faz um **warm-up antes de abrir a porta HTTP**, justamente para que a
+primeira decisão real não estoure o timeout do cliente. Aguarde aparecer:
+
+```text
+Laya decision service listening on http://127.0.0.1:8765/decision
+```
+
+Somente depois dessa mensagem o serviço está pronto para o Gauntlet.
+`LAYA_SKIP_WARMUP=1` existe apenas para testes de protocolo; não use no
+benchmark real.
 
 Por padrão:
 
