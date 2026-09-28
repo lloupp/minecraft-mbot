@@ -1031,3 +1031,13 @@ Com um fazendeiro e currais funcionais:
 - **Ovos:** entra no curral das galinhas e recolhe apenas ovos já existentes no chão; não espera indefinidamente.
 
 Essas tarefas não abatem animais e não reduzem metas populacionais. Carne e couro permanecem fora desta etapa até existir política explícita de reserva mínima.
+
+
+## Laya como motor de decisão experimental
+
+O projeto possui uma integração local e opt-in com Laya para decisões de alto
+nível. O modelo escolhe somente entre candidatos previamente preparados e
+validados; ferramentas e argumentos continuam sob controle determinístico.
+
+Antes de ativar no servidor real, rode o Minecraft Decision Gauntlet. Veja
+[`docs/LAYA_DECISION_ENGINE.md`](docs/LAYA_DECISION_ENGINE.md).
