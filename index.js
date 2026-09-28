@@ -38,6 +38,7 @@ const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
+const { LayaShadowObserver } = require('./lib/laya-shadow')
 const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
 const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
 const { resolveReference, blockVariants, searchTerms } = require('./core/References')
@@ -191,6 +192,11 @@ async function main() {
   })
   projectManager.restore(savedState.project)
 
+  // Shadow mode do Laya: desligado por padrão (MBOT_LAYA_SHADOW=1 para ligar).
+  // Só observa em paralelo (ver lib/laya-shadow.js e docs/LAYA_SHADOW_MODE.md);
+  // nunca decide nem executa nada no bot real.
+  const layaShadow = new LayaShadowObserver({ logger: console })
+
   function createWorker({ name, role }) {
     const worker = createBot(mineflayer, CONFIG, { username: name })
     configureClient(worker, serverProfile)
@@ -203,7 +209,8 @@ async function main() {
       homeProvider,
       ownerProvider: () => ownerEntity(),
       storage,
-      production
+      production,
+      shadow: layaShadow
     })
 
     worker.once('spawn', () => {

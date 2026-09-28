@@ -1038,7 +1038,10 @@ Essas tarefas não abatem animais e não reduzem metas populacionais. Carne e co
 A branch experimental possui cliente Node, sidecar local Laya e suporte no
 `DecisionCoordinator`, mas **ainda não liga o modelo ao runtime real**. Nesta
 fase o Laya deve ser validado pelo Minecraft Decision Gauntlet, sem executar
-ações no mundo. O passo seguinte será shadow mode sobre decisões reais da
-colônia.
+ações no mundo.
 
 Veja [`docs/LAYA_DECISION_ENGINE.md`](docs/LAYA_DECISION_ENGINE.md).
+
+Há também um shadow mode opcional (`MBOT_LAYA_SHADOW=1`) que observa decisões
+reais da colônia em paralelo e só registra logs — ele nunca decide nem
+executa nada. Veja [`docs/LAYA_SHADOW_MODE.md`](docs/LAYA_SHADOW_MODE.md).
