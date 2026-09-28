@@ -24,4 +24,5 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m py_compile scripts/laya-decision-server.py
+      - run: python -m unittest test/test_laya_sidecar.py
       - run: npm test
