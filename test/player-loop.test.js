@@ -47,11 +47,11 @@ test('unarmed exploration exposes preparation as a strategic choice', () => {
   )
 })
 
-test('repeated failures expose replan before stop', () => {
+test('repeated failures with a known alternative route expose only replan', () => {
   const state = byId('repeated_failure_replan').initialState
   assert.deepEqual(
     candidateIntents(state).map(item => item.id),
-    ['replan_route', 'stop_task']
+    ['replan_route']
   )
 })
 
