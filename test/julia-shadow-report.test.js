@@ -39,7 +39,22 @@ test('escolha fora da máscara, abandono injustificado e autoridade != none bloq
   }
 })
 
-test('3 decisões idênticas seguidas do mesmo worker contam como loop', () => {
-  assert.equal(buildReport([row(), row(), row()]).summary.loops, 1)
-  assert.equal(buildReport([row(), row(), row({ juliaChoice: 'b' })]).summary.loops, 0)
+test('ordens independentes repetidas não contam como loop do agente', () => {
+  const report = buildReport([row(), row(), row()])
+  assert.equal(report.summary.loops, 0)
+  assert.equal(report.summary.repeated_order_streaks, 1)
+})
+
+test('3 decisões idênticas na mesma linhagem contam como loop', () => {
+  const sameLineage = { taskLineageId: 'w:7' }
+  assert.equal(buildReport([
+    row(sameLineage),
+    row({ ...sameLineage, decidedAt: '2026-01-01T00:00:01.000Z' }),
+    row({ ...sameLineage, decidedAt: '2026-01-01T00:00:02.000Z' })
+  ]).summary.loops, 1)
+  assert.equal(buildReport([
+    row(sameLineage),
+    row({ ...sameLineage, juliaChoice: 'b' }),
+    row(sameLineage)
+  ]).summary.loops, 0)
 })
