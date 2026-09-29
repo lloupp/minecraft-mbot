@@ -65,6 +65,7 @@ class WorkerController {
     // nada aqui. Ver a chamada em run() e lib/laya-shadow.js.
     this.shadow = shadow
     this._shadowFailureStreak = 0
+    this._shadowLineageSeq = 0
     this.state = 'conectando'
     this.currentTask = null
     this.taskVersion = 0
@@ -384,7 +385,10 @@ class WorkerController {
     const prev = this._shadowPrev
     const resumed = Boolean(prev && (!prev.settled || prev.interrupted) && prev.task.type === task.type &&
       (prev.task.resource ?? null) === (task.resource ?? null))
-    const entry = { task, settled: false, interrupted: false }
+    const taskLineageId = resumed && prev?.taskLineageId
+      ? prev.taskLineageId
+      : `${this.name}:${++this._shadowLineageSeq}`
+    const entry = { task, settled: false, interrupted: false, taskLineageId }
     this._shadowPrev = entry
     try {
       const state = realStateSnapshot(this.bot, task, {
@@ -400,7 +404,7 @@ class WorkerController {
           executedChoice: task.type,
           resultPromise: taskPromise,
           nextStateProvider: () => realStateSnapshot(this.bot, task, { homeProvider: this.homeProvider }),
-          meta: { worker: this.name, interruptedCheck: isCancelled, resumed }
+          meta: { worker: this.name, interruptedCheck: isCancelled, resumed, taskLineageId }
         })
       }
     } catch (error) {
