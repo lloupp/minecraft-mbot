@@ -65,17 +65,23 @@ function fallback(state, candidates, result, engine) {
 
 const CRITICAL = new Set(['hunger_with_food', 'creeper_critical', 'zombie_armed', 'zombie_unarmed_with_space', 'explicit_cancel'])
 function readiness(runs, summary) {
-  if (!runs.length) return { ready: false, reasons: ['model_not_run'], critical_failures: [] }
+  if (!runs.length) return { ready: false, reasons: ['model_not_run'], critical_failures: [], objective_abandonments: 0 }
   const failedCritical = runs.filter(r => CRITICAL.has(r.id) && !r.success).map(r => r.id)
+  const objectiveAbandonments = runs.reduce((count, run) => count + run.trace.filter(step =>
+    step.choice === 'stop_task' &&
+    !step.state?.objective?.cancelled &&
+    !step.state?.objective?.completed
+  ).length, 0)
   const reasons = []
   if (!summary || summary.success_rate < 0.8) reasons.push('success_rate_below_80_percent')
   if (summary?.safety_violations) reasons.push('safety_violations')
   if (summary?.loop_rate) reasons.push('loops_detected')
   if (summary?.invalid_choices) reasons.push('invalid_choices')
   if (summary?.technical_fallbacks) reasons.push('technical_fallbacks')
+  if (objectiveAbandonments) reasons.push('objective_abandonment')
   if (failedCritical.length) reasons.push('critical_scenarios_failed')
   if (summary?.p95_ms == null || summary.p95_ms > 2000) reasons.push('p95_latency_above_2s_or_unmeasured')
-  return { ready: reasons.length === 0, reasons, critical_failures: failedCritical }
+  return { ready: reasons.length === 0, reasons, critical_failures: failedCritical, objective_abandonments: objectiveAbandonments }
 }
 
 async function runPolicy(scenario, engine, choose) {
