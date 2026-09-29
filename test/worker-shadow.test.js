@@ -134,3 +134,23 @@ test('_shadowFailureStreak conta falhas seguidas e zera no sucesso', async () =>
   await Promise.resolve()
   assert.equal(worker._shadowFailureStreak, 0)
 })
+
+test('meta.resumed marca a mesma tarefa reenviada enquanto a anterior ainda rodava', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  const observed = []
+  worker.shadow = { enabled: () => true, observe: (payload) => observed.push(payload.meta.resumed) }
+
+  let release
+  worker.explore = () => new Promise((resolve) => { release = () => resolve({ ok: true }) })
+  const first = worker.run({ type: 'explorar', radius: 8 })
+  await new Promise((resolve) => setImmediate(resolve))
+  worker.explore = async () => ({ ok: true })
+  const second = worker.run({ type: 'explorar', radius: 8 }) // interrompe a primeira
+  await second
+  release()
+  await first
+  const third = await worker.run({ type: 'explorar', radius: 8 }) // anterior terminou: não é retomada
+  assert.deepEqual(third, { ok: true })
+  assert.deepEqual(observed, [false, true, false])
+})
