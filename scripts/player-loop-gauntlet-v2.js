@@ -10,6 +10,7 @@ const {
 const scenarios = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../data/player-loop-gauntlet-v2.json'), 'utf8'))
 const REPEATS = Math.max(1, Math.min(100, Number(process.env.PLAYER_LOOP_REPEATS || 5)))
 const TIMEOUT_MS = Number(process.env.PLAYER_LOOP_TIMEOUT_MS || 4000)
+const MODEL_ENGINES = ['laya', 'julia', 'andy', 'nanoandy']
 
 function endpoint(env, fallback) { return process.env[env] || fallback }
 function compactState(s) {
@@ -87,15 +88,17 @@ async function runPolicy(scenario, engine, choose) {
 async function run() {
   const urls = {
     laya: endpoint('LAYA_PLAYER_LOOP_URL', process.env.LAYA_DECISION_URL?.replace(/\/decision\/?$/, '/choose')),
+    julia: endpoint('JULIA_PLAYER_LOOP_URL', process.env.JULIA_DECISION_URL?.replace(/\/decision\/?$/, '/choose')),
+    andy: endpoint('ANDY_PLAYER_LOOP_URL', null),
     nanoandy: endpoint('NANOANDY_PLAYER_LOOP_URL', null)
   }
-  const results = { rules: [], laya: [], nanoandy: [] }
+  const results = { rules: [], laya: [], julia: [], andy: [], nanoandy: [] }
   for (let repeat = 0; repeat < REPEATS; repeat++) {
     for (const scenario of scenarios) {
       results.rules.push(await runPolicy(scenario, 'rules', async (state, candidates) => ({
         choice: deterministicPlayerPolicy(state, candidates), source: 'rules', latency_ms: 0
       })))
-      for (const engine of ['laya', 'nanoandy']) {
+      for (const engine of MODEL_ENGINES) {
         if (!urls[engine]) continue
         results[engine].push(await runPolicy(scenario, engine, async (state, candidates) => {
           const response = await remoteChoice(urls[engine], engine, state, candidates)
@@ -129,9 +132,9 @@ async function run() {
     schemaVersion: 2, design: 'player_loop_v2_paired_comparison', repeats: REPEATS,
     sameScenarioOrder: true, modelExecutionAuthority: false,
     stateContract: Object.keys(compactState({})),
-    endpoints: { laya: urls.laya || null, nanoandy: urls.nanoandy || null },
+    endpoints: Object.fromEntries(MODEL_ENGINES.map(engine => [engine, urls[engine] || null])),
     summary, perScenario,
-    shadow_readiness: { laya: readiness(results.laya, summary.laya), nanoandy: readiness(results.nanoandy, summary.nanoandy) },
+    shadow_readiness: Object.fromEntries(MODEL_ENGINES.map(engine => [engine, readiness(results[engine], summary[engine])])),
     note: 'No winner is selected by agreement with rules; outcomes, safety, invalid choices, fallback and latency are reported separately.',
     runs: results
   }
