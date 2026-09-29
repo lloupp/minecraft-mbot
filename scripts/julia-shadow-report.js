@@ -39,13 +39,28 @@ function buildReport(all) {
   const times = decisions.map((r) => Date.parse(r.decidedAt)).filter(Number.isFinite)
   const hours = times.length > 1 ? (Math.max(...times) - Math.min(...times)) / 3.6e6 : 0
 
-  // Loop: mesma escolha sobre o mesmo estado 3+ vezes seguidas para o mesmo worker.
+  // Só conta loop quando a repetição ocorre dentro da mesma linhagem de tarefa.
+  // Ordens manuais idênticas, mas independentes, têm linhagens diferentes e não
+  // podem ser classificadas como loop do agente.
   let loops = 0
-  const streak = new Map()
+  let repeatedOrderStreaks = 0
+  const lineageStreak = new Map()
+  const workerStreak = new Map()
   for (const r of decisions) {
     const key = JSON.stringify([r.juliaChoice, r.state?.threat, r.state?.food, r.state?.objective, r.candidates])
-    const cur = streak.get(r.worker)
-    if (cur && cur.key === key) { cur.n++; if (cur.n === 3) loops++ } else streak.set(r.worker, { key, n: 1 })
+    const workerCur = workerStreak.get(r.worker)
+    if (workerCur && workerCur.key === key) {
+      workerCur.n++
+      if (workerCur.n === 3) repeatedOrderStreaks++
+    } else workerStreak.set(r.worker, { key, n: 1 })
+
+    if (!r.taskLineageId) continue
+    const lineageKey = `${r.worker || ''}|${r.taskLineageId}`
+    const cur = lineageStreak.get(lineageKey)
+    if (cur && cur.key === key) {
+      cur.n++
+      if (cur.n === 3) loops++
+    } else lineageStreak.set(lineageKey, { key, n: 1 })
   }
 
   const errors = decisions.filter((r) => r.juliaError)
@@ -69,6 +84,7 @@ function buildReport(all) {
     abandonments: count(answered, (r) => r.wouldAbandonObjective),
     unjustified_abandonments: count(answered, (r) => r.unjustifiedAbandon),
     loops,
+    repeated_order_streaks: repeatedOrderStreaks,
     interrupted: count(decisions, (r) => r.interrupted === true),
     resumed: count(decisions, (r) => r.resumedObjective === true),
     real_action_failed: count(decisions, (r) => r.result && r.result.ok === false),
