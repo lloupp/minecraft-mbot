@@ -378,12 +378,13 @@ class WorkerController {
   // `await`ado por run() — ver lib/laya-shadow.js para as garantias.
   _observeShadow(task, isCancelled, taskPromise) {
     if (!this.shadow?.enabled?.()) return
-    // Retomada: a tarefa anterior ainda não tinha terminado quando esta chegou
-    // (foi interrompida) e o objetivo é o mesmo. Só leitura, para o registro.
+    // Retomada: a tarefa anterior foi interrompida (ainda rodava quando esta
+    // chegou, ou foi cancelada antes de terminar, ex.: por um reflexo) e o
+    // objetivo é o mesmo. Só leitura, para o registro.
     const prev = this._shadowPrev
-    const resumed = Boolean(prev && !prev.settled && prev.task.type === task.type &&
+    const resumed = Boolean(prev && (!prev.settled || prev.interrupted) && prev.task.type === task.type &&
       (prev.task.resource ?? null) === (task.resource ?? null))
-    const entry = { task, settled: false }
+    const entry = { task, settled: false, interrupted: false }
     this._shadowPrev = entry
     try {
       const state = realStateSnapshot(this.bot, task, {
@@ -407,8 +408,8 @@ class WorkerController {
     }
 
     taskPromise.then(
-      () => { entry.settled = true; this._shadowFailureStreak = 0 },
-      () => { entry.settled = true; this._shadowFailureStreak++ }
+      () => { entry.settled = true; entry.interrupted = isCancelled(); this._shadowFailureStreak = 0 },
+      () => { entry.settled = true; entry.interrupted = isCancelled(); this._shadowFailureStreak++ }
     )
   }
 

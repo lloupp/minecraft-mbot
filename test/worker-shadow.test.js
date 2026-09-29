@@ -154,3 +154,22 @@ test('meta.resumed marca a mesma tarefa reenviada enquanto a anterior ainda roda
   assert.deepEqual(third, { ok: true })
   assert.deepEqual(observed, [false, true, false])
 })
+
+test('meta.resumed também vale quando a tarefa foi cancelada e já terminou antes da reemissão', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  const observed = []
+  worker.shadow = { enabled: () => true, observe: (payload) => observed.push(payload.meta.resumed) }
+
+  let release
+  worker.explore = () => new Promise((resolve) => { release = () => resolve({ ok: false }) })
+  const first = worker.run({ type: 'explorar', radius: 8 })
+  await new Promise((resolve) => setImmediate(resolve))
+  worker.cancel() // ex.: reflexo de combate interrompe a tarefa
+  release()
+  await first
+  await Promise.resolve()
+  worker.explore = async () => ({ ok: true })
+  await worker.run({ type: 'explorar', radius: 8 })
+  assert.deepEqual(observed, [false, true])
+})

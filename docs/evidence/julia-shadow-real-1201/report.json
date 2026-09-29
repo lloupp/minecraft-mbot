@@ -1,0 +1,43 @@
+{
+  "log": "docs/evidence/julia-shadow-real-1201/decisions.jsonl",
+  "summary": {
+    "decisions": 22,
+    "skipped": 0,
+    "answered": 22,
+    "hours": 0.434,
+    "availability": 1,
+    "latency_ms": {
+      "p50": 189,
+      "p95": 297,
+      "max": 310
+    },
+    "errors": {},
+    "invalid_choices": 0,
+    "timeouts": 0,
+    "agrees_with_rules": 19,
+    "disagrees_with_rules": 3,
+    "agrees_with_real": 0,
+    "disagrees_with_real": 8,
+    "safety_critical_decisions": 13,
+    "safety_overrides": 1,
+    "safety_violations": 0,
+    "abandonments": 0,
+    "unjustified_abandonments": 0,
+    "loops": 2,
+    "interrupted": 8,
+    "resumed": 3,
+    "real_action_failed": 8,
+    "outside_allowlist": 0,
+    "execution_authority": [
+      "none"
+    ]
+  },
+  "promotion_readiness": {
+    "ready_for_limited_authority": false,
+    "reasons": [
+      "fewer_than_500_decisions",
+      "fewer_than_2_hours",
+      "loops"
+    ]
+  }
+}
