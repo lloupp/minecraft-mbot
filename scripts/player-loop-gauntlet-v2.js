@@ -20,7 +20,7 @@ function compactState(s) {
     equippedWeapon: s.equippedWeapon || null, equippedTool: s.equippedTool || null,
     tools: { weapon: s.equippedWeapon || null, tool: s.equippedTool || null },
     nearby: s.nearby || {}, craftable: s.craftable || [],
-    base: { known: Boolean(s.baseKnown), atBase: Boolean(s.atBase), storage: s.baseStorage || {} },
+    base: { known: Boolean(s.baseKnown), atBase: Boolean(s.atBase), distance: Number.isFinite(Number(s.baseDistance)) ? Number(s.baseDistance) : null, storage: s.baseStorage || {} },
     inventoryLoad: s.inventoryLoad || 0, objective: s.objective || null,
     progress: s.objective?.progress || 0, lastAction: s.lastIntent || null,
     lastResult: s.lastResult || null,
