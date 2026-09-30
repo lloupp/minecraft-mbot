@@ -1,0 +1,177 @@
+live/explore/1/A continue_objective {
+  continue_objective: 0.9981088143455084,
+  gather_materials: 0.0018911856544916233
+}
+live/explore/1/B continue_objective {
+  continue_objective: 0.9981088143455084,
+  gather_materials: 0.0018911856544916233
+}
+live/explore/2/A continue_objective {
+  continue_objective: 0.9838550934921866,
+  gather_materials: 0.016144906507813497
+}
+live/explore/2/B continue_objective {
+  continue_objective: 0.9838550934921866,
+  gather_materials: 0.016144906507813497
+}
+live/explore/3/A continue_objective {
+  continue_objective: 0.9972516354544813,
+  gather_materials: 0.0027483645455186343
+}
+live/explore/3/B continue_objective {
+  continue_objective: 0.9972516354544813,
+  gather_materials: 0.0027483645455186343
+}
+live/explore/4/A continue_objective {
+  continue_objective: 0.9659691925618931,
+  gather_materials: 0.03403080743810703
+}
+live/explore/4/B continue_objective {
+  continue_objective: 0.9659691925618931,
+  gather_materials: 0.03403080743810703
+}
+live/explore/5/A continue_objective {
+  continue_objective: 0.9903765818818491,
+  gather_materials: 0.009623418118150897
+}
+live/explore/5/B continue_objective {
+  continue_objective: 0.9903765818818491,
+  gather_materials: 0.009623418118150897
+}
+live/mine_iron/1/A continue_objective {
+  continue_objective: 0.8871328531537032,
+  gather_materials: 0.1128671468462968
+}
+live/mine_iron/1/B continue_objective {
+  continue_objective: 0.8871328531537032,
+  gather_materials: 0.1128671468462968
+}
+live/mine_iron/2/A continue_objective {
+  continue_objective: 0.9689633791379133,
+  gather_materials: 0.031036620862086774
+}
+live/mine_iron/2/B continue_objective {
+  continue_objective: 0.9689633791379133,
+  gather_materials: 0.031036620862086774
+}
+live/mine_iron/3/A continue_objective {
+  continue_objective: 0.693856292606721,
+  gather_materials: 0.3061437073932791
+}
+live/mine_iron/3/B continue_objective {
+  continue_objective: 0.693856292606721,
+  gather_materials: 0.3061437073932791
+}
+live/mine_iron/4/A gather_materials {
+  continue_objective: 0.31188501034009397,
+  gather_materials: 0.688114989659906
+}
+live/mine_iron/4/B gather_materials {
+  continue_objective: 0.31188501034009397,
+  gather_materials: 0.688114989659906
+}
+live/mine_iron/5/A continue_objective {
+  continue_objective: 0.9118820243214505,
+  gather_materials: 0.08811797567854959
+}
+live/mine_iron/5/B continue_objective {
+  continue_objective: 0.9118820243214505,
+  gather_materials: 0.08811797567854959
+}
+offline/explore/1/A continue_objective {
+  continue_objective: 0.9972516354544813,
+  gather_materials: 0.0027483645455186343
+}
+offline/explore/1/B continue_objective {
+  continue_objective: 0.9972516354544813,
+  gather_materials: 0.0027483645455186343
+}
+offline/explore/2/A continue_objective {
+  continue_objective: 0.9953774069589112,
+  gather_materials: 0.004622593041088913
+}
+offline/explore/2/B continue_objective {
+  continue_objective: 0.9953774069589112,
+  gather_materials: 0.004622593041088913
+}
+offline/explore/3/A continue_objective {
+  continue_objective: 0.9981088143455084,
+  gather_materials: 0.0018911856544916233
+}
+offline/explore/3/B continue_objective {
+  continue_objective: 0.9981088143455084,
+  gather_materials: 0.0018911856544916233
+}
+offline/explore/4/A continue_objective {
+  continue_objective: 0.9981940171972443,
+  gather_materials: 0.0018059828027556315
+}
+offline/explore/4/B continue_objective {
+  continue_objective: 0.9981940171972443,
+  gather_materials: 0.0018059828027556315
+}
+offline/explore/5/A continue_objective {
+  continue_objective: 0.9933560552362285,
+  gather_materials: 0.006643944763771561
+}
+offline/explore/5/B continue_objective {
+  continue_objective: 0.9933560552362285,
+  gather_materials: 0.006643944763771561
+}
+offline/explore/6/A continue_objective {
+  continue_objective: 0.9932166901264736,
+  gather_materials: 0.006783309873526448
+}
+offline/explore/6/B continue_objective {
+  continue_objective: 0.9932166901264736,
+  gather_materials: 0.006783309873526448
+}
+offline/mine_iron/1/A continue_objective {
+  continue_objective: 0.693856292606721,
+  gather_materials: 0.3061437073932791
+}
+offline/mine_iron/1/B continue_objective {
+  continue_objective: 0.693856292606721,
+  gather_materials: 0.3061437073932791
+}
+offline/mine_iron/2/A continue_objective {
+  continue_objective: 0.8710278423107609,
+  gather_materials: 0.1289721576892391
+}
+offline/mine_iron/2/B continue_objective {
+  continue_objective: 0.8710278423107609,
+  gather_materials: 0.1289721576892391
+}
+offline/mine_iron/3/A continue_objective {
+  continue_objective: 0.8871328531537032,
+  gather_materials: 0.1128671468462968
+}
+offline/mine_iron/3/B continue_objective {
+  continue_objective: 0.8871328531537032,
+  gather_materials: 0.1128671468462968
+}
+offline/mine_iron/4/A continue_objective {
+  continue_objective: 0.7811496774893589,
+  gather_materials: 0.21885032251064118
+}
+offline/mine_iron/4/B continue_objective {
+  continue_objective: 0.7811496774893589,
+  gather_materials: 0.21885032251064118
+}
+offline/mine_iron/5/A continue_objective {
+  continue_objective: 0.9025464780457295,
+  gather_materials: 0.09745352195427054
+}
+offline/mine_iron/5/B continue_objective {
+  continue_objective: 0.9025464780457295,
+  gather_materials: 0.09745352195427054
+}
+offline/mine_iron/6/A gather_materials {
+  continue_objective: 0.4704520284966097,
+  gather_materials: 0.5295479715033903
+}
+offline/mine_iron/6/B gather_materials {
+  continue_objective: 0.4704520284966097,
+  gather_materials: 0.5295479715033903
+}
+Completed: 44 measured calls; authority none

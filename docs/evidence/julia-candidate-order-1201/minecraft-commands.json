@@ -1,0 +1,278 @@
+[
+  {
+    "ts": "2026-09-30T23:39:43.034Z",
+    "command": "gamerule doDaylightCycle false"
+  },
+  {
+    "ts": "2026-09-30T23:39:43.214Z",
+    "command": "time set day"
+  },
+  {
+    "ts": "2026-09-30T23:39:43.395Z",
+    "command": "gamerule doMobSpawning false"
+  },
+  {
+    "ts": "2026-09-30T23:39:43.575Z",
+    "command": "gamerule randomTickSpeed 0"
+  },
+  {
+    "ts": "2026-09-30T23:39:50.950Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:39:51.131Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:39:51.312Z",
+    "command": "setblock 2 200 0 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:39:51.492Z",
+    "command": "setblock 0 200 2 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:39:51.672Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:39:51.852Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:39:53.309Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:39:53.489Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:39:53.669Z",
+    "command": "setblock 4 200 4 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:39:53.849Z",
+    "command": "setblock -4 200 -4 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:39:54.029Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:39:54.210Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:39:55.554Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:39:55.734Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:39:55.914Z",
+    "command": "setblock 2 200 0 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:39:56.095Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:39:56.274Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:39:57.629Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:39:57.809Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:39:57.988Z",
+    "command": "setblock 2 200 0 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:39:58.168Z",
+    "command": "setblock 0 200 2 minecraft:iron_ore"
+  },
+  {
+    "ts": "2026-09-30T23:39:58.349Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:39:58.530Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:39:59.839Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:40:00.019Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:40:00.199Z",
+    "command": "setblock 4 200 0 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:40:00.380Z",
+    "command": "setblock 0 200 4 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:40:00.561Z",
+    "command": "setblock -4 200 0 minecraft:iron_ore"
+  },
+  {
+    "ts": "2026-09-30T23:40:00.741Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:40:00.921Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:40:02.228Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:40:02.409Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:40:02.590Z",
+    "command": "setblock 2 200 0 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:40:02.770Z",
+    "command": "setblock 0 200 2 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:40:02.950Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:40:03.131Z",
+    "command": "give order_probe minecraft:stone_pickaxe 1"
+  },
+  {
+    "ts": "2026-09-30T23:40:03.310Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:40:04.661Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:40:04.841Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:40:05.022Z",
+    "command": "setblock 4 200 4 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:40:05.202Z",
+    "command": "setblock -4 200 -4 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:40:05.382Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:40:05.562Z",
+    "command": "give order_probe minecraft:stone_pickaxe 1"
+  },
+  {
+    "ts": "2026-09-30T23:40:05.743Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:40:07.131Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:40:07.311Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:40:07.491Z",
+    "command": "setblock 2 200 0 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:40:07.671Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:40:07.851Z",
+    "command": "give order_probe minecraft:stone_pickaxe 1"
+  },
+  {
+    "ts": "2026-09-30T23:40:08.031Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:40:09.256Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:40:09.436Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:40:09.616Z",
+    "command": "setblock 2 200 0 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:40:09.797Z",
+    "command": "setblock 0 200 2 minecraft:iron_ore"
+  },
+  {
+    "ts": "2026-09-30T23:40:09.977Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:40:10.157Z",
+    "command": "give order_probe minecraft:stone_pickaxe 1"
+  },
+  {
+    "ts": "2026-09-30T23:40:10.337Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-09-30T23:40:11.642Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-09-30T23:40:11.823Z",
+    "command": "fill -8 200 -8 8 203 8 minecraft:air"
+  },
+  {
+    "ts": "2026-09-30T23:40:12.003Z",
+    "command": "setblock 4 200 0 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-09-30T23:40:12.184Z",
+    "command": "setblock 0 200 4 minecraft:stone"
+  },
+  {
+    "ts": "2026-09-30T23:40:12.363Z",
+    "command": "setblock -4 200 0 minecraft:iron_ore"
+  },
+  {
+    "ts": "2026-09-30T23:40:12.543Z",
+    "command": "clear order_probe"
+  },
+  {
+    "ts": "2026-09-30T23:40:12.724Z",
+    "command": "give order_probe minecraft:stone_pickaxe 1"
+  },
+  {
+    "ts": "2026-09-30T23:40:12.904Z",
+    "command": "tp order_probe 0.5 200 0.5"
+  }
+]

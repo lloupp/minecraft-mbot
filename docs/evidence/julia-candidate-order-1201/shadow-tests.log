@@ -1,0 +1,14 @@
+✔ desabilitado por padrão e sem endpoint (0.806238ms)
+✔ registra a decisão da Julia sem devolver nada ao chamador (4.693525ms)
+✔ timeout, erro HTTP e escolha fora da máscara viram registro, nunca exceção (1.307064ms)
+✔ resultado real que falha é registrado sem propagar (0.83465ms)
+✔ derive: abandono, override de segurança e concordância (0.373584ms)
+✔ fan-out isola observadores e só usa os habilitados (0.23881ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 73.51075

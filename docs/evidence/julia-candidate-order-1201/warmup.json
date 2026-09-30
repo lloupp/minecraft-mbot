@@ -1,0 +1,15 @@
+{
+  "http": 200,
+  "body": {
+    "choice": "continue_objective",
+    "confidence": 0.9981088143455084,
+    "probabilities": {
+      "continue_objective": 0.9981088143455084,
+      "gather_materials": 0.0018911856544916233
+    },
+    "model_calls": 1,
+    "latency_ms": 235.67996799999946,
+    "source": "julia-1",
+    "rss_mb": 1003.16796875
+  }
+}
