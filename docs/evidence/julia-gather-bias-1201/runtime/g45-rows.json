@@ -1,0 +1,278 @@
+[
+ {
+  "t": "2026-09-30T17:03:23.294Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 293.32916663707346,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9992165650136751,
+  "lat": 416,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:03:31.331Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 293.32916663707346,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9992165650136751,
+  "lat": 404,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:03:39.368Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2.8284271247461903,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 293.32916663707346,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9858421033433208,
+  "lat": 352,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:03:49.422Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2.23606797749979,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 293.32916663707346,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9816685686211499,
+  "lat": 397,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:03:57.462Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 4,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 293.32916663707346,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9997537571432932,
+  "lat": 357,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:04:07.520Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 4,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 293.32916663707346,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9997537571432932,
+  "lat": 388,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:04:25.570Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 8,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999921049683681,
+  "lat": 368,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:04:32.606Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 8,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999921049683681,
+  "lat": 371,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:04:37.629Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2.8284271247461903,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 8,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999514896132039,
+  "lat": 348,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:04:45.673Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 2.23606797749979,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 8,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999803157283104,
+  "lat": 383,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:04:53.708Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 4,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 8,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999960412283488,
+  "lat": 464,
+  "err": null,
+  "viol": false
+ },
+ {
+  "t": "2026-09-30T17:05:03.770Z",
+  "nearby": {
+   "food": false,
+   "wood": true,
+   "stone": false,
+   "iron": false,
+   "foodDistance": null,
+   "woodDistance": 4,
+   "stoneDistance": null,
+   "ironDistance": null
+  },
+  "bd": 8,
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999960412283488,
+  "lat": 391,
+  "err": null,
+  "viol": false
+ }
+]

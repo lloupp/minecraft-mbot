@@ -1,0 +1,824 @@
+[
+ {
+  "grp": "G1",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": 2,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9994584569573283,
+  "lat": 399,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G1",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": 2,
+  "iron": 2,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.7200240750358733,
+  "lat": 1387,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G1",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": 2,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9994584569573283,
+  "lat": 426,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G1",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": 2,
+  "iron": 2,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.7200240750358733,
+  "lat": 1233,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G1",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": 2,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9994584569573283,
+  "lat": 364,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G1",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": 2,
+  "iron": 2,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.7200240750358733,
+  "lat": 1242,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G1",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": 2,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9994584569573283,
+  "lat": 359,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G1",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": 2,
+  "iron": 2,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.7200240750358733,
+  "lat": 1113,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 5.656854249492381,
+  "stone": 5.656854249492381,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.6515400104614435,
+  "lat": 328,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 5.656854249492381,
+  "stone": 6,
+  "iron": 5.656854249492381,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "gather_materials",
+  "conf": 0.5262693056115479,
+  "lat": 1256,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 5.656854249492381,
+  "stone": 5.656854249492381,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.6515400104614435,
+  "lat": 367,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 5.656854249492381,
+  "stone": 6,
+  "iron": 5.656854249492381,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "gather_materials",
+  "conf": 0.5262693056115479,
+  "lat": 1292,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 5.656854249492381,
+  "stone": 5.656854249492381,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.6515400104614435,
+  "lat": 403,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 5.656854249492381,
+  "stone": 6,
+  "iron": 5.656854249492381,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "gather_materials",
+  "conf": 0.5262693056115479,
+  "lat": 1231,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 5.656854249492381,
+  "stone": 5.656854249492381,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.6515400104614435,
+  "lat": 425,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G2",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 5.656854249492381,
+  "stone": 6,
+  "iron": 5.656854249492381,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "gather_materials",
+  "conf": 0.5262693056115479,
+  "lat": 1215,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G3",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": null,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "continue_objective"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G3",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": null,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "continue_objective"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G3",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": null,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "continue_objective"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G3",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": null,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "continue_objective"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G3",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": null,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "continue_objective"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G3",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": null,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "continue_objective"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G4",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9992165650136751,
+  "lat": 340,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G4",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G4",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9992165650136751,
+  "lat": 321,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G4",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G4",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9992165650136751,
+  "lat": 352,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G4",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G4",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9938642977264104,
+  "lat": 360,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G4",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G5",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999921049683681,
+  "lat": 341,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G5",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G5",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999921049683681,
+  "lat": 407,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G5",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G5",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999921049683681,
+  "lat": 382,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G5",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ },
+ {
+  "grp": "G5",
+  "worker": "explorador_01",
+  "obj": "explore",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {},
+  "cand": [
+   "gather_materials",
+   "continue_objective"
+  ],
+  "julia": "continue_objective",
+  "conf": 0.9999921049683681,
+  "lat": 273,
+  "err": null,
+  "viol": false
+ },
+ {
+  "grp": "G5",
+  "worker": "minerador_01",
+  "obj": "mine_iron",
+  "wood": 2,
+  "stone": null,
+  "iron": null,
+  "bd": null,
+  "food": 20,
+  "threat": false,
+  "inv": {
+   "stone_pickaxe": 1
+  },
+  "cand": [
+   "stop_task"
+  ],
+  "julia": null,
+  "conf": null,
+  "lat": null,
+  "err": null,
+  "viol": null
+ }
+]

@@ -1,0 +1,1734 @@
+{
+ "summary": {
+  "explore": {
+   "all": {
+    "n": 84,
+    "gather": 0,
+    "p_gather_min": 0.0,
+    "p_gather_max": 0.2734
+   },
+   "by_distance": {
+    "1": {
+     "n": 14,
+     "gather": 0,
+     "p_gather_min": 0.0001,
+     "p_gather_max": 0.1264
+    },
+    "2": {
+     "n": 14,
+     "gather": 0,
+     "p_gather_min": 0.0001,
+     "p_gather_max": 0.0369
+    },
+    "3": {
+     "n": 14,
+     "gather": 0,
+     "p_gather_min": 0.0001,
+     "p_gather_max": 0.0521
+    },
+    "4": {
+     "n": 14,
+     "gather": 0,
+     "p_gather_min": 0.0002,
+     "p_gather_max": 0.0425
+    },
+    "5.7": {
+     "n": 14,
+     "gather": 0,
+     "p_gather_min": 0.0001,
+     "p_gather_max": 0.1564
+    },
+    "6.9": {
+     "n": 14,
+     "gather": 0,
+     "p_gather_min": 0.0,
+     "p_gather_max": 0.2734
+    }
+   },
+   "by_avail": {
+    "iron": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.002,
+     "p_gather_max": 0.1264
+    },
+    "stone": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.0014,
+     "p_gather_max": 0.054
+    },
+    "stone+iron": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.0002,
+     "p_gather_max": 0.1535
+    },
+    "wood": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.0,
+     "p_gather_max": 0.0144
+    },
+    "wood+iron": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.0001,
+     "p_gather_max": 0.0344
+    },
+    "wood+stone": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.0001,
+     "p_gather_max": 0.0297
+    },
+    "wood+stone+iron": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.0001,
+     "p_gather_max": 0.2734
+    }
+   },
+   "by_order": {
+    "gather_materials": {
+     "n": 42,
+     "gather": 0,
+     "p_gather_min": 0.0,
+     "p_gather_max": 0.0287
+    },
+    "continue_objective": {
+     "n": 42,
+     "gather": 0,
+     "p_gather_min": 0.0021,
+     "p_gather_max": 0.2734
+    }
+   },
+   "no_resources_flags": {
+    "choice": "continue_objective",
+    "p_gather": 0.008
+   }
+  },
+  "mine_iron": {
+   "all": {
+    "n": 84,
+    "gather": 19,
+    "p_gather_min": 0.001,
+    "p_gather_max": 0.9513
+   },
+   "by_distance": {
+    "1": {
+     "n": 14,
+     "gather": 8,
+     "p_gather_min": 0.0494,
+     "p_gather_max": 0.9428
+    },
+    "2": {
+     "n": 14,
+     "gather": 1,
+     "p_gather_min": 0.0088,
+     "p_gather_max": 0.8091
+    },
+    "3": {
+     "n": 14,
+     "gather": 4,
+     "p_gather_min": 0.0222,
+     "p_gather_max": 0.9513
+    },
+    "4": {
+     "n": 14,
+     "gather": 2,
+     "p_gather_min": 0.0045,
+     "p_gather_max": 0.8708
+    },
+    "5.7": {
+     "n": 14,
+     "gather": 2,
+     "p_gather_min": 0.001,
+     "p_gather_max": 0.8938
+    },
+    "6.9": {
+     "n": 14,
+     "gather": 2,
+     "p_gather_min": 0.0013,
+     "p_gather_max": 0.8009
+    }
+   },
+   "by_avail": {
+    "iron": {
+     "n": 12,
+     "gather": 4,
+     "p_gather_min": 0.0045,
+     "p_gather_max": 0.9104
+    },
+    "stone": {
+     "n": 12,
+     "gather": 3,
+     "p_gather_min": 0.0223,
+     "p_gather_max": 0.9272
+    },
+    "stone+iron": {
+     "n": 12,
+     "gather": 3,
+     "p_gather_min": 0.0056,
+     "p_gather_max": 0.9428
+    },
+    "wood": {
+     "n": 12,
+     "gather": 0,
+     "p_gather_min": 0.0082,
+     "p_gather_max": 0.3162
+    },
+    "wood+iron": {
+     "n": 12,
+     "gather": 4,
+     "p_gather_min": 0.0066,
+     "p_gather_max": 0.9088
+    },
+    "wood+stone": {
+     "n": 12,
+     "gather": 1,
+     "p_gather_min": 0.001,
+     "p_gather_max": 0.6329
+    },
+    "wood+stone+iron": {
+     "n": 12,
+     "gather": 4,
+     "p_gather_min": 0.1402,
+     "p_gather_max": 0.9513
+    }
+   },
+   "by_order": {
+    "gather_materials": {
+     "n": 42,
+     "gather": 5,
+     "p_gather_min": 0.001,
+     "p_gather_max": 0.9513
+    },
+    "continue_objective": {
+     "n": 42,
+     "gather": 14,
+     "p_gather_min": 0.0034,
+     "p_gather_max": 0.9428
+    }
+   },
+   "no_resources_flags": {
+    "choice": "continue_objective",
+    "p_gather": 0.016
+   }
+  }
+ },
+ "rows": [
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0010127300001302635,
+   "conf": 0.9989872699998698
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0020621464533339177,
+   "conf": 0.9979378535466661
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0007834349863250753,
+   "conf": 0.9992165650136751
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.002282829400571635,
+   "conf": 0.9977171705994283
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00040458778937931575,
+   "conf": 0.9995954122106206
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.007597399029215127,
+   "conf": 0.9924026009707849
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00024624285670680096,
+   "conf": 0.9997537571432932
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.014434274256735515,
+   "conf": 0.9855657257432644
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00010096918758652082,
+   "conf": 0.9998990308124135
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.010199987746310878,
+   "conf": 0.9898000122536892
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 4.998844737459825e-05,
+   "conf": 0.9999500115526255
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.008084738917434693,
+   "conf": 0.9919152610825653
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.008765567111807393,
+   "conf": 0.9912344328881927
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.054012773616732346,
+   "conf": 0.9459872263832677
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.009947111609977601,
+   "conf": 0.9900528883900225
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.036941810701715365,
+   "conf": 0.9630581892982846
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.005921379176326229,
+   "conf": 0.9940786208236738
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.01066394970368549,
+   "conf": 0.9893360502963146
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00822467508282396,
+   "conf": 0.9917753249171761
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.011013630457724806,
+   "conf": 0.9889863695422751
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0021570679635524847,
+   "conf": 0.9978429320364476
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.022537734054656988,
+   "conf": 0.9774622659453429
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.001410990536671772,
+   "conf": 0.9985890094633282
+  },
+  {
+   "obj": "explore",
+   "avail": "stone",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.025882052526426568,
+   "conf": 0.9741179474735734
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.011314804680378236,
+   "conf": 0.9886851953196217
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.1264071709658203,
+   "conf": 0.8735928290341797
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.003082681260123139,
+   "conf": 0.9969173187398769
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.035755319512849215,
+   "conf": 0.9642446804871508
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.016704233524621217,
+   "conf": 0.9832957664753789
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.03538696653925773,
+   "conf": 0.9646130334607423
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.028736895356321925,
+   "conf": 0.9712631046436779
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.026888138971073075,
+   "conf": 0.973111861028927
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0022305762621832145,
+   "conf": 0.9977694237378167
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.022802046276421066,
+   "conf": 0.977197953723579
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0020298872319149865,
+   "conf": 0.997970112768085
+  },
+  {
+   "obj": "explore",
+   "avail": "iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.026058167850923533,
+   "conf": 0.9739418321490764
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0013640282619365456,
+   "conf": 0.9986359717380635
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.003371984303189415,
+   "conf": 0.9966280156968106
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0005415430426716575,
+   "conf": 0.9994584569573283
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.002530906734397673,
+   "conf": 0.9974690932656024
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00029245793692512254,
+   "conf": 0.999707542063075
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0034305598565924824,
+   "conf": 0.9965694401434075
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00020042069688384307,
+   "conf": 0.999799579303116
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.004264609950951757,
+   "conf": 0.9957353900490481
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0003717396300230757,
+   "conf": 0.9996282603699769
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.017078334454269997,
+   "conf": 0.9829216655457299
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0001315748457749854,
+   "conf": 0.999868425154225
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.029688609149668505,
+   "conf": 0.9703113908503316
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0006238201818446686,
+   "conf": 0.9993761798181552
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0034070678492806334,
+   "conf": 0.9965929321507193
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 9.437166019777433e-05,
+   "conf": 0.9999056283398022
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0041504737630758785,
+   "conf": 0.995849526236924
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00027988210147890987,
+   "conf": 0.9997201178985212
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.006658494243468546,
+   "conf": 0.9933415057565316
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0003176629780000057,
+   "conf": 0.999682337022
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0037312319629678463,
+   "conf": 0.9962687680370322
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.002415935435232111,
+   "conf": 0.9975840645647679
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.016571385875277567,
+   "conf": 0.9834286141247224
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0011383422813076205,
+   "conf": 0.9988616577186923
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.03439222101046396,
+   "conf": 0.965607778989536
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00023028556696006561,
+   "conf": 0.9997697144330401
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.03600582444248652,
+   "conf": 0.9639941755575134
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00028398371898602406,
+   "conf": 0.999716016281014
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.035412961495425804,
+   "conf": 0.9645870385045743
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0005534286943606755,
+   "conf": 0.9994465713056394
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.05214383586933084,
+   "conf": 0.9478561641306691
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0003738971916908138,
+   "conf": 0.9996261028083091
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.042450768363122594,
+   "conf": 0.9575492316368773
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00019680247963847492,
+   "conf": 0.9998031975203616
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.15354963769905736,
+   "conf": 0.8464503623009426
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00031137846776052786,
+   "conf": 0.9996886215322394
+  },
+  {
+   "obj": "explore",
+   "avail": "stone+iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.1479783474126503,
+   "conf": 0.8520216525873497
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00010083864144295076,
+   "conf": 0.999899161358557
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.011545577520333559,
+   "conf": 0.9884544224796664
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 8.37131899135861e-05,
+   "conf": 0.9999162868100864
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.00857569481789935,
+   "conf": 0.9914243051821007
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.00013415549857870998,
+   "conf": 0.9998658445014214
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.032810007101958596,
+   "conf": 0.9671899928980413
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0001860508757434121,
+   "conf": 0.9998139491242565
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.011263879991088454,
+   "conf": 0.9887361200089114
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0006669542702665203,
+   "conf": 0.9993330457297334
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.15642704071135388,
+   "conf": 0.8435729592886462
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0002964083096433749,
+   "conf": 0.9997035916903566
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.27344610130895075,
+   "conf": 0.7265538986910492
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.3162108797476577,
+   "conf": 0.6837891202523422
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.2476085767566539,
+   "conf": 0.7523914232433462
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.05607219877168961,
+   "conf": 0.9439278012283103
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.012274286750230595,
+   "conf": 0.9877257132497694
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.049218977943948194,
+   "conf": 0.9507810220560519
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.022229302249126483,
+   "conf": 0.9777706977508734
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.019040427393442194,
+   "conf": 0.9809595726065579
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.008200405681791851,
+   "conf": 0.9917995943182082
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.04248559353542468,
+   "conf": 0.9575144064645753
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.299790547943911,
+   "conf": 0.7002094520560891
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.05588338945282773,
+   "conf": 0.9441166105471722
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.2836234426550848,
+   "conf": 0.7163765573449152
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.41445117222897704,
+   "conf": 0.585548827771023
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.9272459682395144,
+   "conf": 0.9272459682395144
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.022314411974348636,
+   "conf": 0.9776855880256514
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.23463646674876945,
+   "conf": 0.7653635332512305
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.09348365501663905,
+   "conf": 0.906516344983361
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.3900768821621464,
+   "conf": 0.6099231178378536
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.024687756125792135,
+   "conf": 0.9753122438742079
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.28347634683863904,
+   "conf": 0.716523653161361
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.11573595094352614,
+   "conf": 0.8842640490564739
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.8937837177341622,
+   "conf": 0.8937837177341622
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.06028921315494997,
+   "conf": 0.93971078684505
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.7958495255255422,
+   "conf": 0.7958495255255422
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.04935911085255235,
+   "conf": 0.9506408891474476
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.9103927624130828,
+   "conf": 0.9103927624130828
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.008794217451988459,
+   "conf": 0.9912057825480115
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.22413802878694639,
+   "conf": 0.7758619712130536
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.04049744264538719,
+   "conf": 0.9595025573546128
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.2656658208235612,
+   "conf": 0.7343341791764388
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.004476541207850527,
+   "conf": 0.9955234587921495
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.5153751759844167,
+   "conf": 0.5153751759844167
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.019492759825833286,
+   "conf": 0.9805072401741668
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.7733999514602251,
+   "conf": 0.7733999514602251
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.02503381741358243,
+   "conf": 0.9749661825864177
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.8008847015972672,
+   "conf": 0.8008847015972672
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.29955492529378713,
+   "conf": 0.7004450747062129
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.6329091561439514,
+   "conf": 0.6329091561439514
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.026262835755435806,
+   "conf": 0.9737371642445641
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.15517632417598026,
+   "conf": 0.8448236758240197
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.10697938488641316,
+   "conf": 0.8930206151135869
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.23706615374155993,
+   "conf": 0.7629338462584402
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.016359533838612373,
+   "conf": 0.9836404661613876
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.1569372104819548,
+   "conf": 0.8430627895180453
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0010198362687478956,
+   "conf": 0.9989801637312522
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0033976720999737203,
+   "conf": 0.9966023279000262
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.0012968332187015678,
+   "conf": 0.9987031667812986
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.00398647947757855,
+   "conf": 0.9960135205224215
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "gather_materials",
+   "p_gather": 0.688118136462751,
+   "conf": 0.688118136462751
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.9087583974721137,
+   "conf": 0.9087583974721137
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.2174514223253706,
+   "conf": 0.7825485776746294
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.8091155140219812,
+   "conf": 0.8091155140219812
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.2874885803640075,
+   "conf": 0.7125114196359925
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.598691921932337,
+   "conf": 0.598691921932337
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.02653637472990414,
+   "conf": 0.9734636252700959
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.3878437763114258,
+   "conf": 0.6121562236885743
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.01000902424289981,
+   "conf": 0.9899909757571003
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.09951679488949229,
+   "conf": 0.9004832051105077
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.006627640623417913,
+   "conf": 0.993372359376582
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0791302398938389,
+   "conf": 0.9208697601061611
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.4397213838519768,
+   "conf": 0.5602786161480232
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.9427626022890249,
+   "conf": 0.9427626022890249
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.2882919398238017,
+   "conf": 0.7117080601761984
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.29902537449902206,
+   "conf": 0.7009746255009779
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "gather_materials",
+   "p_gather": 0.8595028290458189,
+   "conf": 0.8595028290458189
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.7136952199140488,
+   "conf": 0.7136952199140488
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.4388550603020828,
+   "conf": 0.5611449396979172
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0055529257941986454,
+   "conf": 0.9944470742058014
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.07349220541255233,
+   "conf": 0.9265077945874477
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.0066773348255992505,
+   "conf": 0.9933226651744007
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.017297225605200924,
+   "conf": 0.982702774394799
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "stone+iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.019001383578752157,
+   "conf": 0.9809986164212479
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "choice": "gather_materials",
+   "p_gather": 0.9308206546355235,
+   "conf": 0.9308206546355235
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "choice": "gather_materials",
+   "p_gather": 0.9412139599955965,
+   "conf": 0.9412139599955965
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.2799759249641267,
+   "conf": 0.7200240750358733
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.3331583566477044,
+   "conf": 0.6668416433522956
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 3,
+   "order": "gather_materials",
+   "choice": "gather_materials",
+   "p_gather": 0.9512603701416893,
+   "conf": 0.9512603701416893
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 3,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.32785843984331725,
+   "conf": 0.6721415601566827
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "choice": "gather_materials",
+   "p_gather": 0.8708352198402239,
+   "conf": 0.8708352198402239
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.3592020188345392,
+   "conf": 0.6407979811654608
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 5.7,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.1627739020667358,
+   "conf": 0.8372260979332642
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 5.7,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.14023274797709018,
+   "conf": 0.8597672520229097
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 6.9,
+   "order": "gather_materials",
+   "choice": "continue_objective",
+   "p_gather": 0.16904361106229554,
+   "conf": 0.8309563889377044
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 6.9,
+   "order": "continue_objective",
+   "choice": "continue_objective",
+   "p_gather": 0.1797727225132358,
+   "conf": 0.8202272774867643
+  }
+ ]
+}
