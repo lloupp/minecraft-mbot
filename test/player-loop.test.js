@@ -47,6 +47,68 @@ test('unarmed exploration exposes preparation as a strategic choice', () => {
   )
 })
 
+
+test('unarmed exploration with nearby basic materials forces gather before progress', () => {
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { wood: true, stone: true, iron: false },
+    objective: { type: 'explore', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents(state).map(item => item.id),
+    ['gather_materials']
+  )
+})
+
+test('armed-tool mine_iron still gathers combat materials before unarmed progress', () => {
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: { stone_pickaxe: 1 },
+    craftable: [],
+    equippedWeapon: null,
+    equippedTool: 'stone_pickaxe',
+    nearby: { wood: false, stone: true, iron: true },
+    objective: { type: 'mine_iron', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents(state).map(item => item.id),
+    ['gather_materials']
+  )
+})
+
+test('unarmed objective without nearby materials does not invent a gather target', () => {
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { wood: false, stone: false, iron: false },
+    objective: { type: 'explore', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents(state).map(item => item.id),
+    ['continue_objective']
+  )
+})
+
 test('repeated failures with a known alternative route expose only replan', () => {
   const state = byId('repeated_failure_replan').initialState
   assert.deepEqual(
