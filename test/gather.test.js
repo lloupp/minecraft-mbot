@@ -146,3 +146,49 @@ test('drop esperado acompanha a ferramenta escolhida com silk touch', () => {
   const bot = { registry: { blocksByName: { stone: { drops: [22] } }, items: { 22: { name: 'cobblestone' } }, itemsByName: { stone: { id: 1 } } } }
   assert.deepEqual([...gather.expectedDrops(bot, { name: 'stone' }, { enchants: [{ name: 'silk_touch' }] })], ['stone'])
 })
+
+
+test('mineBlocks registra candidato alternativo observado sem afirmar alcançabilidade', async () => {
+  const first = new Vec3(10, 64, 0)
+  const second = new Vec3(20, 64, 0)
+  const present = new Set([first.toString(), second.toString()])
+  const items = []
+  const attempts = []
+  const bot = {
+    registry: { blocksArray: [{ id: 1, name: 'oak_log' }] },
+    entities: {},
+    inventory: { items: () => items },
+    findBlocks: () => [first, second].filter((p) => present.has(p.toString())),
+    blockAt: (p) => ({ name: present.has(p.toString()) ? 'oak_log' : 'air', position: p }),
+    pathfinder: {
+      goto: async (goal) => {
+        if (goal.x === first.x) throw new Error('Took to long to decide path to goal!')
+      },
+      bestHarvestTool: () => null
+    },
+    equip: async () => {},
+    dig: async (block) => {
+      present.delete(block.position.toString())
+      items.push({ name: block.name, count: 1 })
+    }
+  }
+
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false, {
+    onAttempt: e => attempts.push(e)
+  }), 1)
+
+  assert.equal(attempts[0].code, 'PATH_FAILED')
+  assert.equal(attempts[0].candidateCount, 2)
+  assert.equal(attempts[0].alternateTargetCandidateObserved, true)
+  assert.equal(attempts[0].alternateTargetCandidateCount, 1)
+  assert.equal(attempts[1].itemConfirmed, true)
+})
+
+test('mineBlocks não marca alvo alternativo quando só há um candidato', async () => {
+  const attempts = []
+  const bot = collectionBot({ drop: null })
+  await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false, { onAttempt: e => attempts.push(e) })
+  assert.equal(attempts[0].candidateCount, 1)
+  assert.equal(attempts[0].alternateTargetCandidateObserved, false)
+  assert.equal(attempts[0].alternateTargetCandidateCount, 0)
+})
