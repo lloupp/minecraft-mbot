@@ -40,6 +40,25 @@ function travelTimeoutMs(from, to) {
   return Math.max(30000, Math.round(d * MS_PER_BLOCK))
 }
 
+function shadowObjectiveKey(task) {
+  if (!task) return 'none'
+  const point = (value) => value && Number.isFinite(Number(value.x)) && Number.isFinite(Number(value.y)) && Number.isFinite(Number(value.z))
+    ? [Math.floor(Number(value.x)), Math.floor(Number(value.y)), Math.floor(Number(value.z))]
+    : null
+  return JSON.stringify({
+    type: task.type || null,
+    resource: task.resource || null,
+    item: task.item || null,
+    product: task.product || null,
+    species: task.species || null,
+    planta: task.planta || null,
+    region: task.region || null,
+    position: point(task.position),
+    center: point(task.center),
+    origin: point(task.origin)
+  })
+}
+
 // Cercas e portões nunca podem ser quebrados pelo pathfinder: um buraco no
 // curral solta os animais (e com canOpenDoors=false ele prefere cavar a cerca).
 function protectPenBlocks(moves, registry) {
@@ -65,6 +84,8 @@ class WorkerController {
     // nada aqui. Ver a chamada em run() e lib/laya-shadow.js.
     this.shadow = shadow
     this._shadowFailureStreak = 0
+    this._shadowFailureKey = null
+    this._shadowFailureEntry = null
     this._shadowLineageSeq = 0
     this.state = 'conectando'
     this.currentTask = null
@@ -388,8 +409,14 @@ class WorkerController {
     const taskLineageId = resumed && prev?.taskLineageId
       ? prev.taskLineageId
       : `${this.name}:${++this._shadowLineageSeq}`
-    const entry = { task, settled: false, interrupted: false, taskLineageId }
+    const failureKey = shadowObjectiveKey(task)
+    if (this._shadowFailureKey !== failureKey) {
+      this._shadowFailureKey = failureKey
+      this._shadowFailureStreak = 0
+    }
+    const entry = { task, settled: false, interrupted: false, taskLineageId, failureKey }
     this._shadowPrev = entry
+    this._shadowFailureEntry = entry
     try {
       const state = realStateSnapshot(this.bot, task, {
         homeProvider: this.homeProvider,
@@ -415,12 +442,19 @@ class WorkerController {
       (value) => {
         entry.settled = true
         entry.interrupted = isCancelled()
-        const failed = value && value.ok === false && !value.cancelled
+        if (this._shadowFailureEntry !== entry || this._shadowFailureKey !== entry.failureKey) return
+
+        const cancelled = entry.interrupted || value?.cancelled === true || value?.code === 'CANCELLED'
+        if (cancelled) return
+
+        const failed = value && value.ok === false
         this._shadowFailureStreak = failed ? this._shadowFailureStreak + 1 : 0
       },
       () => {
         entry.settled = true
         entry.interrupted = isCancelled()
+        if (this._shadowFailureEntry !== entry || this._shadowFailureKey !== entry.failureKey) return
+        if (entry.interrupted) return
         this._shadowFailureStreak++
       }
     )
@@ -1703,4 +1737,4 @@ class WorkerController {
   }
 }
 
-module.exports = { WorkerController, protectPenBlocks }
+module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey }
