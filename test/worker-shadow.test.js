@@ -173,3 +173,37 @@ test('meta.resumed também vale quando a tarefa foi cancelada e já terminou ant
   await worker.run({ type: 'explorar', radius: 8 })
   assert.deepEqual(observed, [false, true])
 })
+
+
+test('_shadowFailureStreak conta resultado resolvido ok:false não cancelado', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  worker.shadow = { enabled: () => true, observe: () => {} }
+
+  worker.explore = async () => ({ ok: false, code: 'PATH_FAILED' })
+  await worker.run({ type: 'explorar' })
+  await Promise.resolve()
+  assert.equal(worker._shadowFailureStreak, 1)
+
+  worker.explore = async () => ({ ok: false, code: 'PATH_FAILED' })
+  await worker.run({ type: 'explorar' })
+  await Promise.resolve()
+  assert.equal(worker._shadowFailureStreak, 2)
+
+  worker.explore = async () => ({ ok: true })
+  await worker.run({ type: 'explorar' })
+  await Promise.resolve()
+  assert.equal(worker._shadowFailureStreak, 0)
+})
+
+test('_shadowFailureStreak não conta cancelamento resolvido como falha', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  worker.shadow = { enabled: () => true, observe: () => {} }
+  worker._shadowFailureStreak = 2
+
+  worker.explore = async () => ({ ok: false, cancelled: true, code: 'CANCELLED' })
+  await worker.run({ type: 'explorar' })
+  await Promise.resolve()
+  assert.equal(worker._shadowFailureStreak, 0)
+})
