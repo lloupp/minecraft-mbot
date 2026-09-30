@@ -1,0 +1,99 @@
+{
+ "dispatches": 54,
+ "shadow_rows": 21,
+ "payloads": 21,
+ "A ameaça presente": {
+  "n": 20,
+  "candidate_sets": {
+   "equip_best_weapon,escape_danger": 3,
+   "escape_danger": 15,
+   "fight_threat,escape_danger": 2
+  },
+  "find_food_forced(single [find_food])": 0,
+  "find_food_in_any_candidates": 0,
+  "immediateSafety": {
+   "None": 20
+  },
+  "julia_consulted": 5,
+  "julia_choices": {
+   "equip_best_weapon": 3,
+   "escape_danger": 2
+  },
+  "choice_outside_candidates": 0,
+  "errors": 0,
+  "timeouts": 0,
+  "safety_violations": 0,
+  "authority": {
+   "none": 5
+  },
+  "lat_p50": 383,
+  "lat_p95": 477,
+  "lat_max": 477,
+  "food": [
+   1,
+   5
+  ],
+  "foodDistance": [
+   1.9999473694925647,
+   7.500008687420341
+  ],
+  "baseDistance": [
+   9.8,
+   10.0
+  ],
+  "threat_distance": [
+   8,
+   9
+  ],
+  "equippedWeapon/inv_sword": {
+   "True": 5,
+   "False": 15
+  }
+ },
+ "B sem ameaça": {
+  "n": 6,
+  "candidate_sets": {
+   "find_food": 6
+  },
+  "find_food_forced(single [find_food])": 6,
+  "find_food_in_any_candidates": 6,
+  "immediateSafety": {
+   "find_food": 6
+  },
+  "julia_consulted": 0,
+  "julia_choices": {},
+  "choice_outside_candidates": 0,
+  "errors": 0,
+  "timeouts": 0,
+  "safety_violations": 0,
+  "authority": {},
+  "lat_p50": null,
+  "lat_p95": null,
+  "lat_max": null,
+  "food": [
+   1,
+   5
+  ],
+  "foodDistance": [
+   2,
+   2.0000975721369785
+  ],
+  "baseDistance": [
+   10.0,
+   10.0
+  ],
+  "threat_distance": [],
+  "equippedWeapon/inv_sword": {
+   "False": 6
+  }
+ },
+ "multi_candidate_without_shadow_row": 0,
+ "forced_and_consulted(should be 0)": 0,
+ "payloads_with_single_candidate": 0,
+ "payload_candidate_sets": {
+  "equip_best_weapon,escape_danger": 7,
+  "find_food,return_base": 7,
+  "fight_threat,escape_danger": 6,
+  "gather_materials,continue_objective": 1
+ }
+}
