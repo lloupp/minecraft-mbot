@@ -1,0 +1,45 @@
+{
+  "log": "docs/evidence/julia-shadow-coverage-1201/hunger-decisions.jsonl",
+  "summary": {
+    "decisions": 15,
+    "skipped": 0,
+    "answered": 15,
+    "hours": 0.484,
+    "active_hours": 0.484,
+    "availability": 1,
+    "latency_ms": {
+      "p50": 602,
+      "p95": 869,
+      "max": 869
+    },
+    "errors": {},
+    "invalid_choices": 0,
+    "timeouts": 0,
+    "agrees_with_rules": 3,
+    "disagrees_with_rules": 12,
+    "agrees_with_real": 0,
+    "disagrees_with_real": 3,
+    "safety_critical_decisions": 0,
+    "safety_overrides": 0,
+    "safety_violations": 0,
+    "abandonments": 0,
+    "unjustified_abandonments": 0,
+    "loops": 0,
+    "repeated_order_streaks": 0,
+    "max_lineage_identical_streak": 1,
+    "interrupted": 0,
+    "resumed": 0,
+    "real_action_failed": 15,
+    "outside_allowlist": 0,
+    "execution_authority": [
+      "none"
+    ]
+  },
+  "promotion_readiness": {
+    "ready_for_limited_authority": false,
+    "reasons": [
+      "fewer_than_500_decisions",
+      "fewer_than_2_active_hours"
+    ]
+  }
+}

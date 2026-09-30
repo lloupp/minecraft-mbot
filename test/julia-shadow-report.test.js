@@ -25,6 +25,7 @@ test('nunca declara prontidão com poucos dados, mas conta métricas corretament
   assert.equal(report.summary.availability, 2 / 4)
   assert.equal(report.promotion_readiness.ready_for_limited_authority, false)
   assert.ok(report.promotion_readiness.reasons.includes('fewer_than_500_decisions'))
+  assert.ok(report.promotion_readiness.reasons.includes('fewer_than_2_active_hours'))
 })
 
 test('escolha fora da máscara, abandono injustificado e autoridade != none bloqueiam', () => {
@@ -57,4 +58,21 @@ test('3 decisões idênticas na mesma linhagem contam como loop', () => {
     row({ ...sameLineage, juliaChoice: 'b' }),
     row(sameLineage)
   ]).summary.loops, 0)
+})
+
+test('horas ativas ignoram pausas longas entre decisões', () => {
+  const at = (iso) => row({ decidedAt: iso, juliaChoice: iso })
+  const report = buildReport([
+    at('2026-01-01T00:00:00.000Z'), at('2026-01-01T00:05:00.000Z'),
+    at('2026-01-01T05:00:00.000Z'), at('2026-01-01T05:05:00.000Z') // 5 h de pausa
+  ])
+  assert.equal(report.summary.hours > 4, true)
+  assert.equal(report.summary.active_hours, Number((10 / 60).toFixed(3)))
+})
+
+test('sequência relaxada por linhagem aparece como diagnóstico sem virar loop', () => {
+  const same = (food) => row({ taskLineageId: 'w:1', state: { threat: null, food, objective: { type: 'explore' } } })
+  const report = buildReport([same(20), same(19), same(18), same(17)])
+  assert.equal(report.summary.loops, 0) // chave estrita muda com a fome
+  assert.equal(report.summary.max_lineage_identical_streak, 4)
 })

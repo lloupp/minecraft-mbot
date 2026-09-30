@@ -1,0 +1,42 @@
+{
+  "log": "docs/evidence/julia-shadow-coverage-1201/main-decisions.jsonl",
+  "summary": {
+    "decisions": 712,
+    "skipped": 0,
+    "answered": 712,
+    "hours": 2.028,
+    "active_hours": 2.028,
+    "availability": 1,
+    "latency_ms": {
+      "p50": 1203,
+      "p95": 1815,
+      "max": 2628
+    },
+    "errors": {},
+    "invalid_choices": 0,
+    "timeouts": 0,
+    "agrees_with_rules": 595,
+    "disagrees_with_rules": 117,
+    "agrees_with_real": 77,
+    "disagrees_with_real": 141,
+    "safety_critical_decisions": 488,
+    "safety_overrides": 34,
+    "safety_violations": 0,
+    "abandonments": 0,
+    "unjustified_abandonments": 0,
+    "loops": 0,
+    "repeated_order_streaks": 1,
+    "max_lineage_identical_streak": 7,
+    "interrupted": 522,
+    "resumed": 490,
+    "real_action_failed": 660,
+    "outside_allowlist": 0,
+    "execution_authority": [
+      "none"
+    ]
+  },
+  "promotion_readiness": {
+    "ready_for_limited_authority": true,
+    "reasons": []
+  }
+}

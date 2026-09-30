@@ -1,0 +1,234 @@
+{
+ "main_latency_ms": {
+  "n": 712,
+  "p50": 1204,
+  "p95": 1815,
+  "p99": 2274,
+  "max": 2628
+ },
+ "hunger_latency_ms": {
+  "n": 15,
+  "p50": 602,
+  "p95": 869,
+  "p99": 869,
+  "max": 869
+ },
+ "main_coverage": {
+  "decisions": 712,
+  "multi_candidate(>=2)": 712,
+  "nearby_true": {
+   "stone": 326,
+   "wood": 150,
+   "iron": 22,
+   "food": 9
+  },
+  "taskLineageId_present": 712,
+  "candidate_sets": {
+   "equip_best_weapon,escape_danger": 184,
+   "fight_threat,escape_danger": 265,
+   "gather_materials,continue_objective": 77,
+   "prepare_combat,escape_danger": 39,
+   "prepare_combat,continue_objective": 141,
+   "return_base,prepare_combat": 6
+  },
+  "julia_choices": {
+   "equip_best_weapon": 162,
+   "escape_danger": 34,
+   "fight_threat": 253,
+   "continue_objective": 77,
+   "prepare_combat": 186
+  },
+  "by_worker": {
+   "lenhador_01": 147,
+   "lenhador_02": 151,
+   "explorador_01": 127,
+   "minerador_01": 141,
+   "minerador_02": 146
+  }
+ },
+ "hunger_coverage": {
+  "decisions": 15,
+  "multi_candidate(>=2)": 15,
+  "nearby_true": {
+   "food": 15,
+   "stone": 7,
+   "wood": 2
+  },
+  "taskLineageId_present": 15,
+  "candidate_sets": {
+   "find_food,return_base": 12,
+   "find_food,continue_objective": 1,
+   "prepare_combat,continue_objective": 2
+  },
+  "julia_choices": {
+   "return_base": 12,
+   "find_food": 1,
+   "prepare_combat": 2
+  },
+  "by_worker": {
+   "lenhador_01": 5,
+   "minerador_01": 5,
+   "explorador_01": 5
+  }
+ },
+ "nearby_by_signal": {
+  "food": {
+   "decisions": 24,
+   "candidate_sets": {
+    "find_food,return_base": 12,
+    "equip_best_weapon,escape_danger": 3,
+    "prepare_combat,escape_danger": 3,
+    "prepare_combat,continue_objective": 3
+   }
+  },
+  "wood": {
+   "decisions": 152,
+   "candidate_sets": {
+    "fight_threat,escape_danger": 50,
+    "equip_best_weapon,escape_danger": 34,
+    "gather_materials,continue_objective": 31,
+    "prepare_combat,continue_objective": 29
+   }
+  },
+  "stone": {
+   "decisions": 333,
+   "candidate_sets": {
+    "equip_best_weapon,escape_danger": 100,
+    "fight_threat,escape_danger": 99,
+    "prepare_combat,continue_objective": 70,
+    "gather_materials,continue_objective": 40
+   }
+  },
+  "iron": {
+   "decisions": 22,
+   "candidate_sets": {
+    "gather_materials,continue_objective": 20,
+    "prepare_combat,continue_objective": 1,
+    "equip_best_weapon,escape_danger": 1
+   }
+  }
+ },
+ "lineage": {
+  "distinct": 239,
+  "largest": [
+   59,
+   48,
+   38,
+   38,
+   35
+  ],
+  "single_decision_lineages": 182,
+  "max_identical_streak_strict_key(report)": 2,
+  "max_identical_streak_relaxed_key": 7,
+  "relaxed_lineage": [
+   "lenhador_01",
+   "lenhador_01:16"
+  ],
+  "resumed": 490,
+  "interrupted": 522
+ },
+ "real_action_results": {
+  "coletar_blocos:cancelled": 522,
+  "coletar_blocos:failed": 44,
+  "coletar_blocos:ok": 19,
+  "explorar:failed": 94,
+  "explorar:ok": 33
+ },
+ "agreement": {
+  "rules_agree": 595,
+  "rules_disagree": 117,
+  "safety_overrides": 34,
+  "safety_critical_decisions": 488
+ },
+ "disagreements": [
+  {
+   "candidates": "gather_materials,continue_objective",
+   "rules": "gather_materials",
+   "julia": "continue_objective",
+   "n": 77
+  },
+  {
+   "candidates": "equip_best_weapon,escape_danger",
+   "rules": "equip_best_weapon",
+   "julia": "escape_danger",
+   "n": 22
+  },
+  {
+   "candidates": "fight_threat,escape_danger",
+   "rules": "fight_threat",
+   "julia": "escape_danger",
+   "n": 12
+  },
+  {
+   "candidates": "find_food,return_base",
+   "rules": "find_food",
+   "julia": "return_base",
+   "n": 12
+  },
+  {
+   "candidates": "return_base,prepare_combat",
+   "rules": "return_base",
+   "julia": "prepare_combat",
+   "n": 6
+  }
+ ],
+ "lag_main_session": {
+  "events_gt_200ms": 5927,
+  "gt_500ms": 1470,
+  "gt_1000ms": 71,
+  "p50": 334,
+  "p95": 764,
+  "p99": 1018,
+  "max": 1681
+ },
+ "lag_ab_on": {
+  "events_gt_200ms": 454,
+  "gt_500ms": 131,
+  "gt_1000ms": 10,
+  "p50": 375,
+  "p95": 824,
+  "p99": 1050,
+  "max": 1220
+ },
+ "lag_ab_off": {
+  "events_gt_200ms": 591,
+  "gt_500ms": 139,
+  "gt_1000ms": 7,
+  "p50": 341,
+  "p95": 755,
+  "p99": 1078,
+  "max": 1220
+ },
+ "ram_main_session": {
+  "samples": 122,
+  "sidecar_mb": [
+   1050,
+   1156
+  ],
+  "node_mb": [
+   292,
+   704,
+   704
+  ],
+  "mc_server_mb": [
+   1378,
+   1382
+  ]
+ },
+ "ram_ab_off": {
+  "samples": 15,
+  "sidecar_mb": [
+   1158,
+   1158
+  ],
+  "node_mb": [
+   245,
+   578,
+   578
+  ],
+  "mc_server_mb": [
+   1332,
+   1332
+  ]
+ }
+}

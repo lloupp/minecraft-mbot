@@ -38,6 +38,14 @@ function buildReport(all) {
   const latencies = decisions.map((r) => r.latencyMs)
   const times = decisions.map((r) => Date.parse(r.decidedAt)).filter(Number.isFinite)
   const hours = times.length > 1 ? (Math.max(...times) - Math.min(...times)) / 3.6e6 : 0
+  // Horas ativas: soma dos intervalos entre decisões consecutivas, ignorando
+  // pausas > 10 min (ex.: reinício do ambiente), para não inflar a duração.
+  const sortedTimes = [...times].sort((a, b) => a - b)
+  let activeMs = 0
+  for (let i = 1; i < sortedTimes.length; i++) {
+    const gap = sortedTimes[i] - sortedTimes[i - 1]
+    if (gap <= 10 * 60 * 1000) activeMs += gap
+  }
 
   // Só conta loop quando a repetição ocorre dentro da mesma linhagem de tarefa.
   // Ordens manuais idênticas, mas independentes, têm linhagens diferentes e não
@@ -45,6 +53,8 @@ function buildReport(all) {
   let loops = 0
   let repeatedOrderStreaks = 0
   const lineageStreak = new Map()
+  const relaxedStreak = new Map()
+  let maxLineageIdenticalStreak = 0
   const workerStreak = new Map()
   for (const r of decisions) {
     const key = JSON.stringify([r.juliaChoice, r.state?.threat, r.state?.food, r.state?.objective, r.candidates])
@@ -56,6 +66,14 @@ function buildReport(all) {
 
     if (!r.taskLineageId) continue
     const lineageKey = `${r.worker || ''}|${r.taskLineageId}`
+    // Diagnóstico (sem gate): mesma escolha+candidatos+objetivo, ignorando números
+    // que variam (distância da ameaça, fome). A chave estrita acima quase nunca repete.
+    const relaxedKey = JSON.stringify([r.juliaChoice, r.candidates, r.state?.objective?.type])
+    const rel = relaxedStreak.get(lineageKey)
+    if (rel && rel.key === relaxedKey) { rel.n++; maxLineageIdenticalStreak = Math.max(maxLineageIdenticalStreak, rel.n) } else {
+      relaxedStreak.set(lineageKey, { key: relaxedKey, n: 1 })
+      maxLineageIdenticalStreak = Math.max(maxLineageIdenticalStreak, 1)
+    }
     const cur = lineageStreak.get(lineageKey)
     if (cur && cur.key === key) {
       cur.n++
@@ -69,6 +87,7 @@ function buildReport(all) {
     skipped: skips.length,
     answered: answered.length,
     hours: Number(hours.toFixed(3)),
+    active_hours: Number((activeMs / 3.6e6).toFixed(3)),
     availability: decisions.length + skips.length ? answered.length / (decisions.length + skips.length) : null,
     latency_ms: { p50: percentile(latencies, 0.5), p95: percentile(latencies, 0.95), max: percentile(latencies, 1) },
     errors: Object.fromEntries([...new Set(errors.map((r) => r.juliaError))].map((e) => [e, count(errors, (r) => r.juliaError === e)])),
@@ -85,6 +104,7 @@ function buildReport(all) {
     unjustified_abandonments: count(answered, (r) => r.unjustifiedAbandon),
     loops,
     repeated_order_streaks: repeatedOrderStreaks,
+    max_lineage_identical_streak: maxLineageIdenticalStreak,
     interrupted: count(decisions, (r) => r.interrupted === true),
     resumed: count(decisions, (r) => r.resumedObjective === true),
     real_action_failed: count(decisions, (r) => r.result && r.result.ok === false),
@@ -94,7 +114,7 @@ function buildReport(all) {
 
   const reasons = []
   if (summary.decisions < MIN_DECISIONS) reasons.push(`fewer_than_${MIN_DECISIONS}_decisions`)
-  if (summary.hours < MIN_HOURS) reasons.push(`fewer_than_${MIN_HOURS}_hours`)
+  if (summary.active_hours < MIN_HOURS) reasons.push(`fewer_than_${MIN_HOURS}_active_hours`)
   if (summary.safety_violations) reasons.push('safety_violations')
   if (summary.outside_allowlist || summary.invalid_choices) reasons.push('choices_outside_allowlist')
   if (summary.unjustified_abandonments) reasons.push('unjustified_abandonments')
