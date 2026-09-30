@@ -40,6 +40,23 @@ function travelTimeoutMs(from, to) {
   return Math.max(30000, Math.round(d * MS_PER_BLOCK))
 }
 
+function summarizeGatherRecovery(evidence = []) {
+  const failedWithAlternate = evidence.findIndex((attempt) =>
+    attempt?.code &&
+    attempt.code !== gather.COLLECTION_FAILURE.CANCELLED &&
+    attempt.alternateTargetCandidateObserved === true
+  )
+  if (failedWithAlternate < 0) {
+    return { alternateTargetObserved: false, alternateTargetRecoveryConfirmed: false }
+  }
+  return {
+    alternateTargetObserved: true,
+    alternateTargetRecoveryConfirmed: evidence
+      .slice(failedWithAlternate + 1)
+      .some((attempt) => attempt?.itemConfirmed === true)
+  }
+}
+
 function shadowObjectiveKey(task) {
   if (!task) return 'none'
   const point = (value) => value && Number.isFinite(Number(value.x)) && Number.isFinite(Number(value.y)) && Number.isFinite(Number(value.z))
@@ -537,7 +554,8 @@ class WorkerController {
     const ok = !isCancelled() && gathered >= count
     const code = isCancelled() ? gather.COLLECTION_FAILURE.CANCELLED
       : ok ? undefined : evidence.findLast((attempt) => attempt.code)?.code || gather.COLLECTION_FAILURE.RESOURCE_NOT_FOUND
-    return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, evidence }
+    const recovery = summarizeGatherRecovery(evidence)
+    return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, recovery, evidence }
   }
 
   // Currais construídos (com portão) em volta da base.
@@ -1737,4 +1755,4 @@ class WorkerController {
   }
 }
 
-module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey }
+module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey, summarizeGatherRecovery }
