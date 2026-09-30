@@ -40,3 +40,20 @@ test('critical hunger does not force distant food beyond bounded nearby radius',
   assert.equal(immediateSafety(s), null)
   assert.deepEqual(candidateIntents(s).map((c) => c.id), ['find_food', 'return_base'])
 })
+
+
+test('threat handling takes precedence over critical hunger guardrail', () => {
+  const s = state({
+    threat: { type: 'zombie', distance: 7, count: 1 }
+  })
+  assert.equal(immediateSafety(s), null)
+  const ids = candidateIntents(s).map((c) => c.id)
+  assert.ok(ids.includes('escape_danger'))
+  assert.ok(!ids.includes('find_food'))
+})
+
+test('critical hunger resumes once no threat remains', () => {
+  const s = state({ threat: null })
+  assert.equal(immediateSafety(s), 'find_food')
+  assert.deepEqual(candidateIntents(s).map((c) => c.id), ['find_food'])
+})
