@@ -1,0 +1,55 @@
+{
+  "measured_head": "63010a24b5e394dc0d93786ef925f228c4f41aee",
+  "model_revision": "a85b127321d580d65176c89ced8273f305745d85",
+  "scenarios": {
+    "explore": {
+      "passed": 3,
+      "expected": 3,
+      "candidates": [
+        "gather_materials"
+      ]
+    },
+    "mine_iron": {
+      "passed": 3,
+      "expected": 3,
+      "candidates": [
+        "gather_materials"
+      ]
+    },
+    "no_materials": {
+      "passed": 2,
+      "expected": 2,
+      "candidates": [
+        "continue_objective"
+      ]
+    },
+    "threat": {
+      "passed": 2,
+      "expected": 2,
+      "candidates": [
+        "escape_danger"
+      ]
+    },
+    "critical_hunger": {
+      "passed": 2,
+      "expected": 2,
+      "candidates": [
+        "find_food"
+      ]
+    }
+  },
+  "executionAuthority": "none",
+  "passed_real_snapshots": 12,
+  "diagnostic_sidecar_http_requests": 12,
+  "julia_model_calls": 0,
+  "engine_predict_calls": 0,
+  "shadow_http_calls": 0,
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "offline_projected_safety_violations": 0,
+  "normal_progress_under_threat": 0,
+  "offline_transitions_passed": 2,
+  "second_gather_forced": 0,
+  "approved": true
+}

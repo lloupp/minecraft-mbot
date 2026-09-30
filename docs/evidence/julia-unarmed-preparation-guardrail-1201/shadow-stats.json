@@ -1,0 +1,13 @@
+{
+  "stats": {
+    "observed": 0,
+    "skippedConcurrency": 0,
+    "skippedBreaker": 0,
+    "completed": 0,
+    "failed": 0,
+    "invalidChoice": 0
+  },
+  "shadowHttpCalls": 0,
+  "events": [],
+  "executionAuthority": "none"
+}

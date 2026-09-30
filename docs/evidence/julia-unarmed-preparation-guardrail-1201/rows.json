@@ -1,0 +1,1598 @@
+[
+  {
+    "scenario": "explore",
+    "repetition": 1,
+    "trace_id": "explore/1",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": false,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "gather_materials",
+        "description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared."
+      }
+    ],
+    "candidate_ids": [
+      "gather_materials"
+    ],
+    "deterministic_choice": "gather_materials",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "cobblestone": 2
+        },
+        "inventoryLoad": 0.15,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword"
+        ],
+        "lastIntent": "gather_materials",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "gather_materials",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 4.971355999998195,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "explore",
+    "repetition": 2,
+    "trace_id": "explore/2",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": false,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "gather_materials",
+        "description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared."
+      }
+    ],
+    "candidate_ids": [
+      "gather_materials"
+    ],
+    "deterministic_choice": "gather_materials",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "cobblestone": 2
+        },
+        "inventoryLoad": 0.15,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword"
+        ],
+        "lastIntent": "gather_materials",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "gather_materials",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 3.8985760000032315,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "explore",
+    "repetition": 3,
+    "trace_id": "explore/3",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": false,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "gather_materials",
+        "description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared."
+      }
+    ],
+    "candidate_ids": [
+      "gather_materials"
+    ],
+    "deterministic_choice": "gather_materials",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "cobblestone": 2
+        },
+        "inventoryLoad": 0.15,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword"
+        ],
+        "lastIntent": "gather_materials",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "gather_materials",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 3.334674999998242,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "mine_iron",
+    "repetition": 1,
+    "trace_id": "mine_iron/1",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {
+        "stone_pickaxe": 1
+      },
+      "inventoryLoad": 0.027777777777777776,
+      "equippedWeapon": null,
+      "equippedTool": "stone_pickaxe",
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": true,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": 2
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "mine_iron",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "gather_materials",
+        "description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared."
+      }
+    ],
+    "candidate_ids": [
+      "gather_materials"
+    ],
+    "deterministic_choice": "gather_materials",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stone_pickaxe": 1,
+          "stick": 2,
+          "cobblestone": 3
+        },
+        "inventoryLoad": 0.17777777777777776,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": true,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": 2
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "mine_iron",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword",
+          "stone_pickaxe"
+        ],
+        "lastIntent": "gather_materials",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "gather_materials",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.9197729999978037,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": "stone_pickaxe",
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "mine_iron",
+    "repetition": 2,
+    "trace_id": "mine_iron/2",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {
+        "stone_pickaxe": 1
+      },
+      "inventoryLoad": 0.027777777777777776,
+      "equippedWeapon": null,
+      "equippedTool": "stone_pickaxe",
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": true,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": 2
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "mine_iron",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "gather_materials",
+        "description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared."
+      }
+    ],
+    "candidate_ids": [
+      "gather_materials"
+    ],
+    "deterministic_choice": "gather_materials",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stone_pickaxe": 1,
+          "stick": 2,
+          "cobblestone": 3
+        },
+        "inventoryLoad": 0.17777777777777776,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": true,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": 2
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "mine_iron",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword",
+          "stone_pickaxe"
+        ],
+        "lastIntent": "gather_materials",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "gather_materials",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.1107669999983045,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": "stone_pickaxe",
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "mine_iron",
+    "repetition": 3,
+    "trace_id": "mine_iron/3",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {
+        "stone_pickaxe": 1
+      },
+      "inventoryLoad": 0.027777777777777776,
+      "equippedWeapon": null,
+      "equippedTool": "stone_pickaxe",
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": true,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": 2
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "mine_iron",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "gather_materials",
+        "description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared."
+      }
+    ],
+    "candidate_ids": [
+      "gather_materials"
+    ],
+    "deterministic_choice": "gather_materials",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stone_pickaxe": 1,
+          "stick": 2,
+          "cobblestone": 3
+        },
+        "inventoryLoad": 0.17777777777777776,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": true,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": 2
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "mine_iron",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword",
+          "stone_pickaxe"
+        ],
+        "lastIntent": "gather_materials",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "gather_materials",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.0306859999982407,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": "stone_pickaxe",
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "no_materials",
+    "repetition": 1,
+    "trace_id": "no_materials/1",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": false,
+        "stone": false,
+        "iron": false,
+        "foodDistance": null,
+        "woodDistance": null,
+        "stoneDistance": null,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "continue_objective",
+        "description": "Continue the current objective because immediate survival and preparation needs are already handled."
+      }
+    ],
+    "candidate_ids": [
+      "continue_objective"
+    ],
+    "deterministic_choice": "continue_objective",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {},
+        "inventoryLoad": 0,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": true,
+          "progress": 1
+        },
+        "craftable": [],
+        "explored": 1,
+        "resumePending": false,
+        "appliedEvents": [],
+        "lastIntent": "continue_objective",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "continue_objective",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.579745000002731,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "no_materials",
+    "repetition": 2,
+    "trace_id": "no_materials/2",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": false,
+        "stone": false,
+        "iron": false,
+        "foodDistance": null,
+        "woodDistance": null,
+        "stoneDistance": null,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "continue_objective",
+        "description": "Continue the current objective because immediate survival and preparation needs are already handled."
+      }
+    ],
+    "candidate_ids": [
+      "continue_objective"
+    ],
+    "deterministic_choice": "continue_objective",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {},
+        "inventoryLoad": 0,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": true,
+          "progress": 1
+        },
+        "craftable": [],
+        "explored": 1,
+        "resumePending": false,
+        "appliedEvents": [],
+        "lastIntent": "continue_objective",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "continue_objective",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 3.6164690000005066,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": []
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "threat",
+    "repetition": 1,
+    "trace_id": "threat/1",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": {
+        "type": "zombie",
+        "distance": 4,
+        "count": 1
+      },
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": false,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "escape_danger",
+        "description": "Create distance from the immediate threat now. Survival takes priority over the current objective."
+      }
+    ],
+    "candidate_ids": [
+      "escape_danger"
+    ],
+    "deterministic_choice": "escape_danger",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {},
+        "inventoryLoad": 0,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [],
+        "onFire": false,
+        "drowning": false,
+        "safe": true,
+        "interruptions": 1,
+        "resumePending": true,
+        "lastIntent": "escape_danger",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "escape_danger",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.3796020000008866,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": [
+        {
+          "id": 5,
+          "name": "zombie",
+          "type": "hostile",
+          "distance": 4,
+          "position": {
+            "x": 4.5,
+            "y": 200,
+            "z": 0.5
+          }
+        }
+      ]
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "threat",
+    "repetition": 2,
+    "trace_id": "threat/2",
+    "state": {
+      "health": 20,
+      "food": 20,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": {
+        "type": "zombie",
+        "distance": 4,
+        "count": 1
+      },
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": false,
+        "wood": true,
+        "stone": true,
+        "iron": false,
+        "foodDistance": null,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "escape_danger",
+        "description": "Create distance from the immediate threat now. Survival takes priority over the current objective."
+      }
+    ],
+    "candidate_ids": [
+      "escape_danger"
+    ],
+    "deterministic_choice": "escape_danger",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 20,
+        "inventory": {},
+        "inventoryLoad": 0,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": false,
+          "wood": true,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [],
+        "onFire": false,
+        "drowning": false,
+        "safe": true,
+        "interruptions": 1,
+        "resumePending": true,
+        "lastIntent": "escape_danger",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "escape_danger",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.0965550000037183,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": [
+        {
+          "id": 6,
+          "name": "zombie",
+          "type": "hostile",
+          "distance": 4,
+          "position": {
+            "x": 4.5,
+            "y": 200,
+            "z": 0.5
+          }
+        }
+      ]
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "critical_hunger",
+    "repetition": 1,
+    "trace_id": "critical_hunger/1",
+    "state": {
+      "health": 20,
+      "food": 5,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": true,
+        "wood": true,
+        "stone": true,
+        "iron": false,
+        "foodDistance": 3,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "find_food",
+        "description": "Find or collect food because current food reserves are not sufficient for safe progress. Nearby food is approximately 3.0 blocks away."
+      }
+    ],
+    "candidate_ids": [
+      "find_food"
+    ],
+    "deterministic_choice": "find_food",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 5,
+        "inventory": {
+          "bread": 2
+        },
+        "inventoryLoad": 0.05,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": true,
+          "wood": true,
+          "stone": true,
+          "iron": false,
+          "foodDistance": 3,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [],
+        "lastIntent": "find_food",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "find_food",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.114212000000407,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": [
+        {
+          "id": 7,
+          "name": "cow",
+          "type": "animal",
+          "distance": 3,
+          "position": {
+            "x": -2.5,
+            "y": 200,
+            "z": 0.5
+          }
+        }
+      ]
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  },
+  {
+    "scenario": "critical_hunger",
+    "repetition": 2,
+    "trace_id": "critical_hunger/2",
+    "state": {
+      "health": 20,
+      "food": 5,
+      "inventory": {},
+      "inventoryLoad": 0,
+      "equippedWeapon": null,
+      "equippedTool": null,
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 299.50041736197966,
+      "nearby": {
+        "food": true,
+        "wood": true,
+        "stone": true,
+        "iron": false,
+        "foodDistance": 3,
+        "woodDistance": 2,
+        "stoneDistance": 2,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "candidates": [
+      {
+        "id": "find_food",
+        "description": "Find or collect food because current food reserves are not sufficient for safe progress. Nearby food is approximately 3.0 blocks away."
+      }
+    ],
+    "candidate_ids": [
+      "find_food"
+    ],
+    "deterministic_choice": "find_food",
+    "projected_offline_result": {
+      "state": {
+        "health": 20,
+        "food": 5,
+        "inventory": {
+          "bread": 2
+        },
+        "inventoryLoad": 0.05,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 299.50041736197966,
+        "nearby": {
+          "food": true,
+          "wood": true,
+          "stone": true,
+          "iron": false,
+          "foodDistance": 3,
+          "woodDistance": 2,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [],
+        "lastIntent": "find_food",
+        "lastResult": {
+          "ok": true,
+          "safetyViolation": false,
+          "note": null
+        }
+      },
+      "result": {
+        "ok": true,
+        "safetyViolation": false,
+        "note": null
+      }
+    },
+    "sidecar": {
+      "http": 200,
+      "body": {
+        "choice": "find_food",
+        "confidence": 1,
+        "model_calls": 0,
+        "latency_ms": 0,
+        "source": "forced_single_candidate"
+      },
+      "wall_latency_ms": 2.16220500000054,
+      "error": null,
+      "timeout": false
+    },
+    "shadow": {
+      "enabled": true,
+      "returned_undefined": true,
+      "http_calls_delta": 0,
+      "in_flight": 0,
+      "singleton_skipped_before_http": true
+    },
+    "world": {
+      "position": {
+        "x": 0.5,
+        "y": 200,
+        "z": 0.5
+      },
+      "held_item": null,
+      "entities": [
+        {
+          "id": 9,
+          "name": "cow",
+          "type": "animal",
+          "distance": 3,
+          "position": {
+            "x": -2.5,
+            "y": 200,
+            "z": 0.5
+          }
+        }
+      ]
+    },
+    "forced": true,
+    "executionAuthority": "none"
+  }
+]

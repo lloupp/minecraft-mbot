@@ -1,0 +1,13 @@
+explore/1 [ 'gather_materials' ] forced, model_calls=0, shadow_http_calls=0
+explore/2 [ 'gather_materials' ] forced, model_calls=0, shadow_http_calls=0
+explore/3 [ 'gather_materials' ] forced, model_calls=0, shadow_http_calls=0
+mine_iron/1 [ 'gather_materials' ] forced, model_calls=0, shadow_http_calls=0
+mine_iron/2 [ 'gather_materials' ] forced, model_calls=0, shadow_http_calls=0
+mine_iron/3 [ 'gather_materials' ] forced, model_calls=0, shadow_http_calls=0
+no_materials/1 [ 'continue_objective' ] forced, model_calls=0, shadow_http_calls=0
+no_materials/2 [ 'continue_objective' ] forced, model_calls=0, shadow_http_calls=0
+threat/1 [ 'escape_danger' ] forced, model_calls=0, shadow_http_calls=0
+threat/2 [ 'escape_danger' ] forced, model_calls=0, shadow_http_calls=0
+critical_hunger/1 [ 'find_food' ] forced, model_calls=0, shadow_http_calls=0
+critical_hunger/2 [ 'find_food' ] forced, model_calls=0, shadow_http_calls=0
+PASS: 12 real snapshots; 2 offline transitions; Julia authority none

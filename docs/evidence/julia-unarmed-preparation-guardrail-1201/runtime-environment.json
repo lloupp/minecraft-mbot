@@ -1,0 +1,9 @@
+{
+  "python": "3.12.14",
+  "torch": "2.14.1+cpu",
+  "transformers": "5.0.0",
+  "device": "cpu",
+  "torch_threads": 4,
+  "model": "/tmp/julia-order-model",
+  "executionAuthority": "none"
+}
