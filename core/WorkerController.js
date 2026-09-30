@@ -412,8 +412,17 @@ class WorkerController {
     }
 
     taskPromise.then(
-      () => { entry.settled = true; entry.interrupted = isCancelled(); this._shadowFailureStreak = 0 },
-      () => { entry.settled = true; entry.interrupted = isCancelled(); this._shadowFailureStreak++ }
+      (value) => {
+        entry.settled = true
+        entry.interrupted = isCancelled()
+        const failed = value && value.ok === false && !value.cancelled
+        this._shadowFailureStreak = failed ? this._shadowFailureStreak + 1 : 0
+      },
+      () => {
+        entry.settled = true
+        entry.interrupted = isCancelled()
+        this._shadowFailureStreak++
+      }
     )
   }
 
