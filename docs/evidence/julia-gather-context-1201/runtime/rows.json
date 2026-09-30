@@ -1,0 +1,554 @@
+{
+ "rows": [
+  {
+   "group": "G1",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 2,
+    "stoneDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": null,
+   "confidence": null,
+   "latency_ms": 4434,
+   "proxy_ms": 5676,
+   "http": 200,
+   "error": "timeout",
+   "response": null
+  },
+  {
+   "group": "G1",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 2,
+    "stoneDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999867766246276,
+   "latency_ms": 241,
+   "proxy_ms": 221,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G1",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 2,
+    "stoneDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999867766246276,
+   "latency_ms": 239,
+   "proxy_ms": 233,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G1",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 2,
+    "stoneDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999867766246276,
+   "latency_ms": 259,
+   "proxy_ms": 249,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G1",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 2,
+    "stoneDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999867766246276,
+   "latency_ms": 251,
+   "proxy_ms": 243,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G1",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 2,
+    "stoneDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999867766246276,
+   "latency_ms": 255,
+   "proxy_ms": 250,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G2",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 5.656854249492381,
+    "stoneDistance": 5.656854249492381
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 5.7 blocks away, stone approximately 5.7 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.8733251189217512,
+   "latency_ms": 301,
+   "proxy_ms": 296,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G2",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 5.656854249492381,
+    "stoneDistance": 5.656854249492381
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 5.7 blocks away, stone approximately 5.7 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.8733251189217512,
+   "latency_ms": 289,
+   "proxy_ms": 273,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G2",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 5.656854249492381,
+    "stoneDistance": 5.656854249492381
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 5.7 blocks away, stone approximately 5.7 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.8733251189217512,
+   "latency_ms": 274,
+   "proxy_ms": 267,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G2",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 5.656854249492381,
+    "stoneDistance": 5.656854249492381
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 5.7 blocks away, stone approximately 5.7 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.8733251189217512,
+   "latency_ms": 265,
+   "proxy_ms": 260,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G2",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 5.656854249492381,
+    "stoneDistance": 5.656854249492381
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 5.7 blocks away, stone approximately 5.7 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.8733251189217512,
+   "latency_ms": 280,
+   "proxy_ms": 273,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G2",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "woodDistance": 5.656854249492381,
+    "stoneDistance": 5.656854249492381
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 5.7 blocks away, stone approximately 5.7 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.8733251189217512,
+   "latency_ms": 273,
+   "proxy_ms": 268,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G3",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "woodDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9997488394941858,
+   "latency_ms": 274,
+   "proxy_ms": 269,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G3",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "woodDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9997488394941858,
+   "latency_ms": 266,
+   "proxy_ms": 247,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G3",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "woodDistance": 2.8284271247461903
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.8 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999636561359573,
+   "latency_ms": 324,
+   "proxy_ms": 313,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G3",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "woodDistance": 2.23606797749979
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.2 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9988547744312473,
+   "latency_ms": 268,
+   "proxy_ms": 264,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G3",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "woodDistance": 4
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999068665483147,
+   "latency_ms": 283,
+   "proxy_ms": 275,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G3",
+   "worker": "explorador_01",
+   "objective": "explorar",
+   "nearby_sent": {
+    "wood": true,
+    "woodDistance": 4
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "confidence": 0.9999068665483147,
+   "latency_ms": 230,
+   "proxy_ms": 225,
+   "http": 200,
+   "error": null,
+   "response": null
+  },
+  {
+   "group": "G4",
+   "worker": "minerador_01",
+   "objective": "coletar_blocos",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "iron": true,
+    "woodDistance": 2,
+    "stoneDistance": 2,
+    "ironDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away, iron approximately 2.0 blocks away.",
+   "choice": null,
+   "confidence": null,
+   "latency_ms": 532,
+   "proxy_ms": 4,
+   "http": 400,
+   "error": "http_400",
+   "response": {
+    "error": "invalid_request",
+    "detail": "Option exceeds 48-token model contract"
+   }
+  },
+  {
+   "group": "G4",
+   "worker": "minerador_01",
+   "objective": "coletar_blocos",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "iron": true,
+    "woodDistance": 2,
+    "stoneDistance": 2,
+    "ironDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away, iron approximately 2.0 blocks away.",
+   "choice": null,
+   "confidence": null,
+   "latency_ms": 720,
+   "proxy_ms": 5,
+   "http": 400,
+   "error": "http_400",
+   "response": {
+    "error": "invalid_request",
+    "detail": "Option exceeds 48-token model contract"
+   }
+  },
+  {
+   "group": "G4",
+   "worker": "minerador_01",
+   "objective": "coletar_blocos",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "iron": true,
+    "woodDistance": 2,
+    "stoneDistance": 2,
+    "ironDistance": 2
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away, iron approximately 2.0 blocks away.",
+   "choice": null,
+   "confidence": null,
+   "latency_ms": 463,
+   "proxy_ms": 2,
+   "http": 400,
+   "error": "http_400",
+   "response": {
+    "error": "invalid_request",
+    "detail": "Option exceeds 48-token model contract"
+   }
+  },
+  {
+   "group": "G4",
+   "worker": "minerador_01",
+   "objective": "coletar_blocos",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "iron": true,
+    "woodDistance": 4,
+    "stoneDistance": 4,
+    "ironDistance": 4
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 4.0 blocks away, stone approximately 4.0 blocks away, iron approximately 4.0 blocks away.",
+   "choice": null,
+   "confidence": null,
+   "latency_ms": 502,
+   "proxy_ms": 3,
+   "http": 400,
+   "error": "http_400",
+   "response": {
+    "error": "invalid_request",
+    "detail": "Option exceeds 48-token model contract"
+   }
+  },
+  {
+   "group": "G4",
+   "worker": "minerador_01",
+   "objective": "coletar_blocos",
+   "nearby_sent": {
+    "wood": true,
+    "stone": true,
+    "iron": true,
+    "woodDistance": 2,
+    "stoneDistance": 4,
+    "ironDistance": 2.8284271247461903
+   },
+   "candidate_order": [
+    "gather_materials",
+    "continue_objective"
+   ],
+   "gather_materials_description": "Gather the missing basic materials needed for the next useful tool or weapon instead of continuing unprepared. Observed nearby materials: wood approximately 2.0 blocks away, stone approximately 4.0 blocks away, iron approximately 2.8 blocks away.",
+   "choice": null,
+   "confidence": null,
+   "latency_ms": 566,
+   "proxy_ms": 3,
+   "http": 400,
+   "error": "http_400",
+   "response": {
+    "error": "invalid_request",
+    "detail": "Option exceeds 48-token model contract"
+   }
+  }
+ ],
+ "shadow_skips": [
+  {
+   "reason": "breaker_open",
+   "time": "2026-09-30T19:06:22.589Z",
+   "type": "julia_shadow_skip",
+   "worker": "minerador_01"
+  }
+ ]
+}

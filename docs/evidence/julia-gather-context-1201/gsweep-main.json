@@ -1,0 +1,552 @@
+{
+ "templates": {
+  "explore": {
+   "health": 20,
+   "food": 20,
+   "inventory": {},
+   "inventoryLoad": 0,
+   "equippedWeapon": null,
+   "equippedTool": null,
+   "threat": null,
+   "time": "day",
+   "atBase": false,
+   "baseKnown": true,
+   "baseDistance": 8,
+   "nearby": {
+    "food": false,
+    "wood": true,
+    "stone": true,
+    "iron": false,
+    "foodDistance": null,
+    "woodDistance": 2,
+    "stoneDistance": 2,
+    "ironDistance": null
+   },
+   "consecutiveFailures": 0,
+   "alternativeRoute": false,
+   "waitReason": null,
+   "cancellationRequested": false,
+   "objective": {
+    "type": "explore",
+    "completed": false
+   },
+   "craftable": []
+  },
+  "mine_iron": {
+   "health": 20,
+   "food": 20,
+   "inventory": {
+    "stone_pickaxe": 1
+   },
+   "inventoryLoad": 0.027777777777777776,
+   "equippedWeapon": null,
+   "equippedTool": "stone_pickaxe",
+   "threat": null,
+   "time": "day",
+   "atBase": false,
+   "baseKnown": true,
+   "baseDistance": 8,
+   "nearby": {
+    "food": false,
+    "wood": true,
+    "stone": true,
+    "iron": true,
+    "foodDistance": null,
+    "woodDistance": 2,
+    "stoneDistance": 2,
+    "ironDistance": 2
+   },
+   "consecutiveFailures": 0,
+   "alternativeRoute": false,
+   "waitReason": null,
+   "cancellationRequested": false,
+   "objective": {
+    "type": "mine_iron",
+    "completed": false
+   },
+   "craftable": []
+  }
+ },
+ "rows": [
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 1,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0005069806125779275,
+   "conf": 0.999493019387422,
+   "ms": 335
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 1,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.000024622507061081666,
+   "conf": 0.999975377492939,
+   "ms": 290
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 2,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0002511605058142061,
+   "conf": 0.9997488394941858,
+   "ms": 238
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 2,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00000436737157198282,
+   "conf": 0.9999956326284279,
+   "ms": 259
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 4,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00009313345168531069,
+   "conf": 0.9999068665483147,
+   "ms": 277
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 4,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00005215136248638892,
+   "conf": 0.9999478486375136,
+   "ms": 233
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 6,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.000011388566329468893,
+   "conf": 0.9999886114336705,
+   "ms": 261
+  },
+  {
+   "obj": "explore",
+   "avail": "wood",
+   "d": 6,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.000009752922449893059,
+   "conf": 0.9999902470775502,
+   "ms": 251
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away, stone approximately 1.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0006320414086647236,
+   "conf": 0.9993679585913352,
+   "ms": 243
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away, stone approximately 1.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00021170007409399843,
+   "conf": 0.9997882999259061,
+   "ms": 222
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0000132233753724321,
+   "conf": 0.9999867766246276,
+   "ms": 239
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00007973750162447958,
+   "conf": 0.9999202624983755,
+   "ms": 252
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away, stone approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00005839452767583842,
+   "conf": 0.999941605472324,
+   "ms": 218
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away, stone approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0006153566197010802,
+   "conf": 0.999384643380299,
+   "ms": 216
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 6,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away, stone approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0000231902141237773,
+   "conf": 0.9999768097858761,
+   "ms": 255
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone",
+   "d": 6,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away, stone approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0004967603601030492,
+   "conf": 0.9995032396398971,
+   "ms": 255
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 6,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "explore",
+   "avail": "wood+stone+iron",
+   "d": 6,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 1,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0007973419308023823,
+   "conf": 0.9992026580691977,
+   "ms": 514
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 1,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away.",
+   "choice": "gather_materials",
+   "p_gather": 0.534613721485172,
+   "conf": 0.534613721485172,
+   "ms": 243
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 2,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0016810857414108554,
+   "conf": 0.9983189142585892,
+   "ms": 242
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 2,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.16520666976661877,
+   "conf": 0.8347933302333812,
+   "ms": 251
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 4,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0013266960494232656,
+   "conf": 0.9986733039505769,
+   "ms": 231
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 4,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.338337865388696,
+   "conf": 0.6616621346113041,
+   "ms": 216
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 6,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0009504251179374331,
+   "conf": 0.9990495748820626,
+   "ms": 242
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood",
+   "d": 6,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.2728894736418302,
+   "conf": 0.7271105263581699,
+   "ms": 250
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away, stone approximately 1.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.023354793459607275,
+   "conf": 0.9766452065403928,
+   "ms": 244
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 1,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 1.0 blocks away, stone approximately 1.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0027255580331210835,
+   "conf": 0.9972744419668789,
+   "ms": 238
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.0049386244045287,
+   "conf": 0.9950613755954714,
+   "ms": 244
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 2,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 2.0 blocks away, stone approximately 2.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.005434814966787992,
+   "conf": 0.9945651850332121,
+   "ms": 243
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away, stone approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00020341960757119134,
+   "conf": 0.9997965803924288,
+   "ms": 283
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 4,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 4.0 blocks away, stone approximately 4.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.018485829731805088,
+   "conf": 0.9815141702681949,
+   "ms": 235
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 6,
+   "order": "gather_materials",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away, stone approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.00024333045140605798,
+   "conf": 0.999756669548594,
+   "ms": 220
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone",
+   "d": 6,
+   "order": "continue_objective",
+   "gather_desc": " nearby materials: wood approximately 6.0 blocks away, stone approximately 6.0 blocks away.",
+   "choice": "continue_objective",
+   "p_gather": 0.06880133310390331,
+   "conf": 0.9311986668960968,
+   "ms": 252
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 1,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 2,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 4,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 6,
+   "order": "gather_materials",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  },
+  {
+   "obj": "mine_iron",
+   "avail": "wood+stone+iron",
+   "d": 6,
+   "order": "continue_objective",
+   "invalid": "Option exceeds 48-token model contract",
+   "http": 400
+  }
+ ]
+}
