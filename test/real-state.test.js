@@ -116,7 +116,14 @@ test('nearbySignals detecta recursos com amostragem limitada sem findBlock/findB
   bot.findBlocks = () => { throw new Error('findBlocks não deve ser usado') }
 
   const nearby = nearbySignals(bot)
-  assert.deepEqual(nearby, { food: true, wood: true, stone: true, iron: true })
+  assert.equal(nearby.food, true)
+  assert.equal(nearby.wood, true)
+  assert.equal(nearby.stone, true)
+  assert.equal(nearby.iron, true)
+  assert.ok(nearby.foodDistance != null)
+  assert.ok(nearby.woodDistance != null)
+  assert.ok(nearby.stoneDistance != null)
+  assert.ok(nearby.ironDistance != null)
   assert.ok(calls <= 125)
 })
 
@@ -125,4 +132,23 @@ test('nearbySignals usa animais carregados como sinal de comida', () => {
   const bot = fakeBot({ entities: { 1: cow } })
   bot.blockAt = () => ({ name: 'air' })
   assert.equal(nearbySignals(bot).food, true)
+})
+
+
+test('realStateSnapshot registra distância aproximada da base', () => {
+  const bot = fakeBot({ position: new Vec3(0, 64, 0) })
+  bot.blockAt = () => ({ name: 'air' })
+  const state = realStateSnapshot(bot, null, { homeProvider: () => new Vec3(3, 64, 4) })
+  assert.equal(state.baseKnown, true)
+  assert.equal(state.baseDistance, 5)
+})
+
+test('nearbySignals registra distância do animal comestível mais próximo', () => {
+  const near = { name: 'cow', type: 'animal', position: new Vec3(3, 64, 0) }
+  const far = { name: 'pig', type: 'animal', position: new Vec3(7, 64, 0) }
+  const bot = fakeBot({ entities: { 1: far, 2: near } })
+  bot.blockAt = () => ({ name: 'air' })
+  const nearby = nearbySignals(bot)
+  assert.equal(nearby.food, true)
+  assert.equal(nearby.foodDistance, 3)
 })
