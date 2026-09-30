@@ -2,7 +2,7 @@ const test = require('node:test')
 const assert = require('node:assert/strict')
 const { EventEmitter } = require('node:events')
 const { Vec3 } = require('vec3')
-const { WorkerController } = require('../core/WorkerController')
+const { WorkerController, shadowObjectiveKey } = require('../core/WorkerController')
 
 const silent = { log: () => {} }
 
@@ -196,14 +196,66 @@ test('_shadowFailureStreak conta resultado resolvido ok:false não cancelado', a
   assert.equal(worker._shadowFailureStreak, 0)
 })
 
-test('_shadowFailureStreak não conta cancelamento resolvido como falha', async () => {
+test('_shadowFailureStreak mantém o valor em cancelamento resolvido', async () => {
   const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
   const worker = readyWorker(bot, { homeProvider: () => null })
   worker.shadow = { enabled: () => true, observe: () => {} }
+  const task = { type: 'explorar' }
+  worker._shadowFailureKey = shadowObjectiveKey(task)
   worker._shadowFailureStreak = 2
 
   worker.explore = async () => ({ ok: false, cancelled: true, code: 'CANCELLED' })
-  await worker.run({ type: 'explorar' })
+  await worker.run(task)
   await Promise.resolve()
-  assert.equal(worker._shadowFailureStreak, 0)
+  assert.equal(worker._shadowFailureStreak, 2)
+})
+
+test('_shadowFailureStreak trata code CANCELLED sem flag como neutro', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  worker.shadow = { enabled: () => true, observe: () => {} }
+  const task = { type: 'explorar' }
+  worker._shadowFailureKey = shadowObjectiveKey(task)
+  worker._shadowFailureStreak = 2
+
+  worker.explore = async () => ({ ok: false, code: 'CANCELLED' })
+  await worker.run(task)
+  await Promise.resolve()
+  assert.equal(worker._shadowFailureStreak, 2)
+})
+
+test('_shadowFailureStreak zera ao trocar objetivo/alvo antes do snapshot', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  const observed = []
+  worker.shadow = { enabled: () => true, observe: (payload) => observed.push(payload.state.consecutiveFailures) }
+
+  const oldTask = { type: 'explorar', center: { x: 0, y: 64, z: 0 } }
+  worker._shadowFailureKey = shadowObjectiveKey(oldTask)
+  worker._shadowFailureStreak = 3
+  worker.explore = async () => ({ ok: true })
+
+  await worker.run({ type: 'explorar', center: { x: 20, y: 64, z: 20 } })
+  assert.equal(observed[0], 0)
+})
+
+test('resultado atrasado de tarefa antiga não altera streak da execução nova', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  worker.shadow = { enabled: () => true, observe: () => {} }
+
+  let releaseOld
+  worker.explore = () => new Promise((resolve) => { releaseOld = () => resolve({ ok: true }) })
+  const oldRun = worker.run({ type: 'explorar', center: { x: 0, y: 64, z: 0 } })
+  await new Promise((resolve) => setImmediate(resolve))
+
+  worker.explore = async () => ({ ok: false, code: 'PATH_FAILED' })
+  await worker.run({ type: 'explorar', center: { x: 20, y: 64, z: 20 } })
+  await Promise.resolve()
+  assert.equal(worker._shadowFailureStreak, 1)
+
+  releaseOld()
+  await oldRun
+  await Promise.resolve()
+  assert.equal(worker._shadowFailureStreak, 1)
 })
