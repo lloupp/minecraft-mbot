@@ -772,3 +772,38 @@ test('ProductionManager repõe ingrediente gasto ao fabricar outro ingrediente',
   await pm.craftInternal(bot, 'wooden_pickaxe', 1)
   assert.deepEqual(calls, [1, 2, 1, 2])
 })
+
+
+test('ProductionManager não procura crafting table para receita que não exige mesa', async () => {
+  let scans = 0
+  const bot = {
+    registry: { itemsByName: { stick: { id: 7 } } },
+    recipesAll: () => [{ requiresTable: false, result: { count: 4 }, delta: [] }],
+    craft: async () => {},
+    waitForTicks: async () => {},
+    inventory: { selectedItem: null, items: () => [] }
+  }
+  const pm = new ProductionManager({ storage: null })
+  pm.findCraftingTable = () => { scans++; throw new Error('scan síncrono não deveria acontecer') }
+
+  const result = await pm.craftInternal(bot, 'stick', 4)
+  assert.equal(result.produced, 4)
+  assert.equal(scans, 0)
+})
+
+test('ProductionManager reutiliza crafting table encontrada sem repetir findBlock', async () => {
+  const position = { x: 1, y: 64, z: 1 }
+  const table = { name: 'crafting_table', position }
+  let scans = 0
+  const bot = {
+    registry: { blocksByName: { crafting_table: { id: 58 } } },
+    findBlock: () => { scans++; return table },
+    blockAt: (p) => p === position ? table : null,
+    inventory: { items: () => [] }
+  }
+  const pm = new ProductionManager({ storage: null })
+
+  assert.equal(await pm.ensureCraftingTable(bot), table)
+  assert.equal(await pm.ensureCraftingTable(bot), table)
+  assert.equal(scans, 1)
+})

@@ -72,6 +72,21 @@ class ProductionManager {
   constructor({ storage }) {
     this.storage = storage
     this._furnaceLock = Promise.resolve()
+    this._craftingTableCache = new WeakMap()
+  }
+
+  cachedCraftingTable(bot) {
+    const position = this._craftingTableCache.get(bot)
+    if (!position) return null
+    const block = bot.blockAt?.(position)
+    if (block?.name === 'crafting_table') return block
+    this._craftingTableCache.delete(bot)
+    return null
+  }
+
+  rememberCraftingTable(bot, block) {
+    if (block?.position) this._craftingTableCache.set(bot, block.position)
+    return block || null
   }
 
   findCraftingTable(bot, maxDistance = 16) {
@@ -81,8 +96,11 @@ class ProductionManager {
   }
 
   async ensureCraftingTable(bot, depth = 0, trail = new Set()) {
-    let table = this.findCraftingTable(bot)
+    let table = this.cachedCraftingTable(bot)
     if (table) return table
+
+    table = this.findCraftingTable(bot)
+    if (table) return this.rememberCraftingTable(bot, table)
 
     let tableItem = bot.inventory.items().find((item) => item.name === 'crafting_table')
     if (!tableItem && this.storage?.configured()) {
@@ -113,7 +131,7 @@ class ProductionManager {
       await bot.placeBlock(below, new Vec3(0, 1, 0))
       await bot.waitForTicks?.(2)
       table = bot.blockAt(target)
-      if (table?.name === 'crafting_table') return table
+      if (table?.name === 'crafting_table') return this.rememberCraftingTable(bot, table)
     }
 
     throw new Error('não encontrei local livre para posicionar crafting_table')
@@ -293,8 +311,12 @@ class ProductionManager {
     const target = bot.registry?.itemsByName?.[itemName]
     if (!target) throw new Error(`item desconhecido: ${rawItemName}`)
 
-    const table = this.findCraftingTable(bot)
-    const recipes = bot.recipesAll(target.id, null, table || true)
+    // Descobrir receitas não precisa procurar uma mesa no mundo. O scan síncrono
+    // de findBlock aqui era repetido em cadeias/variantes de crafting e podia
+    // bloquear o event loop por dezenas de segundos. recipesAll(..., true)
+    // inclui receitas que exigem mesa; a mesa só é procurada/criada se a receita
+    // realmente escolhida precisar dela.
+    const recipes = bot.recipesAll(target.id, null, true)
     if (!recipes.length) throw new Error(`não encontrei receita para ${itemName}`)
 
     const nextTrail = new Set(trail)
