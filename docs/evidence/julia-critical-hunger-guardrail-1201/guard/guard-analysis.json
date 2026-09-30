@@ -1,0 +1,168 @@
+{
+ "dispatches": 155,
+ "shadow_rows": 76,
+ "payloads_to_sidecar": 76,
+ "S1 food<=5, comida perto e mais perto que a base": {
+  "n": 33,
+  "candidate_sets": {
+   "find_food": 33
+  },
+  "forced(single candidate)": 33,
+  "forced_find_food": 33,
+  "matches_expected_guardrail": 33,
+  "julia_consulted": 0,
+  "julia_choices": {},
+  "julia_conf_min": null,
+  "latency_p50": null,
+  "latency_p95": null,
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "food_range": [
+   0,
+   5
+  ],
+  "foodDistance_range": [
+   1.1,
+   7.7
+  ],
+  "baseDistance_range": [
+   7.5,
+   57.4
+  ]
+ },
+ "S2 food 6-8, comida perto": {
+  "n": 37,
+  "candidate_sets": {
+   "find_food,return_base": 37
+  },
+  "forced(single candidate)": 0,
+  "forced_find_food": 0,
+  "matches_expected_guardrail": 37,
+  "julia_consulted": 37,
+  "julia_choices": {
+   "return_base": 37
+  },
+  "julia_conf_min": 0.9956702497431315,
+  "latency_p50": 430,
+  "latency_p95": 776,
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "food_range": [
+   6,
+   8
+  ],
+  "foodDistance_range": [
+   0.9,
+   7.8
+  ],
+  "baseDistance_range": [
+   1.9,
+   57.4
+  ]
+ },
+ "S3 food<=5, base mais perto que a comida": {
+  "n": 33,
+  "candidate_sets": {
+   "find_food,return_base": 33
+  },
+  "forced(single candidate)": 0,
+  "forced_find_food": 0,
+  "matches_expected_guardrail": 33,
+  "julia_consulted": 33,
+  "julia_choices": {
+   "return_base": 33
+  },
+  "julia_conf_min": 0.9972726566473145,
+  "latency_p50": 422,
+  "latency_p95": 583,
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "food_range": [
+   0,
+   5
+  ],
+  "foodDistance_range": [
+   6.5,
+   8.0
+  ],
+  "baseDistance_range": [
+   1.9,
+   7.5
+  ]
+ },
+ "S4 comida além de 8 (nearby.food=false)": {
+  "n": 33,
+  "candidate_sets": {
+   "return_base": 33
+  },
+  "forced(single candidate)": 33,
+  "forced_find_food": 0,
+  "matches_expected_guardrail": 33,
+  "julia_consulted": 0,
+  "julia_choices": {},
+  "julia_conf_min": null,
+  "latency_p50": null,
+  "latency_p95": null,
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "food_range": [
+   1,
+   8
+  ],
+  "foodDistance_range": [
+   -1,
+   -1
+  ],
+  "baseDistance_range": [
+   3.3,
+   57.5
+  ]
+ },
+ "X hunger+threat": {
+  "n": 12,
+  "candidate_sets": {
+   "find_food": 7,
+   "escape_danger": 5
+  },
+  "forced(single candidate)": 12,
+  "forced_find_food": 7,
+  "matches_expected_guardrail": 12,
+  "julia_consulted": 0,
+  "julia_choices": {},
+  "julia_conf_min": null,
+  "latency_p50": null,
+  "latency_p95": null,
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "food_range": [
+   1,
+   8
+  ],
+  "foodDistance_range": [
+   0.9,
+   4.5
+  ],
+  "baseDistance_range": [
+   6.9,
+   15.4
+  ]
+ },
+ "guardrail_mismatches(candidates==[find_food] xor rule)": 0,
+ "forced_and_consulted(should be 0)": 0,
+ "multi_candidate_without_shadow_row": 0
+}
