@@ -1,0 +1,263 @@
+{
+ "G1 comida perto / base longe": {
+  "decisions": 23,
+  "find_food": 0,
+  "return_base": 23,
+  "other": 0,
+  "find_food_rate": 0.0,
+  "confidence_mean": 0.9999,
+  "confidence_min": 0.9987,
+  "latency_p50": 449,
+  "latency_p95": 522,
+  "food_levels": [
+   [
+    1,
+    4
+   ],
+   [
+    2,
+    3
+   ],
+   [
+    3,
+    2
+   ],
+   [
+    4,
+    5
+   ],
+   [
+    5,
+    2
+   ],
+   [
+    6,
+    1
+   ],
+   [
+    7,
+    4
+   ],
+   [
+    8,
+    2
+   ]
+  ],
+  "foodDistance_range": [
+   2.0,
+   2
+  ],
+  "baseDistance_range": [
+   57.3,
+   57.4
+  ],
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "health_min": 20,
+  "inventory_set": [
+   "{}"
+  ],
+  "objective_set": [
+   "explore"
+  ]
+ },
+ "G2 comida longe / base perto": {
+  "decisions": 19,
+  "find_food": 0,
+  "return_base": 19,
+  "other": 0,
+  "find_food_rate": 0.0,
+  "confidence_mean": 1.0,
+  "confidence_min": 0.9999,
+  "latency_p50": 432,
+  "latency_p95": 587,
+  "food_levels": [
+   [
+    1,
+    3
+   ],
+   [
+    2,
+    2
+   ],
+   [
+    3,
+    5
+   ],
+   [
+    4,
+    2
+   ],
+   [
+    6,
+    1
+   ],
+   [
+    7,
+    2
+   ],
+   [
+    8,
+    4
+   ]
+  ],
+  "foodDistance_range": [
+   5.3,
+   8.0
+  ],
+  "baseDistance_range": [
+   7.6,
+   13.4
+  ],
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "health_min": 20,
+  "inventory_set": [
+   "{}"
+  ],
+  "objective_set": [
+   "explore"
+  ]
+ },
+ "G3 comida perto / base perto": {
+  "decisions": 14,
+  "find_food": 0,
+  "return_base": 14,
+  "other": 0,
+  "find_food_rate": 0.0,
+  "confidence_mean": 1.0,
+  "confidence_min": 1.0,
+  "latency_p50": 451,
+  "latency_p95": 489,
+  "food_levels": [
+   [
+    1,
+    1
+   ],
+   [
+    2,
+    2
+   ],
+   [
+    3,
+    2
+   ],
+   [
+    4,
+    1
+   ],
+   [
+    5,
+    4
+   ],
+   [
+    6,
+    1
+   ],
+   [
+    7,
+    1
+   ],
+   [
+    8,
+    2
+   ]
+  ],
+  "foodDistance_range": [
+   2.0,
+   3.3
+  ],
+  "baseDistance_range": [
+   10.0,
+   15.3
+  ],
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "health_min": 20,
+  "inventory_set": [
+   "{}"
+  ],
+  "objective_set": [
+   "explore"
+  ]
+ },
+ "G4 (controle) comida longe / base longe": {
+  "decisions": 19,
+  "find_food": 0,
+  "return_base": 19,
+  "other": 0,
+  "find_food_rate": 0.0,
+  "confidence_mean": 0.9999,
+  "confidence_min": 0.9994,
+  "latency_p50": 436,
+  "latency_p95": 499,
+  "food_levels": [
+   [
+    1,
+    1
+   ],
+   [
+    2,
+    2
+   ],
+   [
+    3,
+    3
+   ],
+   [
+    4,
+    2
+   ],
+   [
+    5,
+    3
+   ],
+   [
+    6,
+    5
+   ],
+   [
+    7,
+    1
+   ],
+   [
+    8,
+    2
+   ]
+  ],
+  "foodDistance_range": [
+   6.0,
+   6
+  ],
+  "baseDistance_range": [
+   57.3,
+   57.4
+  ],
+  "errors": 0,
+  "timeouts": 0,
+  "invalid_choices": 0,
+  "safety_violations": 0,
+  "abandonments": 0,
+  "health_min": 20,
+  "inventory_set": [
+   "{}"
+  ],
+  "objective_set": [
+   "explore"
+  ]
+ },
+ "_all_rows": {
+  "errors": 0,
+  "timeouts": 0,
+  "error_kinds": {}
+ }
+}
