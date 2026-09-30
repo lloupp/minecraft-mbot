@@ -1,0 +1,20 @@
+{"ev":"spawn","pos":{"x":342.5,"y":200,"z":-315.5}}
+{"ev":"go","label":"C2_default_exec","variant":"default","error":"Took to long to decide path to goal!","final":{"x":354.5,"y":200,"z":-315.5},"dist_to_goal":2.24,"ms":10043}
+{"ev":"go","label":"C2_dig_exec","variant":"dig","error":"outer-timeout-20s","final":{"x":355.5,"y":201,"z":-315.5},"dist_to_goal":1,"ms":20009}
+{"ev":"end"}
+{"ev":"spawn","pos":{"x":355.5,"y":201,"z":-315.50000000000256}}
+{"ev":"path","label":"C1_open_flat","variant":"default","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":350,"y":200,"z":-316,"radius":0},"status":"success","length":8,"cost":8,"visited":8,"generated":29,"steps":1,"ms":42}
+{"ev":"path","label":"C1_open_flat","variant":"dig","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":350,"y":200,"z":-316,"radius":0},"status":"success","length":8,"cost":8,"visited":8,"generated":50,"steps":1,"ms":27}
+{"ev":"path","label":"C1_open_flat","variant":"restrictive","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":350,"y":200,"z":-316,"radius":0},"status":"success","length":8,"cost":8,"visited":8,"generated":29,"steps":1,"ms":19}
+{"ev":"path","label":"C2_stone_shell","variant":"default","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":356,"y":201,"z":-316,"radius":0},"status":"timeout","length":13,"cost":14,"visited":31940,"generated":32913,"steps":247,"ms":10004}
+{"ev":"path","label":"C2_stone_shell","variant":"dig","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":356,"y":201,"z":-316,"radius":0},"status":"success","length":14,"cost":38.5,"visited":723,"generated":1019,"steps":31,"ms":1239}
+{"ev":"path","label":"C2_stone_shell","variant":"restrictive","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":356,"y":201,"z":-316,"radius":0},"status":"timeout","length":13,"cost":14,"visited":34063,"generated":35128,"steps":247,"ms":10007}
+{"ev":"path","label":"C3_bedrock_shell","variant":"default","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":364,"y":201,"z":-316,"radius":0},"status":"timeout","length":20,"cost":21.65685424949238,"visited":33294,"generated":34303,"steps":247,"ms":10006}
+{"ev":"path","label":"C3_bedrock_shell","variant":"dig","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":364,"y":201,"z":-316,"radius":0},"status":"timeout","length":20,"cost":21.65685424949238,"visited":14070,"generated":19615,"steps":246,"ms":10009}
+{"ev":"path","label":"C3_bedrock_shell","variant":"restrictive","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":364,"y":201,"z":-316,"radius":0},"status":"timeout","length":20,"cost":21.65685424949238,"visited":36255,"generated":37309,"steps":246,"ms":10008}
+{"ev":"path","label":"C4_pillar6","variant":"default","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":369,"y":206,"z":-316,"radius":0},"status":"timeout","length":26,"cost":27.656854249492383,"visited":33587,"generated":34649,"steps":248,"ms":10009}
+{"ev":"path","label":"C4_pillar6","variant":"dig","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":369,"y":206,"z":-316,"radius":0},"status":"timeout","length":27,"cost":76.65685424949238,"visited":15008,"generated":20903,"steps":246,"ms":10005}
+{"ev":"path","label":"C4_pillar6","variant":"restrictive","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":369,"y":206,"z":-316,"radius":0},"status":"timeout","length":26,"cost":27.656854249492383,"visited":36797,"generated":37888,"steps":248,"ms":10005}
+{"ev":"path","label":"C4_pillar6","variant":"nodig_noparkour","from":{"x":342.5,"y":200,"z":-315.5},"goal":{"x":369,"y":206,"z":-316,"radius":0},"status":"timeout","length":26,"cost":27.656854249492383,"visited":37741,"generated":38833,"steps":247,"ms":10005}
+{"ev":"go","label":"C2_default_exec","variant":"default","error":"Took to long to decide path to goal!","final":{"x":355.5,"y":201,"z":-315.5},"dist_to_goal":1,"ms":10009}
+{"ev":"go","label":"C2_dig_exec","variant":"dig","error":"The goal was changed before it could be completed!","final":{"x":355.5,"y":201,"z":-315.5},"dist_to_goal":1,"ms":3000}
