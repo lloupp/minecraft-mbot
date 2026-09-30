@@ -45,7 +45,11 @@ def normalize_candidates(values: Any) -> list[dict[str, str]]:
             raise ValueError("invalid candidate description")
         seen.add(candidate_id)
         out.append({"id": candidate_id, "description": description})
-    return out
+
+    # Julia-1 showed measurable sensitivity to caller-supplied option order.
+    # Canonicalize by stable candidate id so the same candidate set is always
+    # presented identically to the model, independent of upstream ordering.
+    return sorted(out, key=lambda candidate: candidate["id"])
 
 
 def load() -> None:
