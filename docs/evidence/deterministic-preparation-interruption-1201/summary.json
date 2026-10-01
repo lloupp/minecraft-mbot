@@ -1,0 +1,283 @@
+{
+  "reference_head": "7f1f5a00a7935bdcf8b2f1b1a2788a207a792343",
+  "julia_execution_authority": "none",
+  "opt_in": true,
+  "minecraft": "1.20.1",
+  "scenarios": {
+    "new_order": {
+      "interruption": "CANCELLED",
+      "confirmed_partial": 1,
+      "remaining_cobblestone": 1,
+      "resumed_collection": 1,
+      "final_held": "stone_sword",
+      "final_candidates": [
+        "continue_objective"
+      ],
+      "source": "verification/results.json",
+      "old_owner_version": 2,
+      "new_physical_actions_from_interrupted_owner": 0,
+      "replacement_version": 3
+    },
+    "threat": {
+      "interruption": "THREAT",
+      "confirmed_partial": 1,
+      "remaining_cobblestone": 1,
+      "resumed_collection": 1,
+      "final_held": "stone_sword",
+      "final_candidates": [
+        "continue_objective"
+      ],
+      "source": "verification/results.json",
+      "old_owner_version": 7,
+      "new_physical_actions_from_interrupted_owner": 0,
+      "monitor_stop_observed": true
+    },
+    "craft_log": {
+      "interruption": "CANCELLED",
+      "produced_despite_cancellation": {
+        "oak_planks": 4
+      },
+      "final_held": "stone_sword",
+      "final_candidates": [
+        "continue_objective"
+      ],
+      "source": "final/results.json",
+      "atomic_rollback": false
+    },
+    "craft_sword": {
+      "interruption": "CANCELLED",
+      "produced_despite_cancellation": {
+        "stone_sword": 1
+      },
+      "final_held": "stone_sword",
+      "final_candidates": [
+        "continue_objective"
+      ],
+      "source": "final/results.json",
+      "atomic_rollback": false
+    },
+    "same_worker_concurrency": {
+      "results": [
+        "CANCELLED",
+        "OK"
+      ],
+      "mode": "ownership replacement, second waits for first settlement",
+      "source": "final/results.json"
+    },
+    "cross_workers": {
+      "results": [
+        "OK",
+        "OK"
+      ],
+      "final_held": [
+        "stone_sword",
+        "stone_sword"
+      ],
+      "source": "final/results.json"
+    },
+    "obstacle": {
+      "first_code": "TARGET_BLOCKED",
+      "confirmed_partial": 1,
+      "resumed_collection": 1,
+      "authorized_alternative_used": true,
+      "final_held": "stone_sword",
+      "source": "final/results.json"
+    }
+  },
+  "baseline_failures_preserved": true,
+  "physical_audit": {
+    "final": {
+      "authorized_digs": [
+        {
+          "scenario": "new_order",
+          "worker": "prep_A",
+          "version": 2,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "new_order",
+          "worker": "prep_A",
+          "version": 4,
+          "position": [
+            2,
+            200,
+            0
+          ]
+        },
+        {
+          "scenario": "threat",
+          "worker": "prep_A",
+          "version": 7,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "same_worker_concurrency",
+          "worker": "prep_A",
+          "version": 19,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "same_worker_concurrency",
+          "worker": "prep_A",
+          "version": 20,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "same_worker_concurrency",
+          "worker": "prep_A",
+          "version": 20,
+          "position": [
+            2,
+            200,
+            0
+          ]
+        },
+        {
+          "scenario": "cross_workers",
+          "worker": "prep_A",
+          "version": 23,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "cross_workers",
+          "worker": "prep_B",
+          "version": 2,
+          "position": [
+            12,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "cross_workers",
+          "worker": "prep_A",
+          "version": 23,
+          "position": [
+            2,
+            200,
+            0
+          ]
+        },
+        {
+          "scenario": "cross_workers",
+          "worker": "prep_B",
+          "version": 2,
+          "position": [
+            14,
+            200,
+            0
+          ]
+        },
+        {
+          "scenario": "obstacle",
+          "worker": "prep_A",
+          "version": 26,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "obstacle",
+          "worker": "prep_A",
+          "version": 27,
+          "position": [
+            -2,
+            200,
+            2
+          ]
+        }
+      ],
+      "unauthorized_digs": 0,
+      "maximum_concurrent_dig_or_craft_per_bot": {
+        "prep_A": 1,
+        "prep_B": 1
+      },
+      "harness_or_bot_errors": 0
+    },
+    "verification": {
+      "authorized_digs": [
+        {
+          "scenario": "new_order",
+          "worker": "prep_A",
+          "version": 2,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "new_order",
+          "worker": "prep_A",
+          "version": 4,
+          "position": [
+            2,
+            200,
+            0
+          ]
+        },
+        {
+          "scenario": "threat",
+          "worker": "prep_A",
+          "version": 7,
+          "position": [
+            0,
+            200,
+            2
+          ]
+        },
+        {
+          "scenario": "threat",
+          "worker": "prep_A",
+          "version": 8,
+          "position": [
+            2,
+            200,
+            0
+          ]
+        }
+      ],
+      "unauthorized_digs": 0,
+      "maximum_concurrent_dig_or_craft_per_bot": {
+        "prep_A": 1
+      },
+      "harness_or_bot_errors": 0
+    }
+  },
+  "tests": {
+    "initial_requested_node": 21,
+    "final_focused_node": 40,
+    "final_full_node": 450,
+    "python": 2,
+    "check": "passed"
+  },
+  "limitations": [
+    "Craft already submitted can finish after cancellation; no atomic rollback.",
+    "NoAI zombie is a real nearby entity, not a combat damage/flee efficacy test.",
+    "Strict target raycast can reject safely; generic pathfinder remains unchanged.",
+    "Deadlines/cooperative cancellation do not guarantee instant interruption of server/client operations.",
+    "No automatic dispatch into the normal player loop; Julia remains shadow only."
+  ]
+}

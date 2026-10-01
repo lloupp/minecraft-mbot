@@ -320,11 +320,16 @@ class WorkerController {
 
   async run(task) {
     await this.waitReady()
+    const preparationDrain = this._preparationDrain
     this.cancel()
     const version = this.taskVersion
     const isCancelled = () => version !== this.taskVersion
     this.currentTask = { ...task }
     this.state = 'trabalhando'
+    // A submitted craft cannot be rolled back. Invalidate ownership immediately,
+    // but let that preparation settle before the new owner starts physical work.
+    if (preparationDrain) await preparationDrain.catch(() => {})
+    if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true }
 
     // A tarefa em si continua exatamente como antes, só que agora dentro de
     // uma função para termos uma promise (`taskPromise`) que podemos passar
@@ -334,6 +339,7 @@ class WorkerController {
       try {
         this.useMoves(this.workMoves)
       await this.leaveLeftoverPen(isCancelled)
+      if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true }
       if (this.bot.food <= HUNGRY) await this.eat()
       let result
       switch (task.type) {
@@ -413,7 +419,12 @@ class WorkerController {
       }
     })()
 
-    this._observeShadow(task, isCancelled, taskPromise)
+    if (task.type === 'preparar_combate_deterministico') {
+      this._preparationDrain = taskPromise
+      const clearDrain = () => { if (this._preparationDrain === taskPromise) this._preparationDrain = null }
+      taskPromise.then(clearDrain, clearDrain)
+    }
+    this._observeShadow(task.type === 'preparar_combate_deterministico' ? task.objective : task, isCancelled, taskPromise)
     return taskPromise
   }
 

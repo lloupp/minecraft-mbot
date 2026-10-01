@@ -93,12 +93,14 @@ test('coleta confirma o item esperado, não qualquer crescimento do inventário'
   assert.equal(attempts[0].delta, 0)
 })
 
-test('cancelamento após dig não recebe crédito mesmo com item adquirido', async () => {
+test('cancelamento após dig preserva confirmação de item já adquirido', async () => {
   let cancelled = false
   const bot = collectionBot({ afterDig: () => { cancelled = true } })
   const attempts = []
-  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => cancelled, { onAttempt: e => attempts.push(e) }), 0)
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => cancelled, { onAttempt: e => attempts.push(e) }), 1)
   assert.equal(attempts[0].code, 'CANCELLED')
+  assert.equal(attempts[0].itemConfirmed, true)
+  assert.equal(attempts[0].delta, 1)
 })
 
 test('recurso desaparecido durante navegação não é cavado nem confirmado', async () => {
@@ -117,7 +119,7 @@ test('dois coletores mantêm delta e cancelamento independentes', async () => {
     gather.mineBlocks(one, n => n === 'oak_log', 1, () => cancelled),
     gather.mineBlocks(two, n => n === 'oak_log', 1, () => false)
   ])
-  assert.deepEqual(results, [0, 1])
+  assert.deepEqual(results, [1, 1])
 })
 
 test('stone confirma cobblestone e recusa inventário cheio', async () => {

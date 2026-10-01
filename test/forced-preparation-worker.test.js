@@ -75,3 +75,29 @@ test('a newer worker task cancels preparation through the normal taskVersion own
   const result = await first
   assert.equal(result.code, 'CANCELLED')
 })
+
+test('new owner waits for in-flight preparation and stale queued owners cannot act', async () => {
+  const worker = bareWorker()
+  let release, start
+  const started = new Promise(r => { start = r })
+  const events = []
+  worker.runDeterministicPreparation = async (_, cancelled) => {
+    events.push('preparation_start'); start()
+    await new Promise(r => { release = r })
+    assert.equal(cancelled(), true)
+    events.push('preparation_settled')
+    return { ok: false, code: 'CANCELLED' }
+  }
+  worker.goToPoint = async p => { events.push(p.name); return { ok: true } }
+  const first = worker.run({ type: 'preparar_combate_deterministico', objective: { type: 'explorar' } })
+  await started
+  const stale = worker.run({ type: 'ir_local', position: { name: 'stale_owner' } })
+  const next = worker.run({ type: 'ir_local', position: { name: 'new_owner' } })
+  await new Promise(r => setImmediate(r))
+  assert.deepEqual(events, ['preparation_start'])
+  release()
+  assert.equal((await first).code, 'CANCELLED')
+  assert.equal((await stale).code, 'CANCELLED')
+  assert.equal((await next).ok, true)
+  assert.deepEqual(events, ['preparation_start', 'preparation_settled', 'new_owner'])
+})

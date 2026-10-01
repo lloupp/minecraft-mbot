@@ -1,0 +1,48 @@
+✔ deterministic preparation runs as an owned WorkerController task (0.966749ms)
+✔ a newer worker task cancels preparation through the normal taskVersion ownership (0.3704ms)
+✔ new owner waits for in-flight preparation and stale queued owners cannot act (2.96736ms)
+✔ planner collects exactly the missing recipe inputs, accounting for conversion batches (2.204458ms)
+✔ bridge has no effect unless explicitly enabled (0.534757ms)
+✔ preflight refuses missing table and unauthorized material sources before digging (3.447144ms)
+✔ cancel and critical food preempt physical preparation (1.809872ms)
+✔ authorized gathering never selects a closer unapproved block (1.228019ms)
+✔ visible approved block in physical reach does not require a navigation goal (0.332472ms)
+✔ carried sword cancels material plan and can be equipped without crafting again (0.939659ms)
+✔ opt-in collection refuses blocked target then uses only a visible approved alternative (0.468708ms)
+✔ in-flight craft inventory is recorded on cancellation and resume only equips the produced sword (0.737303ms)
+✔ live approved remaining source refines sparse perception and collects only the missing cobblestone (1.493114ms)
+✔ resume recuperação quando falha com candidato alternativo e tentativa seguinte confirma item (1.306533ms)
+✔ não afirma recuperação quando só observa candidato alternativo sem sucesso posterior (0.118549ms)
+✔ cancelamento não cria evidência de recuperação (0.103166ms)
+✔ mineBlocks não volta a tentar na tarefa seguinte um bloco inalcançável (2.97394ms)
+✔ mineBlocks não conta o bloco como coletado se o drop não entra no inventário (1504.246001ms)
+✔ coleta confirma o item esperado, não qualquer crescimento do inventário (1504.61147ms)
+✔ cancelamento após dig preserva confirmação de item já adquirido (0.501527ms)
+✔ recurso desaparecido durante navegação não é cavado nem confirmado (0.355517ms)
+✔ dois coletores mantêm delta e cancelamento independentes (0.372862ms)
+✔ stone confirma cobblestone e recusa inventário cheio (0.362157ms)
+✔ coleta distingue erro de dig de recurso fora de alcance físico (0.4375ms)
+✔ drop esperado acompanha a ferramenta escolhida com silk touch (0.187873ms)
+✔ mineBlocks registra candidato alternativo observado sem afirmar alcançabilidade (0.497681ms)
+✔ mineBlocks não marca alvo alternativo quando só há um candidato (1502.761109ms)
+✔ critical creeper is handled by forced escape, not model choice (2.240583ms)
+✔ wait is unavailable without a concrete wait reason (0.373845ms)
+✔ unarmed exploration exposes preparation as a strategic choice (0.363038ms)
+✔ unarmed exploration with nearby basic materials forces gather before progress (0.284499ms)
+✔ armed-tool mine_iron still gathers combat materials before unarmed progress (0.26493ms)
+✔ unarmed objective without nearby materials does not invent a gather target (0.227364ms)
+✔ forced unarmed gather requires an actionable wood-plus-stone preparation path (0.574918ms)
+✔ repeated failures with a known alternative route expose only replan (0.252101ms)
+✔ deterministic player policy completes every V2 scenario safely (5.459591ms)
+✔ interrupted objective resumes after the safety reaction (1.818936ms)
+✔ adaptive gather scenario exposes threat after first exploration and resumes safely (1.07973ms)
+✔ fire and drowning are forced safety decisions outside model candidates (0.131178ms)
+✔ report separates endpoint attempts, confirmed model calls, and invalid-choice fallbacks (0.575519ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4683.098203
