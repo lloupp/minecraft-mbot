@@ -12,6 +12,7 @@ const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
 const { candidateIntents } = require('../lib/player-loop')
 const { realStateSnapshot } = require('../lib/real-state')
+const { executePreparationStep } = require('../lib/forced-preparation')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -396,6 +397,9 @@ class WorkerController {
         case 'voltar':
           result = await this.returnHome(isCancelled)
           break
+        case 'preparar_combate_deterministico':
+          result = await this.runDeterministicPreparation(task, isCancelled)
+          break
         default:
           throw new Error(`tarefa desconhecida: ${task.type}`)
       }
@@ -411,6 +415,24 @@ class WorkerController {
 
     this._observeShadow(task, isCancelled, taskPromise)
     return taskPromise
+  }
+
+  async runDeterministicPreparation(task, isCancelled) {
+    const objective = task?.objective
+    if (!objective || typeof objective !== 'object' || !objective.type) {
+      return { ok: false, code: 'OBJECTIVE_REQUIRED', juliaExecutionAuthority: 'none' }
+    }
+
+    return executePreparationStep({
+      enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
+      bot: this.bot,
+      task: objective,
+      production: this.production,
+      allowedTargets: Array.isArray(task.allowedTargets) ? task.allowedTargets : [],
+      homeProvider: this.homeProvider,
+      isCancelled,
+      timeoutMs: Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 20000
+    })
   }
 
   // Shadow mode do Laya: só observa, nunca decide. Nunca lança e nunca é
