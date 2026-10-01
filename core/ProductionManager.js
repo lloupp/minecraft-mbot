@@ -95,9 +95,11 @@ class ProductionManager {
     return bot.findBlock({ matching: id, maxDistance })
   }
 
-  async ensureCraftingTable(bot, depth = 0, trail = new Set()) {
+  async ensureCraftingTable(bot, depth = 0, trail = new Set(), execution = null) {
     let table = this.cachedCraftingTable(bot)
     if (table) return table
+    // Narrow opt-in callers require a supplied live local table, never bootstrap.
+    if (execution?.localOnly) throw new Error('NEARBY_TABLE_REQUIRED')
 
     table = this.findCraftingTable(bot)
     if (table) return this.rememberCraftingTable(bot, table)
@@ -303,7 +305,7 @@ class ProductionManager {
     }
   }
 
-  async craftInternal(bot, rawItemName, count = 1, depth = 0, trail = new Set()) {
+  async craftInternal(bot, rawItemName, count = 1, depth = 0, trail = new Set(), execution = null) {
     if (depth > 5) throw new Error('cadeia de crafting profunda demais')
     const itemName = normalizeItemName(rawItemName)
     if (trail.has(itemName)) throw new Error(`ciclo de crafting em ${itemName}`)
@@ -330,15 +332,18 @@ class ProductionManager {
         // já separadas para a receita (picareta de madeira nunca saía).
         let craftingTable = null
         if (recipe.requiresTable) {
-          craftingTable = await this.ensureCraftingTable(bot, depth, nextTrail)
+          craftingTable = await this.ensureCraftingTable(bot, depth, nextTrail, execution)
         }
 
         // Fabricar um ingrediente pode gastar outro já separado (os gravetos
         // gastavam as tábuas da picareta): confere de novo até todos baterem.
         const ingredients = recipeIngredients(recipe, runs)
+        if (execution?.localOnly && ingredients.some((i) => this.inventoryCount(bot, i.id, i.metadata) < i.count)) {
+          throw new Error('RECIPE_INPUTS_CHANGED')
+        }
         for (let pass = 0; pass < 3; pass++) {
           for (const ingredient of ingredients) {
-            await this.ensureIngredient(bot, ingredient.id, ingredient.metadata, ingredient.count, depth, nextTrail)
+            if (!execution?.localOnly) await this.ensureIngredient(bot, ingredient.id, ingredient.metadata, ingredient.count, depth, nextTrail)
           }
           if (ingredients.every((i) => this.inventoryCount(bot, i.id, i.metadata) >= i.count)) break
         }
@@ -355,6 +360,12 @@ class ProductionManager {
         // Uma rodada por vez: com várias, o resultado de uma rodada no meio podia
         // ficar no cursor e se perder (8 tochas pedidas, 4 entregues).
         for (let run = 0; run < runs; run++) {
+          // This synchronous guard runs after all awaits, immediately before a NEW craft.
+          execution?.beforeAction?.({ operation: 'craft', item: itemName })
+          if (execution?.localOnly) {
+            if (recipe.requiresTable && (bot.blockAt(craftingTable.position)?.name !== 'crafting_table' || bot.entity.position.distanceTo(craftingTable.position) > 4)) throw new Error('NEARBY_TABLE_REQUIRED')
+            if (recipeIngredients(recipe).some((i) => this.inventoryCount(bot, i.id, i.metadata) < i.count)) throw new Error('RECIPE_INPUTS_CHANGED')
+          }
           await bot.craft(recipe, 1, craftingTable)
           await settleCursor(bot)
         }
@@ -365,6 +376,9 @@ class ProductionManager {
           runs
         }
       } catch (err) {
+        // This is an instruction to re-equip a new real item, not a recipe failure.
+        // Trying another recipe would overwrite it with an unrelated ingredient error.
+        if (execution?.localOnly && err.message === 'WEAPON_ALREADY_AVAILABLE') throw err
         lastError = err
       }
     }

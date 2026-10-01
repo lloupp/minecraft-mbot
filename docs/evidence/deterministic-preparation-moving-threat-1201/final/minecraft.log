@@ -1,0 +1,225 @@
+Starting net.minecraft.server.Main
+[21:48:09] [ServerMain/INFO]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[21:48:09] [Yggdrasil Key Fetcher/ERROR]: Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.AuthenticationUnavailableException: Cannot contact authentication server
+	at com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.makeRequest(YggdrasilAuthenticationService.java:119) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.makeRequest(YggdrasilAuthenticationService.java:91) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:94) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.lambda$get$1(YggdrasilServicesKeyInfo.java:81) ~[authlib-4.0.43.jar:?]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539) ~[?:?]
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:305) ~[?:?]
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305) ~[?:?]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136) ~[?:?]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635) ~[?:?]
+	at java.lang.Thread.run(Thread.java:840) ~[?:?]
+Caused by: java.net.UnknownHostException: api.minecraftservices.com
+	at sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:572) ~[?:?]
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.net.Socket.connect(Socket.java:633) ~[?:?]
+	at sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at sun.net.www.http.HttpClient.openServer(HttpClient.java:533) ~[?:?]
+	at sun.net.www.http.HttpClient.openServer(HttpClient.java:638) ~[?:?]
+	at sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:267) ~[?:?]
+	at sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:381) ~[?:?]
+	at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1307) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1148) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1077) ~[?:?]
+	at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1717) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1641) ~[?:?]
+	at sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:224) ~[?:?]
+	at com.mojang.authlib.HttpAuthenticationService.performGetRequest(HttpAuthenticationService.java:140) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.makeRequest(YggdrasilAuthenticationService.java:96) ~[authlib-4.0.43.jar:?]
+	... 9 more
+[21:48:10] [ServerMain/INFO]: Loaded 7 recipes
+[21:48:10] [ServerMain/INFO]: Loaded 1271 advancements
+[21:48:10] [Server thread/INFO]: Starting minecraft server version 1.20.1
+[21:48:10] [Server thread/INFO]: Loading properties
+[21:48:10] [Server thread/INFO]: Default game type: SURVIVAL
+[21:48:10] [Server thread/INFO]: Generating keypair
+[21:48:11] [Server thread/INFO]: Starting Minecraft server on 127.0.0.1:25566
+[21:48:11] [Server thread/INFO]: Using epoll channel type
+[21:48:11] [Server thread/WARN]: Failed to find a usable hardware address from the network interfaces; using random bytes: 70:a2:60:9f:14:af:2a:ef
+[21:48:11] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[21:48:11] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[21:48:11] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[21:48:11] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[21:48:11] [Server thread/INFO]: Preparing level "moving-threat-world"
+[21:48:11] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[21:48:12] [Worker-Main-1/INFO]: Preparing spawn area: 0%
+[21:48:12] [Worker-Main-4/INFO]: Preparing spawn area: 0%
+[21:48:12] [Worker-Main-1/INFO]: Preparing spawn area: 0%
+[21:48:12] [Worker-Main-6/INFO]: Preparing spawn area: 0%
+[21:48:13] [Worker-Main-2/INFO]: Preparing spawn area: 32%
+[21:48:13] [Server thread/INFO]: Time elapsed: 2343 ms
+[21:48:13] [Server thread/INFO]: Done (2.439s)! For help, type "help"
+[21:48:13] [Server thread/INFO]: Gamerule doDaylightCycle is now set to: false
+[21:48:13] [Server thread/INFO]: Set the time to 1000
+[21:48:13] [Server thread/INFO]: Gamerule doMobSpawning is now set to: false
+[21:48:14] [Server thread/INFO]: Gamerule randomTickSpeed is now set to: 0
+[21:48:14] [Server thread/INFO]: Gamerule naturalRegeneration is now set to: false
+[21:48:21] [Server thread/INFO]: prep_A[/127.0.0.1:48284] logged in with entity id 1 at (2.5, 200.0, 0.5)
+[21:48:21] [Server thread/INFO]: prep_A joined the game
+[21:48:21] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:48:21] [Server thread/INFO]: Set the time to 1000
+[21:48:21] [Server thread/INFO]: No entity was found
+[21:48:22] [Server thread/INFO]: Removed 3 item(s) from player prep_A
+[21:48:22] [Server thread/INFO]: No blocks were filled
+[21:48:22] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:48:22] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:48:22] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:48:23] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:48:24] [Server thread/INFO]: Target has no effects to remove
+[21:48:24] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:48:24] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to prep_A
+[21:48:24] [Server thread/INFO]: Changed the block at 0, 200, 2
+[21:48:25] [Server thread/INFO]: Changed the block at 2, 200, 0
+[21:48:25] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:48:25] [Server thread/INFO]: The difficulty has been set to Normal
+[21:48:27] [Server thread/INFO]: Applied effect Mining Fatigue to prep_A
+[21:48:27] [Server thread/INFO]: Summoned new Zombie
+[21:48:28] [Server thread/INFO]: Killed Zombie
+[21:48:29] [Server thread/INFO]: The difficulty has been set to Peaceful
+[21:48:29] [Server thread/INFO]: Removed every effect from prep_A
+[21:48:32] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:48:32] [Server thread/INFO]: Set the time to 1000
+[21:48:32] [Server thread/INFO]: Killed Rotten Flesh
+[21:48:32] [Server thread/INFO]: Removed 2 item(s) from player prep_A
+[21:48:33] [Server thread/INFO]: No blocks were filled
+[21:48:33] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:48:33] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:48:33] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:48:33] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:48:35] [Server thread/INFO]: Target has no effects to remove
+[21:48:35] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:48:35] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to prep_A
+[21:48:35] [Server thread/INFO]: Changed the block at 0, 200, 2
+[21:48:35] [Server thread/INFO]: Changed the block at 2, 200, 0
+[21:48:36] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:48:36] [Server thread/INFO]: The difficulty has been set to Normal
+[21:48:36] [Server thread/INFO]: Applied effect Mining Fatigue to prep_A
+[21:48:36] [Server thread/INFO]: Summoned new Zombie
+[21:48:42] [Server thread/INFO]: Teleported Zombie to 1.100000, 200.000000, 2.410118
+[21:48:42] [Server thread/INFO]: Killed Zombie
+[21:48:42] [Server thread/INFO]: The difficulty has been set to Peaceful
+[21:48:42] [Server thread/INFO]: Removed every effect from prep_A
+[21:48:45] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:48:45] [Server thread/INFO]: Set the time to 1000
+[21:48:46] [Server thread/INFO]: Killed Rotten Flesh
+[21:48:46] [Server thread/INFO]: Removed 2 item(s) from player prep_A
+[21:48:46] [Server thread/INFO]: No blocks were filled
+[21:48:46] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:48:46] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:48:47] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:48:47] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:48:48] [Server thread/INFO]: Target has no effects to remove
+[21:48:48] [Server thread/INFO]: Gave 2 [Cobblestone] to prep_A
+[21:48:48] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:48:49] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:48:49] [Server thread/INFO]: The difficulty has been set to Normal
+[21:48:49] [Server thread/INFO]: Summoned new Zombie
+[21:48:51] [Server thread/INFO]: Teleported Zombie to 1.100000, 200.000000, 0.500000
+[21:48:51] [Server thread/INFO]: Killed Zombie
+[21:48:51] [Server thread/INFO]: The difficulty has been set to Peaceful
+[21:48:52] [Server thread/INFO]: Target has no effects to remove
+[21:48:52] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:48:52] [Server thread/INFO]: Set the time to 1000
+[21:48:52] [Server thread/INFO]: Killed Rotten Flesh
+[21:48:53] [Server thread/INFO]: Removed 1 item(s) from player prep_A
+[21:48:53] [Server thread/INFO]: No blocks were filled
+[21:48:53] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:48:53] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:48:53] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:48:53] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:48:55] [Server thread/INFO]: Target has no effects to remove
+[21:48:55] [Server thread/INFO]: Gave 2 [Cobblestone] to prep_A
+[21:48:55] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:48:55] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:48:56] [Server thread/INFO]: The difficulty has been set to Normal
+[21:48:56] [Server thread/INFO]: Summoned new Zombie
+[21:48:56] [Server thread/INFO]: Killed Zombie
+[21:48:56] [Server thread/INFO]: The difficulty has been set to Peaceful
+[21:48:56] [Server thread/INFO]: Target has no effects to remove
+[21:48:58] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:48:58] [Server thread/INFO]: Set the time to 1000
+[21:48:58] [Server thread/INFO]: Killed Rotten Flesh
+[21:48:58] [Server thread/INFO]: Removed 1 item(s) from player prep_A
+[21:48:58] [Server thread/INFO]: No blocks were filled
+[21:48:58] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:48:59] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:48:59] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:48:59] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:49:00] [Server thread/INFO]: Target has no effects to remove
+[21:49:00] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:49:01] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to prep_A
+[21:49:01] [Server thread/INFO]: Changed the block at 0, 200, 2
+[21:49:01] [Server thread/INFO]: Changed the block at 2, 200, 0
+[21:49:01] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:49:05] [Server thread/INFO]: Gave 4 [Oak Planks] to prep_A
+[21:49:06] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:49:06] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:49:07] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:49:07] [Server thread/INFO]: Set the time to 1000
+[21:49:07] [Server thread/INFO]: No entity was found
+[21:49:07] [Server thread/INFO]: Removed 6 item(s) from player prep_A
+[21:49:08] [Server thread/INFO]: No blocks were filled
+[21:49:08] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:49:08] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:49:08] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:49:08] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:49:10] [Server thread/INFO]: Target has no effects to remove
+[21:49:10] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:49:10] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to prep_A
+[21:49:10] [Server thread/INFO]: Changed the block at 0, 200, 2
+[21:49:10] [Server thread/INFO]: Changed the block at 2, 200, 0
+[21:49:11] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:49:15] [Server thread/INFO]: Removed 1 item(s) from player prep_A
+[21:49:15] [Server thread/INFO]: Changed the block at 4, 200, 2
+[21:49:17] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:49:17] [Server thread/INFO]: Set the time to 1000
+[21:49:18] [Server thread/INFO]: No entity was found
+[21:49:18] [Server thread/INFO]: Removed 4 item(s) from player prep_A
+[21:49:18] [Server thread/INFO]: No blocks were filled
+[21:49:18] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:49:18] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:49:18] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:49:19] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:49:20] [Server thread/INFO]: Target has no effects to remove
+[21:49:20] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:49:20] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to prep_A
+[21:49:20] [Server thread/INFO]: Changed the block at 0, 200, 2
+[21:49:21] [Server thread/INFO]: Changed the block at 2, 200, 0
+[21:49:21] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:49:25] [Server thread/INFO]: Gave 1 [Stone Sword] to prep_A
+[21:49:25] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[21:49:26] [Server thread/INFO]: Set the time to 1000
+[21:49:26] [Server thread/INFO]: No entity was found
+[21:49:26] [Server thread/INFO]: Removed 5 item(s) from player prep_A
+[21:49:26] [Server thread/INFO]: No blocks were filled
+[21:49:26] [Server thread/INFO]: Successfully filled 1 block(s)
+[21:49:26] [Server thread/INFO]: Teleported prep_A to 0.500000, 200.000000, 0.500000
+[21:49:27] [Server thread/INFO]: Applied effect Saturation to prep_A
+[21:49:27] [Server thread/INFO]: Applied effect Instant Health to prep_A
+[21:49:28] [Server thread/INFO]: Target has no effects to remove
+[21:49:28] [Server thread/INFO]: Gave 1 [Stick] to prep_A
+[21:49:28] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to prep_A
+[21:49:29] [Server thread/INFO]: Changed the block at 0, 200, 2
+[21:49:29] [Server thread/INFO]: Changed the block at 2, 200, 0
+[21:49:29] [Server thread/INFO]: Changed the block at -1, 200, -1
+[21:49:31] [Server thread/INFO]: Removed 1 item(s) from player prep_A
+[21:49:32] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to prep_A
+[21:49:38] [Server thread/INFO]: prep_A lost connection: Disconnected
+[21:49:38] [Server thread/INFO]: prep_A left the game
+[21:49:38] [Server thread/INFO]: Stopping the server
+[21:49:38] [Server thread/INFO]: Stopping server
+[21:49:38] [Server thread/INFO]: Saving players
+[21:49:38] [Server thread/INFO]: Saving worlds
+[21:49:38] [Server thread/INFO]: Saving chunks for level 'ServerLevel[moving-threat-world]'/minecraft:overworld
+[21:49:39] [Server thread/INFO]: Saving chunks for level 'ServerLevel[moving-threat-world]'/minecraft:the_end
+[21:49:39] [Server thread/INFO]: Saving chunks for level 'ServerLevel[moving-threat-world]'/minecraft:the_nether
+[21:49:39] [Server thread/INFO]: ThreadedAnvilChunkStorage (moving-threat-world): All chunks are saved
+[21:49:39] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[21:49:39] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[21:49:39] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved

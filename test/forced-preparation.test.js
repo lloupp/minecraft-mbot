@@ -218,3 +218,95 @@ test('live approved remaining source refines sparse perception and collects only
     assert(!result.nextCandidates.some(c => c.id === 'gather_materials'))
   } finally { gather.mineBlocks = original }
 })
+
+function recipePreparation() {
+  const { ProductionManager } = require('../core/ProductionManager')
+  const bot = unarmedBot(), pos = new Vec3(-1,64,-1)
+  const items = [{ name:'cobblestone', type:1, count:2 },{ name:'stick',type:2,count:1 }]
+  let tablePresent = true, crafts = 0
+  bot.inventory.items = () => items
+  bot.registry = { itemsByName:{stone_sword:{id:3}}, items:{1:{name:'cobblestone'},2:{name:'stick'}} }
+  bot.blockAt = p => ({name:tablePresent && p.equals(pos)?'crafting_table':'air',position:p})
+  bot.recipesAll = () => [{requiresTable:true,result:{id:3,count:1},delta:[{id:1,count:-2},{id:2,count:-1},{id:3,count:1}]}]
+  bot.craft = async () => { crafts++; items.splice(0,items.length,{name:'stone_sword',type:3,count:1}) }
+  bot.equip = async item => { bot.heldItem = item }
+  bot.nearestEntity = predicate => Object.values(bot.entities).find(predicate) || null
+  const pm = new ProductionManager({storage:null}); pm.rememberCraftingTable(bot,bot.blockAt(pos))
+  const args = {enabled:true,bot,task:{type:'explorar'},production:pm}
+  return {bot,pm,args,items,removeTable:()=>{tablePresent=false},crafts:()=>crafts}
+}
+
+test('craft guard rechecks safety after async table lookup and before physical submission', async () => {
+  const f=recipePreparation(),ensure=f.pm.ensureCraftingTable.bind(f.pm)
+  f.pm.ensureCraftingTable=async(...args)=>{const table=await ensure(...args);f.bot.entities.z={name:'zombie',type:'hostile',position:new Vec3(1,64,0)};return table}
+  const result=await executePreparationStep(f.args)
+  assert.equal(result.code,'THREAT');assert.equal(f.crafts(),0);assert.equal(result.final.inventory.cobblestone,2)
+})
+
+test('table removed after preflight is refused without finding, making or placing another', async () => {
+  const f=recipePreparation(),ensure=f.pm.ensureCraftingTable.bind(f.pm)
+  f.pm.ensureCraftingTable=async(...args)=>{const table=await ensure(...args);f.removeTable();return table}
+  f.bot.findBlock=()=>assert.fail('must not find another table')
+  f.bot.placeBlock=()=>assert.fail('must not bootstrap table')
+  const result=await executePreparationStep(f.args)
+  assert.equal(result.code,'NEARBY_TABLE_REQUIRED');assert.equal(f.crafts(),0)
+  assert.equal(f.pm.cachedCraftingTable(f.bot),null)
+})
+
+test('local recipe input removed after table preflight gives specific refusal without ingredient recursion', async () => {
+  const f=recipePreparation(),ensure=f.pm.ensureCraftingTable.bind(f.pm)
+  f.pm.ensureCraftingTable=async(...args)=>{const table=await ensure(...args);f.items[0].count=1;return table}
+  const result=await executePreparationStep(f.args)
+  assert.equal(result.code,'RECIPE_INPUTS_CHANGED');assert.equal(f.crafts(),0)
+  assert.equal(result.remainingPlan.collect.cobblestone,1)
+})
+
+test('sword appearing in async preparation window is equipped without crafting a duplicate', async () => {
+  const f=recipePreparation(),ensure=f.pm.ensureCraftingTable.bind(f.pm)
+  const recipes=f.bot.recipesAll();f.bot.recipesAll=()=>[...recipes,{...recipes[0],delta:[{id:4,count:-2}]}]
+  f.pm.ensureCraftingTable=async(...args)=>{const table=await ensure(...args);f.items.push({name:'stone_sword',type:3,count:1});return table}
+  const result=await executePreparationStep(f.args)
+  assert.equal(result.ok,true);assert.equal(f.crafts(),0)
+  assert.equal(f.bot.heldItem.name,'stone_sword');assert.equal(result.final.inventory.stone_sword,1)
+  assert.equal(result.steps[0].result.skipped,true)
+})
+
+test('safety interruption stays latched if threat disappears before error handling', async () => {
+  const f=recipePreparation()
+  f.pm.craftInternal=async(_bot,_name,_q,_depth,_trail,execution)=>{
+    f.bot.entities.z={name:'zombie',type:'hostile',position:new Vec3(1,64,0)}
+    assert.throws(()=>execution.beforeAction({operation:'craft',item:'stone_sword'}),/THREAT/)
+    f.bot.entities={}
+    execution.beforeAction({operation:'craft',item:'stone_sword'})
+  }
+  const result=await executePreparationStep(f.args)
+  assert.equal(result.code,'THREAT');assert.equal(result.final.threat,null);assert.equal(f.crafts(),0)
+})
+
+test('limited dispatch refuses unsupported weapons and any threat, including a carriable sword under threat', () => {
+  const base={health:20,food:20,time:'day',inventory:{},equippedWeapon:null,nearby:{wood:false,stone:false},objective:{type:'explore'}}
+  const dispatch=state=>preparationDispatchTask({enabled:true,state,objective:{type:'explorar'}})
+  assert.equal(dispatch({...base,craftable:['wooden_sword']}),null)
+  assert.equal(dispatch({...base,inventory:{iron_sword:1},craftable:[]}),null)
+  assert.equal(dispatch({...base,inventory:{stone_sword:1},threat:{type:'zombie',distance:8,count:1}}),null)
+  assert.equal(dispatch({...base,inventory:{stone_sword:1,iron_sword:1}}),null)
+  assert.equal(dispatch({...base,craftable:['stone_sword'],cancellationRequested:true}),null)
+  assert.equal(dispatch({...base,food:5,craftable:['stone_sword'],nearby:{food:true,foodDistance:2},baseKnown:true,baseDistance:50}),null)
+})
+
+test('pickaxe lost after partial pickup prevents a second authorized stone dig', async () => {
+  const bot=unarmedBot(),positions=[new Vec3(2,64,0),new Vec3(0,64,2)],dug=[]
+  const items=[{name:'stick',count:1},{name:'stone_pickaxe',count:1}],alive=new Set(positions.map(p=>p.toString()))
+  let looking
+  bot.inventory.items=()=>items
+  bot.registry={blocksArray:[{id:1,name:'stone',drops:[2]}],items:{2:{name:'cobblestone'}},blocksByName:{stone:{drops:[2]}}}
+  bot.findBlocks=()=>positions.filter(p=>alive.has(p.toString()))
+  bot.blockAt=p=>({name:alive.has(p.toString())?'stone':'air',position:p})
+  bot.canDigBlock=()=>true;bot.lookAt=async p=>{looking=p.offset(-.5,-.5,-.5)};bot.blockAtCursor=()=>({position:looking})
+  bot.pathfinder={bestHarvestTool:()=>items.find(i=>i.name==='stone_pickaxe')||null,goto:()=>assert.fail('must not navigate')}
+  bot.equip=async()=>{}
+  bot.dig=async block=>{dug.push(block.position);alive.delete(block.position.toString());items.splice(1,1,{name:'cobblestone',count:1})}
+  const result=await executePreparationStep({enabled:true,bot,task:{type:'explorar'},production:{cachedCraftingTable:()=>({position:new Vec3(-1,64,-1)})},allowedTargets:positions.map(p=>({...p,name:'stone'}))})
+  assert.equal(result.code,'MINING_PICKAXE_REQUIRED');assert.equal(dug.length,1)
+  assert.equal(result.final.inventory.cobblestone,1);assert.equal(result.remainingPlan.collect.cobblestone,1)
+})

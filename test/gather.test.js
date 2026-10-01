@@ -194,3 +194,10 @@ test('mineBlocks não marca alvo alternativo quando só há um candidato', async
   assert.equal(attempts[0].alternateTargetCandidateObserved, false)
   assert.equal(attempts[0].alternateTargetCandidateCount, 0)
 })
+
+test('generic gather keeps stage failure code when a dig error carries a library code', async () => {
+  const bot=collectionBot(),attempts=[]
+  bot.dig=async()=>{throw Object.assign(new Error('library dig error'),{code:'EIO'})}
+  assert.equal(await gather.mineBlocks(bot,n=>n==='oak_log',1,()=>false,{onAttempt:e=>attempts.push(e)}),0)
+  assert.equal(attempts[0].code,'DIG_FAILED')
+})

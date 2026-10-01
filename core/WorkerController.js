@@ -244,6 +244,7 @@ class WorkerController {
       : bot.nearestEntity((e) => e.type === 'hostile' && e.position.distanceTo(bot.entity.position) <= FLEE_DISTANCE)
     if (!threat) return null
 
+    const preparationDrain = this._preparationDrain
     this.cancel()
     this.defending = true
     this.state = 'defendendo'
@@ -251,6 +252,8 @@ class WorkerController {
     const isCancelled = () => version !== this.taskVersion
     let result = 'fugi'
     try {
+      if (preparationDrain) await preparationDrain.catch(() => {})
+      if (isCancelled()) return 'cancelado'
       if (combat.decide(bot, threat) === 'lutar') {
         result = await combat.fight(bot, threat, isCancelled)
         if (result === 'recuei') await this.flee(threat, isCancelled)
@@ -434,6 +437,7 @@ class WorkerController {
       return { ok: false, code: 'OBJECTIVE_REQUIRED', juliaExecutionAuthority: 'none' }
     }
 
+    const ownerVersion = this.taskVersion
     return executePreparationStep({
       enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
       bot: this.bot,
@@ -442,7 +446,8 @@ class WorkerController {
       allowedTargets: Array.isArray(task.allowedTargets) ? task.allowedTargets : [],
       homeProvider: this.homeProvider,
       isCancelled,
-      timeoutMs: Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 20000
+      timeoutMs: Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 20000,
+      onEvent: event => this.logger.log?.(`[deterministic-preparation] ${JSON.stringify({ worker: this.name, taskVersion: ownerVersion, currentVersion: this.taskVersion, ...event })}`)
     })
   }
 

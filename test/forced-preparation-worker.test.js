@@ -111,3 +111,21 @@ test('missing objective remains an OBJECTIVE_REQUIRED result with a defined shad
   assert.equal(result.code, 'OBJECTIVE_REQUIRED')
   assert.equal(observed, task)
 })
+
+test('damage defense invalidates preparation immediately but waits before physical reaction', async () => {
+  const { Vec3 } = require('vec3')
+  const worker=bareWorker(),events=[]
+  const threat={name:'zombie',type:'hostile',position:new Vec3(1,64,0),isValid:true}
+  worker.bot.health=5;worker.bot.inventory={items:()=>[]};worker.bot.entities={z:threat}
+  worker.logger={log(){}}
+  worker.flee=async()=>{events.push('defense_physical')}
+  let start,release
+  const started=new Promise(r=>{start=r})
+  worker.runDeterministicPreparation=async(_task,cancelled)=>{start();await new Promise(r=>{release=r});assert.equal(cancelled(),true);events.push('preparation_settled');return {ok:false,code:'CANCELLED'}}
+  const preparing=worker.run({type:'preparar_combate_deterministico',objective:{type:'explorar'}})
+  await started
+  const defense=worker.defend(threat)
+  await new Promise(r=>setImmediate(r));assert.equal(worker.defending,true);assert.deepEqual(events,[])
+  release();await preparing;await defense
+  assert.deepEqual(events,['preparation_settled','defense_physical'])
+})

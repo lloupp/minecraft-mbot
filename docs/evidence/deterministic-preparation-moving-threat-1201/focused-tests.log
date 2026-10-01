@@ -1,0 +1,47 @@
+✔ deterministic preparation runs as an owned WorkerController task (1.593996ms)
+✔ a newer worker task cancels preparation through the normal taskVersion ownership (0.406825ms)
+✔ new owner waits for in-flight preparation and stale queued owners cannot act (4.823652ms)
+✔ missing objective remains an OBJECTIVE_REQUIRED result with a defined shadow task (0.401196ms)
+✔ damage defense invalidates preparation immediately but waits before physical reaction (1.909053ms)
+✔ dispatch policy only creates bounded preparation tasks for eligible deterministic intents (1.308826ms)
+✔ dispatch policy refuses preparation when safety or normal progress has precedence (0.189406ms)
+✔ planner collects exactly the missing recipe inputs, accounting for conversion batches (0.928291ms)
+✔ bridge has no effect unless explicitly enabled (0.429098ms)
+✔ preflight refuses missing table and unauthorized material sources before digging (2.396629ms)
+✔ cancel and critical food preempt physical preparation (0.693617ms)
+✔ authorized gathering never selects a closer unapproved block (0.918566ms)
+✔ visible approved block in physical reach does not require a navigation goal (0.358211ms)
+✔ carried sword cancels material plan and can be equipped without crafting again (1.188334ms)
+✔ opt-in collection refuses blocked target then uses only a visible approved alternative (0.60287ms)
+✔ in-flight craft inventory is recorded on cancellation and resume only equips the produced sword (0.755371ms)
+✔ live approved remaining source refines sparse perception and collects only the missing cobblestone (1.256958ms)
+✔ craft guard rechecks safety after async table lookup and before physical submission (2.445112ms)
+✔ table removed after preflight is refused without finding, making or placing another (0.770293ms)
+✔ local recipe input removed after table preflight gives specific refusal without ingredient recursion (0.608288ms)
+✔ sword appearing in async preparation window is equipped without crafting a duplicate (2.015082ms)
+✔ safety interruption stays latched if threat disappears before error handling (0.753758ms)
+✔ limited dispatch refuses unsupported weapons and any threat, including a carriable sword under threat (0.248345ms)
+✔ pickaxe lost after partial pickup prevents a second authorized stone dig (1.515538ms)
+✔ mineBlocks não volta a tentar na tarefa seguinte um bloco inalcançável (2.541026ms)
+✔ mineBlocks não conta o bloco como coletado se o drop não entra no inventário (1502.480136ms)
+✔ coleta confirma o item esperado, não qualquer crescimento do inventário (1503.330126ms)
+✔ cancelamento após dig preserva confirmação de item já adquirido (0.757513ms)
+✔ recurso desaparecido durante navegação não é cavado nem confirmado (0.315997ms)
+✔ dois coletores mantêm delta e cancelamento independentes (1.856573ms)
+✔ stone confirma cobblestone e recusa inventário cheio (0.294164ms)
+✔ coleta distingue erro de dig de recurso fora de alcance físico (0.343869ms)
+✔ drop esperado acompanha a ferramenta escolhida com silk touch (0.245851ms)
+✔ mineBlocks registra candidato alternativo observado sem afirmar alcançabilidade (0.553015ms)
+✔ mineBlocks não marca alvo alternativo quando só há um candidato (1503.554166ms)
+✔ generic gather keeps stage failure code when a dig error carries a library code (0.606836ms)
+✔ craftToStorage confirms success from observed inventory delta (1.278721ms)
+✔ craftToStorage rejects predicted production without physical item confirmation (1.148294ms)
+✔ craftToStorage requires storage confirmation when storage is configured (0.295547ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4696.017611

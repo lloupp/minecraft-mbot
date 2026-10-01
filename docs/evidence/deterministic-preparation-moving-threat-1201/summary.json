@@ -1,0 +1,230 @@
+{
+  "reference_head": "7286200d7b1bee0e239fc76568af5727b23c8006",
+  "minecraft": "1.20.1",
+  "opt_in": true,
+  "automatic_dispatch": false,
+  "julia_authority": "none",
+  "scenarios": {
+    "moving": {
+      "code": "THREAT",
+      "confirmed_cobblestone": 1,
+      "resumed_collection": 1,
+      "final_held": "stone_sword",
+      "source": "final/results.json",
+      "spawn_distance": 18,
+      "radius": 16,
+      "first_perception": {
+        "seq": 76,
+        "at": "2026-10-01T01:48:28.939Z",
+        "mono_ms": 23355.21189,
+        "scenario": "moving",
+        "event": "first_threat_perception",
+        "worker": "prep_A",
+        "taskVersion": 2,
+        "phase": "partial_pickup",
+        "threat": {
+          "type": "zombie",
+          "distance": 16,
+          "count": 1
+        },
+        "zombies": [
+          {
+            "id": 5,
+            "position": {
+              "x": 16.19067385526794,
+              "y": 200,
+              "z": 1.5100469048223786
+            },
+            "distance": 15.716468213456249,
+            "velocity": {
+              "x": -0.143875,
+              "y": -0.078375,
+              "z": -0.00075
+            }
+          }
+        ]
+      },
+      "interruption_at": {
+        "seq": 73,
+        "at": "2026-10-01T01:48:28.938Z",
+        "mono_ms": 23354.731355
+      },
+      "perception_to_return_ms": -0.481,
+      "last_action_before_perception": {
+        "seq": 52,
+        "at": "2026-10-01T01:48:28.184Z",
+        "mono_ms": 22600.121782,
+        "scenario": "moving",
+        "event": "dig_start",
+        "worker": "prep_A",
+        "taskVersion": 2,
+        "item": "stone",
+        "target": {
+          "x": 2,
+          "y": 200,
+          "z": 0
+        },
+        "active": 1,
+        "phase": "partial_pickup",
+        "threat": null,
+        "health": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1,
+          "cobblestone": 1
+        }
+      },
+      "dig_in_flight_cancelled": true
+    },
+    "attack_gather": {
+      "code": "CANCELLED",
+      "confirmed_cobblestone": 1,
+      "resumed_collection": 1,
+      "final_held": "stone_sword",
+      "source": "final/results.json",
+      "health_before": 20,
+      "health_after": 17,
+      "damage_during_dig": true,
+      "damage_at": {
+        "seq": 244,
+        "at": "2026-10-01T01:48:42.122Z",
+        "mono_ms": 36538.458534,
+        "scenario": "attack_gather",
+        "event": "health",
+        "worker": "prep_A",
+        "taskVersion": 8,
+        "before": 20,
+        "after": 17,
+        "internalActive": false,
+        "phase": "primed_zombie_contact",
+        "threat": {
+          "type": "zombie",
+          "distance": 1,
+          "count": 1
+        },
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1,
+          "cobblestone": 1
+        }
+      },
+      "setup": "AI-active zombie primed outside radius with movement_speed=0, then server teleport to contact while second dig is already in flight; no NoAI"
+    },
+    "attack_craft": {
+      "code": "THREAT",
+      "health_before": 20,
+      "health_after": 17,
+      "damage_during_bot_craft_and_craftInternal": true,
+      "craft_start_ms": 45655.168534,
+      "damage_ms": 46130.41533,
+      "craft_end_ms": 46602.228938,
+      "internal_end_ms": 46679.066753,
+      "sword_produced_despite_interruption": 1,
+      "stable_inventory": {
+        "stone_sword": 1
+      },
+      "inventory_during_defense": {
+        "stone_sword": 1
+      },
+      "final_held": "stone_sword",
+      "source": "verification/results.json",
+      "setup": "AI-active primed zombie teleported to contact after bot.craft starts; player initially looks away, supplied table remains within 4 blocks; real turn/craft latency, no fake craft or promise-delay output"
+    },
+    "safety_craft_race": {
+      "code": "THREAT",
+      "new_physical_starts_after_gate": 0,
+      "inventory_unchanged": {
+        "cobblestone": 2,
+        "stick": 1
+      },
+      "final_held": "stone_sword",
+      "source": "verification/results.json",
+      "probe": "scheduling gate at real ensureCraftingTable await; waits for real entity perception; no fake model/state/physical result"
+    },
+    "table_removed": {
+      "code": "NEARBY_TABLE_REQUIRED",
+      "replacement_table_placed_by_bot": 0,
+      "material_preserved": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 2,
+        "oak_planks": 4
+      },
+      "restored_table_resume": "stone_sword",
+      "source": "final/results.json"
+    },
+    "remove_cobblestone": {
+      "code": "RECIPE_INPUTS_CHANGED",
+      "confirmed_remaining": 1,
+      "resumed_collection": 1,
+      "final_held": "stone_sword",
+      "source": "verification/results.json"
+    },
+    "add_sword": {
+      "code": "OK",
+      "physical_crafts": 0,
+      "stone_swords": 1,
+      "inputs_unspent": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 2,
+        "stone_sword": 1
+      },
+      "final_held": "stone_sword",
+      "source": "verification/results.json"
+    },
+    "remove_pickaxe": {
+      "code": "MINING_PICKAXE_REQUIRED",
+      "confirmed_partial": 1,
+      "resumed_collection": 1,
+      "final_held": "stone_sword",
+      "source": "final/results.json"
+    }
+  },
+  "reconnect": {
+    "executed": false,
+    "reason": "safety/craft race revealed real bugs; cycle stays on correction/revalidation per priority"
+  },
+  "dispatch": {
+    "passed": 8,
+    "total": 8,
+    "source": "verification/results.json",
+    "cancel_case": "controlled cancellation flag on frozen real snapshot; other cases real live snapshots",
+    "construction_only": true
+  },
+  "audit": {
+    "final": {
+      "authorized_digs": 15,
+      "unauthorized_digs": 0,
+      "maximum_concurrent_physical_calls_on_bot": 1,
+      "new_preparation_actions_after_safety": 0,
+      "unexpected_harness_or_bot_errors": 0
+    },
+    "verification": {
+      "authorized_digs": 5,
+      "unauthorized_digs": 0,
+      "maximum_concurrent_physical_calls_on_bot": 1,
+      "new_preparation_actions_after_safety": 0,
+      "unexpected_harness_or_bot_errors": 0
+    }
+  },
+  "failures_preserved": [
+    "baseline craft starts after real threat gate; table recreated/placed; duplicate stone_sword=2",
+    "baseline damage arrives only after preparation stops; not accepted as in-flight attack proof",
+    "first-fix craft attack likewise too late; transient inventory during defense captured",
+    "first-fix remove_cobblestone resume collected remaining but table became out of local range; fixture target corrected",
+    "first-fix WEAPON_ALREADY_AVAILABLE overwritten by later recipe input error; fixed/retested"
+  ],
+  "tests": {
+    "initial_focused": 16,
+    "final_focused": 39,
+    "full": 462,
+    "python": 2,
+    "check": "passed"
+  },
+  "initial_ci": {
+    "CI": "success",
+    "StateMachine compatibility spike": "success",
+    "head": "7286200d7b1bee0e239fc76568af5727b23c8006"
+  }
+}
