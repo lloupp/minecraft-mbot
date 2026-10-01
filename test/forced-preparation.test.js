@@ -407,3 +407,46 @@ test('reconnect recovery refuses ambiguous matching drops near the same destroye
     food.collectDrops = original
   }
 })
+
+test('limited recovery ignores wrong, outside-radius and still-existing-target drops', async () => {
+  const center = new Vec3(0, 64, 2)
+  const original = food.collectDrops
+  food.collectDrops = async () => assert.fail('refused drop must not start movement')
+  try {
+    for (const sample of [
+      { item: 'dirt', distance: 1, block: 'air' },
+      { item: 'cobblestone', distance: 2.01, block: 'air' },
+      { item: 'cobblestone', distance: 1, block: 'stone' }
+    ]) {
+      const drop = { name: 'item', isValid: true, position: center.offset(sample.distance,0,0), getDroppedItem: () => ({ name: sample.item }) }
+      const steps = []
+      const recovered = await recoverApprovedCobblestoneDrops({
+        bot: { entities: { drop }, blockAt: () => ({ name: sample.block }) },
+        allowedTargets: [{ x:0,y:64,z:2,name:'stone' }], maxItems:2,
+        snapshot: () => ({ inventory: {} }), check: () => {}, steps
+      })
+      assert.equal(recovered,0)
+      assert.deepEqual(steps,[])
+    }
+  } finally { food.collectDrops = original }
+})
+
+test('failed pickup remains in preparation refusal evidence without crediting the dig', async () => {
+  const bot = unarmedBot(), original = food.collectDrops
+  bot.inventory.items = () => [{ name:'stick',count:1 },{ name:'stone_pickaxe',count:1 }]
+  const blockAt = bot.blockAt
+  bot.blockAt = p => p.equals(new Vec3(0,64,2)) ? { name:'air',position:p } : blockAt(p)
+  bot.entities = { drop: { name:'item',isValid:true,position:new Vec3(.2,64,2.2),getDroppedItem:()=>({name:'cobblestone'}) } }
+  food.collectDrops = async () => {} // no server inventory confirmation
+  try {
+    const result = await executePreparationStep({ enabled:true,bot,task:{type:'explorar'},
+      production:{cachedCraftingTable:()=>({position:new Vec3(-1,64,-1)})},
+      allowedTargets:[{x:0,y:64,z:2,name:'stone'},{x:2,y:64,z:0,name:'stone'}] })
+    assert.equal(result.code,'APPROVED_TARGETS_INSUFFICIENT')
+    assert.equal(result.steps[0].task,'recover_drop')
+    assert.equal(result.steps[0].delta,0)
+    assert.equal(result.steps[0].inventoryConfirmed,false)
+    assert.equal(result.remainingPlan.collect.cobblestone,2)
+    assert.equal(result.final.inventory.cobblestone||0,0)
+  } finally { food.collectDrops = original }
+})

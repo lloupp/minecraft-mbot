@@ -1,0 +1,40 @@
+✔ deterministic preparation runs as an owned WorkerController task (1.804037ms)
+✔ a newer worker task cancels preparation through the normal taskVersion ownership (0.395545ms)
+✔ new owner waits for in-flight preparation and stale queued owners cannot act (6.498085ms)
+✔ missing objective remains an OBJECTIVE_REQUIRED result with a defined shadow task (0.526228ms)
+✔ damage defense invalidates preparation immediately but waits before physical reaction (8.827318ms)
+✔ defense exposes a fresh preparation resume candidate without auto-running it (1.167966ms)
+✔ any new owned task invalidates a pending preparation resume candidate (0.407582ms)
+✔ post-defense resume reads the live approved remainder missed by sparse nearby sampling (2.789693ms)
+✔ dispatch policy only creates bounded preparation tasks for eligible deterministic intents (1.572505ms)
+✔ dispatch policy refuses preparation when safety or normal progress has precedence (0.25003ms)
+✔ planner collects exactly the missing recipe inputs, accounting for conversion batches (1.068189ms)
+✔ bridge has no effect unless explicitly enabled (0.88667ms)
+✔ preflight refuses missing table and unauthorized material sources before digging (3.589876ms)
+✔ cancel and critical food preempt physical preparation (2.888008ms)
+✔ authorized gathering never selects a closer unapproved block (1.32607ms)
+✔ visible approved block in physical reach does not require a navigation goal (0.688528ms)
+✔ carried sword cancels material plan and can be equipped without crafting again (1.363495ms)
+✔ opt-in collection refuses blocked target then uses only a visible approved alternative (1.034509ms)
+✔ in-flight craft inventory is recorded on cancellation and resume only equips the produced sword (1.091433ms)
+✔ live approved remaining source refines sparse perception and collects only the missing cobblestone (2.104811ms)
+✔ craft guard rechecks safety after async table lookup and before physical submission (3.137007ms)
+✔ table removed after preflight is refused without finding, making or placing another (2.24587ms)
+✔ local recipe input removed after table preflight gives specific refusal without ingredient recursion (2.275944ms)
+✔ sword appearing in async preparation window is equipped without crafting a duplicate (1.287803ms)
+✔ safety interruption stays latched if threat disappears before error handling (0.941181ms)
+✔ limited dispatch refuses unsupported weapons and any threat, including a carriable sword under threat (0.294615ms)
+✔ pickaxe lost after partial pickup prevents a second authorized stone dig (3.332746ms)
+✔ closing connection after a submitted craft blocks equip before the delayed end event (0.954881ms)
+✔ reconnect recovery credits only an inventory-confirmed cobblestone drop near an approved destroyed target (0.428293ms)
+✔ reconnect recovery refuses ambiguous matching drops near the same destroyed target (0.235028ms)
+✔ limited recovery ignores wrong, outside-radius and still-existing-target drops (0.393181ms)
+✔ failed pickup remains in preparation refusal evidence without crediting the dig (1.101178ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 255.180928
