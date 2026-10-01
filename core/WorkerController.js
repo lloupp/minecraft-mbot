@@ -12,7 +12,7 @@ const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
 const { candidateIntents } = require('../lib/player-loop')
 const { realStateSnapshot } = require('../lib/real-state')
-const { executePreparationStep } = require('../lib/forced-preparation')
+const { executePreparationStep, preparationDispatchTask } = require('../lib/forced-preparation')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -108,6 +108,7 @@ class WorkerController {
     this.state = 'conectando'
     this.currentTask = null
     this.taskVersion = 0
+    this._preparationResumeCandidate = null
     this.exploreStep = 0
     this.workMoves = null
     this.penMoves = null
@@ -244,6 +245,15 @@ class WorkerController {
       : bot.nearestEntity((e) => e.type === 'hostile' && e.position.distanceTo(bot.entity.position) <= FLEE_DISTANCE)
     if (!threat) return null
 
+    const interruptedPreparation = this.currentTask?.type === 'preparar_combate_deterministico'
+      ? {
+          ...this.currentTask,
+          objective: this.currentTask.objective ? { ...this.currentTask.objective } : null,
+          allowedTargets: Array.isArray(this.currentTask.allowedTargets)
+            ? this.currentTask.allowedTargets.map((target) => ({ ...target }))
+            : []
+        }
+      : null
     const preparationDrain = this._preparationDrain
     this.cancel()
     this.defending = true
@@ -267,7 +277,33 @@ class WorkerController {
       if (!isCancelled()) {
         this.state = 'ocioso'
         bot.pathfinder?.setGoal(null)
+        this._preparationResumeCandidate = interruptedPreparation
+          ? this.buildPreparationResumeTask(interruptedPreparation)
+          : null
       }
+    }
+  }
+
+  buildPreparationResumeTask(interruptedTask) {
+    if (!interruptedTask?.objective || typeof interruptedTask.objective !== 'object') return null
+    const state = realStateSnapshot(this.bot, interruptedTask.objective, { homeProvider: this.homeProvider })
+    return preparationDispatchTask({
+      enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
+      state,
+      objective: interruptedTask.objective,
+      allowedTargets: Array.isArray(interruptedTask.allowedTargets) ? interruptedTask.allowedTargets : [],
+      timeoutMs: interruptedTask.timeoutMs
+    })
+  }
+
+  pendingPreparationResume() {
+    if (!this._preparationResumeCandidate) return null
+    return {
+      ...this._preparationResumeCandidate,
+      objective: this._preparationResumeCandidate.objective ? { ...this._preparationResumeCandidate.objective } : null,
+      allowedTargets: Array.isArray(this._preparationResumeCandidate.allowedTargets)
+        ? this._preparationResumeCandidate.allowedTargets.map((target) => ({ ...target }))
+        : []
     }
   }
 
@@ -325,6 +361,7 @@ class WorkerController {
     await this.waitReady()
     const preparationDrain = this._preparationDrain
     this.cancel()
+    this._preparationResumeCandidate = null
     const version = this.taskVersion
     const isCancelled = () => version !== this.taskVersion
     this.currentTask = { ...task }
