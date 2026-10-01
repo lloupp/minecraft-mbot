@@ -1,7 +1,8 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { preparationPlan, preparationDispatchTask, executePreparationStep } = require('../lib/forced-preparation')
+const { preparationPlan, preparationDispatchTask, recoverApprovedCobblestoneDrops, executePreparationStep } = require('../lib/forced-preparation')
 const gather = require('../lib/gather')
+const food = require('../lib/food')
 const { Vec3 } = require('vec3')
 
 
@@ -335,4 +336,74 @@ test('closing connection after a submitted craft blocks equip before the delayed
   assert.equal(resumed.intent, 'equip_best_weapon')
   assert.equal(equips, 1)
   assert.equal(f.crafts(), 1)
+})
+
+
+test('reconnect recovery credits only an inventory-confirmed cobblestone drop near an approved destroyed target', async () => {
+  const target = new Vec3(2, 64, 0)
+  let cobblestone = 0
+  const drop = {
+    name: 'item',
+    isValid: true,
+    position: new Vec3(2.4, 64, 0.2),
+    getDroppedItem: () => ({ name: 'cobblestone' })
+  }
+  const bot = {
+    entities: { drop },
+    blockAt: p => ({ name: p.equals(target) ? 'air' : 'air', position: p })
+  }
+  const original = food.collectDrops
+  food.collectDrops = async (_bot, center, cancelled, options) => {
+    assert.equal(center.equals(target), true)
+    assert.equal(options.radius, 2)
+    assert.equal(cancelled(), false)
+    cobblestone += 1
+  }
+  const steps = []
+  try {
+    const recovered = await recoverApprovedCobblestoneDrops({
+      bot,
+      allowedTargets: [{ x: 2, y: 64, z: 0, name: 'stone' }],
+      maxItems: 2,
+      stopped: () => false,
+      snapshot: () => ({ inventory: { cobblestone } }),
+      check: () => {},
+      steps
+    })
+    assert.equal(recovered, 1)
+    assert.equal(steps.length, 1)
+    assert.equal(steps[0].inventoryConfirmed, true)
+    assert.equal(steps[0].delta, 1)
+  } finally {
+    food.collectDrops = original
+  }
+})
+
+test('reconnect recovery refuses ambiguous matching drops near the same destroyed target', async () => {
+  const target = new Vec3(2, 64, 0)
+  const makeDrop = (x) => ({
+    name: 'item',
+    isValid: true,
+    position: new Vec3(x, 64, 0),
+    getDroppedItem: () => ({ name: 'cobblestone' })
+  })
+  const bot = {
+    entities: { a: makeDrop(2.2), b: makeDrop(2.6) },
+    blockAt: p => ({ name: p.equals(target) ? 'air' : 'air', position: p })
+  }
+  const original = food.collectDrops
+  food.collectDrops = async () => assert.fail('ambiguous drops must not be collected')
+  try {
+    const recovered = await recoverApprovedCobblestoneDrops({
+      bot,
+      allowedTargets: [{ x: 2, y: 64, z: 0, name: 'stone' }],
+      maxItems: 2,
+      stopped: () => false,
+      snapshot: () => ({ inventory: {} }),
+      check: () => {}
+    })
+    assert.equal(recovered, 0)
+  } finally {
+    food.collectDrops = original
+  }
 })
