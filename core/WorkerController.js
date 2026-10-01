@@ -424,7 +424,7 @@ class WorkerController {
       const clearDrain = () => { if (this._preparationDrain === taskPromise) this._preparationDrain = null }
       taskPromise.then(clearDrain, clearDrain)
     }
-    this._observeShadow(task.type === 'preparar_combate_deterministico' ? task.objective : task, isCancelled, taskPromise)
+    this._observeShadow(task.type === 'preparar_combate_deterministico' ? (task.objective || task) : task, isCancelled, taskPromise)
     return taskPromise
   }
 

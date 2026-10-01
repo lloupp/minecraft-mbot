@@ -42,7 +42,7 @@ Craft cancellation is triggered immediately after the first actual `window_click
 
 ## Tests
 
-Initial requested checks passed: `npm run check`, requested three Node files 21/21, sidecar Python 2/2. After fixes: check passed; focused preparation/player-loop/gather/recovery/shadow tests 40/40; complete `npm test` **450/450**; Python **2/2**. Raw final logs included. No long benchmark.
+Initial requested checks passed: `npm run check`, requested three Node files 21/21, sidecar Python 2/2. After fixes: check passed; focused preparation/player-loop/gather/recovery/shadow tests 41/41; complete `npm test` **451/451**; Python **2/2**. Raw final logs included. No long benchmark.
 
 Reproduce on an isolated server installation with Java 17, dependencies and the pinned Julia snapshot already installed:
 
@@ -57,8 +57,10 @@ node docs/evidence/deterministic-preparation-interruption-1201/run.js
 
 `SCENARIOS=new_order,threat` limits the run to affected scenarios. Output directory must be fresh. Server config uses localhost:25566 and `interruption-world`; sidecar localhost:8768. Harness commands are test fixture setup, not model execution. Servers/bots/sidecar are stopped after captures.
 
+The final defensive follow-up keeps a defined shadow task when objective is absent, so the owned task still returns `OBJECTIVE_REQUIRED`; regression included. Physical captures precede this missing-objective fallback only (valid-objective execution is unchanged). `measured-code-sha256.json` identifies the exact captured source; `final-code-sha256.json` identifies the final guarded source. The earlier successful 450-test log is retained separately.
+
 ## Remaining limits / next step
 
-No normal-loop automatic preparation, bootstrap tools/table, generic resource selection, atomic craft cancellation, combat efficacy, reconnect persistence or broad navigation guarantee is proved. Preparation supports a local stone-sword recipe with a supplied live table, mining tool and approved reachable sources. A threat appearing between a safety check and a packet remains a cooperative race; no new step starts after detection in these captures. The fixed drain covers replacement of an in-flight preparation, not serialization of every legacy worker operation.
+No normal-loop automatic preparation, bootstrap tools/table, generic resource selection, atomic craft cancellation, combat efficacy, reconnect persistence or broad navigation guarantee is proved. Preparation supports a local stone-sword recipe with a supplied live table, mining tool and approved reachable sources. A threat appearing between a safety check and a packet remains a cooperative race; no new step starts after detection in these captures. The fixed drain covers replacement of an in-flight preparation, not serialization of every legacy worker operation. A craft that never settles can hold the replacement; no safe hard abort/rollback is claimed.
 
 Before integration, define a bounded deterministic dispatch policy and test moving/attacking threats, pending pickups across disconnects and table/inventory changes without expanding authority. Before any limited Julia authority, retain a separate deterministic executor/allowlist, safety precedence and ownership checks; these successful preparation tests alone do not justify model authority. Main unchanged, no merge.

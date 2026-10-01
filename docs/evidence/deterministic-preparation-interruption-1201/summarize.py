@@ -97,7 +97,7 @@ for name in ['new_order','threat']:
         assert any(e['event'] == 'pathfinder_stop' for e in es)
         summary['scenarios'][name]['monitor_stop_observed'] = True
 summary['physical_audit'] = physical
-summary['tests'] = {'initial_requested_node':21,'final_focused_node':40,'final_full_node':450,'python':2,'check':'passed'}
+summary['tests'] = {'initial_requested_node':21,'final_focused_node':41,'final_full_node':451,'python':2,'check':'passed'}
 
 summary['limitations'] = ['Craft already submitted can finish after cancellation; no atomic rollback.',
     'NoAI zombie is a real nearby entity, not a combat damage/flee efficacy test.',

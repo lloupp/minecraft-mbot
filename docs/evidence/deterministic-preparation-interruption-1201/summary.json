@@ -268,8 +268,8 @@
   },
   "tests": {
     "initial_requested_node": 21,
-    "final_focused_node": 40,
-    "final_full_node": 450,
+    "final_focused_node": 41,
+    "final_full_node": 451,
     "python": 2,
     "check": "passed"
   },

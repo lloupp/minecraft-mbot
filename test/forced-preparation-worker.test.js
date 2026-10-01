@@ -101,3 +101,13 @@ test('new owner waits for in-flight preparation and stale queued owners cannot a
   assert.equal((await next).ok, true)
   assert.deepEqual(events, ['preparation_start', 'preparation_settled', 'new_owner'])
 })
+
+test('missing objective remains an OBJECTIVE_REQUIRED result with a defined shadow task', async () => {
+  const worker = bareWorker()
+  let observed
+  worker._observeShadow = task => { observed = task }
+  const task = { type: 'preparar_combate_deterministico', allowedTargets: [] }
+  const result = await worker.run(task)
+  assert.equal(result.code, 'OBJECTIVE_REQUIRED')
+  assert.equal(observed, task)
+})
