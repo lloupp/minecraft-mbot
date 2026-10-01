@@ -1,0 +1,46 @@
+{
+  "checks": {
+    "handoff_partial_inventory_1": true,
+    "handoff_real_interrupt": true,
+    "candidate_original_objective_and_allowlist": true,
+    "manual_exact_task": true,
+    "manual_collects_only_remaining_1": true,
+    "handoff_sword_and_continue": true,
+    "new_order_invalidates_pending": true,
+    "threat_blocks_then_explicit_reevaluation": true,
+    "critical_food_precedence": true,
+    "post_defense_snapshots_stable": true,
+    "snapshot_timestamps": true,
+    "confirmed_reconnect_remaining_1": true,
+    "unconfirmed_reconnect_no_dig_credit": true,
+    "sword_disconnect_refuses_next_equip": true,
+    "sword_reconnect_only_equips": true,
+    "no_automatic_preparation": true,
+    "zero_unauthorized_digs": true,
+    "zero_preparation_overlap": true,
+    "no_old_session_actions_after_end": true,
+    "no_physical_after_quit_fixed_session": true
+  },
+  "passed": 20,
+  "total": 20,
+  "snapshot_offsets_ms": [
+    0,
+    250.04443099999844,
+    500.0159999999996,
+    999.8537120000001
+  ],
+  "known_refusals": {
+    "out_of_reach_table": "NEARBY_TABLE_REQUIRED",
+    "pickup_unconfirmed": "APPROVED_TARGETS_INSUFFICIENT",
+    "hunger_resolved_but_remaining_target_outside_4m": null
+  },
+  "preserved_failures": [
+    "baseline/ environment startup",
+    "baseline-real/threat sparse source lost",
+    "baseline-affected/threat sparse source lost",
+    "final-handoff/ table beyond reach",
+    "reconnect/reconnect_sword equip after quit before end"
+  ],
+  "julia_execution_authority": "none",
+  "automatic_resume": false
+}

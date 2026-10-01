@@ -12,7 +12,7 @@ const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
 const { candidateIntents } = require('../lib/player-loop')
 const { realStateSnapshot } = require('../lib/real-state')
-const { executePreparationStep, preparationDispatchTask } = require('../lib/forced-preparation')
+const { executePreparationStep, preparationDispatchTask, preparationStateSnapshot } = require('../lib/forced-preparation')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -286,7 +286,10 @@ class WorkerController {
 
   buildPreparationResumeTask(interruptedTask) {
     if (!interruptedTask?.objective || typeof interruptedTask.objective !== 'object') return null
-    const state = realStateSnapshot(this.bot, interruptedTask.objective, { homeProvider: this.homeProvider })
+    const state = preparationStateSnapshot(this.bot, interruptedTask.objective, {
+      homeProvider: this.homeProvider,
+      allowedTargets: Array.isArray(interruptedTask.allowedTargets) ? interruptedTask.allowedTargets : []
+    })
     return preparationDispatchTask({
       enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
       state,

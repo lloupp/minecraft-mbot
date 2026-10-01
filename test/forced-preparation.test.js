@@ -310,3 +310,29 @@ test('pickaxe lost after partial pickup prevents a second authorized stone dig',
   assert.equal(result.code,'MINING_PICKAXE_REQUIRED');assert.equal(dug.length,1)
   assert.equal(result.final.inventory.cobblestone,1);assert.equal(result.remainingPlan.collect.cobblestone,1)
 })
+
+
+test('closing connection after a submitted craft blocks equip before the delayed end event', async () => {
+  const f = recipePreparation(), craft = f.pm.craftInternal.bind(f.pm)
+  let equips = 0
+  f.bot._client = { ended: false, serializer: { writableEnded: false } }
+  f.bot.equip = async item => { equips++; f.bot.heldItem = item }
+  f.pm.craftInternal = async (...args) => {
+    const result = await craft(...args)
+    f.bot._client.serializer.writableEnded = true
+    return result
+  }
+  const result = await executePreparationStep(f.args)
+  assert.equal(result.code, 'DISCONNECTED')
+  assert.equal(result.interrupted, true)
+  assert.equal(result.final.inventory.stone_sword, 1)
+  assert.equal(result.remainingPlan.collect.cobblestone, 0)
+  assert.equal(equips, 0)
+  assert.equal(f.crafts(), 1)
+  f.bot._client = { ended: false, serializer: { writableEnded: false } }
+  const resumed = await executePreparationStep(f.args)
+  assert.equal(resumed.ok, true)
+  assert.equal(resumed.intent, 'equip_best_weapon')
+  assert.equal(equips, 1)
+  assert.equal(f.crafts(), 1)
+})

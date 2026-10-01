@@ -188,3 +188,39 @@ test('any new owned task invalidates a pending preparation resume candidate', as
   assert.equal(result.ok, true)
   assert.equal(worker.pendingPreparationResume(), null)
 })
+
+test('post-defense resume reads the live approved remainder missed by sparse nearby sampling', () => {
+  const { Vec3 } = require('vec3')
+  const worker = bareWorker()
+  const position = new Vec3(1.417, 200, 3.518)
+  const target = { x: 2, y: 200, z: 0, name: 'stone' }
+  let liveName = 'stone'
+  let hostile = null
+  worker.bot = {
+    health: 17, food: 20, time: { timeOfDay: 1000 },
+    entity: { position }, entities: {},
+    inventory: { items: () => [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 1 }, { name: 'stone_pickaxe', count: 1 }] },
+    heldItem: { name: 'stone_pickaxe' },
+    blockAt: p => ({ name: p.equals(new Vec3(2, 200, 0)) ? liveName : 'air' }),
+    nearestEntity: predicate => hostile && predicate(hostile) ? hostile : null
+  }
+  const task = { type: 'preparar_combate_deterministico', objective: { type: 'explorar', radius: 16 }, allowedTargets: [target] }
+  const previous = process.env.MBOT_DETERMINISTIC_PREPARATION
+  process.env.MBOT_DETERMINISTIC_PREPARATION = '1'
+  try {
+    assert.equal(require('../lib/real-state').realStateSnapshot(worker.bot, task.objective).nearby.stone, false)
+    const resume = worker.buildPreparationResumeTask(task)
+    assert.equal(resume.deterministicIntent, 'gather_materials')
+    assert.deepEqual(resume.objective, task.objective)
+    assert.deepEqual(resume.allowedTargets, [target])
+    liveName = 'air'
+    assert.equal(worker.buildPreparationResumeTask(task), null)
+    liveName = 'stone'
+    hostile = { name: 'zombie', type: 'hostile', position: position.offset(2, 0, 0) }
+    worker.bot.entities = { zombie: hostile }
+    assert.equal(worker.buildPreparationResumeTask(task), null)
+  } finally {
+    if (previous === undefined) delete process.env.MBOT_DETERMINISTIC_PREPARATION
+    else process.env.MBOT_DETERMINISTIC_PREPARATION = previous
+  }
+})
