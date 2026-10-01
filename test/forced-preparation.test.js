@@ -450,3 +450,90 @@ test('failed pickup remains in preparation refusal evidence without crediting th
     assert.equal(result.final.inventory.cobblestone||0,0)
   } finally { food.collectDrops = original }
 })
+
+
+test('recovery interruption preserves a zero-credit recovery step before movement', async () => {
+  const target = new Vec3(2, 64, 0)
+  const drop = {
+    id: 17,
+    name: 'item',
+    isValid: true,
+    position: new Vec3(2.2, 64, 0),
+    getDroppedItem: () => ({ name: 'cobblestone' })
+  }
+  const bot = { entities: { drop }, blockAt: () => ({ name: 'air' }) }
+  const original = food.collectDrops
+  let cancelled = false
+  const steps = []
+  food.collectDrops = async (_bot, _center, _stopped, options) => {
+    cancelled = true
+    options.beforeMove(drop)
+  }
+  try {
+    await assert.rejects(
+      recoverApprovedCobblestoneDrops({
+        bot,
+        allowedTargets: [{ x: 2, y: 64, z: 0, name: 'stone' }],
+        maxItems: 1,
+        stopped: () => cancelled,
+        snapshot: () => ({ inventory: {} }),
+        check: () => { if (cancelled) throw new Error('CANCELLED') },
+        steps
+      }),
+      /CANCELLED/
+    )
+    assert.equal(steps.length, 1)
+    assert.equal(steps[0].selectedDropId, 17)
+    assert.equal(steps[0].delta, 0)
+    assert.equal(steps[0].inventoryConfirmed, false)
+  } finally {
+    food.collectDrops = original
+  }
+})
+
+test('recovery never switches to a replacement cobblestone entity after selection', async () => {
+  const target = new Vec3(2, 64, 0)
+  const selected = {
+    id: 21,
+    name: 'item',
+    isValid: true,
+    position: new Vec3(2.2, 64, 0),
+    getDroppedItem: () => ({ name: 'cobblestone' })
+  }
+  const replacement = {
+    id: 22,
+    name: 'item',
+    isValid: true,
+    position: new Vec3(2.3, 64, 0),
+    getDroppedItem: () => ({ name: 'cobblestone' })
+  }
+  const bot = { entities: { selected }, blockAt: () => ({ name: 'air' }) }
+  const original = food.collectDrops
+  const steps = []
+  food.collectDrops = async (_bot, _center, _stopped, options) => {
+    assert.equal(options.matches(selected), true)
+    assert.equal(options.matches(replacement), false)
+    selected.isValid = false
+    bot.entities = { replacement }
+    options.beforeMove(selected)
+  }
+  try {
+    await assert.rejects(
+      recoverApprovedCobblestoneDrops({
+        bot,
+        allowedTargets: [{ x: 2, y: 64, z: 0, name: 'stone' }],
+        maxItems: 1,
+        stopped: () => false,
+        snapshot: () => ({ inventory: {} }),
+        check: () => {},
+        steps
+      }),
+      /RECOVERY_DROP_CHANGED/
+    )
+    assert.equal(steps.length, 1)
+    assert.equal(steps[0].selectedDropId, 21)
+    assert.equal(steps[0].inventoryConfirmed, false)
+  } finally {
+    food.collectDrops = original
+  }
+})
