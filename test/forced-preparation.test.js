@@ -1,6 +1,6 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { preparationPlan, preparationDispatchTask, recoverApprovedCobblestoneDrops, executePreparationStep } = require('../lib/forced-preparation')
+const { preparationPlan, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, recoverApprovedCobblestoneDrops, executePreparationStep } = require('../lib/forced-preparation')
 const gather = require('../lib/gather')
 const food = require('../lib/food')
 const { Vec3 } = require('vec3')
@@ -66,6 +66,132 @@ test('dispatch policy refuses preparation when safety or normal progress has pre
     objective: { type: 'explorar' },
     allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }]
   }), null)
+})
+
+
+test('integration preflight requires live table, mining tool and enough live approved targets', () => {
+  const position = new Vec3(0, 64, 0)
+  const tablePosition = new Vec3(-1, 64, 0)
+  const stones = [new Vec3(1, 64, 0), new Vec3(0, 64, 1)]
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: { stick: 1, stone_pickaxe: 1 },
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { wood: false, stone: true, iron: false },
+    objective: { type: 'explore', completed: false },
+    threat: null,
+    cancellationRequested: false
+  }
+  const items = [{ name: 'stick', count: 1 }, { name: 'stone_pickaxe', count: 1 }]
+  const bot = {
+    entity: { position },
+    inventory: { items: () => items },
+    registry: {
+      blocksArray: [{ id: 1, name: 'stone', drops: [2] }],
+      blocksByName: { stone: { id: 1, name: 'stone', drops: [2] }, crafting_table: { id: 3, name: 'crafting_table' } },
+      items: { 2: { name: 'cobblestone' } }
+    },
+    blockAt: p => {
+      if (p.equals(tablePosition)) return { name: 'crafting_table', position: p }
+      if (stones.some(s => s.equals(p))) return { name: 'stone', position: p }
+      return { name: 'air', position: p }
+    },
+    canDigBlock: () => true,
+    pathfinder: { bestHarvestTool: () => items[1] }
+  }
+  const production = { cachedCraftingTable: () => ({ position: tablePosition }) }
+  const allowedTargets = stones.map(p => ({ x: p.x, y: p.y, z: p.z, name: 'stone' }))
+
+  const ready = preparationIntegrationPreflight({ bot, production, state, allowedTargets })
+  assert.equal(ready.ok, true)
+  assert.equal(ready.choice, 'gather_materials')
+  assert.equal(ready.requiredTargets, 2)
+
+  const task = preparationIntegrationTask({
+    enabled: true,
+    bot,
+    production,
+    state,
+    objective: { type: 'explorar' },
+    allowedTargets
+  })
+  assert.equal(task.type, 'preparar_combate_deterministico')
+  assert.equal(task.integrationPreflight.choice, 'gather_materials')
+
+  production.cachedCraftingTable = () => null
+  assert.equal(preparationIntegrationTask({
+    enabled: true, bot, production, state, objective: { type: 'explorar' }, allowedTargets
+  }), null)
+
+  production.cachedCraftingTable = () => ({ position: tablePosition })
+  items.splice(1, 1)
+  assert.equal(preparationIntegrationTask({
+    enabled: true, bot, production, state, objective: { type: 'explorar' }, allowedTargets
+  }), null)
+})
+
+test('integration preflight refuses physically unusable approved targets before task creation', () => {
+  const position = new Vec3(0, 64, 0)
+  const tablePosition = new Vec3(-1, 64, 0)
+  const nearStone = new Vec3(1, 64, 0)
+  const farStone = new Vec3(8, 64, 0)
+  const pickaxe = { name: 'stone_pickaxe', count: 1 }
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: { stick: 1, stone_pickaxe: 1 },
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { stone: true },
+    objective: { type: 'explore', completed: false }
+  }
+  const bot = {
+    entity: { position },
+    inventory: { items: () => [pickaxe] },
+    registry: {
+      blocksArray: [{ id: 1, name: 'stone', drops: [2] }],
+      blocksByName: { stone: { id: 1, name: 'stone', drops: [2] } },
+      items: { 2: { name: 'cobblestone' } }
+    },
+    blockAt: p => {
+      if (p.equals(tablePosition)) return { name: 'crafting_table', position: p }
+      if (p.equals(nearStone) || p.equals(farStone)) return { name: 'stone', position: p }
+      return { name: 'air', position: p }
+    },
+    canDigBlock: block => !block.position.equals(nearStone),
+    pathfinder: { bestHarvestTool: () => pickaxe }
+  }
+  const production = { cachedCraftingTable: () => ({ position: tablePosition }) }
+  const preflight = preparationIntegrationPreflight({
+    bot,
+    production,
+    state,
+    allowedTargets: [
+      { x: nearStone.x, y: nearStone.y, z: nearStone.z, name: 'stone' },
+      { x: farStone.x, y: farStone.y, z: farStone.z, name: 'stone' }
+    ]
+  })
+  assert.equal(preflight.ok, false)
+  assert.equal(preflight.code, 'APPROVED_TARGETS_INSUFFICIENT')
+})
+
+test('integration preflight allows carried stone sword without requiring a crafting table', () => {
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: { stone_sword: 1 },
+    craftable: [],
+    equippedWeapon: null,
+    nearby: {},
+    objective: { type: 'explore', completed: false }
+  }
+  const bot = { entity: { position: new Vec3(0, 64, 0) } }
+  const preflight = preparationIntegrationPreflight({ bot, production: {}, state })
+  assert.equal(preflight.ok, true)
+  assert.equal(preflight.choice, 'equip_best_weapon')
+  assert.equal(preflight.tableRequired, false)
 })
 
 test('planner collects exactly the missing recipe inputs, accounting for conversion batches', () => {
