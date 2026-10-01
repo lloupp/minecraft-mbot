@@ -109,6 +109,38 @@ test('unarmed objective without nearby materials does not invent a gather target
   )
 })
 
+
+test('forced unarmed gather requires an actionable wood-plus-stone preparation path', () => {
+  const base = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    objective: { type: 'explore', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents({ ...base, nearby: { wood: true, stone: false, iron: false } }).map(item => item.id),
+    ['continue_objective']
+  )
+  assert.deepEqual(
+    candidateIntents({ ...base, nearby: { wood: false, stone: false, iron: true } }).map(item => item.id),
+    ['continue_objective']
+  )
+  assert.deepEqual(
+    candidateIntents({ ...base, inventory: { stick: 1 }, nearby: { wood: false, stone: true, iron: false } }).map(item => item.id),
+    ['gather_materials']
+  )
+  assert.deepEqual(
+    candidateIntents({ ...base, inventory: { cobblestone: 2 }, nearby: { wood: true, stone: false, iron: false } }).map(item => item.id),
+    ['gather_materials']
+  )
+})
+
 test('repeated failures with a known alternative route expose only replan', () => {
   const state = byId('repeated_failure_replan').initialState
   assert.deepEqual(
