@@ -1,8 +1,71 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { preparationPlan, executePreparationStep } = require('../lib/forced-preparation')
+const { preparationPlan, preparationDispatchTask, executePreparationStep } = require('../lib/forced-preparation')
 const gather = require('../lib/gather')
 const { Vec3 } = require('vec3')
+
+
+test('dispatch policy only creates bounded preparation tasks for eligible deterministic intents', () => {
+  const base = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { wood: true, stone: true, iron: false },
+    objective: { type: 'explore', completed: false },
+    threat: null,
+    cancellationRequested: false
+  }
+
+  assert.equal(preparationDispatchTask({ enabled: false, state: base, objective: { type: 'explorar' }, allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }] }), null)
+  assert.equal(preparationDispatchTask({ enabled: true, state: base, objective: { type: 'explorar' }, allowedTargets: [] }), null)
+
+  const task = preparationDispatchTask({
+    enabled: true,
+    state: base,
+    objective: { type: 'explorar', radius: 16 },
+    allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }]
+  })
+  assert.equal(task.type, 'preparar_combate_deterministico')
+  assert.equal(task.deterministicIntent, 'gather_materials')
+  assert.equal(task.objective.type, 'explorar')
+})
+
+test('dispatch policy refuses preparation when safety or normal progress has precedence', () => {
+  const safeBase = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { wood: true, stone: true, iron: false },
+    objective: { type: 'explore', completed: false }
+  }
+
+  const threat = {
+    ...safeBase,
+    threat: { type: 'zombie', distance: 3, count: 1 }
+  }
+  assert.equal(preparationDispatchTask({
+    enabled: true,
+    state: threat,
+    objective: { type: 'explorar' },
+    allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }]
+  }), null)
+
+  const armed = {
+    ...safeBase,
+    inventory: { stone_sword: 1 },
+    equippedWeapon: 'stone_sword'
+  }
+  assert.equal(preparationDispatchTask({
+    enabled: true,
+    state: armed,
+    objective: { type: 'explorar' },
+    allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }]
+  }), null)
+})
 
 test('planner collects exactly the missing recipe inputs, accounting for conversion batches', () => {
   assert.deepEqual(preparationPlan({ inventory: { stick: 1 } }).collect, { logs: 0, cobblestone: 2 })
