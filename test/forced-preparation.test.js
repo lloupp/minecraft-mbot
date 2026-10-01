@@ -99,6 +99,7 @@ test('integration preflight requires live table, mining tool and enough live app
       return { name: 'air', position: p }
     },
     canDigBlock: () => true,
+    canSeeBlock: () => true,
     pathfinder: { bestHarvestTool: () => items[1] }
   }
   const production = { cachedCraftingTable: () => ({ position: tablePosition }) }
@@ -161,6 +162,7 @@ test('integration preflight refuses physically unusable approved targets before 
       return { name: 'air', position: p }
     },
     canDigBlock: block => !block.position.equals(nearStone),
+    canSeeBlock: () => true,
     pathfinder: { bestHarvestTool: () => pickaxe }
   }
   const production = { cachedCraftingTable: () => ({ position: tablePosition }) }
@@ -709,4 +711,38 @@ test('own pickup followed by entity removal still requires inventory confirmatio
       assert.equal(bot.listenerCount('playerCollect'), 0)
     } finally { food.collectDrops = original }
   }
+})
+
+test('integration preflight refuses exposed targets hidden by obstacles or supporting falling blocks', () => {
+  const targets = [new Vec3(0, 64, 2), new Vec3(2, 64, 0)]
+  const table = new Vec3(-1, 64, -1)
+  let visible = true, falling = false
+  const pickaxe = { name: 'stone_pickaxe', count: 1 }
+  const bot = {
+    entity: { position: new Vec3(0.5, 64, 0.5) },
+    inventory: { items: () => [pickaxe] },
+    registry: { blocksByName: { stone: { drops: [1] } }, items: { 1: { name: 'cobblestone' } } },
+    pathfinder: { bestHarvestTool: () => pickaxe },
+    canDigBlock: () => true,
+    canSeeBlock: () => visible,
+    blockAt: p => ({ position: p, name: p.equals(table) ? 'crafting_table' : targets.some(t => t.equals(p)) ? 'stone' : falling && targets.some(t => t.offset(0, 1, 0).equals(p)) ? 'gravel' : 'air' })
+  }
+  const args = {
+    enabled: true, bot, production: { cachedCraftingTable: () => ({ position: table }) },
+    objective: { type: 'explorar' },
+    state: { health: 20, food: 20, inventory: { stick: 1, stone_pickaxe: 1 }, craftable: [], nearby: { stone: true }, objective: { type: 'explore' } },
+    allowedTargets: targets.map(t => ({ x: t.x, y: t.y, z: t.z, name: 'stone' }))
+  }
+  assert.ok(preparationIntegrationTask(args))
+  visible = false
+  assert.equal(preparationIntegrationPreflight(args).code, 'APPROVED_TARGETS_INSUFFICIENT')
+  assert.equal(preparationIntegrationTask(args), null)
+  visible = true; falling = true
+  assert.equal(preparationIntegrationTask(args), null)
+  falling = false
+  delete bot.canSeeBlock
+  assert.equal(preparationIntegrationTask(args), null)
+  bot.canSeeBlock = () => true
+  delete bot.canDigBlock
+  assert.equal(preparationIntegrationTask(args), null)
 })

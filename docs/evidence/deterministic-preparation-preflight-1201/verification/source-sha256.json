@@ -1,0 +1,7 @@
+{
+  "lib/forced-preparation.js": "b73117865a838697210a6d9fcd0a15c88935bba55aaa481da2c4863c111cbbb5",
+  "lib/gather.js": "ab641c985f88011097c17669fed7d4e5f4f2838f3aafab33c8520f8eecd37be0",
+  "core/ProductionManager.js": "62a874a8664016bf2f8764273f5b18679928a969d66403603da685b564ddf044",
+  "core/WorkerController.js": "c48895cb7e06b69da3d990967dc9eab8e40497ccbaa7266049f63661f96abd5d",
+  "lib/food.js": "c02543490045c69be8416d8048b543f1857df5c9b3fa89fb1e17c31d818eb28b"
+}
