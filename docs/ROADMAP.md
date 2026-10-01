@@ -327,6 +327,72 @@ Não migrar tudo de uma vez.
 - farms especializadas;
 - defesa coordenada da base.
 
+### Campanha Survival completa → Ender Dragon → Endgame
+
+Objetivo futuro: permitir que o bot comece em um mundo survival novo e progrida
+por marcos observáveis até derrotar o Ender Dragon e alcançar o endgame, sem
+entregar estratégia global diretamente ao modelo.
+
+Arquitetura desejada:
+
+```text
+Campaign Manager
+  → objetivo atual
+  → Goal Planner
+  → Player Loop V2
+  → estado → candidatos válidos → decisão → validator → executor
+  → novo estado
+  → verificação de progresso
+```
+
+Progressão inicial planejada:
+
+```text
+SURVIVE
+→ IRON_AGE
+→ ESTABLISH_BASE
+→ DIAMOND_AGE
+→ ENTER_NETHER
+→ FIND_FORTRESS
+→ FARM_BLAZE
+→ ACQUIRE_PEARLS
+→ FIND_STRONGHOLD
+→ PREPARE_END
+→ KILL_DRAGON
+→ FIND_END_CITY
+→ GET_ELYTRA
+→ GET_SHULKERS
+→ NETHERITE
+→ KILL_WITHER
+→ BUILD_BEACON
+→ INDUSTRIAL_ENDGAME
+```
+
+Cada objetivo deve ter pré-condições, condição objetiva de conclusão,
+recuperação limitada e próximo objetivo. Regras críticas de sobrevivência
+continuam determinísticas e podem interromper a campanha; após a emergência,
+o bot retoma ou replana a partir do último checkpoint seguro.
+
+A persistência deve ser mínima: campanha, objetivo atual, checkpoint e progresso
+necessário para retomar após reconnect/restart. Não criar persistência complexa
+nem permitir retomada automática antes de ela ser validada separadamente.
+
+A implementação deve ser incremental:
+
+1. `SURVIVE → IRON_AGE → DIAMOND_AGE → ENTER_NETHER`;
+2. Fortress/Blaze/Pearls;
+3. Stronghold/Ender Dragon;
+4. End City/Elytra/Shulkers;
+5. Netherite/Wither/Beacon;
+6. infraestrutura e farms de endgame.
+
+Critério final de sucesso: em teste survival controlado, partir de um mundo novo
+e alcançar progressivamente os marcos da campanha sem intervenção humana,
+mantendo safety layer, candidatos válidos, validator e executor determinístico.
+
+**Fora do escopo do PR #78** e de qualquer trabalho de recuperação limitada de
+drop/reconnect em andamento. Implementar somente em PR futuro dedicado.
+
 ---
 
 ## Critério geral de conclusão
