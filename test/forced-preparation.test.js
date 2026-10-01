@@ -9,6 +9,7 @@ test('planner collects exactly the missing recipe inputs, accounting for convers
   assert.deepEqual(preparationPlan({ inventory: { cobblestone: 2 } }).collect, { logs: 1, cobblestone: 0 })
   assert.deepEqual(preparationPlan({ inventory: { oak_planks: 2, cobblestone: 1 } }).collect, { logs: 0, cobblestone: 1 })
   assert.deepEqual(preparationPlan({ inventory: { oak_log: 1, cobblestone: 2 } }).collect, { logs: 0, cobblestone: 0 })
+  assert.deepEqual(preparationPlan({ inventory: { stick: 1, cobblestone: 1 } }).collect, { logs: 0, cobblestone: 1 })
 })
 
 test('bridge has no effect unless explicitly enabled', async () => {
@@ -41,10 +42,15 @@ test('preflight refuses missing table and unauthorized material sources before d
 
 test('cancel and critical food preempt physical preparation', async () => {
   const bot = unarmedBot()
-  assert.equal((await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, isCancelled: () => true })).code, 'SAFETY_OR_CANCELLED')
+  const cancelled = await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, isCancelled: () => true })
+  assert.equal(cancelled.code, 'CANCELLED')
+  assert.equal(cancelled.interrupted, true)
+
   bot.food = 5
   bot.entities = { cow: { name: 'cow', position: new Vec3(1, 64, 0) } }
-  assert.equal((await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, homeProvider: () => new Vec3(100, 64, 0) })).code, 'SAFETY_OR_CANCELLED')
+  const hungry = await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, homeProvider: () => new Vec3(100, 64, 0) })
+  assert.equal(hungry.code, 'SAFETY_FIND_FOOD')
+  assert.equal(hungry.interrupted, true)
 })
 
 test('authorized gathering never selects a closer unapproved block', async () => {
