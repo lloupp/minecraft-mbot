@@ -1,0 +1,3 @@
+PHYSICAL PASS stick_stone [ 'gather_materials', 'prepare_combat' ] stone_sword equipped
+PHYSICAL PASS cobble_wood [ 'gather_materials', 'prepare_combat' ] stone_sword equipped
+PASS: 0 real guardrail snapshots; 2 physical preparations; Julia authority none

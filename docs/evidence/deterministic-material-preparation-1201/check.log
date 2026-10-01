@@ -1,0 +1,4 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> minecraft-mbot@1.0.0 check
+> for f in index.js core/*.js lib/*.js; do node --check "$f" || exit 1; done

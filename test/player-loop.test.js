@@ -72,7 +72,7 @@ test('armed-tool mine_iron still gathers combat materials before unarmed progres
   const state = {
     health: 20,
     food: 20,
-    inventory: { stone_pickaxe: 1 },
+    inventory: { stone_pickaxe: 1, stick: 1 },
     craftable: [],
     equippedWeapon: null,
     equippedTool: 'stone_pickaxe',
@@ -123,6 +123,10 @@ test('forced unarmed gather requires an actionable wood-plus-stone preparation p
     baseKnown: true
   }
 
+  assert.deepEqual(
+    candidateIntents({ ...base, inventory: { oak_planks: 1 }, nearby: { stone: true } }).map(item => item.id),
+    ['continue_objective']
+  )
   assert.deepEqual(
     candidateIntents({ ...base, nearby: { wood: true, stone: false, iron: false } }).map(item => item.id),
     ['continue_objective']

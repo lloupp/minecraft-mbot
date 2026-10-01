@@ -1,0 +1,105 @@
+Starting net.minecraft.server.Main
+[20:15:04] [ServerMain/INFO]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[20:15:04] [Yggdrasil Key Fetcher/ERROR]: Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.AuthenticationUnavailableException: Cannot contact authentication server
+	at com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.makeRequest(YggdrasilAuthenticationService.java:119) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.makeRequest(YggdrasilAuthenticationService.java:91) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:94) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.lambda$get$1(YggdrasilServicesKeyInfo.java:81) ~[authlib-4.0.43.jar:?]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539) ~[?:?]
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:305) ~[?:?]
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305) ~[?:?]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136) ~[?:?]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635) ~[?:?]
+	at java.lang.Thread.run(Thread.java:840) ~[?:?]
+Caused by: java.net.UnknownHostException: api.minecraftservices.com
+	at sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:572) ~[?:?]
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.net.Socket.connect(Socket.java:633) ~[?:?]
+	at sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at sun.net.www.http.HttpClient.openServer(HttpClient.java:533) ~[?:?]
+	at sun.net.www.http.HttpClient.openServer(HttpClient.java:638) ~[?:?]
+	at sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:267) ~[?:?]
+	at sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:381) ~[?:?]
+	at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1307) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1148) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1077) ~[?:?]
+	at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1717) ~[?:?]
+	at sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1641) ~[?:?]
+	at sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:224) ~[?:?]
+	at com.mojang.authlib.HttpAuthenticationService.performGetRequest(HttpAuthenticationService.java:140) ~[authlib-4.0.43.jar:?]
+	at com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.makeRequest(YggdrasilAuthenticationService.java:96) ~[authlib-4.0.43.jar:?]
+	... 9 more
+[20:15:05] [ServerMain/INFO]: Loaded 7 recipes
+[20:15:05] [ServerMain/INFO]: Loaded 1271 advancements
+[20:15:06] [Server thread/INFO]: Starting minecraft server version 1.20.1
+[20:15:06] [Server thread/INFO]: Loading properties
+[20:15:06] [Server thread/INFO]: Default game type: SURVIVAL
+[20:15:06] [Server thread/INFO]: Generating keypair
+[20:15:06] [Server thread/INFO]: Starting Minecraft server on 127.0.0.1:25566
+[20:15:06] [Server thread/INFO]: Using epoll channel type
+[20:15:06] [Server thread/WARN]: Failed to find a usable hardware address from the network interfaces; using random bytes: 94:ba:7c:5d:2b:db:75:1a
+[20:15:06] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[20:15:06] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[20:15:06] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[20:15:06] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[20:15:06] [Server thread/INFO]: Preparing level "physical-preparation-world"
+[20:15:06] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[20:15:07] [Worker-Main-7/INFO]: Preparing spawn area: 0%
+[20:15:07] [Worker-Main-5/INFO]: Preparing spawn area: 0%
+[20:15:07] [Worker-Main-5/INFO]: Preparing spawn area: 0%
+[20:15:07] [Worker-Main-3/INFO]: Preparing spawn area: 0%
+[20:15:08] [Worker-Main-6/INFO]: Preparing spawn area: 84%
+[20:15:08] [Server thread/INFO]: Time elapsed: 2076 ms
+[20:15:08] [Server thread/INFO]: Done (2.178s)! For help, type "help"
+[20:15:08] [Server thread/INFO]: Gamerule doDaylightCycle is now set to: false
+[20:15:08] [Server thread/INFO]: Set the time to 1000
+[20:15:08] [Server thread/INFO]: Gamerule doMobSpawning is now set to: false
+[20:15:09] [Server thread/INFO]: Gamerule randomTickSpeed is now set to: 0
+[20:15:09] [Server thread/INFO]: Gamerule naturalRegeneration is now set to: false
+[20:15:16] [Server thread/INFO]: guardrail_probe[/127.0.0.1:45286] logged in with entity id 1 at (1.5, 200.0, 2.5)
+[20:15:16] [Server thread/INFO]: guardrail_probe joined the game
+[20:15:16] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[20:15:16] [Server thread/INFO]: No entity was found
+[20:15:16] [Server thread/INFO]: Set the time to 1000
+[20:15:16] [Server thread/INFO]: Target has no effects to remove
+[20:15:17] [Server thread/INFO]: Removed 3 item(s) from player guardrail_probe
+[20:15:17] [Server thread/INFO]: No blocks were filled
+[20:15:17] [Server thread/INFO]: Successfully filled 2 block(s)
+[20:15:17] [Server thread/INFO]: Teleported guardrail_probe to 0.500000, 200.000000, 0.500000
+[20:15:17] [Server thread/INFO]: Applied effect Saturation to guardrail_probe
+[20:15:19] [Server thread/INFO]: Target has no effects to remove
+[20:15:19] [Server thread/INFO]: Gave 1 [Stick] to guardrail_probe
+[20:15:19] [Server thread/INFO]: Gave 1 [Stone Pickaxe] to guardrail_probe
+[20:15:19] [Server thread/INFO]: Changed the block at 2, 200, 0
+[20:15:20] [Server thread/INFO]: Changed the block at 0, 200, 2
+[20:15:20] [Server thread/INFO]: Changed the block at -1, 200, -1
+[20:15:25] [Server thread/INFO]: The difficulty did not change; it is already set to peaceful
+[20:15:25] [Server thread/INFO]: No entity was found
+[20:15:26] [Server thread/INFO]: Set the time to 1000
+[20:15:26] [Server thread/INFO]: Target has no effects to remove
+[20:15:26] [Server thread/INFO]: Removed 2 item(s) from player guardrail_probe
+[20:15:26] [Server thread/INFO]: No blocks were filled
+[20:15:26] [Server thread/INFO]: Successfully filled 1 block(s)
+[20:15:27] [Server thread/INFO]: Teleported guardrail_probe to 0.500000, 200.000000, 0.500000
+[20:15:27] [Server thread/INFO]: Applied effect Saturation to guardrail_probe
+[20:15:28] [Server thread/INFO]: Target has no effects to remove
+[20:15:28] [Server thread/INFO]: Gave 2 [Cobblestone] to guardrail_probe
+[20:15:29] [Server thread/INFO]: Changed the block at 2, 200, 0
+[20:15:29] [Server thread/INFO]: Changed the block at -1, 200, -1
+[20:15:35] [Server thread/INFO]: guardrail_probe lost connection: Disconnected
+[20:15:35] [Server thread/INFO]: guardrail_probe left the game
+[20:15:35] [Server thread/INFO]: Stopping the server
+[20:15:35] [Server thread/INFO]: Stopping server
+[20:15:35] [Server thread/INFO]: Saving players
+[20:15:35] [Server thread/INFO]: Saving worlds
+[20:15:36] [Server thread/INFO]: Saving chunks for level 'ServerLevel[physical-preparation-world]'/minecraft:overworld
+[20:15:36] [Server thread/INFO]: Saving chunks for level 'ServerLevel[physical-preparation-world]'/minecraft:the_nether
+[20:15:36] [Server thread/INFO]: Saving chunks for level 'ServerLevel[physical-preparation-world]'/minecraft:the_end
+[20:15:36] [Server thread/INFO]: ThreadedAnvilChunkStorage (physical-preparation-world): All chunks are saved
+[20:15:36] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[20:15:36] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[20:15:36] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
