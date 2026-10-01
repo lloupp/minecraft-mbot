@@ -129,3 +129,62 @@ test('damage defense invalidates preparation immediately but waits before physic
   release();await preparing;await defense
   assert.deepEqual(events,['preparation_settled','defense_physical'])
 })
+
+
+test('defense exposes a fresh preparation resume candidate without auto-running it', async () => {
+  const { Vec3 } = require('vec3')
+  const worker = bareWorker()
+  worker.logger = { log() {} }
+  worker.bot.inventory = { items: () => [] }
+  worker.bot.entities = {}
+  const threat = { name: 'zombie', type: 'hostile', position: new Vec3(1, 64, 0), isValid: true }
+  const interrupted = {
+    type: 'preparar_combate_deterministico',
+    objective: { type: 'explorar', radius: 16 },
+    allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }],
+    timeoutMs: 12000
+  }
+  worker.currentTask = { ...interrupted }
+  worker._preparationDrain = Promise.resolve({ ok: false, code: 'THREAT' })
+  worker.flee = async () => {}
+  let builtFrom = null
+  let autoRuns = 0
+  worker.buildPreparationResumeTask = task => {
+    builtFrom = task
+    return {
+      type: 'preparar_combate_deterministico',
+      objective: { ...task.objective },
+      allowedTargets: task.allowedTargets.map(target => ({ ...target })),
+      deterministicIntent: 'gather_materials'
+    }
+  }
+  const originalRun = worker.run.bind(worker)
+  worker.run = async task => { autoRuns++; return originalRun(task) }
+
+  await worker.defend(threat)
+
+  assert.equal(autoRuns, 0)
+  assert.equal(builtFrom.type, 'preparar_combate_deterministico')
+  assert.deepEqual(builtFrom.objective, interrupted.objective)
+  assert.deepEqual(worker.pendingPreparationResume(), {
+    type: 'preparar_combate_deterministico',
+    objective: interrupted.objective,
+    allowedTargets: interrupted.allowedTargets,
+    deterministicIntent: 'gather_materials'
+  })
+})
+
+test('any new owned task invalidates a pending preparation resume candidate', async () => {
+  const worker = bareWorker()
+  worker._preparationResumeCandidate = {
+    type: 'preparar_combate_deterministico',
+    objective: { type: 'explorar' },
+    allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }]
+  }
+  worker.goToPoint = async () => ({ ok: true })
+
+  const result = await worker.run({ type: 'ir_local', position: { x: 1, y: 64, z: 0 } })
+
+  assert.equal(result.ok, true)
+  assert.equal(worker.pendingPreparationResume(), null)
+})
