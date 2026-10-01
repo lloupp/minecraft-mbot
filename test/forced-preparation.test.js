@@ -537,3 +537,50 @@ test('recovery never switches to a replacement cobblestone entity after selectio
     food.collectDrops = original
   }
 })
+
+test('recovery stops in-flight movement when its selected entity disappears', async () => {
+  const { EventEmitter } = require('node:events')
+  const drop = { id: 31, name: 'item', isValid: true, position: new Vec3(2, 64, 0), getDroppedItem: () => ({ name: 'cobblestone' }) }
+  const bot = Object.assign(new EventEmitter(), { entities: { drop }, blockAt: () => ({ name: 'air' }), entity: {}, pathfinder: { setGoal(goal) { assert.equal(goal, null); stopped++ } } })
+  let stopped = 0
+  const steps = [], original = food.collectDrops
+  food.collectDrops = async (_bot, _center, isCancelled, options) => {
+    options.beforeMove(drop)
+    bot.emit('entityGone', drop)
+    assert.equal(isCancelled(), true)
+    // A replacement entity must not be selected for another movement.
+    assert.equal(options.matches({ ...drop, id: 32 }), false)
+  }
+  try {
+    await assert.rejects(recoverApprovedCobblestoneDrops({ bot, allowedTargets: [{ x: 2, y: 64, z: 0, name: 'stone' }], maxItems: 1, snapshot: () => ({ inventory: {} }), check() {}, steps }), /RECOVERY_DROP_CHANGED/)
+    assert.equal(stopped, 1)
+    assert.equal(steps[0].delta, 0)
+    assert.equal(steps[0].inventoryConfirmed, false)
+    assert.equal(steps[0].interruption, 'RECOVERY_DROP_CHANGED')
+    assert.equal(bot.listenerCount('entityGone'), 0)
+    assert.equal(bot.listenerCount('playerCollect'), 0)
+  } finally { food.collectDrops = original }
+})
+
+test('own pickup followed by entity removal still requires inventory confirmation', async () => {
+  const { EventEmitter } = require('node:events')
+  for (const confirmed of [false, true]) {
+    const drop = { id: 41, name: 'item', isValid: true, position: new Vec3(2, 64, 0), getDroppedItem: () => ({ name: 'cobblestone' }) }
+    const bot = Object.assign(new EventEmitter(), { entities: { drop }, blockAt: () => ({ name: 'air' }), entity: {}, pathfinder: { setGoal() { assert.fail('own pickup is not an unrelated disappearance') } } })
+    const steps = [], original = food.collectDrops
+    let inventory = {}
+    food.collectDrops = async () => {
+      bot.emit('playerCollect', bot.entity, drop)
+      bot.emit('entityGone', drop)
+      if (confirmed) inventory = { cobblestone: 1 }
+    }
+    try {
+      const recovered = await recoverApprovedCobblestoneDrops({ bot, allowedTargets: [{ x: 2, y: 64, z: 0, name: 'stone' }], maxItems: 1, snapshot: () => ({ inventory }), check() {}, steps })
+      assert.equal(recovered, confirmed ? 1 : 0)
+      assert.equal(steps[0].pickupObserved, true)
+      assert.equal(steps[0].inventoryConfirmed, confirmed)
+      assert.equal(bot.listenerCount('entityGone'), 0)
+      assert.equal(bot.listenerCount('playerCollect'), 0)
+    } finally { food.collectDrops = original }
+  }
+})
