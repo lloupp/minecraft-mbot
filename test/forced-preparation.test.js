@@ -769,3 +769,24 @@ test('integration preflight refuses exposed targets hidden by obstacles or suppo
   delete bot.canDigBlock
   assert.equal(preparationIntegrationTask(args), null)
 })
+
+
+test('local-only preparation ignores configured storage and never invokes storage I/O', async () => {
+  const f = recipePreparation()
+  let storageCalls = 0
+  f.pm.storage = {
+    configured: () => true,
+    withdraw: async () => { storageCalls++; throw new Error('storage withdraw must not run') },
+    withdrawFirst: async () => { storageCalls++; throw new Error('storage withdrawFirst must not run') },
+    deposit: async () => { storageCalls++; throw new Error('storage deposit must not run') }
+  }
+
+  const result = await executePreparationStep(f.args)
+
+  assert.equal(result.ok, true)
+  assert.equal(result.intent, 'prepare_combat')
+  assert.equal(result.final.inventory.stone_sword, 1)
+  assert.equal(f.bot.heldItem.name, 'stone_sword')
+  assert.equal(storageCalls, 0)
+  assert.equal(f.crafts(), 1)
+})
