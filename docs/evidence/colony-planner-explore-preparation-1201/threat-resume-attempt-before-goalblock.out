@@ -1,0 +1,26 @@
+0.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+0.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 7, "pos": [310.5, 200, -316.5]}
+1.8 {"ev": "xpl.end", "w": "explorador_01", "v": 8, "ok": false, "code": "THREAT", "steps": [{"intent": "gather_materials", "ok": false, "code": "THREAT", "ownerVersion": 8}], "pos": [310.5, 200, -316
+1.8 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 8, "ok": false, "code": "THREAT", "steps": [{"intent": "gather_materials", "ok": false, "code": "THREAT", "ownerVersion": 8}], "pos
+15.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+15.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 9, "pos": [307.4, 200, -316.7]}
+15.5 {"ev": "explore.start", "w": "explorador_01", "v": 10, "pos": [309.5, 200, -316.5], "sm": "0"}
+18.3 {"ev": "xpl.end", "w": "explorador_01", "v": 10, "ok": true, "steps": [], "pos": [313.5, 200, -330.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+18.3 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 10, "ok": true, "steps": [], "pos": [313.5, 200, -330.5]}
+20.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+20.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 10, "pos": [313.5, 200, -330.5]}
+20.0 {"ev": "explore.start", "w": "explorador_01", "v": 11, "pos": [313.5, 200, -330.5], "sm": "0"}
+22.8 {"ev": "xpl.end", "w": "explorador_01", "v": 11, "ok": true, "steps": [], "pos": [328.4, 200, -331.3], "inv": "stone_pickaxe:1,cooked_beef:8"}
+22.8 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 11, "ok": true, "steps": [], "pos": [328.4, 200, -331.3]}
+25.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+25.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 11, "pos": [328.4, 200, -331.3]}
+25.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+28.7 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 12, "ok": true, "pos": [318.5, 200, -315.5]}
+30.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+30.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 12, "pos": [318.5, 200, -315.5]}
+30.0 {"ev": "explore.start", "w": "explorador_01", "v": 13, "pos": [318.5, 200, -315.5], "sm": "0"}
+55.1 {"ev": "runExplorePlayerLoop.reject", "w": "explorador_01", "err": "Took to long to decide path to goal!"}
+55.1 {"ev": "run.reject", "w": "explorador_01", "err": "Took to long to decide path to goal!"}
+FIN
+
+[exited with code 0]
