@@ -298,3 +298,58 @@ test('opt-in explore registers a live crafting table within 4 blocks before the 
     else process.env.MBOT_DETERMINISTIC_PREPARATION = previousPrep
   }
 })
+
+function withPreparationFlags(fn) {
+  const previousExplore = process.env.MBOT_EXPLORE_PREPARATION
+  const previousPrep = process.env.MBOT_DETERMINISTIC_PREPARATION
+  process.env.MBOT_EXPLORE_PREPARATION = '1'
+  process.env.MBOT_DETERMINISTIC_PREPARATION = '1'
+  const restore = () => {
+    if (previousExplore === undefined) delete process.env.MBOT_EXPLORE_PREPARATION
+    else process.env.MBOT_EXPLORE_PREPARATION = previousExplore
+    if (previousPrep === undefined) delete process.env.MBOT_DETERMINISTIC_PREPARATION
+    else process.env.MBOT_DETERMINISTIC_PREPARATION = previousPrep
+  }
+  return Promise.resolve().then(fn).finally(restore)
+}
+
+test('threat-interrupted preparation returns once to its validated site on the next explore', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  const goals = []
+  worker.goTo = async (goal) => { goals.push([goal.x, goal.y, goal.z]) }
+  worker.explore = async () => ({ ok: true })
+  worker.runDeterministicPreparation = async () => ({ ok: false, code: 'THREAT' })
+
+  const first = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(first.code, 'THREAT')
+  assert.deepEqual(worker._preparationSite.position, new Vec3(0, 64, 0))
+
+  worker.bot.entity.position = new Vec3(9, 64, 0) // deslocado pela defesa
+  worker.runDeterministicPreparation = async () => ({ ok: false, code: 'GATHER_ITEM_NOT_CONFIRMED' })
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.deepEqual(goals, [[0, 64, 0]])
+  assert.equal(worker._preparationSite, null) // uma tentativa só
+
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(goals.length, 1)
+}))
+
+test('preparation site is not revisited while a threat persists, when stale, or after a non-threat failure', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  const goals = []
+  worker.goTo = async (goal) => { goals.push(goal) }
+  worker.explore = async () => ({ ok: true })
+  worker.runDeterministicPreparation = async () => ({ ok: false, code: 'CANCELLED' })
+  worker.bot.entity.position = new Vec3(9, 64, 0)
+
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(worker._preparationSite ?? null, null) // nova ordem/cancelamento não cria local de retomada
+
+  worker._preparationSite = { position: new Vec3(0, 64, 0), at: Date.now() - 91000 }
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  worker._preparationSite = { position: new Vec3(0, 64, 0), at: Date.now() }
+  worker.bot.nearestEntity = () => ({ name: 'zombie', type: 'hostile', position: new Vec3(11, 64, 0), health: 20 })
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.deepEqual(goals, [])
+  assert.ok(worker._preparationSite) // ameaça presente: local preservado até o TTL
+}))

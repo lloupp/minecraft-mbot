@@ -34,6 +34,8 @@ const PATH_THINK_MS = 25000
 // workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
 const MS_PER_BLOCK = 700
 const POINT_ARRIVAL_RADIUS = 2
+const PREPARATION_SITE_TTL_MS = 90000
+const PREPARATION_SITE_MAX_DISTANCE = 16
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
@@ -1260,6 +1262,23 @@ class WorkerController {
     return targets
   }
 
+  // Depois de uma ameaça interromper a preparação, a defesa pode deslocar o bot para fora da janela
+  // local. Uma única volta ao local validado (nunca busca nova); o resto é reavaliado pelo snapshot real.
+  async returnToPreparationSite(task, isCancelled) {
+    const site = this._preparationSite
+    if (!site || isCancelled()) return
+    if (Date.now() - site.at > PREPARATION_SITE_TTL_MS) { this._preparationSite = null; return }
+    const state = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [], isCancelled })
+    if (state.threat) return // ameaça ainda presente: mantém o local até o TTL
+    this._preparationSite = null
+    if (state.equippedWeapon) return
+    const distance = this.bot.entity.position.distanceTo(site.position)
+    if (distance <= 1.5 || distance > PREPARATION_SITE_MAX_DISTANCE) return
+    try {
+      await this.goTo(new goals.GoalNear(site.position.x, site.position.y, site.position.z, 1), 15000)
+    } catch { /* sem caminho: segue com o snapshot real da posição atual */ }
+  }
+
   async runExplorePlayerLoop(task, isCancelled) {
     if (process.env.MBOT_EXPLORE_PREPARATION !== '1') {
       return this.explore(task.radius || 64, isCancelled, task.center || null)
@@ -1267,6 +1286,7 @@ class WorkerController {
 
     const preparationSteps = []
     const maxPreparationSteps = 3
+    await this.returnToPreparationSite(task, isCancelled)
 
     for (let step = 0; step < maxPreparationSteps; step++) {
       if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
@@ -1354,6 +1374,7 @@ class WorkerController {
       }
 
       const ownerVersion = this.taskVersion
+      const siteBefore = this.bot.entity.position.clone()
       const preparationPromise = this.runDeterministicPreparation(preparationTask, isCancelled)
       this._preparationDrain = preparationPromise
       try {
@@ -1365,6 +1386,7 @@ class WorkerController {
           ownerVersion
         })
         if (!result?.ok) {
+          if (result?.code === 'THREAT') this._preparationSite = { position: siteBefore, at: Date.now() }
           return {
             ...result,
             playerLoopPreparation: true,
