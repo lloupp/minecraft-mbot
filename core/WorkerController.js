@@ -1321,10 +1321,16 @@ class WorkerController {
         allowedTargets
       })
       if (!preflight.ok) {
+        if (preflight.code === 'SAFETY_PRECEDENCE') {
+          return { ok: false, code: preflight.code, intent: choice, preparationSteps }
+        }
+        // Sem condições físicas para preparar aqui (mesa, alvos, ferramenta...): não é erro
+        // da tarefa. Segue o caminho clássico em vez de deixar o explorador parado.
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
         return {
-          ok: false,
-          code: preflight.code || 'PREPARATION_PREFLIGHT_REFUSED',
-          intent: choice,
+          ...explored,
+          playerLoopPreparation: true,
+          preparationSkipped: { code: preflight.code || 'PREPARATION_PREFLIGHT_REFUSED', intent: choice },
           preparationSteps
         }
       }

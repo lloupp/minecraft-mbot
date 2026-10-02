@@ -169,7 +169,7 @@ test('configured colony storage does not block the local-only explore preparatio
   }
 })
 
-test('opt-in explore still fails closed when the physical preparation preflight refuses', async () => {
+test('opt-in explore falls back to classic exploration when the physical preflight cannot prepare here', async () => {
   const { worker } = integrationWorker()
   const previousExplore = process.env.MBOT_EXPLORE_PREPARATION
   const previousPrep = process.env.MBOT_DETERMINISTIC_PREPARATION
@@ -177,14 +177,16 @@ test('opt-in explore still fails closed when the physical preparation preflight 
   process.env.MBOT_DETERMINISTIC_PREPARATION = '1'
   worker.production.cachedCraftingTable = () => null
   worker.production.findCraftingTable = () => null
-  worker.explore = async () => assert.fail('explore must not start after refused preparation preflight')
+  let explored = 0
+  worker.explore = async () => { explored++; return { ok: true, x: 16, y: 64, z: 0 } }
   worker.runDeterministicPreparation = async () => assert.fail('executor must not run after refused preflight')
 
   try {
     const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
-    assert.equal(result.ok, false)
-    assert.equal(result.code, 'NEARBY_TABLE_REQUIRED')
-    assert.equal(result.intent, 'gather_materials')
+    assert.equal(result.ok, true)
+    assert.equal(explored, 1)
+    assert.deepEqual(result.preparationSkipped, { code: 'NEARBY_TABLE_REQUIRED', intent: 'gather_materials' })
+    assert.deepEqual(result.preparationSteps, [])
   } finally {
     if (previousExplore === undefined) delete process.env.MBOT_EXPLORE_PREPARATION
     else process.env.MBOT_EXPLORE_PREPARATION = previousExplore
