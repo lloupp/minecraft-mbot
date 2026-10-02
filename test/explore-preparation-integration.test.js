@@ -221,3 +221,34 @@ test('new owned task cancels opt-in explore preparation and waits for its physic
     else process.env.MBOT_DETERMINISTIC_PREPARATION = previousPrep
   }
 })
+
+test('opt-in explore registers a live crafting table within 4 blocks before the preflight', async () => {
+  const { worker } = integrationWorker()
+  const previousExplore = process.env.MBOT_EXPLORE_PREPARATION
+  const previousPrep = process.env.MBOT_DETERMINISTIC_PREPARATION
+  process.env.MBOT_EXPLORE_PREPARATION = '1'
+  process.env.MBOT_DETERMINISTIC_PREPARATION = '1'
+
+  const table = { name: 'crafting_table', position: new Vec3(-1, 64, 0) }
+  let remembered = null
+  const searched = []
+  worker.production.cachedCraftingTable = () => remembered
+  worker.production.findCraftingTable = (_bot, distance) => { searched.push(distance); return table }
+  worker.production.rememberCraftingTable = (_bot, block) => { remembered = block; return block }
+  let started = 0
+  worker.runDeterministicPreparation = async () => { started++; return { ok: false, code: 'STOP_AFTER_FIRST' } }
+  worker.explore = async () => assert.fail('explore must not run after a failed preparation step')
+
+  try {
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.deepEqual(searched, [4])
+    assert.equal(remembered, table)
+    assert.equal(started, 1)
+    assert.equal(result.code, 'STOP_AFTER_FIRST')
+  } finally {
+    if (previousExplore === undefined) delete process.env.MBOT_EXPLORE_PREPARATION
+    else process.env.MBOT_EXPLORE_PREPARATION = previousExplore
+    if (previousPrep === undefined) delete process.env.MBOT_DETERMINISTIC_PREPARATION
+    else process.env.MBOT_DETERMINISTIC_PREPARATION = previousPrep
+  }
+})

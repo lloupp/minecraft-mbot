@@ -1308,6 +1308,12 @@ class WorkerController {
         }
       }
 
+      // O preflight só aceita mesa já em cache; registra uma mesa real a ≤4 blocos (sem busca ampla).
+      if (!this.production.cachedCraftingTable?.(this.bot)) {
+        const nearbyTable = this.production.findCraftingTable?.(this.bot, 4)
+        if (nearbyTable) this.production.rememberCraftingTable(this.bot, nearbyTable)
+      }
+
       const preflight = preparationIntegrationPreflight({
         bot: this.bot,
         production: this.production,

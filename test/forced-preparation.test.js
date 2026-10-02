@@ -348,6 +348,29 @@ test('live approved remaining source refines sparse perception and collects only
   } finally { gather.mineBlocks = original }
 })
 
+test('gather step is confirmed by the inventory gain even when mineBlocks counted fewer items', async () => {
+  const bot = unarmedBot(), items = [{ name:'stick', count:1 }, { name:'cobblestone', count:1 }, { name:'stone_pickaxe', count:1 }]
+  const target = new Vec3(1, 64, 1)
+  bot.inventory.items = () => items
+  bot.blockAt = p => ({ name: p.equals(target) ? 'stone' : 'air', position:p })
+  bot.registry = { blocksByName:{ stone:{ drops:[1] } }, items:{ 1:{ name:'cobblestone' } } }
+  bot.pathfinder = { bestHarvestTool: () => items[2] }
+  const original = gather.mineBlocks
+  // Um drop pego tarde chega ao inventário, mas o contador do mineBlocks não o conta.
+  gather.mineBlocks = async (_, __, ___, ____, options) => {
+    assert.equal(options.retryPickup, true)
+    items[1].count++; options.onAttempt({ code:'TARGET_BLOCKED' }); return 0
+  }
+  try {
+    const result = await executePreparationStep({ enabled:true, bot, task:{ type:'explorar' },
+      production:{ cachedCraftingTable: () => ({ position:new Vec3(-1,64,-1) }) }, allowedTargets:[{ x:1,y:64,z:1,name:'stone' }] })
+    assert.equal(result.ok,true)
+    assert.equal(result.steps[0].collected,0)
+    assert.equal(result.steps[0].gained,1)
+    assert.equal(result.steps[0].inventoryConfirmed,true)
+  } finally { gather.mineBlocks = original }
+})
+
 function recipePreparation() {
   const { ProductionManager } = require('../core/ProductionManager')
   const bot = unarmedBot(), pos = new Vec3(-1,64,-1)

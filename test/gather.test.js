@@ -201,3 +201,36 @@ test('generic gather keeps stage failure code when a dig error carries a library
   assert.equal(await gather.mineBlocks(bot,n=>n==='oak_log',1,()=>false,{onAttempt:e=>attempts.push(e)}),0)
   assert.equal(attempts[0].code,'DIG_FAILED')
 })
+
+// Observado em 1.20.1: o tronco caiu a ~1,7 blocos do bot e o orçamento de 3 s de
+// collectDrops terminou antes do pickup. retryPickup (opt-in) dá uma segunda passada.
+function lateDropBot(pickupOnCall) {
+  const bot = collectionBot({ drop: null })
+  const items = bot.inventory.items()
+  let calls = 0
+  bot.entities = { 7: { name: 'item', isValid: true, position: new Vec3(3.2, 64, 2), getDroppedItem: () => ({ name: 'oak_log' }) } }
+  bot.pathfinder.goto = async () => { if (++calls === pickupOnCall) { items.push({ name: 'oak_log', count: 1 }); bot.entities = {} } }
+  return bot
+}
+
+test('retryPickup recolhe um drop que ainda está no chão; sem a opção o caminho clássico não muda', async () => {
+  const attempts = []
+  // goto #1 é a navegação até o bloco, #2–#4 a primeira passada de pickup, #5 a segunda.
+  assert.equal(await gather.mineBlocks(lateDropBot(5), n => n === 'oak_log', 1, () => false,
+    { retryPickup: true, onAttempt: e => attempts.push(e) }), 1)
+  assert.equal(attempts[0].itemConfirmed, true)
+  assert.equal(await gather.mineBlocks(lateDropBot(5), n => n === 'oak_log', 1, () => false), 0)
+})
+
+test('anchor devolve o bot à posição validada antes de checar visibilidade/alcance', async () => {
+  const bot = collectionBot()
+  bot.entity = { position: new Vec3(8.5, 64, 8.5) } // deslocado por um pickup anterior
+  bot.canDigBlock = () => true
+  bot.lookAt = async () => {}
+  bot.blockAtCursor = () => ({ position: new Vec3(2, 64, 2) })
+  const goals = []
+  bot.pathfinder.goto = async (goal) => { goals.push([goal.x, goal.z]); if (goals.length === 1) bot.entity.position = new Vec3(0.5, 64, 0.5) }
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, anchor: new Vec3(0.5, 64, 0.5) }), 1)
+  assert.deepEqual(goals, [[0, 0]]) // GoalNear usa o bloco; só a volta à âncora; o alvo já estava visível
+})
