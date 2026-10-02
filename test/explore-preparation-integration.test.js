@@ -161,3 +161,63 @@ test('nearby preparation allowlist never expands beyond the bounded local scan',
   assert.equal(requested.count, 32)
   assert.deepEqual(targets.map((target) => target.name), ['stone', 'stone'])
 })
+
+
+test('new owned task cancels opt-in explore preparation and waits for its physical drain', async () => {
+  const { worker } = integrationWorker()
+  const previousExplore = process.env.MBOT_EXPLORE_PREPARATION
+  const previousPrep = process.env.MBOT_DETERMINISTIC_PREPARATION
+  process.env.MBOT_EXPLORE_PREPARATION = '1'
+  process.env.MBOT_DETERMINISTIC_PREPARATION = '1'
+
+  worker.state = 'ocioso'
+  worker.currentTask = null
+  worker.workMoves = {}
+  worker.waitReady = async () => {}
+  worker.useMoves = () => {}
+  worker.leaveLeftoverPen = async () => {}
+  worker._observeShadow = () => {}
+  worker.bot.pathfinder.setGoal = () => {}
+  worker.bot.pathfinder.setMovements = () => {}
+
+  let release
+  let startedResolve
+  const started = new Promise((resolve) => { startedResolve = resolve })
+  const events = []
+  worker.runDeterministicPreparation = async (_task, isCancelled) => {
+    events.push('preparation_start')
+    startedResolve(isCancelled)
+    await new Promise((resolve) => { release = resolve })
+    events.push('preparation_settled')
+    return { ok: false, code: isCancelled() ? 'CANCELLED' : 'NOT_CANCELLED' }
+  }
+  worker.goToPoint = async () => {
+    events.push('new_owner_physical')
+    return { ok: true }
+  }
+
+  try {
+    const first = worker.run({ type: 'explorar', radius: 32 })
+    const firstCancelled = await started
+    assert.equal(firstCancelled(), false)
+
+    const second = worker.run({ type: 'ir_local', position: { x: 3, y: 64, z: 0 } })
+    await new Promise((resolve) => setImmediate(resolve))
+
+    assert.equal(firstCancelled(), true)
+    assert.deepEqual(events, ['preparation_start'])
+
+    release()
+    const firstResult = await first
+    const secondResult = await second
+
+    assert.equal(firstResult.code, 'CANCELLED')
+    assert.equal(secondResult.ok, true)
+    assert.deepEqual(events, ['preparation_start', 'preparation_settled', 'new_owner_physical'])
+  } finally {
+    if (previousExplore === undefined) delete process.env.MBOT_EXPLORE_PREPARATION
+    else process.env.MBOT_EXPLORE_PREPARATION = previousExplore
+    if (previousPrep === undefined) delete process.env.MBOT_DETERMINISTIC_PREPARATION
+    else process.env.MBOT_DETERMINISTIC_PREPARATION = previousPrep
+  }
+})
