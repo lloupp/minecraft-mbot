@@ -228,8 +228,9 @@ test('preflight refuses missing table and unauthorized material sources before d
   assert.equal((await executePreparationStep(args)).code, 'MINING_PICKAXE_REQUIRED')
   args.allowedTargets[2] = args.allowedTargets[1]
   assert.equal((await executePreparationStep(args)).code, 'APPROVED_TARGETS_INSUFFICIENT')
+  // Storage configurado não bloqueia mais o caminho local-only: a recusa continua sendo a física.
   args.production.storage = { configured: () => true }
-  assert.equal((await executePreparationStep(args)).code, 'LOCAL_PRODUCTION_REQUIRED')
+  assert.equal((await executePreparationStep(args)).code, 'APPROVED_TARGETS_INSUFFICIENT')
 })
 
 test('cancel and critical food preempt physical preparation', async () => {
