@@ -327,7 +327,7 @@ test('threat-interrupted preparation returns once to its validated site on the n
   worker.bot.entity.position = new Vec3(9, 64, 0) // deslocado pela defesa
   worker.runDeterministicPreparation = async () => ({ ok: false, code: 'GATHER_ITEM_NOT_CONFIRMED' })
   await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
-  assert.deepEqual(goals, [[0, 64, 0]])
+  assert.deepEqual(goals, [[0, 64, 0]]) // GoalBlock do local validado
   assert.equal(worker._preparationSite, null) // uma tentativa só
 
   await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)

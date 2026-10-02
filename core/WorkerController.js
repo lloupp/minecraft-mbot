@@ -1275,7 +1275,7 @@ class WorkerController {
     const distance = this.bot.entity.position.distanceTo(site.position)
     if (distance <= 0.5 || distance > PREPARATION_SITE_MAX_DISTANCE) return
     try {
-      await this.goTo(new goals.GoalNear(site.position.x, site.position.y, site.position.z, 1), 15000)
+      await this.goTo(new goals.GoalBlock(Math.floor(site.position.x), Math.floor(site.position.y), Math.floor(site.position.z)), 15000)
     } catch { /* sem caminho: segue com o snapshot real da posição atual */ }
   }
 
