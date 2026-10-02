@@ -10,9 +10,9 @@ const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = r
 const { resolveBlockNames } = require('./resources')
 const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
-const { candidateIntents } = require('../lib/player-loop')
+const { candidateIntents, deterministicPlayerPolicy } = require('../lib/player-loop')
 const { realStateSnapshot } = require('../lib/real-state')
-const { executePreparationStep, preparationDispatchTask, preparationStateSnapshot } = require('../lib/forced-preparation')
+const { executePreparationStep, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, preparationStateSnapshot } = require('../lib/forced-preparation')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -411,7 +411,7 @@ class WorkerController {
           result = await this.captureAnimals(task.species, task.count || 1, isCancelled)
           break
         case 'explorar':
-          result = await this.explore(task.radius || 64, isCancelled, task.center || null)
+          result = await this.runExplorePlayerLoop(task, isCancelled)
           break
         case 'ir_local':
           result = await this.goToPoint(task.position, isCancelled)
@@ -1230,6 +1230,159 @@ class WorkerController {
       captured,
       inside: insideNow,
       feed: feed.name
+    }
+  }
+
+  nearbyPreparationAllowlist(maxDistance = 4, maxTargets = 32) {
+    if (typeof this.bot.findBlocks !== 'function') return []
+    const supported = (this.bot.registry?.blocksArray || [])
+      .filter((block) => block.name === 'stone' || block.name === 'cobblestone' || block.name.endsWith('_log'))
+      .map((block) => block.id)
+    if (!supported.length) return []
+
+    const positions = this.bot.findBlocks({
+      matching: supported,
+      maxDistance,
+      count: maxTargets
+    }) || []
+
+    const seen = new Set()
+    const targets = []
+    for (const position of positions) {
+      if (!position || targets.length >= maxTargets) break
+      const key = position.toString()
+      if (seen.has(key)) continue
+      seen.add(key)
+      const block = this.bot.blockAt?.(position)
+      if (!block || !(block.name === 'stone' || block.name === 'cobblestone' || block.name.endsWith('_log'))) continue
+      targets.push({ x: position.x, y: position.y, z: position.z, name: block.name })
+    }
+    return targets
+  }
+
+  async runExplorePlayerLoop(task, isCancelled) {
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') {
+      return this.explore(task.radius || 64, isCancelled, task.center || null)
+    }
+
+    const preparationSteps = []
+    const maxPreparationSteps = 3
+
+    for (let step = 0; step < maxPreparationSteps; step++) {
+      if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+
+      const allowedTargets = this.nearbyPreparationAllowlist()
+      const state = preparationStateSnapshot(this.bot, task, {
+        homeProvider: this.homeProvider,
+        allowedTargets,
+        isCancelled
+      })
+      const candidates = candidateIntents(state)
+      const choice = deterministicPlayerPolicy(state, candidates)
+
+      if (choice === 'continue_objective') {
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
+        return {
+          ...explored,
+          playerLoopPreparation: true,
+          preparationSteps
+        }
+      }
+
+      if (!['gather_materials', 'prepare_combat', 'equip_best_weapon'].includes(choice)) {
+        return {
+          ok: false,
+          code: 'PLAYER_LOOP_PREEMPTED',
+          intent: choice,
+          candidates: candidates.map((candidate) => candidate.id),
+          preparationSteps
+        }
+      }
+
+      if (process.env.MBOT_DETERMINISTIC_PREPARATION !== '1') {
+        return {
+          ok: false,
+          code: 'PREPARATION_EXECUTOR_DISABLED',
+          intent: choice,
+          preparationSteps
+        }
+      }
+
+      const preflight = preparationIntegrationPreflight({
+        bot: this.bot,
+        production: this.production,
+        state,
+        allowedTargets
+      })
+      if (!preflight.ok) {
+        return {
+          ok: false,
+          code: preflight.code || 'PREPARATION_PREFLIGHT_REFUSED',
+          intent: choice,
+          preparationSteps
+        }
+      }
+
+      const preparationTask = preparationIntegrationTask({
+        enabled: true,
+        bot: this.bot,
+        production: this.production,
+        state,
+        objective: task,
+        allowedTargets,
+        timeoutMs: 20000
+      })
+      if (!preparationTask) {
+        return {
+          ok: false,
+          code: 'PREPARATION_TASK_NOT_CREATED',
+          intent: choice,
+          preparationSteps
+        }
+      }
+
+      const ownerVersion = this.taskVersion
+      const preparationPromise = this.runDeterministicPreparation(preparationTask, isCancelled)
+      this._preparationDrain = preparationPromise
+      try {
+        const result = await preparationPromise
+        preparationSteps.push({
+          intent: choice,
+          ok: result?.ok === true,
+          code: result?.code || null,
+          ownerVersion
+        })
+        if (!result?.ok) {
+          return {
+            ...result,
+            playerLoopPreparation: true,
+            preparationSteps
+          }
+        }
+      } finally {
+        if (this._preparationDrain === preparationPromise) this._preparationDrain = null
+      }
+    }
+
+    const finalTargets = this.nearbyPreparationAllowlist()
+    const finalState = preparationStateSnapshot(this.bot, task, {
+      homeProvider: this.homeProvider,
+      allowedTargets: finalTargets,
+      isCancelled
+    })
+    const finalCandidates = candidateIntents(finalState)
+    const finalChoice = deterministicPlayerPolicy(finalState, finalCandidates)
+    if (finalChoice === 'continue_objective') {
+      const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
+      return { ...explored, playerLoopPreparation: true, preparationSteps }
+    }
+
+    return {
+      ok: false,
+      code: 'PREPARATION_STEP_LIMIT',
+      intent: finalChoice,
+      candidates: finalCandidates.map((candidate) => candidate.id),
+      preparationSteps
     }
   }
 
