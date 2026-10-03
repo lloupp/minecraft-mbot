@@ -353,3 +353,110 @@ test('preparation site is not revisited while a threat persists, when stale, or 
   assert.deepEqual(goals, [])
   assert.ok(worker._preparationSite) // ameaça presente: local preservado até o TTL
 }))
+
+
+test('local preparation staging approaches only one existing table within eight blocks', async () => {
+  const { worker } = integrationWorker()
+  const tablePos = new Vec3(6, 64, 0)
+  let searchedDistance = null
+  let remembered = null
+  let moves = 0
+
+  worker.production.findCraftingTable = (_bot, maxDistance) => {
+    searchedDistance = maxDistance
+    return { name: 'crafting_table', position: tablePos }
+  }
+  worker.production.rememberCraftingTable = (_bot, block) => {
+    remembered = block
+    return block
+  }
+  worker.bot.blockAt = position => ({
+    name: position.equals(tablePos) ? 'crafting_table' : 'air',
+    position
+  })
+  worker.goTo = async goal => {
+    moves++
+    assert.equal(goal.x, 6)
+    assert.equal(goal.y, 64)
+    assert.equal(goal.z, 0)
+    worker.bot.entity.position = new Vec3(5, 64, 0)
+  }
+
+  const staged = await worker.tryLocalPreparationStaging(() => false)
+  assert.equal(staged, true)
+  assert.equal(searchedDistance, 8)
+  assert.equal(remembered.name, 'crafting_table')
+  assert.equal(moves, 1)
+
+  worker.bot.entity.position = new Vec3(0, 64, 0)
+  worker.production.findCraftingTable = () => ({ name: 'crafting_table', position: new Vec3(9, 64, 0) })
+  moves = 0
+  assert.equal(await worker.tryLocalPreparationStaging(() => false), false)
+  assert.equal(moves, 0)
+})
+
+test('local preparation staging respects ownership cancellation before movement', async () => {
+  const { worker } = integrationWorker()
+  let searched = 0
+  let moved = 0
+  worker.production.findCraftingTable = () => { searched++; return { name: 'crafting_table', position: new Vec3(6, 64, 0) } }
+  worker.goTo = async () => { moved++ }
+
+  assert.equal(await worker.tryLocalPreparationStaging(() => true), false)
+  assert.equal(searched, 0)
+  assert.equal(moved, 0)
+})
+
+test('opt-in explore can stage once near a local table, then prepare and continue exploring', () => withPreparationFlags(async () => {
+  const { worker, items } = integrationWorker()
+  const tablePos = new Vec3(6, 64, 0)
+  const stones = [new Vec3(6, 64, 1), new Vec3(6, 64, -1)]
+  let remembered = null
+  let stagingMoves = 0
+  const intents = []
+
+  worker.bot.registry.blocksArray = [
+    { id: 1, name: 'stone', drops: [2] },
+    { id: 3, name: 'crafting_table' }
+  ]
+  worker.bot.findBlocks = () => stones
+  worker.bot.blockAt = position => {
+    if (position.equals(tablePos)) return { name: 'crafting_table', position }
+    if (stones.some(stone => stone.equals(position))) return { name: 'stone', position }
+    return { name: 'air', position }
+  }
+  worker.production.cachedCraftingTable = () => remembered
+  worker.production.findCraftingTable = (_bot, maxDistance) =>
+    maxDistance >= 6 ? { name: 'crafting_table', position: tablePos } : null
+  worker.production.rememberCraftingTable = (_bot, block) => { remembered = block; return block }
+  worker.goTo = async goal => {
+    stagingMoves++
+    worker.bot.entity.position = new Vec3(goal.x - 1, goal.y, goal.z)
+  }
+
+  worker.runDeterministicPreparation = async task => {
+    intents.push(task.deterministicIntent)
+    if (task.deterministicIntent === 'gather_materials') {
+      items.push({ name: 'cobblestone', count: 2 })
+      return { ok: true }
+    }
+    if (task.deterministicIntent === 'prepare_combat') {
+      const sword = { name: 'stone_sword', count: 1 }
+      items.push(sword)
+      worker.bot.heldItem = sword
+      return { ok: true }
+    }
+    assert.fail(`unexpected preparation intent: ${task.deterministicIntent}`)
+  }
+
+  let explored = 0
+  worker.explore = async () => { explored++; return { ok: true, staged: true } }
+
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(result.ok, true)
+  assert.equal(result.staged, true)
+  assert.equal(stagingMoves, 1)
+  assert.deepEqual(intents, ['gather_materials', 'prepare_combat'])
+  assert.equal(result.preparationSteps.length, 2)
+  assert.equal(explored, 1)
+}))
