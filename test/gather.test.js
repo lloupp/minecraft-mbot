@@ -356,3 +356,22 @@ test('clearLeaves cava só as folhas que estão no raio de visada do alvo aprova
     { preferInReach: true, requireInReach: true, clearLeaves: true, allowedPositions: approved }), 1)
   assert.deepEqual(dug, [new Vec3(1, 64, 2).toString()])
 })
+
+test('clearLeaves: se o raio já atinge o alvo no início da iteração (atualização atrasada), o alvo é visível', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  bot.entity = { position: new Vec3(0.5, 64, 2.5) }
+  bot.lookAt = async () => {}
+  const leaf = { name: 'oak_leaves', position: new Vec3(1, 64, 2) }
+  // 1ª leitura (aims/centro) ocluída; após o dig a checagem imediata ainda vê folha; na leitura seguinte já é o alvo.
+  let dug = 0, staleLeft = 1
+  bot.blockAtCursor = () => (dug === 0 ? leaf : staleLeft-- > 0 ? leaf : { position: new Vec3(2, 64, 2) })
+  const origAt = bot.blockAt
+  bot.blockAt = (p) => (p.equals(new Vec3(2, 65, 2)) ? { name: 'oak_log', position: p } : origAt(p))
+  const origDig = bot.dig
+  bot.dig = async (b) => { if (b.name === 'oak_leaves') { dug++; return } return origDig(b) }
+  const approved = new Set([new Vec3(2, 64, 2).toString()])
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, clearLeaves: true, allowedPositions: approved }), 1)
+  assert.equal(dug, 1)
+})
