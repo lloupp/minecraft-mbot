@@ -246,3 +246,16 @@ test('landmarks base/storage vêm dos providers; só o carimbo de confirmação 
   assert.equal(lm.x, 9) // posição atual do provider, nunca cópia persistida
   assert.ok(lm.lastConfirmedAt)
 })
+
+test('route_failed acumula falhas por destino e hazard velho deixa de pesar', () => {
+  const c = clock()
+  const wm = new WorldMemory({ now: c.now })
+  wm.markHazard('route_failed', 'overworld', { x: 16, y: 64, z: 0 })
+  wm.markHazard('route_failed', 'overworld', { x: 17, y: 64, z: 1 })
+  assert.equal(wm.find('route_failed', 'overworld', { x: 16, y: 64, z: 0 }).failures, 2)
+  wm.visit('overworld', { x: 0, z: 0 })
+  const cands = [{ x: 16, z: 0, order: 0 }, { x: 0, z: 16, order: 1 }]
+  assert.equal(wm.chooseExploreTarget('overworld', cands, { x: 0, z: 0 }).candidate.z, 16)
+  c.advance(25 * HOUR)
+  assert.equal(wm.chooseExploreTarget('overworld', cands, { x: 0, z: 0 }).candidate.x, 16)
+})
