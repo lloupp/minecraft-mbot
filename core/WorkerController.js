@@ -1406,7 +1406,7 @@ class WorkerController {
       const choice = deterministicPlayerPolicy(state, candidates)
 
       if (choice === 'continue_objective') {
-        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
         return {
           ...explored,
           playerLoopPreparation: true,
@@ -1475,7 +1475,7 @@ class WorkerController {
 
         // Sem condições físicas para preparar aqui: não é erro da tarefa.
         // Segue o caminho clássico em vez de deixar o explorador parado.
-        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
         return {
           ...explored,
           playerLoopPreparation: true,
@@ -1519,7 +1519,7 @@ class WorkerController {
           // Recusa física do executor (alvo coberto por folhas, falta de alvos/picareta/mesa): nada deu errado
           // na tarefa; segue a exploração clássica em vez de virar falha com backoff exponencial.
           if (PHYSICAL_PREPARATION_REFUSALS.has(result?.code)) {
-            const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
+            const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
             return {
               ...explored,
               playerLoopPreparation: true,
@@ -1548,7 +1548,7 @@ class WorkerController {
     const finalCandidates = candidateIntents(finalState)
     const finalChoice = deterministicPlayerPolicy(finalState, finalCandidates)
     if (finalChoice === 'continue_objective') {
-      const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
+      const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
       return { ...explored, playerLoopPreparation: true, preparationSteps }
     }
 
@@ -1561,7 +1561,21 @@ class WorkerController {
     }
   }
 
-  async explore(radius, isCancelled, center = null) {
+  // Superfície caminhável em (x, z) perto de nearY a partir dos chunks já carregados. Água/lava na superfície
+  // (oceano, lago) ou nenhum chão => inválido; copas de árvore são atravessadas até o chão. unknown: chunk
+  // não carregado (mantém o alvo original).
+  surfaceAt(x, z, nearY) {
+    const top = Math.floor(nearY) + 24
+    for (let y = top; y >= Math.floor(nearY) - 32; y--) {
+      const block = this.bot.blockAt?.(new Vec3(x, y, z))
+      if (!block) return { unknown: true }
+      if (block.name === 'water' || block.name === 'lava' || block.name === 'bubble_column') return { ok: false, reason: block.name }
+      if (block.boundingBox === 'block' && !block.name.endsWith('_leaves')) return { ok: true, y: y + 1 }
+    }
+    return { ok: false, reason: 'no_ground' }
+  }
+
+  async explore(radius, isCancelled, center = null, { groundAware = false } = {}) {
     const home = center || this.homeProvider?.()
     if (!home) throw new Error('base/centro de exploração ainda não definido')
 
@@ -1569,15 +1583,30 @@ class WorkerController {
       [1, 0], [1, 1], [0, 1], [-1, 1],
       [-1, 0], [-1, -1], [0, -1], [1, -1]
     ]
-    const direction = directions[this.exploreStep % directions.length]
-    const ring = 1 + Math.floor(this.exploreStep / directions.length)
-    this.exploreStep++
-    const distance = Math.min(radius, 16 * ring)
-    const x = Math.floor(home.x + direction[0] * distance)
-    const z = Math.floor(home.z + direction[1] * distance)
-    const y = Number.isFinite(Number(home.y))
-      ? Math.floor(Number(home.y))
-      : Math.floor(this.bot.entity.position.y)
+    const pick = () => {
+      const direction = directions[this.exploreStep % directions.length]
+      const ring = 1 + Math.floor(this.exploreStep / directions.length)
+      this.exploreStep++
+      const distance = Math.min(radius, 16 * ring)
+      return {
+        distance,
+        x: Math.floor(home.x + direction[0] * distance),
+        z: Math.floor(home.z + direction[1] * distance),
+        y: Number.isFinite(Number(home.y)) ? Math.floor(Number(home.y)) : Math.floor(this.bot.entity.position.y)
+      }
+    }
+    let chosen = pick()
+    if (groundAware) {
+      // Alvos em anel com y fixo caem no ar sobre o oceano ou dentro de rocha em terreno natural; cada tentativa
+      // custava ~30 s de pathfinder. Procura a superfície real e passa à próxima direção (sem se mover).
+      for (let tries = 0; tries < 8; tries++) {
+        const ground = this.surfaceAt(chosen.x, chosen.z, chosen.y)
+        if (ground.unknown) break
+        if (ground.ok) { chosen.y = ground.y; break }
+        chosen = pick()
+      }
+    }
+    const { distance, x, y, z } = chosen
 
     const target = { x, y, z, radius: distance }
     if (process.env.MBOT_STATEMACHINE === '1') {

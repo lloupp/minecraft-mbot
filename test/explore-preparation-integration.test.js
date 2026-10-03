@@ -675,3 +675,28 @@ test('physical refusal from the preparation executor falls back to classic explo
   assert.equal(threat.code, 'THREAT')                           // ameaça nunca degrada para explorar
   assert.equal(explored, 1)
 }))
+
+test('ground-aware explore skips ocean/no-ground directions and targets the real surface; classic explore is untouched', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  worker.exploreStep = 0
+  const goalsSeen = []
+  worker.goTo = async (goal) => { goalsSeen.push([goal.x, goal.y, goal.z]) }
+  // Terreno: x>=0 tem chão em y=70; x<0 (oeste) é oceano (água em y=62); z>... resto em y=70.
+  worker.bot.blockAt = (p) => {
+    if (p.x < 0) return { name: p.y <= 62 ? (p.y === 62 ? 'water' : 'sand') : 'air', boundingBox: p.y <= 62 && p.y !== 62 ? 'block' : 'empty', position: p }
+    return { name: p.y <= 70 ? 'stone' : 'air', boundingBox: p.y <= 70 ? 'block' : 'empty', position: p }
+  }
+  // direções: leste (x>=0, chão 70) primeiro
+  await worker.explore(32, () => false, null, { groundAware: true })
+  assert.deepEqual(goalsSeen[0], [16, 71, 0])                 // y ajustado ao chão real (70+1)
+
+  worker.exploreStep = 4                                         // próxima direção seria oeste (oceano)
+  await worker.explore(32, () => false, null, { groundAware: true })
+  assert.ok(goalsSeen[1][0] > -1 || goalsSeen[1][2] !== 0)      // pulou o oceano: não foi para x<0
+  assert.ok(goalsSeen[1][0] >= 0)
+
+  // Clássico (sem groundAware): continua indo ao y fixo da base, mesmo sobre o oceano.
+  worker.exploreStep = 4
+  await worker.explore(32, () => false, null)
+  assert.deepEqual(goalsSeen[2], [-16, 64, 0])
+}))
