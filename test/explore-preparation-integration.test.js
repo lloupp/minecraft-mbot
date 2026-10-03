@@ -476,3 +476,29 @@ test('threat before preparation remembers the site only when unarmed with resour
   await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
   assert.equal(worker._preparationSite, null)
 }))
+
+test('defense remembers the preparation site only when unarmed with resources nearby and the flag on', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  const threat = { name: 'zombie', type: 'hostile', position: new Vec3(6, 64, 0), isValid: true }
+  worker.bot.health = 5
+  worker.bot.entities = { z: threat }
+  worker.bot.nearestEntity = () => threat
+  worker.flee = async () => {}
+  worker.bot.pathfinder.setGoal = () => {}
+  worker.currentTask = null
+
+  await worker.defend(threat)
+  assert.deepEqual(worker._preparationSite.position, new Vec3(0, 64, 0))
+
+  worker._preparationSite = null
+  const sword = { name: 'stone_sword', count: 1 }
+  worker.bot.inventory.items().push(sword)
+  worker.bot.heldItem = sword
+  await worker.defend(threat)
+  assert.equal(worker._preparationSite, null) // armado: nada a preparar
+
+  worker.bot.inventory.items().pop(); worker.bot.heldItem = null
+  delete process.env.MBOT_EXPLORE_PREPARATION
+  await worker.defend(threat)
+  assert.equal(worker._preparationSite, null) // flag desligada: comportamento clássico
+}))

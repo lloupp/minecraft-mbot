@@ -258,6 +258,7 @@ class WorkerController {
         }
       : null
     const preparationDrain = this._preparationDrain
+    this.rememberPreparationSiteWhenUnarmed()
     this.cancel()
     this.defending = true
     this.state = 'defendendo'
@@ -285,6 +286,22 @@ class WorkerController {
           : null
       }
     }
+  }
+
+  // Defesa com o explorador desarmado e recursos ao alcance: lembra o local para uma volta única depois.
+  rememberPreparationSiteWhenUnarmed() {
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') return
+    const site = this._preparationSite
+    if (site && Date.now() - site.at <= PREPARATION_SITE_TTL_MS) return
+    try {
+      const state = preparationStateSnapshot(this.bot, { type: 'explorar' }, {
+        homeProvider: this.homeProvider,
+        allowedTargets: this.nearbyPreparationAllowlist()
+      })
+      if (!state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+        this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+      }
+    } catch { /* melhor esforço: nunca atrasa a defesa */ }
   }
 
   buildPreparationResumeTask(interruptedTask) {
