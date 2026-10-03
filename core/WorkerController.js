@@ -294,6 +294,7 @@ class WorkerController {
       try {
         this.useMoves(this.workMoves)
       await this.leaveLeftoverPen(isCancelled)
+      if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true }
       if (this.bot.food <= HUNGRY) await this.eat()
       let result
       switch (task.type) {
