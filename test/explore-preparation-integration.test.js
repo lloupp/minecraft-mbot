@@ -461,3 +461,18 @@ test('opt-in explore can stage once near a local table, then prepare and continu
   assert.equal(result.preparationSteps.length, 2)
   assert.equal(explored, 1)
 }))
+
+test('threat before preparation remembers the site only when unarmed with resources nearby', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  worker.explore = async () => assert.fail('must not explore while the threat preempts the loop')
+  worker.bot.nearestEntity = () => ({ name: 'zombie', type: 'hostile', position: new Vec3(3, 64, 0), health: 20 })
+
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(result.code, 'PLAYER_LOOP_PREEMPTED')
+  assert.deepEqual(worker._preparationSite.position, new Vec3(0, 64, 0))
+
+  worker._preparationSite = null
+  worker.bot.findBlocks = () => [] // sem recursos ao alcance: nada a retomar
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(worker._preparationSite, null)
+}))

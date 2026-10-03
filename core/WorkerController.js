@@ -1352,6 +1352,10 @@ class WorkerController {
       }
 
       if (!['gather_materials', 'prepare_combat', 'equip_best_weapon'].includes(choice)) {
+        // Ameaça antes da preparação: lembra o local (desarmado + recursos ao alcance) para uma volta única depois.
+        if (state.threat && !state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+          this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+        }
         return {
           ok: false,
           code: 'PLAYER_LOOP_PREEMPTED',
