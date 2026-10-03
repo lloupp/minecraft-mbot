@@ -152,3 +152,13 @@ test('nearbySignals registra distância do animal comestível mais próximo', ()
   assert.equal(nearby.food, true)
   assert.equal(nearby.foodDistance, 3)
 })
+
+test('nearbySignals devolve a distância mínima mesmo quando todos os sinais já foram vistos', () => {
+  const { nearbySignals } = require('../lib/real-state')
+  const origin = new Vec3(0, 64, 0)
+  const blocks = new Map([['-4,64,-4', 'oak_log'], ['-4,64,-2', 'stone'], ['-4,64,0', 'iron_ore'], ['-4,64,2', 'wheat'], ['0,64,2', 'oak_log']])
+  const bot = { entity: { position: origin }, entities: {}, blockAt: (p) => ({ name: blocks.get(`${p.x},${p.y},${p.z}`) || 'air' }) }
+  const out = nearbySignals(bot)
+  assert.equal(out.wood && out.stone && out.iron && out.food, true)
+  assert.equal(out.woodDistance, 2) // a tora a 2 blocos, não a primeira da varredura
+})
