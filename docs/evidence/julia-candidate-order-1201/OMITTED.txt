@@ -1,0 +1,18 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+     2619  docs/evidence/julia-candidate-order-1201/capture_sidecar.py
+     5535  docs/evidence/julia-candidate-order-1201/driver.log
+      211  docs/evidence/julia-candidate-order-1201/input-checksums.txt
+     6627  docs/evidence/julia-candidate-order-1201/minecraft-commands.json
+    16481  docs/evidence/julia-candidate-order-1201/minecraft.log
+    42979  docs/evidence/julia-candidate-order-1201/pairs.csv
+   128508  docs/evidence/julia-candidate-order-1201/requests.jsonl
+      628  docs/evidence/julia-candidate-order-1201/requirements-resolved.txt
+     9599  docs/evidence/julia-candidate-order-1201/run.js
+      187  docs/evidence/julia-candidate-order-1201/runtime-environment.json
+      551  docs/evidence/julia-candidate-order-1201/shadow-tests.log
+    61737  docs/evidence/julia-candidate-order-1201/shadow.jsonl
+   146139  docs/evidence/julia-candidate-order-1201/sidecar-traces.jsonl
+       22  docs/evidence/julia-candidate-order-1201/sidecar.log
+     5785  docs/evidence/julia-candidate-order-1201/summarize.py
+     9718  docs/evidence/julia-candidate-order-1201/summary.json
+      347  docs/evidence/julia-candidate-order-1201/warmup.json

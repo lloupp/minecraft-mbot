@@ -1,0 +1,8 @@
+fase1: 7 discover wood
+[world-memory] explored +1 chunk(s) at (2,2) total=2
+[world-memory] suggest wood overworld -> (86,-60,-6) CONFIRMED d=84
+[world-memory] explored +1 chunk(s) at (82,-6) total=3
+[world-memory] lenhador_01 resource_detour wood (86,-60,-6) CONFIRMED present=true code=ok
+  ok: true,
+  gathered: 3,
+oak_log", Count: 3b

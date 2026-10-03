@@ -1,0 +1,43 @@
+[
+  {
+    "test": "check",
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0
+  },
+  {
+    "test": "focused",
+    "command": [
+      "node",
+      "--test",
+      "test/forced-preparation.test.js",
+      "test/forced-preparation-worker.test.js"
+    ],
+    "exitCode": 0
+  },
+  {
+    "test": "python",
+    "command": [
+      "python",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "test",
+      "-p",
+      "test_julia_sidecar.py"
+    ],
+    "exitCode": 0
+  },
+  {
+    "test": "full",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "exitCode": 0
+  }
+]

@@ -1,0 +1,9 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    87950  docs/evidence/deterministic-preparation-drop-recovery-1201/baseline-abrupt/timeline.jsonl
+    74489  docs/evidence/deterministic-preparation-drop-recovery-1201/baseline-controls/results.json
+   145132  docs/evidence/deterministic-preparation-drop-recovery-1201/baseline-controls/timeline.jsonl
+    81377  docs/evidence/deterministic-preparation-drop-recovery-1201/final-buffered-transport/timeline-append.jsonl
+    83501  docs/evidence/deterministic-preparation-drop-recovery-1201/final-buffered-transport/timeline.jsonl
+    81529  docs/evidence/deterministic-preparation-drop-recovery-1201/final-transport-window/timeline.jsonl
+    81376  docs/evidence/deterministic-preparation-drop-recovery-1201/transport-window-verification/timeline.jsonl
+    66746  docs/evidence/deterministic-preparation-drop-recovery-1201/verification/timeline.jsonl

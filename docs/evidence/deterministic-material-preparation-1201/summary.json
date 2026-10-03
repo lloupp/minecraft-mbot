@@ -1,0 +1,90 @@
+{
+  "reference_head": "180e7c9d87a893f9103cf6f81775ce52c76f7c9d",
+  "guardrail_real_snapshots_passed": 22,
+  "guardrail_forced_inference_calls": 0,
+  "guardrail_results": {
+    "wood_stone": "gather_materials",
+    "stick_stone": "gather_materials",
+    "cobble_wood": "gather_materials",
+    "wood_only": "continue_objective",
+    "stone_only": "continue_objective",
+    "iron_only": "continue_objective",
+    "iron_stone_no_stick": "continue_objective",
+    "one_plank_stone": "continue_objective",
+    "threat": "escape_danger",
+    "critical_hunger": "find_food",
+    "cancel": "stop_task"
+  },
+  "final_physical_runs": [
+    {
+      "route": "stick_stone",
+      "cycles": 2,
+      "collected": [
+        {
+          "resource": "cobblestone",
+          "quantity": 2
+        }
+      ],
+      "final_inventory": {
+        "stone_sword": 1,
+        "stone_pickaxe": 1
+      },
+      "equipped": "stone_sword",
+      "next_candidates": [
+        "continue_objective"
+      ],
+      "loops": 0,
+      "errors": 0,
+      "timeouts": 0,
+      "unauthorized_digs": 0,
+      "juliaExecutionAuthority": "none"
+    },
+    {
+      "route": "cobble_wood",
+      "cycles": 2,
+      "collected": [
+        {
+          "resource": "log",
+          "quantity": 1
+        }
+      ],
+      "final_inventory": {
+        "oak_planks": 2,
+        "stick": 3,
+        "stone_sword": 1
+      },
+      "equipped": "stone_sword",
+      "next_candidates": [
+        "continue_objective"
+      ],
+      "loops": 0,
+      "errors": 0,
+      "timeouts": 0,
+      "unauthorized_digs": 0,
+      "juliaExecutionAuthority": "none"
+    }
+  ],
+  "final_physical_passed": 2,
+  "final_physical_errors": 0,
+  "final_physical_timeouts": 0,
+  "final_physical_loops": 0,
+  "final_controlled_safety_violations": 0,
+  "shadow_observations_during_prepare": 2,
+  "juliaExecutionAuthority": "none",
+  "preserved_failed_attempts": [
+    {
+      "attempt": "initial",
+      "code": "TIMEOUT",
+      "cobblestone_confirmed": 1,
+      "preparation_completed": false
+    },
+    {
+      "attempt": "with_reach_optimization_obstructed_table",
+      "code": "TIMEOUT",
+      "cobblestone_confirmed": 1,
+      "preparation_completed": false
+    }
+  ],
+  "historical_physical_timeouts": 2,
+  "navigation_obstacle_limitation_remains": true
+}

@@ -1,0 +1,11 @@
+{
+  "optIn": "1",
+  "juliaShadow": true,
+  "juliaExecutionAuthority": "none",
+  "minecraft": "1.20.1",
+  "revision": "b02f891-plus-refusal-evidence-fix",
+  "selected": [
+    "abrupt_dig",
+    "server_crash"
+  ]
+}

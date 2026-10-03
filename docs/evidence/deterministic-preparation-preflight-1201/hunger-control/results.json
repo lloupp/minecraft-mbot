@@ -1,0 +1,7 @@
+[
+  {
+    "scenario": "hunger",
+    "elapsed_ms": 14626,
+    "harnessError": "Error: HARNESS_SETUP_TIMEOUT\n    at until (/workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-preflight-1201/run.js:20:112)\n    at async /workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-preflight-1201/run.js:212:7\n    at async perform (/workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-preflight-1201/run.js:163:24)\n    at async main (/workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-preflight-1201/run.js:198:31)"
+  }
+]

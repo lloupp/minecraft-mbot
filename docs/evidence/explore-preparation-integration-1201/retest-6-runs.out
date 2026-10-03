@@ -1,0 +1,62 @@
+=== run 1
+66 {"ev": "prep.start", "w": "explorador_01", "v": 1, "pos": [310.5, 200, -316.5]}
+6953 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 310, "y": 200, "z": -313}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+11640 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -316}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+13845 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -317}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+13847 {"ev": "prep.end", "w": "explorador_01", "v": 1, "ok": true, "pos": [313.5, 200, -316.5]}
+13877 {"ev": "prep.start", "w": "explorador_01", "v": 1, "pos": [313.5, 200, -316.5]}
+14783 {"ev": "prep.end", "w": "explorador_01", "v": 1, "ok": true, "pos": [313.5, 200, -316.5]}
+14811 {"ev": "explore.start", "w": "explorador_01", "v": 1, "pos": [313.5, 200, -316.5], "sm": "0"}
+17374 {"ev": "xpl.end", "w": "explorador_01", "v": 1, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 1}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 1}], "pos": [327.5, 20
+17374 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 1, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 1}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 1}
+=== run 2
+41 {"ev": "prep.start", "w": "explorador_01", "v": 2, "pos": [310.5, 200, -316.5]}
+6840 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 310, "y": 200, "z": -313}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+12736 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -316}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+15639 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -317}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+15641 {"ev": "prep.end", "w": "explorador_01", "v": 2, "ok": true, "pos": [313.4, 200, -316.5]}
+15671 {"ev": "prep.start", "w": "explorador_01", "v": 2, "pos": [313.4, 200, -316.5]}
+16646 {"ev": "prep.end", "w": "explorador_01", "v": 2, "ok": true, "pos": [313.4, 200, -316.5]}
+16688 {"ev": "explore.start", "w": "explorador_01", "v": 2, "pos": [313.4, 200, -316.5], "sm": "0"}
+20607 {"ev": "xpl.end", "w": "explorador_01", "v": 2, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 2}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 2}], "pos": [328.5, 20
+20607 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 2, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 2}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 2}
+=== run 3
+47 {"ev": "prep.start", "w": "explorador_01", "v": 3, "pos": [310.5, 200, -316.5]}
+6973 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 310, "y": 200, "z": -313}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+11644 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -316}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+13892 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -317}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+13893 {"ev": "prep.end", "w": "explorador_01", "v": 3, "ok": true, "pos": [313.5, 200, -316.5]}
+13923 {"ev": "prep.start", "w": "explorador_01", "v": 3, "pos": [313.5, 200, -316.5]}
+14893 {"ev": "prep.end", "w": "explorador_01", "v": 3, "ok": true, "pos": [313.5, 200, -316.5]}
+14922 {"ev": "explore.start", "w": "explorador_01", "v": 3, "pos": [313.5, 200, -316.5], "sm": "0"}
+17465 {"ev": "xpl.end", "w": "explorador_01", "v": 3, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 3}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 3}], "pos": [314.5, 20
+17465 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 3, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 3}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 3}
+=== run 4
+42 {"ev": "prep.start", "w": "explorador_01", "v": 4, "pos": [310.5, 200, -316.5]}
+6920 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 310, "y": 200, "z": -313}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+11629 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -316}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+14460 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -317}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+14463 {"ev": "prep.end", "w": "explorador_01", "v": 4, "ok": true, "pos": [313.5, 200, -316.5]}
+14509 {"ev": "prep.start", "w": "explorador_01", "v": 4, "pos": [313.5, 200, -316.5]}
+15471 {"ev": "prep.end", "w": "explorador_01", "v": 4, "ok": true, "pos": [313.5, 200, -316.5]}
+15506 {"ev": "explore.start", "w": "explorador_01", "v": 4, "pos": [313.5, 200, -316.5], "sm": "0"}
+19286 {"ev": "xpl.end", "w": "explorador_01", "v": 4, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 4}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 4}], "pos": [300.5, 20
+19286 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 4, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 4}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 4}
+=== run 5
+37 {"ev": "prep.start", "w": "explorador_01", "v": 5, "pos": [310.5, 200, -316.5]}
+8379 {"ev": "mineBlocks", "phase": "attempt", "code": "ITEM_NOT_CONFIRMED", "target": {"x": 310, "y": 200, "z": -313}, "nav": "visible_in_reach", "delta": 0, "confirmed": false, "invNow": "stone_pickaxe:1,cooked_beef:8"}
+8912 {"ev": "prep.end", "w": "explorador_01", "v": 5, "ok": false, "code": "GATHER_ITEM_NOT_CONFIRMED", "pos": [310.5, 200, -313.5]}
+8912 {"ev": "xpl.end", "w": "explorador_01", "v": 5, "ok": false, "code": "GATHER_ITEM_NOT_CONFIRMED", "steps": [{"intent": "gather_materials", "ok": false, "code": "GATHER_ITEM_NOT_CONFIRMED", "ownerVersion": 5}], "pos": [310.5, 200, -313.5], "
+8912 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 5, "ok": false, "code": "GATHER_ITEM_NOT_CONFIRMED", "steps": [{"intent": "gather_materials", "ok": false, "code": "GATHER_ITEM_NOT_CONFIRMED", "ownerVersion": 5}], "pos": [31
+=== run 6
+35 {"ev": "prep.start", "w": "explorador_01", "v": 6, "pos": [310.5, 200, -316.5]}
+6830 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 310, "y": 200, "z": -313}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+11509 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -316}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+13659 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": 313, "y": 200, "z": -317}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+13661 {"ev": "prep.end", "w": "explorador_01", "v": 6, "ok": true, "pos": [313.5, 200, -316.5]}
+13692 {"ev": "prep.start", "w": "explorador_01", "v": 6, "pos": [313.5, 200, -316.5]}
+14602 {"ev": "prep.end", "w": "explorador_01", "v": 6, "ok": true, "pos": [313.5, 200, -316.5]}
+14633 {"ev": "explore.start", "w": "explorador_01", "v": 6, "pos": [313.5, 200, -316.5], "sm": "0"}
+16831 {"ev": "xpl.end", "w": "explorador_01", "v": 6, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 6}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 6}], "pos": [301.5, 20
+16831 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 6, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 6}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 6}
+FIN

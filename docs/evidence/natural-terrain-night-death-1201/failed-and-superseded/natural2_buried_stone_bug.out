@@ -1,0 +1,16 @@
+=== radius4-control-1
+0.1 {"ev": "goTo", "goal": [1, 72, -180, 3], "from": [-14.5, 72, -179.5]}
+2.4 {"ev": "xpl.end", "ok": true, "steps": [], "pos": [-1.6, 72, -179.5]}
+=== radius8-1
+0.0 {"ev": "goTo", "goal": [1, 72, -180, 3], "from": [-14.5, 72, -179.5]}
+2.7 {"ev": "xpl.end", "ok": true, "steps": [], "pos": [-1.5, 72, -179.5]}
+=== radius8-2
+0.0 {"ev": "goTo", "goal": [1, 72, -164, 3], "from": [-14.5, 72, -179.5]}
+3.8 {"ev": "xpl.end", "ok": true, "steps": [], "pos": [-0.5, 72, -165.5]}
+=== radius8-3
+0.0 {"ev": "goTo", "goal": [-15, 72, -164, 3], "from": [-14.5, 72, -179.5]}
+2.4 {"ev": "xpl.end", "ok": true, "steps": [], "pos": [-14.5, 72, -166.6]}
+=== radius8-4
+0.0 {"ev": "goTo", "goal": [-31, 72, -164, 3], "from": [-14.5, 72, -179.5]}
+28.6 {"ev": "run.reject", "err": "Took to long to decide path to goal!"}
+FIN

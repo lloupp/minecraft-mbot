@@ -1,0 +1,39 @@
+round 0 dug; bot [ 273.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 270, 200, -300 ] r 0.5 from [ 273.5, 200, -300.5 ] to [ 271.5, 200, -299.45 ] 1502 ms
+ RESULT true ms 2053 bot [ 271.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":47.49},{"p":[276.01,200,-299.72],"d":4.52}]
+round 1 dug; bot [ 279.5, 200, -300.5 ]
+  goto OK [ 275, 200, -301 ] r 0.5 from [ 279.5, 200, -300.5 ] to [ 275.63, 200, -300.5 ] 753 ms
+ RESULT true ms 1055 bot [ 275.63, 200, -300.5 ] drops left [{"p":[308.22,200,-329.57],"d":43.67}]
+round 2 dug; bot [ 285.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 282, 200, -300 ] r 0.5 from [ 285.5, 200, -300.5 ] to [ 283.5, 200, -299.45 ] 1502 ms
+ RESULT true ms 2051 bot [ 283.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":38.96}]
+round 3 dug; bot [ 291.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 288, 200, -300 ] r 0.5 from [ 291.5, 200, -300.5 ] to [ 289.5, 200, -299.45 ] 1501 ms
+ RESULT true ms 2051 bot [ 289.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":35.46}]
+round 4 dug; bot [ 297.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 294, 200, -300 ] r 0.5 from [ 297.5, 200, -300.5 ] to [ 295.5, 200, -299.45 ] 1502 ms
+ RESULT true ms 2052 bot [ 295.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":32.69}]
+round 5 dug; bot [ 303.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 300, 200, -300 ] r 0.5 from [ 303.5, 200, -300.5 ] to [ 301.5, 200, -299.45 ] 1503 ms
+ RESULT true ms 2052 bot [ 301.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":30.85}]
+round 6 dug; bot [ 309.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 306, 200, -300 ] r 0.5 from [ 309.5, 200, -300.5 ] to [ 307.5, 200, -299.45 ] 1504 ms
+  goto OK [ 305, 200, -300 ] r 1 from [ 307.5, 200, -299.45 ] to [ 305.47, 200, -299.5 ] 859 ms
+ RESULT true ms 2912 bot [ 305.47, 200, -299.5 ] drops left [{"p":[308.22,200,-329.57],"d":30.19}]
+round 7 dug; bot [ 315.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 312, 200, -300 ] r 0.5 from [ 315.5, 200, -300.5 ] to [ 313.5, 200, -299.45 ] 1532 ms
+ RESULT true ms 2083 bot [ 313.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":30.57}]
+round 8 dug; bot [ 321.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 318, 200, -300 ] r 0.5 from [ 321.5, 200, -300.5 ] to [ 319.5, 200, -299.45 ] 1502 ms
+ RESULT true ms 2052 bot [ 319.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":32.15}]
+round 9 dug; bot [ 327.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 324, 200, -300 ] r 0.5 from [ 327.5, 200, -300.5 ] to [ 325.5, 200, -299.45 ] 1502 ms
+ RESULT true ms 2051 bot [ 325.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":34.72}]
+round 10 dug; bot [ 333.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 330, 200, -300 ] r 0.5 from [ 333.5, 200, -300.5 ] to [ 331.5, 200, -299.45 ] 1501 ms
+ RESULT true ms 2050 bot [ 331.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":38.06}]
+round 11 dug; bot [ 339.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 336, 200, -300 ] r 0.5 from [ 339.5, 200, -300.5 ] to [ 337.5, 200, -299.45 ] 1502 ms
+  goto OK [ 335, 200, -300 ] r 1 from [ 337.5, 200, -299.45 ] to [ 335.47, 200, -299.5 ] 857 ms
+ RESULT true ms 2910 bot [ 335.47, 200, -299.5 ] drops left [{"p":[308.22,200,-329.57],"d":40.58}]
+SUMMARY 12/12

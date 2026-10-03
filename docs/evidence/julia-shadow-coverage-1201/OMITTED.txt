@@ -1,0 +1,13 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+     4405  docs/evidence/julia-shadow-coverage-1201/analysis.json
+     4759  docs/evidence/julia-shadow-coverage-1201/analyze.py
+     6396  docs/evidence/julia-shadow-coverage-1201/driver.sh
+     1802  docs/evidence/julia-shadow-coverage-1201/driver_hunger.sh
+    37505  docs/evidence/julia-shadow-coverage-1201/hunger-decisions.jsonl
+      469  docs/evidence/julia-shadow-coverage-1201/lagmon.js
+  1669649  docs/evidence/julia-shadow-coverage-1201/main-decisions.jsonl
+    14654  docs/evidence/julia-shadow-coverage-1201/nearby-probes.jsonl
+    75219  docs/evidence/julia-shadow-coverage-1201/pilot-concurrency1-decisions.jsonl
+     1455  docs/evidence/julia-shadow-coverage-1201/profan.py
+     1036  docs/evidence/julia-shadow-coverage-1201/report-hunger.json
+      979  docs/evidence/julia-shadow-coverage-1201/report-main.json

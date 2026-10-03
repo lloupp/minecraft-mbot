@@ -1,0 +1,15 @@
+=== run 1
+staging: 1 table.search: 2 attempts: ['ok', 'ok', 'ok']
+ xpl.end 20.3 True None [('gather_materials', True, None), ('prepare_combat', True, None)] oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1
+ storage calls during first task: []
+=== run 2
+staging: 1 table.search: 2 attempts: ['ok', 'ok', 'ok']
+ storage calls during first task: []
+=== run 3
+staging: 1 table.search: 2 attempts: []
+ storage calls during first task: []
+=== run 4
+staging: 1 table.search: 2 attempts: ['ok', 'ok', 'ok']
+ xpl.end 19.1 True None [('gather_materials', True, None), ('prepare_combat', True, None)] oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1
+ storage calls during first task: []
+FIN
