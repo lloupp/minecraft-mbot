@@ -10,7 +10,8 @@
     "test": "node --test",
     "gauntlet:decision": "node scripts/decision-gauntlet.js",
     "gauntlet:player-loop": "node scripts/player-loop-gauntlet-v2.js",
-    "shadow:report": "node scripts/laya-shadow-report.js"
+    "shadow:report": "node scripts/laya-shadow-report.js",
+    "serve:andy": "node scripts/ollama-decision-server.js"
   },
   "keywords": [
     "minecraft",

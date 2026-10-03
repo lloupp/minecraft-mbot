@@ -1,0 +1,203 @@
+[
+  {
+    "engine": "julia",
+    "repeats": 5,
+    "timeout_ms": 4000,
+    "scenarios_run": 60,
+    "success_rate_reported": 0.9166666666666666,
+    "scenarios_with_model_request": 35,
+    "model_driven_success": "30/35",
+    "safety_violations": 0,
+    "loops": 0,
+    "invalid_choices": 0,
+    "invalid_choice_fallbacks": 0,
+    "technical_fallbacks": 0,
+    "timeouts": 0,
+    "model_requests": 45,
+    "confirmed_inferences": 45,
+    "valid_model_choices": 45,
+    "p50_ms": 290.89767500000016,
+    "p95_ms": 330.2206009999991,
+    "median_scenario_ms": 271.3681365000002,
+    "objective_resumed_after_interrupt": "10/10",
+    "goal_drift_stop_task_outside_cancel": 5,
+    "model_driven_failures": [
+      "repeated_failure_replan",
+      "repeated_failure_replan",
+      "repeated_failure_replan",
+      "repeated_failure_replan",
+      "repeated_failure_replan"
+    ],
+    "peak_rss_mb": 1547.8,
+    "shadow_readiness": {
+      "ready": true,
+      "reasons": [],
+      "critical_failures": []
+    }
+  },
+  {
+    "engine": "laya",
+    "repeats": 5,
+    "timeout_ms": 4000,
+    "scenarios_run": 60,
+    "success_rate_reported": 1,
+    "scenarios_with_model_request": 35,
+    "model_driven_success": "35/35",
+    "safety_violations": 0,
+    "loops": 0,
+    "invalid_choices": 0,
+    "invalid_choice_fallbacks": 0,
+    "technical_fallbacks": 0,
+    "timeouts": 0,
+    "model_requests": 40,
+    "confirmed_inferences": 40,
+    "valid_model_choices": 40,
+    "p50_ms": 1707.5344850000001,
+    "p95_ms": 2058.6936790000036,
+    "median_scenario_ms": 1616.5205415,
+    "objective_resumed_after_interrupt": "10/10",
+    "goal_drift_stop_task_outside_cancel": 0,
+    "model_driven_failures": [],
+    "peak_rss_mb": 3202.6,
+    "shadow_readiness": {
+      "ready": false,
+      "reasons": [
+        "p95_latency_above_2s_or_unmeasured"
+      ],
+      "critical_failures": []
+    }
+  },
+  {
+    "engine": "nanoandy",
+    "repeats": 5,
+    "timeout_ms": 4000,
+    "scenarios_run": 60,
+    "success_rate_reported": 1,
+    "scenarios_with_model_request": 35,
+    "model_driven_success": "0/35",
+    "safety_violations": 0,
+    "loops": 0,
+    "invalid_choices": 0,
+    "invalid_choice_fallbacks": 0,
+    "technical_fallbacks": 50,
+    "timeouts": 50,
+    "model_requests": 50,
+    "confirmed_inferences": 0,
+    "valid_model_choices": 0,
+    "p50_ms": 4001.248492999999,
+    "p95_ms": 4002.5883520000007,
+    "median_scenario_ms": 4000.8496620000005,
+    "objective_resumed_after_interrupt": "10/10",
+    "goal_drift_stop_task_outside_cancel": 0,
+    "model_driven_failures": [],
+    "peak_rss_mb": 4702.5,
+    "shadow_readiness": {
+      "ready": false,
+      "reasons": [
+        "technical_fallbacks",
+        "p95_latency_above_2s_or_unmeasured"
+      ],
+      "critical_failures": []
+    }
+  },
+  {
+    "engine": "andy",
+    "repeats": 5,
+    "timeout_ms": 4000,
+    "scenarios_run": 60,
+    "success_rate_reported": 1,
+    "scenarios_with_model_request": 35,
+    "model_driven_success": "0/35",
+    "safety_violations": 0,
+    "loops": 0,
+    "invalid_choices": 0,
+    "invalid_choice_fallbacks": 0,
+    "technical_fallbacks": 50,
+    "timeouts": 50,
+    "model_requests": 50,
+    "confirmed_inferences": 0,
+    "valid_model_choices": 0,
+    "p50_ms": 4001.5852629999863,
+    "p95_ms": 4005.3810900000026,
+    "median_scenario_ms": 4001.2067044999967,
+    "objective_resumed_after_interrupt": "10/10",
+    "goal_drift_stop_task_outside_cancel": 0,
+    "model_driven_failures": [],
+    "peak_rss_mb": 2263.0,
+    "shadow_readiness": {
+      "ready": false,
+      "reasons": [
+        "technical_fallbacks",
+        "p95_latency_above_2s_or_unmeasured"
+      ],
+      "critical_failures": []
+    }
+  },
+  {
+    "engine": "nanoandy",
+    "repeats": 2,
+    "timeout_ms": 120000,
+    "scenarios_run": 24,
+    "success_rate_reported": 1,
+    "scenarios_with_model_request": 14,
+    "model_driven_success": "0/14",
+    "safety_violations": 0,
+    "loops": 0,
+    "invalid_choices": 18,
+    "invalid_choice_fallbacks": 18,
+    "technical_fallbacks": 2,
+    "timeouts": 0,
+    "model_requests": 20,
+    "confirmed_inferences": 18,
+    "valid_model_choices": 0,
+    "p50_ms": 5207.378827999997,
+    "p95_ms": 5546.950472999997,
+    "median_scenario_ms": 4990.577823000003,
+    "objective_resumed_after_interrupt": "4/4",
+    "goal_drift_stop_task_outside_cancel": 0,
+    "model_driven_failures": [],
+    "peak_rss_mb": 4702.5,
+    "shadow_readiness": {
+      "ready": false,
+      "reasons": [
+        "invalid_choices",
+        "technical_fallbacks",
+        "p95_latency_above_2s_or_unmeasured"
+      ],
+      "critical_failures": []
+    }
+  },
+  {
+    "engine": "andy",
+    "repeats": 1,
+    "timeout_ms": 120000,
+    "scenarios_run": 12,
+    "success_rate_reported": 1,
+    "scenarios_with_model_request": 7,
+    "model_driven_success": "0/7",
+    "safety_violations": 0,
+    "loops": 0,
+    "invalid_choices": 10,
+    "invalid_choice_fallbacks": 10,
+    "technical_fallbacks": 0,
+    "timeouts": 0,
+    "model_requests": 10,
+    "confirmed_inferences": 10,
+    "valid_model_choices": 0,
+    "p50_ms": 6809.115982,
+    "p95_ms": 8107.067501999998,
+    "median_scenario_ms": 6445.963966000003,
+    "objective_resumed_after_interrupt": "2/2",
+    "goal_drift_stop_task_outside_cancel": 0,
+    "model_driven_failures": [],
+    "peak_rss_mb": 2263.0,
+    "shadow_readiness": {
+      "ready": false,
+      "reasons": [
+        "invalid_choices",
+        "p95_latency_above_2s_or_unmeasured"
+      ],
+      "critical_failures": []
+    }
+  }
+]
