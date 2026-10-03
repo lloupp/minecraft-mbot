@@ -862,3 +862,21 @@ test('preparation radius is 4 by default and opt-in up to 8 (walk once to a far 
     } finally { gather.mineBlocks = originalMine; food.goTo = originalGoTo }
   } finally { if (saved === undefined) delete process.env.MBOT_PREPARATION_RADIUS; else process.env.MBOT_PREPARATION_RADIUS = saved }
 })
+
+test('clearStandingCell picks the side cell whose eye ray reaches the trunk (low leaves hide the others)', () => {
+  const { clearStandingCell } = require('../lib/forced-preparation')
+  const target = new Vec3(7, 64, 0)
+  const bot = {
+    entity: { position: new Vec3(0.5, 64, 0.5) },
+    blockAt: p => p.equals(target) ? { name: 'oak_log', boundingBox: 'block', position: p }
+      : p.y === 63 ? { name: 'dirt', boundingBox: 'block', position: p }
+      : { name: 'air', boundingBox: 'empty', position: p },
+    world: { raycast: (eye) => (Math.floor(eye.x) === 6 && Math.floor(eye.z) === 0 ? { position: target } : { position: new Vec3(Math.floor(eye.x) + 1, 65, Math.floor(eye.z)) }) }
+  }
+  // Só a célula oeste (6,64,0) enxerga o tronco; as outras raspam em folhas.
+  assert.deepEqual(clearStandingCell(bot, target), new Vec3(6, 64, 0))
+  bot.world.raycast = () => ({ position: new Vec3(0, 70, 0) })
+  assert.equal(clearStandingCell(bot, target), null)             // nenhuma visível: cai no GoalNear
+  delete bot.world
+  assert.equal(clearStandingCell(bot, target), null)             // sem raycast: comportamento anterior
+})
