@@ -312,3 +312,20 @@ test('visibilidade em alcance tenta a face superior quando a mira ao centro é o
   assert.deepEqual(aims.slice(0, 2), [64.5, 64.95])
   assert.equal(attempts[0].navigation, 'visible_in_reach')
 })
+
+test('visibilidade em alcance tenta faces laterais com ar quando topo e centro são ocluídos', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  bot.entity = { position: new Vec3(0.5, 64, 2.5) }
+  const aims = []
+  bot.lookAt = async (v) => { aims.push([+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(2)]) }
+  // Só a face voltada para o bot (lado -x, x=2-0.45+0.5=2.05) acerta o alvo; centro e topo raspam num vizinho.
+  bot.blockAtCursor = () => (aims[aims.length - 1][0] === 2.05 ? { position: new Vec3(2, 64, 2) } : { position: new Vec3(3, 64, 2) })
+  const origAt = bot.blockAt
+  // acima do alvo há outro bloco (tronco de cima): só faces laterais são candidatas
+  bot.blockAt = (p) => (p.equals(new Vec3(2, 65, 2)) ? { name: 'oak_log', position: p } : origAt(p))
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, allowedPositions: new Set([new Vec3(2, 64, 2).toString()]) }), 1)
+  assert.ok(aims.some(a => a[0] === 2.05))
+  assert.ok(!aims.some(a => a[1] === 64.95))          // sem topo: não há ar em cima
+})
