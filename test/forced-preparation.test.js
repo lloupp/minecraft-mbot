@@ -372,6 +372,29 @@ test('gather step is confirmed by the inventory gain even when mineBlocks counte
   } finally { gather.mineBlocks = original }
 })
 
+test('gather returns once to the validated anchor when pickups drifted the bot away from the table', async () => {
+  const bot = unarmedBot(), items = [{ name:'stick', count:1 }, { name:'cobblestone', count:1 }, { name:'stone_pickaxe', count:1 }]
+  const target = new Vec3(1, 64, 1)
+  bot.inventory.items = () => items
+  bot.blockAt = p => ({ name: p.equals(target) ? 'stone' : 'air', position:p })
+  bot.registry = { blocksByName:{ stone:{ drops:[1] } }, items:{ 1:{ name:'cobblestone' } } }
+  bot.pathfinder = { bestHarvestTool: () => items[2] }
+  const originalMine = gather.mineBlocks, originalGoTo = food.goTo
+  const moves = []
+  gather.mineBlocks = async (_, __, ___, ____, options) => {
+    items[1].count++; options.onAttempt({ delta:1, itemConfirmed:true })
+    bot.entity.position = new Vec3(6, 64, 0) // deriva do pickup, longe da mesa em (-1,64,-1)
+    return 1
+  }
+  food.goTo = async (_bot, goal) => { moves.push([goal.x, goal.y, goal.z]); bot.entity.position = new Vec3(0, 64, 0) }
+  try {
+    const result = await executePreparationStep({ enabled:true, bot, task:{ type:'explorar' },
+      production:{ cachedCraftingTable: () => ({ position:new Vec3(-1,64,-1) }) }, allowedTargets:[{ x:1,y:64,z:1,name:'stone' }] })
+    assert.equal(result.ok,true)
+    assert.deepEqual(moves,[[0,64,0]])
+  } finally { gather.mineBlocks = originalMine; food.goTo = originalGoTo }
+})
+
 function recipePreparation() {
   const { ProductionManager } = require('../core/ProductionManager')
   const bot = unarmedBot(), pos = new Vec3(-1,64,-1)
