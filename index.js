@@ -37,10 +37,8 @@ const { ProductionManager, normalizeItemName } = require('./core/ProductionManag
 const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
-const { TaskCheckpointStore } = require('./core/TaskCheckpointStore')
-const { MinecraftToolLayer } = require('./core/MinecraftToolLayer')
-const { ToolApiServer } = require('./lib/tool-api-server')
 const { SmokeTest } = require('./core/SmokeTest')
+const { LayaShadowObserver } = require('./lib/laya-shadow')
 const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
 const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
 const { resolveReference, blockVariants, searchTerms } = require('./core/References')
@@ -171,11 +169,6 @@ async function main() {
   const demandPlanner = new DemandPlanner()
   const stateStore = new StateStore()
   const savedState = await stateStore.load()
-  const taskCheckpointStore = new TaskCheckpointStore()
-  await taskCheckpointStore.load()
-  if (taskCheckpointStore.lastLoadError) {
-    console.log('[checkpoint] arquivo inválido; execução de novas tools será bloqueada até recuperação manual')
-  }
   if (stateStore.lastLoadError) {
     console.log(`[estado] ${stateStore.lastLoadError.message}; restauração automática desativada e arquivo preservado. Salvamento bloqueado até recuperação manual e reinício.`)
   }
@@ -199,6 +192,11 @@ async function main() {
   })
   projectManager.restore(savedState.project)
 
+  // Shadow mode do Laya: desligado por padrão (MBOT_LAYA_SHADOW=1 para ligar).
+  // Só observa em paralelo (ver lib/laya-shadow.js e docs/LAYA_SHADOW_MODE.md);
+  // nunca decide nem executa nada no bot real.
+  const layaShadow = new LayaShadowObserver({ logger: console })
+
   function createWorker({ name, role }) {
     const worker = createBot(mineflayer, CONFIG, { username: name })
     configureClient(worker, serverProfile)
@@ -211,12 +209,8 @@ async function main() {
       homeProvider,
       ownerProvider: () => ownerEntity(),
       storage,
-      production
-    })
-    worker.minecraftTools = new MinecraftToolLayer({
-      worker: worker.colonyController,
-      workerId: name,
-      checkpointStore: taskCheckpointStore
+      production,
+      shadow: layaShadow
     })
 
     worker.once('spawn', () => {
@@ -233,15 +227,6 @@ async function main() {
     orchestratorName: CONFIG.username,
     maxBots: maxColonyBots
   })
-  const toolApiServer = process.env.MBOT_TOOL_API === '1'
-    ? new ToolApiServer({
-      botManager,
-      host: '127.0.0.1',
-      port: Number(process.env.MBOT_TOOL_API_PORT || 3091)
-    })
-    : null
-  toolApiServer?.start()
-
   const colony = new ColonyOrchestrator({
     botManager,
     homeProvider,
@@ -1019,7 +1004,6 @@ async function main() {
     botManager.stopAll()
     statusServer.stop()
     dashboardServer?.stop()
-    await toolApiServer?.stop()
     webViews?.viewer?.close?.()
     webViews?.inventory?.close?.()
     stopLan()
