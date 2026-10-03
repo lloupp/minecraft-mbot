@@ -1774,6 +1774,7 @@ class WorkerController {
         logger: this.logger
       })
       if (!result.fallback) {
+        if (!isCancelled() && result.ok !== false) memory?.visit(dim, { x, z })
         if (!isCancelled()) this.observeWorld()
         return { ...result, x, y, z, radius: distance }
       }
@@ -1788,6 +1789,8 @@ class WorkerController {
       throw err
     }
     if (isCancelled()) return { ok: false, cancelled: true }
+    // GoalNear(raio 3) para antes do alvo (pode ficar no chunk vizinho): chegar conta o chunk do alvo como visitado.
+    memory?.visit(dim, { x, z })
     this.observeWorld()
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
   }

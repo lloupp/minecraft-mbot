@@ -65,6 +65,18 @@ test('explore: com flag e memória evita o chunk visitado e registra cobertura',
   assert.equal(memory.exploredRecently('overworld', { x: first.x, z: first.z }), true) // visitado ao chegar
 })
 
+test('explore: GoalNear para antes do alvo (chunk vizinho) mas o chunk do alvo conta como visitado — sem repetir o mesmo destino', async () => {
+  const { worker, memory } = setup()
+  worker.goTo = async (goal) => { // realista: o pathfinder encerra a até 3 blocos do alvo
+    worker.goCalls.push({ x: goal.x, y: goal.y, z: goal.z })
+    worker.bot.entity.position = new Vec3(goal.x - 3, goal.y, goal.z)
+  }
+  memory.visit('overworld', { x: 0, z: 0 })
+  const targets = []
+  for (let i = 0; i < 6; i++) { await worker.explore(64, never); targets.push(`${worker.goCalls.at(-1).x},${worker.goCalls.at(-1).z}`) }
+  assert.equal(new Set(targets).size, 6, targets.join(' '))
+})
+
 test('explore: caminho que falha vira route_failed (evidência) e não invalida nada', async () => {
   const { worker, memory } = setup()
   worker.goFail = true
