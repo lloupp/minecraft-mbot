@@ -37,6 +37,7 @@ const POINT_ARRIVAL_RADIUS = 2
 const PREPARATION_SITE_TTL_MS = 90000
 const PREPARATION_SITE_MAX_DISTANCE = 16
 const PREPARATION_STAGING_MAX_DISTANCE = 8
+const PREPARATION_STAGING_SAFETY_POLL_MS = 100
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
@@ -1317,6 +1318,34 @@ class WorkerController {
     // information. Let the normal fail-closed fallback handle the refusal.
     if (distance <= 1.5) return false
 
+    let stagingThreat = null
+    let defenseStarted = false
+    const detectThreat = () => {
+      if (stagingThreat || isCancelled() || !this.bot?.entity?.position) return
+      const threat = this.bot.nearestEntity?.((entity) =>
+        entity?.type === 'hostile' &&
+        entity.position?.distanceTo(this.bot.entity.position) <= FLEE_DISTANCE
+      )
+      if (!threat) return
+
+      stagingThreat = threat
+      // Cancel the navigation immediately. defend() synchronously invalidates
+      // taskVersion before its first await, so the old explore owner cannot
+      // start another physical action after this point.
+      this.bot.pathfinder?.setGoal(null)
+      if (!defenseStarted && !this.defending) {
+        defenseStarted = true
+        this.defend(threat).catch((err) =>
+          this.logger.log?.(`[colônia] ${this.name} defesa durante staging: ${err.message}`)
+        )
+      }
+    }
+
+    detectThreat()
+    if (stagingThreat || isCancelled()) return false
+
+    const monitor = setInterval(detectThreat, PREPARATION_STAGING_SAFETY_POLL_MS)
+    monitor.unref?.()
     try {
       await this.goTo(
         new goals.GoalNear(
@@ -1329,9 +1358,12 @@ class WorkerController {
       )
     } catch {
       return false
+    } finally {
+      clearInterval(monitor)
     }
 
-    if (isCancelled()) return false
+    detectThreat()
+    if (stagingThreat || isCancelled()) return false
     const after = this.bot.blockAt?.(table.position)
     if (after?.name !== 'crafting_table') return false
     return this.bot.entity.position.distanceTo(table.position) <= 2
