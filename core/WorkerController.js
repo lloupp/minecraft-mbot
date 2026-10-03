@@ -10,6 +10,8 @@ const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = r
 const { resolveBlockNames } = require('./resources')
 const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
+const { candidateIntents } = require('../lib/player-loop')
+const { realStateSnapshot } = require('../lib/real-state')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -50,7 +52,7 @@ function protectPenBlocks(moves, registry) {
 }
 
 class WorkerController {
-  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console }) {
+  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null }) {
     this.bot = bot
     this.name = name
     this.role = role
@@ -59,6 +61,10 @@ class WorkerController {
     this.storage = storage
     this.production = production
     this.logger = logger
+    // Shadow mode do Laya (opcional): só observa em paralelo, nunca decide
+    // nada aqui. Ver a chamada em run() e lib/laya-shadow.js.
+    this.shadow = shadow
+    this._shadowFailureStreak = 0
     this.state = 'conectando'
     this.currentTask = null
     this.taskVersion = 0
@@ -280,8 +286,13 @@ class WorkerController {
     this.currentTask = { ...task }
     this.state = 'trabalhando'
 
-    try {
-      this.useMoves(this.workMoves)
+    // A tarefa em si continua exatamente como antes, só que agora dentro de
+    // uma função para termos uma promise (`taskPromise`) que podemos passar
+    // ao shadow mode SEM esperar por ela — quem chama `run()` recebe a mesma
+    // promise de sempre, no mesmo instante de sempre.
+    const taskPromise = (async () => {
+      try {
+        this.useMoves(this.workMoves)
       await this.leaveLeftoverPen(isCancelled)
       if (this.bot.food <= HUNGRY) await this.eat()
       let result
@@ -349,14 +360,49 @@ class WorkerController {
         default:
           throw new Error(`tarefa desconhecida: ${task.type}`)
       }
-      return result
-    } finally {
-      if (!isCancelled() && this.state !== 'desconectado') {
-        this.currentTask = null
-        this.state = 'ocioso'
-        this.bot.pathfinder?.setGoal(null)
+        return result
+      } finally {
+        if (!isCancelled() && this.state !== 'desconectado') {
+          this.currentTask = null
+          this.state = 'ocioso'
+          this.bot.pathfinder?.setGoal(null)
+        }
       }
+    })()
+
+    this._observeShadow(task, isCancelled, taskPromise)
+    return taskPromise
+  }
+
+  // Shadow mode do Laya: só observa, nunca decide. Nunca lança e nunca é
+  // `await`ado por run() — ver lib/laya-shadow.js para as garantias.
+  _observeShadow(task, isCancelled, taskPromise) {
+    if (!this.shadow?.enabled?.()) return
+    try {
+      const state = realStateSnapshot(this.bot, task, {
+        homeProvider: this.homeProvider,
+        consecutiveFailures: this._shadowFailureStreak
+      })
+      const candidates = candidateIntents(state)
+      if (candidates.length > 1) {
+        this.shadow.observe({
+          state,
+          objective: task,
+          candidates,
+          executedChoice: task.type,
+          resultPromise: taskPromise,
+          nextStateProvider: () => realStateSnapshot(this.bot, task, { homeProvider: this.homeProvider }),
+          meta: { worker: this.name, interruptedCheck: isCancelled }
+        })
+      }
+    } catch (error) {
+      this.logger.log?.(`[laya-shadow] ${this.name}: falha ao preparar observação: ${error.message}`)
     }
+
+    taskPromise.then(
+      () => { this._shadowFailureStreak = 0 },
+      () => { this._shadowFailureStreak++ }
+    )
   }
 
   useMoves(moves) {
