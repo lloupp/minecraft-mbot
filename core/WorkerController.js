@@ -1400,6 +1400,15 @@ class WorkerController {
         }
       }
 
+      // Noite desarmado (ou outra necessidade de voltar): o retorno à base já existe (tarefa `voltar`);
+      // sem ele o explorador ficaria parado fora da base. Um único retorno, sob o mesmo owner.
+      if (choice === 'return_base' && this.homeProvider?.()) {
+        const returned = await this.returnHome(isCancelled)
+        return returned.ok
+          ? { ok: true, returnedToBase: true, intent: choice, playerLoopPreparation: true, preparationSteps }
+          : { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+      }
+
       if (!['gather_materials', 'prepare_combat', 'equip_best_weapon'].includes(choice)) {
         // Ameaça antes da preparação: lembra o local (desarmado + recursos ao alcance) para uma volta única depois.
         if (state.threat && !state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {

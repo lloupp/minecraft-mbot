@@ -559,10 +559,32 @@ test('hostile appearing during local staging stops navigation and hands control 
     return 'fugi'
   }
 
-  const staged = await worker.tryLocalPreparationStaging(() => cancelled)
+  // O monitor do staging usa setInterval(...).unref(): o teste precisa manter o event loop vivo.
+  const keepAlive = setTimeout(() => {}, 5000)
+  let staged
+  try { staged = await worker.tryLocalPreparationStaging(() => cancelled) } finally { clearTimeout(keepAlive) }
 
   assert.equal(staged, false)
   assert.equal(defended, threat)
   assert.ok(stopped >= 1)
   assert.equal(cancelled, true)
 })
+
+test('unarmed explorer at night returns to base once instead of idling outside', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  worker.bot.findBlocks = () => []                       // sem recursos ao alcance
+  worker.bot.time = { timeOfDay: 14500 }                 // noite
+  worker.bot.entity.position = new Vec3(60, 64, 0)       // longe da base em (0,64,0)
+  let returns = 0
+  worker.returnHome = async () => { returns++; return { ok: true } }
+  worker.explore = async () => assert.fail('must not explore at night unarmed')
+
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(returns, 1)
+  assert.equal(result.ok, true)
+  assert.equal(result.returnedToBase, true)
+
+  worker.returnHome = async () => ({ ok: false })        // cancelado durante o retorno
+  const cancelled = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(cancelled.code, 'CANCELLED')
+}))
