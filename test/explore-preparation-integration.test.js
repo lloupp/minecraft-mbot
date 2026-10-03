@@ -588,3 +588,27 @@ test('unarmed explorer at night returns to base once instead of idling outside',
   const cancelled = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
   assert.equal(cancelled.code, 'CANCELLED')
 }))
+
+test('explorer far beyond the exploration radius (respawn) returns to the center before exploring', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  worker.bot.findBlocks = () => []
+  let returns = 0
+  let explored = 0
+  worker.returnHome = async () => { returns++; worker.bot.entity.position = new Vec3(0, 64, 5); return { ok: true } }
+  worker.explore = async () => { explored++; return { ok: true } }
+
+  worker.bot.entity.position = new Vec3(340, 64, -10)           // respawn longe da base em (0,64,0)
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 96 }, () => false)
+  assert.equal(returns, 1)
+  assert.equal(explored, 1)
+
+  returns = 0
+  worker.bot.entity.position = new Vec3(100, 64, 0)             // dentro de raio+32: não volta
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 96 }, () => false)
+  assert.equal(returns, 0)
+
+  worker.returnHome = async () => ({ ok: false })               // cancelado durante o retorno
+  worker.bot.entity.position = new Vec3(340, 64, -10)
+  const cancelled = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 96 }, () => false)
+  assert.equal(cancelled.code, 'CANCELLED')
+}))

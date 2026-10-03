@@ -38,6 +38,7 @@ const PREPARATION_SITE_TTL_MS = 90000
 const PREPARATION_SITE_MAX_DISTANCE = 16
 const PREPARATION_STAGING_MAX_DISTANCE = 8
 const PREPARATION_STAGING_SAFETY_POLL_MS = 100
+const EXPLORE_FAR_MARGIN = 32
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
@@ -1377,6 +1378,14 @@ class WorkerController {
     const preparationSteps = []
     const maxPreparationSteps = 3
     let stagingAttempted = false
+    // Muito além do raio de exploração (ex.: respawn no spawn do mundo): os alvos são relativos ao
+    // centro, então primeiro volta a ele com o retorno existente em vez de falhar caminhando 300+ blocos.
+    const center = task.center || this.homeProvider?.()
+    const farLimit = (task.radius || 64) + EXPLORE_FAR_MARGIN
+    if (center && this.bot.entity?.position && Math.hypot(this.bot.entity.position.x - center.x, this.bot.entity.position.z - center.z) > farLimit) {
+      const returned = await this.returnHome(isCancelled)
+      if (!returned.ok) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+    }
     await this.returnToPreparationSite(task, isCancelled)
 
     for (let step = 0; step < maxPreparationSteps;) {
