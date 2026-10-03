@@ -15,7 +15,8 @@ class FakeRouter:
 
     def predict(self, state, questions):
         self.calls.append((state, questions))
-        criteria = questions["action"]["criteria"]
+        question_name = next(iter(questions))
+        criteria = questions[question_name]["criteria"]
         keys = list(criteria)
         choice = keys[0]
         probabilities = {
@@ -24,7 +25,7 @@ class FakeRouter:
         }
         return {
             "answers": {
-                "action": {
+                question_name: {
                     "choice": choice,
                     "confidence": 0.8,
                     "probabilities": probabilities,
@@ -119,6 +120,70 @@ class LayaSidecarTests(unittest.TestCase):
                 })
         finally:
             self.module.router = before
+
+    def test_generic_choice_uses_neutral_keys_and_maps_back_to_intent(self):
+        result = self.module.choose({
+            "state": {
+                "health": 20,
+                "food": 18,
+                "objective": {"type": "explore"},
+            },
+            "candidates": [
+                {
+                    "id": "prepare_combat",
+                    "description": "Prepare equipment before risky exploration.",
+                },
+                {
+                    "id": "continue_objective",
+                    "description": "Continue exploration immediately.",
+                },
+            ],
+        })
+
+        self.assertEqual(result["choice"], "prepare_combat")
+        self.assertEqual(result["neutral_option"], "A")
+        self.assertEqual(
+            result["probabilities"],
+            {"prepare_combat": 0.8, "continue_objective": 0.2},
+        )
+
+        state, questions = self.module.router.calls[0]
+        self.assertEqual(list(questions["intent"]["criteria"]), ["A", "B"])
+        self.assertNotIn("prepare_combat", questions["intent"]["criteria"])
+        self.assertNotIn("continue_objective", questions["intent"]["criteria"])
+        self.assertIn("decision_contract", state)
+
+    def test_generic_choice_rejects_duplicate_or_invalid_candidates(self):
+        with self.assertRaises(ValueError):
+            self.module.choose({
+                "state": {},
+                "candidates": [
+                    {"id": "wait", "description": "One"},
+                    {"id": "wait", "description": "Two"},
+                ],
+            })
+
+        with self.assertRaises(ValueError):
+            self.module.choose({
+                "state": {},
+                "candidates": [
+                    {"id": "bad id", "description": "Invalid id"},
+                ],
+            })
+
+    def test_single_generic_candidate_skips_model(self):
+        result = self.module.choose({
+            "state": {"health": 6},
+            "candidates": [
+                {
+                    "id": "escape_danger",
+                    "description": "Escape the nearby creeper immediately.",
+                }
+            ],
+        })
+        self.assertEqual(result["choice"], "escape_danger")
+        self.assertEqual(result["model_calls"], 0)
+        self.assertEqual(self.module.router.calls, [])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,374 @@
+[
+  {
+    "id": "hunger_with_food",
+    "description": "Hungry player already carrying food should recover before doing anything else.",
+    "maxSteps": 3,
+    "initialState": {
+      "health": 20,
+      "food": 4,
+      "inventory": {
+        "bread": 2
+      },
+      "inventoryLoad": 0.2,
+      "equippedWeapon": "stone_sword",
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "foodMin": 12
+    }
+  },
+  {
+    "id": "creeper_critical",
+    "description": "Critical-health player next to a creeper must create distance immediately.",
+    "maxSteps": 2,
+    "initialState": {
+      "health": 6,
+      "food": 18,
+      "inventory": {
+        "stone_sword": 1
+      },
+      "inventoryLoad": 0.2,
+      "equippedWeapon": "stone_sword",
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "threat": {
+        "type": "creeper",
+        "distance": 3,
+        "count": 1
+      },
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "threatCleared": true,
+      "healthMin": 6
+    }
+  },
+  {
+    "id": "zombie_armed",
+    "description": "Armed healthy player may fight or disengage, but must resolve the immediate zombie threat.",
+    "maxSteps": 3,
+    "initialState": {
+      "health": 14,
+      "food": 18,
+      "inventory": {
+        "stone_axe": 1
+      },
+      "inventoryLoad": 0.2,
+      "equippedWeapon": "stone_axe",
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "threat": {
+        "type": "zombie",
+        "distance": 3,
+        "count": 1
+      },
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "threatCleared": true,
+      "healthMin": 8
+    }
+  },
+  {
+    "id": "zombie_unarmed_with_space",
+    "description": "Unarmed player with time and materials may prepare or disengage, but should not passively remain exposed.",
+    "maxSteps": 5,
+    "initialState": {
+      "health": 18,
+      "food": 18,
+      "inventory": {
+        "stick": 1,
+        "cobblestone": 2
+      },
+      "inventoryLoad": 0.25,
+      "craftable": [
+        "stone_sword"
+      ],
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "threat": {
+        "type": "zombie",
+        "distance": 9,
+        "count": 1
+      },
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "threatCleared": true,
+      "healthMin": 8
+    }
+  },
+  {
+    "id": "prepare_before_explore",
+    "description": "Player intends to explore but can craft a stone sword first; success requires preparation and progress.",
+    "maxSteps": 5,
+    "initialState": {
+      "health": 20,
+      "food": 18,
+      "inventory": {
+        "stick": 1,
+        "cobblestone": 2
+      },
+      "inventoryLoad": 0.2,
+      "craftable": [
+        "stone_sword"
+      ],
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "nearby": {
+        "food": true,
+        "wood": true,
+        "stone": true
+      },
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "weaponReady": true,
+      "objectiveComplete": true
+    }
+  },
+  {
+    "id": "gather_then_prepare_then_explore",
+    "description": "Player wants to explore, lacks a weapon and materials, but nearby wood/stone can support preparation.",
+    "maxSteps": 7,
+    "initialState": {
+      "health": 20,
+      "food": 18,
+      "inventory": {},
+      "inventoryLoad": 0.1,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "nearby": {
+        "food": true,
+        "wood": true,
+        "stone": true
+      },
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "weaponReady": true,
+      "objectiveComplete": true
+    }
+  },
+  {
+    "id": "craft_pickaxe_then_mine",
+    "description": "Mining iron requires a pickaxe; materials are already available to craft one.",
+    "maxSteps": 5,
+    "initialState": {
+      "health": 20,
+      "food": 18,
+      "inventory": {
+        "stick": 2,
+        "cobblestone": 3
+      },
+      "inventoryLoad": 0.2,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "objective": {
+        "type": "mine_iron",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "pickaxeReady": true,
+      "objectiveComplete": true
+    }
+  },
+  {
+    "id": "inventory_full_store_resume",
+    "description": "Player mining with a nearly full inventory should return, store cargo, and resume the objective.",
+    "maxSteps": 7,
+    "initialState": {
+      "health": 20,
+      "food": 18,
+      "inventory": {
+        "stone_pickaxe": 1,
+        "raw_iron": 18
+      },
+      "inventoryLoad": 0.96,
+      "equippedTool": "stone_pickaxe",
+      "equippedWeapon": "stone_sword",
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "objective": {
+        "type": "mine_iron",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "storedTripsMin": 1,
+      "objectiveComplete": true
+    }
+  },
+  {
+    "id": "repeated_failure_replan",
+    "description": "After repeated route failures with an alternative known, player should replan instead of looping or giving up immediately.",
+    "maxSteps": 1,
+    "initialState": {
+      "health": 20,
+      "food": 18,
+      "inventory": {
+        "stone_sword": 1
+      },
+      "inventoryLoad": 0.2,
+      "equippedWeapon": "stone_sword",
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "consecutiveFailures": 4,
+      "alternativeRoute": true,
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "routeReplanned": true
+    }
+  },
+  {
+    "id": "resume_after_creeper_interrupt",
+    "description": "Player begins mining, gets interrupted by a creeper, escapes, then resumes the original mining objective.",
+    "maxSteps": 7,
+    "initialState": {
+      "health": 16,
+      "food": 18,
+      "inventory": {
+        "stone_pickaxe": 1,
+        "stone_sword": 1
+      },
+      "inventoryLoad": 0.25,
+      "equippedTool": "stone_pickaxe",
+      "equippedWeapon": "stone_sword",
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "objective": {
+        "type": "mine_iron",
+        "progress": 0,
+        "target": 2,
+        "completed": false
+      }
+    },
+    "events": [
+      {
+        "afterProgress": 1,
+        "threat": {
+          "type": "creeper",
+          "distance": 3,
+          "count": 1
+        }
+      }
+    ],
+    "success": {
+      "objectiveComplete": true,
+      "resumedAfterInterrupt": true,
+      "threatCleared": true
+    }
+  },
+  {
+    "id": "night_unprepared_use_base",
+    "description": "At night, an unarmed explorer can return to base where a weapon is available, then continue prepared.",
+    "maxSteps": 7,
+    "initialState": {
+      "health": 20,
+      "food": 16,
+      "inventory": {},
+      "inventoryLoad": 0.2,
+      "time": "night",
+      "atBase": false,
+      "baseKnown": true,
+      "baseStorage": {
+        "weapon": "iron_sword"
+      },
+      "nearby": {
+        "wood": false,
+        "stone": false,
+        "food": false
+      },
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 1,
+        "completed": false
+      }
+    },
+    "success": {
+      "weaponReady": true,
+      "objectiveComplete": true
+    }
+  },
+  {
+    "id": "explicit_cancel",
+    "description": "An explicit player cancellation should stop the current task immediately.",
+    "maxSteps": 2,
+    "initialState": {
+      "health": 20,
+      "food": 18,
+      "inventory": {
+        "stone_sword": 1
+      },
+      "inventoryLoad": 0.2,
+      "equippedWeapon": "stone_sword",
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "cancellationRequested": true,
+      "objective": {
+        "type": "explore",
+        "progress": 0,
+        "target": 3,
+        "completed": false
+      }
+    },
+    "success": {
+      "stopped": true
+    }
+  }
+]
