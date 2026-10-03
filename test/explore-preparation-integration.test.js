@@ -204,7 +204,7 @@ test('nearby preparation allowlist never expands beyond the bounded local scan',
   }
   const targets = worker.nearbyPreparationAllowlist()
   assert.equal(requested.maxDistance, 4)
-  assert.equal(requested.count, 32)
+  assert.equal(requested.count, 256)          // varredura limitada; o resultado é truncado em 32 expostos
   assert.deepEqual(targets.map((target) => target.name), ['stone', 'stone'])
 })
 
@@ -612,3 +612,25 @@ test('explorer far beyond the exploration radius (respawn) returns to the center
   const cancelled = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 96 }, () => false)
   assert.equal(cancelled.code, 'CANCELLED')
 }))
+
+test('nearby preparation allowlist skips buried stone so natural terrain does not exhaust the 32-target cap', () => {
+  const { worker } = integrationWorker()
+  // 40 pedras enterradas (sem ar adjacente) mais próximas, depois 2 expostas e 1 tronco exposto.
+  const buried = []
+  for (let x = -3; x <= 3; x++) for (let z = -3; z <= 3; z++) buried.push(new Vec3(x, 62, z))
+  const exposedStone = [new Vec3(3, 64, 3), new Vec3(3, 64, -3)]
+  const log = new Vec3(-3, 64, 3)
+  const names = new Map()
+  for (const p of buried.slice(0, 40)) names.set(p.toString(), 'stone')
+  for (const p of exposedStone) names.set(p.toString(), 'stone')
+  names.set(log.toString(), 'oak_log')
+  worker.bot.registry.blocksArray = [{ id: 1, name: 'stone' }, { id: 5, name: 'oak_log' }]
+  worker.bot.findBlocks = () => [...buried.slice(0, 40), ...exposedStone, log]
+  worker.bot.blockAt = (p) => {
+    const name = names.get(p.toString())
+    if (name) return { name, position: p }
+    return { name: p.y <= 63 ? 'stone' : 'air', position: p }   // chão sólido até y63: y62 é enterrado
+  }
+  const targets = worker.nearbyPreparationAllowlist()
+  assert.deepEqual(targets.map((t) => t.name).sort(), ['oak_log', 'stone', 'stone'])
+})

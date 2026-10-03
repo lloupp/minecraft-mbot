@@ -1262,10 +1262,12 @@ class WorkerController {
       .map((block) => block.id)
     if (!supported.length) return []
 
+    // findBlocks devolve os mais próximos primeiro: em terreno natural eles são pedras enterradas sob a
+    // terra e esgotariam a cota. Escaneia mais (limitado) e mantém só os expostos, truncando em maxTargets.
     const positions = this.bot.findBlocks({
       matching: supported,
       maxDistance,
-      count: maxTargets
+      count: maxTargets * 8
     }) || []
 
     const seen = new Set()
@@ -1277,6 +1279,7 @@ class WorkerController {
       seen.add(key)
       const block = this.bot.blockAt?.(position)
       if (!block || !(block.name === 'stone' || block.name === 'cobblestone' || block.name.endsWith('_log'))) continue
+      if (!gather.isExposed(this.bot, position)) continue
       targets.push({ x: position.x, y: position.y, z: position.z, name: block.name })
     }
     return targets
