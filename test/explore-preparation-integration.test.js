@@ -410,7 +410,8 @@ test('local preparation staging respects ownership cancellation before movement'
 test('opt-in explore can stage once near a local table, then prepare and continue exploring', () => withPreparationFlags(async () => {
   const { worker, items } = integrationWorker()
   const tablePos = new Vec3(6, 64, 0)
-  const stones = [new Vec3(6, 64, 1), new Vec3(6, 64, -1)]
+  // Recursos ≤4 do ponto inicial (o snapshot só os vê ali) e ≤4 do ponto de staging; a mesa é que está longe.
+  const stones = [new Vec3(2, 64, 2), new Vec3(2, 64, -2)]
   let remembered = null
   let stagingMoves = 0
   const intents = []
