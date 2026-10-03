@@ -36,6 +36,7 @@ const MS_PER_BLOCK = 700
 const POINT_ARRIVAL_RADIUS = 2
 const PREPARATION_SITE_TTL_MS = 90000
 const PREPARATION_SITE_MAX_DISTANCE = 16
+const PREPARATION_STAGING_MAX_DISTANCE = 8
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
@@ -1279,6 +1280,46 @@ class WorkerController {
     } catch { /* sem caminho: segue com o snapshot real da posição atual */ }
   }
 
+  async tryLocalPreparationStaging(isCancelled) {
+    if (isCancelled() || !this.production?.findCraftingTable || !this.bot?.entity?.position) return false
+
+    const table = this.production.findCraftingTable(this.bot, PREPARATION_STAGING_MAX_DISTANCE)
+    if (!table?.position) return false
+
+    const liveTable = this.bot.blockAt?.(table.position)
+    if (liveTable?.name !== 'crafting_table') return false
+
+    const distance = this.bot.entity.position.distanceTo(table.position)
+    if (distance > PREPARATION_STAGING_MAX_DISTANCE) return false
+
+    // The cache is only a hint; the physical executor/preflight still revalidates
+    // the block and distance before every craft.
+    this.production.rememberCraftingTable?.(this.bot, liveTable)
+
+    // If we are already adjacent, another movement would add no useful physical
+    // information. Let the normal fail-closed fallback handle the refusal.
+    if (distance <= 1.5) return false
+
+    try {
+      await this.goTo(
+        new goals.GoalNear(
+          Math.floor(table.position.x),
+          Math.floor(table.position.y),
+          Math.floor(table.position.z),
+          1
+        ),
+        10000
+      )
+    } catch {
+      return false
+    }
+
+    if (isCancelled()) return false
+    const after = this.bot.blockAt?.(table.position)
+    if (after?.name !== 'crafting_table') return false
+    return this.bot.entity.position.distanceTo(table.position) <= 2
+  }
+
   async runExplorePlayerLoop(task, isCancelled) {
     if (process.env.MBOT_EXPLORE_PREPARATION !== '1') {
       return this.explore(task.radius || 64, isCancelled, task.center || null)
@@ -1286,9 +1327,10 @@ class WorkerController {
 
     const preparationSteps = []
     const maxPreparationSteps = 3
+    let stagingAttempted = false
     await this.returnToPreparationSite(task, isCancelled)
 
-    for (let step = 0; step < maxPreparationSteps; step++) {
+    for (let step = 0; step < maxPreparationSteps;) {
       if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
 
       const allowedTargets = this.nearbyPreparationAllowlist()
@@ -1344,8 +1386,19 @@ class WorkerController {
         if (preflight.code === 'SAFETY_PRECEDENCE') {
           return { ok: false, code: preflight.code, intent: choice, preparationSteps }
         }
-        // Sem condições físicas para preparar aqui (mesa, alvos, ferramenta...): não é erro
-        // da tarefa. Segue o caminho clássico em vez de deixar o explorador parado.
+
+        // One bounded staging move is allowed only for spatial refusals. This is
+        // not a resource search: it approaches one existing crafting table at
+        // <= 8 blocks, then rebuilds the allowlist/snapshot and re-runs preflight.
+        if (!stagingAttempted &&
+            ['NEARBY_TABLE_REQUIRED', 'APPROVED_TARGETS_INSUFFICIENT'].includes(preflight.code)) {
+          stagingAttempted = true
+          if (await this.tryLocalPreparationStaging(isCancelled)) continue
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        }
+
+        // Sem condições físicas para preparar aqui: não é erro da tarefa.
+        // Segue o caminho clássico em vez de deixar o explorador parado.
         const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
         return {
           ...explored,
@@ -1393,6 +1446,7 @@ class WorkerController {
             preparationSteps
           }
         }
+        step++
       } finally {
         if (this._preparationDrain === preparationPromise) this._preparationDrain = null
       }
