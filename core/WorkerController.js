@@ -1809,6 +1809,7 @@ class WorkerController {
       const distance = actual ? actual.distanceTo(center) : Infinity
       finalDistance = Number.isFinite(distance) ? distance : null
       if (distance <= POINT_ARRIVAL_RADIUS) {
+        this.observeWorld()
         return {
           ok: true,
           verified: true,
