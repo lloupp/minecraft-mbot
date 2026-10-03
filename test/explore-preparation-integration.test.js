@@ -634,3 +634,21 @@ test('nearby preparation allowlist skips buried stone so natural terrain does no
   const targets = worker.nearbyPreparationAllowlist()
   assert.deepEqual(targets.map((t) => t.name).sort(), ['oak_log', 'stone', 'stone'])
 })
+
+test('nearby preparation allowlist keeps logs even when many closer exposed stones exist (per-resource cap)', () => {
+  const { worker } = integrationWorker()
+  const stones = []
+  for (let x = -3; x <= 3; x++) for (let z = -3; z <= 3; z++) stones.push(new Vec3(x, 64, z))   // 49 pedras expostas, todas mais perto
+  const logs = [new Vec3(6, 64, 0), new Vec3(6, 65, 0)]
+  const names = new Map()
+  for (const p of stones) names.set(p.toString(), 'stone')
+  for (const p of logs) names.set(p.toString(), 'oak_log')
+  worker.bot.registry.blocksArray = [{ id: 1, name: 'stone' }, { id: 5, name: 'oak_log' }]
+  worker.bot.findBlocks = ({ matching }) => (matching.includes(5) ? logs : stones)
+  worker.bot.blockAt = (p) => ({ name: names.get(p.toString()) || 'air', position: p })
+  const targets = worker.nearbyPreparationAllowlist(8, 32)
+  const count = (name) => targets.filter((t) => t.name === name).length
+  assert.equal(count('oak_log'), 2)
+  assert.equal(count('stone'), 16)
+  assert.ok(targets.length <= 32)
+})

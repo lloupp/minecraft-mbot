@@ -1257,32 +1257,33 @@ class WorkerController {
 
   nearbyPreparationAllowlist(maxDistance = preparationRadius(), maxTargets = 32) {
     if (typeof this.bot.findBlocks !== 'function') return []
-    const supported = (this.bot.registry?.blocksArray || [])
-      .filter((block) => block.name === 'stone' || block.name === 'cobblestone' || block.name.endsWith('_log'))
-      .map((block) => block.id)
-    if (!supported.length) return []
+    const blocks = this.bot.registry?.blocksArray || []
+    const idsFor = (predicate) => blocks.filter((block) => predicate(block.name)).map((block) => block.id)
+    const isStone = (name) => name === 'stone' || name === 'cobblestone'
+    const isLog = (name) => name.endsWith('_log')
 
-    // findBlocks devolve os mais próximos primeiro: em terreno natural eles são pedras enterradas sob a
-    // terra e esgotariam a cota. Escaneia mais (limitado) e mantém só os expostos, truncando em maxTargets.
-    const positions = this.bot.findBlocks({
-      matching: supported,
-      maxDistance,
-      count: maxTargets * 8
-    }) || []
-
+    // findBlocks devolve os mais próximos primeiro: em terreno natural eles são pedras enterradas ou um
+    // afloramento grande que esgotaria a cota e deixaria as árvores de fora. Duas varreduras limitadas,
+    // uma por recurso, mantendo só candidatos expostos e no máximo metade da cota para cada.
     const seen = new Set()
-    const targets = []
-    for (const position of positions) {
-      if (!position || targets.length >= maxTargets) break
-      const key = position.toString()
-      if (seen.has(key)) continue
-      seen.add(key)
-      const block = this.bot.blockAt?.(position)
-      if (!block || !(block.name === 'stone' || block.name === 'cobblestone' || block.name.endsWith('_log'))) continue
-      if (!gather.isExposed(this.bot, position)) continue
-      targets.push({ x: position.x, y: position.y, z: position.z, name: block.name })
+    const scan = (predicate, scanCount, cap) => {
+      const matching = idsFor(predicate)
+      if (!matching.length) return []
+      const found = []
+      for (const position of this.bot.findBlocks({ matching, maxDistance, count: scanCount }) || []) {
+        if (!position || found.length >= cap) break
+        const key = position.toString()
+        if (seen.has(key)) continue
+        const block = this.bot.blockAt?.(position)
+        if (!block || !predicate(block.name)) continue
+        if (!gather.isExposed(this.bot, position)) continue
+        seen.add(key)
+        found.push({ x: position.x, y: position.y, z: position.z, name: block.name })
+      }
+      return found
     }
-    return targets
+    const half = Math.floor(maxTargets / 2)
+    return [...scan(isLog, maxTargets * 4, half), ...scan(isStone, maxTargets * 8, maxTargets - half)]
   }
 
   // Depois de uma ameaça interromper a preparação, a defesa pode deslocar o bot para fora da janela
