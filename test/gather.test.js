@@ -291,3 +291,10 @@ test('collectDrops empurra o bot também quando o goto exato resolve sem se move
   assert.deepEqual(goals, [0.5])
   assert.deepEqual(controls, [['forward', true], ['forward', false]])
 })
+
+test('mineBlocks com lista aprovada usa a própria lista, não só os 64 blocos mais próximos', async () => {
+  const bot = collectionBot()
+  bot.findBlocks = () => []                       // os mais próximos são irrelevantes (ex.: enterrados)
+  const approved = new Set([new Vec3(2, 64, 2).toString()])
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false, { allowedPositions: approved }), 1)
+})
