@@ -298,3 +298,17 @@ test('mineBlocks com lista aprovada usa a própria lista, não só os 64 blocos 
   const approved = new Set([new Vec3(2, 64, 2).toString()])
   assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false, { allowedPositions: approved }), 1)
 })
+
+test('visibilidade em alcance tenta a face superior quando a mira ao centro é ocluída e há ar por cima', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  const aims = []
+  bot.lookAt = async (v) => { aims.push(+v.y.toFixed(2)) }
+  // O raio ao centro (y=64.5) raspa num vizinho; o raio à face superior (y=64.95) acerta o alvo.
+  bot.blockAtCursor = () => (aims[aims.length - 1] === 64.95 ? { position: new Vec3(2, 64, 2) } : { position: new Vec3(1, 64, 2) })
+  const attempts = []
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, allowedPositions: new Set([new Vec3(2, 64, 2).toString()]), onAttempt: e => attempts.push(e) }), 1)
+  assert.deepEqual(aims.slice(0, 2), [64.5, 64.95])
+  assert.equal(attempts[0].navigation, 'visible_in_reach')
+})
