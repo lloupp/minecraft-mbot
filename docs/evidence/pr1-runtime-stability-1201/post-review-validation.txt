@@ -1,0 +1,10 @@
+== (a) 8 toras
+  ok: true,
+  code: undefined,
+  gathered: 8,
+oak_log", Count: 8b
+== (c) cancelamento
+  ok: false,
+  code: 'CANCELLED',
+  gathered: 4,
+oak_log", Count: 5b
