@@ -1,4 +1,4 @@
-Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
      4405  docs/evidence/julia-shadow-coverage-1201/analysis.json
      4759  docs/evidence/julia-shadow-coverage-1201/analyze.py
      6396  docs/evidence/julia-shadow-coverage-1201/driver.sh

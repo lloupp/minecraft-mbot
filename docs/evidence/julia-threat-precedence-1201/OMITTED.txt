@@ -1,4 +1,4 @@
-Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
      2678  docs/evidence/julia-threat-precedence-1201/prec.sh
      4057  docs/evidence/julia-threat-precedence-1201/prec_analysis.py
     26465  docs/evidence/julia-threat-precedence-1201/precedence/julia-payloads.jsonl

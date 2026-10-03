@@ -1,4 +1,4 @@
-Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
       775  docs/evidence/julia-gather-bias-1201/g45.sh
      2782  docs/evidence/julia-gather-bias-1201/gather_analysis.py
      2187  docs/evidence/julia-gather-bias-1201/gather_groups.sh

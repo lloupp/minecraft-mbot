@@ -1,4 +1,4 @@
-Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
     73591  docs/evidence/natural-terrain-night-death-1201/failed-and-superseded/natsoak1_timeline.jsonl
     77258  docs/evidence/natural-terrain-night-death-1201/failed-and-superseded/natsoak2_timeline.jsonl
    159263  docs/evidence/natural-terrain-night-death-1201/failed-and-superseded/natsoak3_timeline.jsonl

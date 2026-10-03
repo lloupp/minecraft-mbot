@@ -1,3 +1,3 @@
-Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
     44855  docs/evidence/julia-shadow-real-1201/decisions.jsonl
       934  docs/evidence/julia-shadow-real-1201/report.json

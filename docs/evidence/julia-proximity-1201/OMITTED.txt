@@ -1,4 +1,4 @@
-Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
      3395  docs/evidence/julia-proximity-1201/group_analysis.py
      2038  docs/evidence/julia-proximity-1201/groups.sh
    177215  docs/evidence/julia-proximity-1201/groups/decisions.jsonl

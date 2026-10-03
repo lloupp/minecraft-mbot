@@ -1,6 +1,6 @@
 # Experimento: autonomia do player loop (branch `experiment/autonomous-player-loop-next`)
 
-Branch limpa baseada na `main`. Herda da antiga PR #78 (`experiment/julia-laya-andy-player-loop-v2`, arquivada na tag
+Branch limpa baseada na `main`. Herda da antiga PR #78 (`experiment/julia-laya-andy-player-loop-v2`, arquivada na branch
 `archive/pr-78-julia-laya-andy-player-loop-v2`) **somente o que continua experimental**. Tudo abaixo é **opt-in e desligado por padrão**.
 `executionAuthority = none`: a Julia (e qualquer modelo) só observa; nenhuma escolha de modelo chega ao executor.
 
@@ -25,7 +25,7 @@ Antes da #78: #72, #73, #74, #81, #83.
 | Helper sem consumidor | `lib/parallel-shadow.js` | — |
 
 ## Evidências (`docs/evidence/`)
-Cada pasta tem README. Logs brutos grandes (>60 KB) foram omitidos daqui e listados em `OMITTED.txt`; ficam preservados na tag de arquivo e na
+Cada pasta tem README. Logs brutos grandes (>60 KB) foram omitidos daqui e listados em `OMITTED.txt`; ficam preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na
 branch antiga. Pastas `julia-*` mantêm só o README (experimentos de modelo; o código já está na `main`).
 `world-memory-1201/` documenta descoberta → restart real → reuso por outro worker → confirmação; invalidação sem loop; comparação de exploração
 com/sem memória após restart; e `failed-and-superseded/` (inclui o bug do chunk-alvo nunca visitado).
