@@ -329,3 +329,30 @@ test('visibilidade em alcance tenta faces laterais com ar quando topo e centro s
   assert.ok(aims.some(a => a[0] === 2.05))
   assert.ok(!aims.some(a => a[1] === 64.95))          // sem topo: não há ar em cima
 })
+
+test('clearLeaves cava só as folhas que estão no raio de visada do alvo aprovado e reavalia a visibilidade', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  bot.entity = { position: new Vec3(0.5, 64, 2.5) }
+  bot.lookAt = async () => {}
+  let leaf = { name: 'oak_leaves', position: new Vec3(1, 64, 2) }
+  const dug = []
+  bot.blockAtCursor = () => (leaf ? leaf : { position: new Vec3(2, 64, 2) })
+  const origDig = bot.dig
+  const origAt = bot.blockAt
+  bot.blockAt = (p) => (p.equals(new Vec3(2, 65, 2)) ? { name: 'oak_log', position: p } : origAt(p))
+  const origDigBase = bot.dig
+  bot.dig = async (block) => { if (block.name === 'oak_leaves') { dug.push(block.position.toString()); leaf = null; return } return origDigBase(block) }
+  const approved = new Set([new Vec3(2, 64, 2).toString()])
+  // sem a opção: recusa (comportamento anterior)
+  const attempts = []
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, allowedPositions: approved, onAttempt: e => attempts.push(e) }), 0)
+  assert.equal(attempts[0].code, 'TARGET_BLOCKED')
+  assert.deepEqual(dug, [])
+  // com a opção: cava 1 folha e minera o tronco
+  leaf = { name: 'oak_leaves', position: new Vec3(1, 64, 2) }
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, clearLeaves: true, allowedPositions: approved }), 1)
+  assert.deepEqual(dug, [new Vec3(1, 64, 2).toString()])
+})
