@@ -93,12 +93,14 @@ test('coleta confirma o item esperado, não qualquer crescimento do inventário'
   assert.equal(attempts[0].delta, 0)
 })
 
-test('cancelamento após dig não recebe crédito mesmo com item adquirido', async () => {
+test('cancelamento após dig preserva confirmação de item já adquirido', async () => {
   let cancelled = false
   const bot = collectionBot({ afterDig: () => { cancelled = true } })
   const attempts = []
-  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => cancelled, { onAttempt: e => attempts.push(e) }), 0)
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => cancelled, { onAttempt: e => attempts.push(e) }), 1)
   assert.equal(attempts[0].code, 'CANCELLED')
+  assert.equal(attempts[0].itemConfirmed, true)
+  assert.equal(attempts[0].delta, 1)
 })
 
 test('recurso desaparecido durante navegação não é cavado nem confirmado', async () => {
@@ -117,7 +119,7 @@ test('dois coletores mantêm delta e cancelamento independentes', async () => {
     gather.mineBlocks(one, n => n === 'oak_log', 1, () => cancelled),
     gather.mineBlocks(two, n => n === 'oak_log', 1, () => false)
   ])
-  assert.deepEqual(results, [0, 1])
+  assert.deepEqual(results, [1, 1])
 })
 
 test('stone confirma cobblestone e recusa inventário cheio', async () => {
@@ -145,4 +147,104 @@ test('coleta distingue erro de dig de recurso fora de alcance físico', async ()
 test('drop esperado acompanha a ferramenta escolhida com silk touch', () => {
   const bot = { registry: { blocksByName: { stone: { drops: [22] } }, items: { 22: { name: 'cobblestone' } }, itemsByName: { stone: { id: 1 } } } }
   assert.deepEqual([...gather.expectedDrops(bot, { name: 'stone' }, { enchants: [{ name: 'silk_touch' }] })], ['stone'])
+})
+
+test('collectDrops cai para uma célula adjacente quando o alvo exato do drop é inalcançável', async () => {
+  const food = require('../lib/food')
+  const drop = { name: 'item', isValid: true, position: new Vec3(3.05, 64, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+  const goalsTried = []
+  let picked = false
+  const bot = {
+    entities: { 1: drop },
+    pathfinder: {
+      setGoal() {},
+      goto: async (goal) => {
+        goalsTried.push(Math.sqrt(goal.rangeSq))
+        if (goal.rangeSq < 1) throw new Error('No path to the goal!') // célula sem altura sob os troncos
+        picked = true; drop.isValid = false
+      }
+    }
+  }
+  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 3000, done: () => picked })
+  assert.deepEqual(goalsTried, [0.5, 1])
+  assert.equal(picked, true)
+})
+
+test('collectDrops empurra o bot ao drop quando o fallback para fora da janela de coleta e sempre solta o controle', async () => {
+  const food = require('../lib/food')
+  const drop = { name: 'item', isValid: true, position: new Vec3(3.23, 64, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+  const controls = []
+  const bot = {
+    entities: { 1: drop },
+    entity: { position: new Vec3(4.67, 64, 2.4) }, // 1,44 do item: fora da janela de 1,425
+    lookAt: async () => {},
+    setControlState: (name, on) => { controls.push([name, on]); if (on) setTimeout(() => { drop.isValid = false }, 120) },
+    pathfinder: { setGoal() {}, goto: async (goal) => { if (goal.rangeSq < 1) throw new Error('No path to the goal!') } }
+  }
+  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 3000 })
+  assert.deepEqual(controls, [['forward', true], ['forward', false]])
+})
+
+test('collectDrops empurra o bot também quando o goto exato resolve sem se mover (nicho inalcançável)', async () => {
+  const food = require('../lib/food')
+  const drop = { name: 'item', isValid: true, position: new Vec3(3.05, 64, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+  const goals = []
+  const controls = []
+  const bot = {
+    entities: { 1: drop },
+    entity: { position: new Vec3(4.55, 64, 2.4) }, // 1,5 do item: fora da janela de coleta (1,425)
+    lookAt: async () => {},
+    setControlState: (name, on) => { controls.push([name, on]); if (on) setTimeout(() => { drop.isValid = false }, 100) },
+    pathfinder: { setGoal() {}, goto: async (goal) => { goals.push(Math.sqrt(goal.rangeSq)) } } // resolve sem mover
+  }
+  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 3000 })
+  assert.deepEqual(goals, [0.5])
+  assert.deepEqual(controls, [['forward', true], ['forward', false]])
+})
+
+test('collectDrops não empurra às cegas quando o pathfinder falhou longe do drop', async () => {
+  const food = require('../lib/food')
+  const drop = { name: 'item', isValid: true, position: new Vec3(8, 64, 2), getDroppedItem: () => ({ name: 'oak_log' }) }
+  const controls = []
+  const bot = {
+    entities: { 1: drop },
+    entity: { position: new Vec3(3, 64, 2) }, // 5 blocos: fora do alcance do empurrão (2,5)
+    lookAt: async () => {},
+    setControlState: (name, on) => controls.push([name, on]),
+    pathfinder: { setGoal() {}, goto: async () => { throw new Error('No path to the goal!') } }
+  }
+  await food.collectDrops(bot, new Vec3(8, 64, 2), () => false, { timeoutMs: 2000 })
+  assert.deepEqual(controls, [])
+})
+
+test('collectDrops não empurra em desnível, sobre líquido ou sem chão firme', async () => {
+  const food = require('../lib/food')
+  const run = async ({ dropY = 64, below = 'stone', at = 'air' }) => {
+    const drop = { name: 'item', isValid: true, position: new Vec3(3.05, dropY, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+    const controls = []
+    const bot = {
+      entities: { 1: drop },
+      entity: { position: new Vec3(4.55, 64, 2.4) }, // 1,5 do item: seria empurrado
+      blockAt: (p) => ({ name: p.y < Math.floor(dropY) ? below : at, boundingBox: (p.y < Math.floor(dropY) ? below : at) === 'air' ? 'empty' : 'block' }),
+      lookAt: async () => {},
+      setControlState: (name, on) => { controls.push([name, on]); if (on) setTimeout(() => { drop.isValid = false }, 100) },
+      pathfinder: { setGoal() {}, goto: async () => {} }
+    }
+    await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 2000 })
+    return controls
+  }
+  assert.deepEqual(await run({}), [['forward', true], ['forward', false]])
+  assert.deepEqual(await run({ dropY: 66 }), [])            // desnível > 1
+  assert.deepEqual(await run({ below: 'lava' }), [])        // líquido sob o item
+  assert.deepEqual(await run({ below: 'air' }), [])         // sem chão (queda)
+})
+
+test('cancelamento antes do dig não credita um pickup ambiente do mesmo item', async () => {
+  let cancelled = false
+  const bot = collectionBot()
+  bot.pathfinder.goto = async () => { bot.inventory.items().push({ name: 'oak_log', count: 1 }); cancelled = true } // item entra de outra fonte
+  bot.dig = async () => assert.fail('não pode cavar depois de cancelado')
+  const attempts = []
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => cancelled, { onAttempt: e => attempts.push(e) }), 0)
+  assert.equal(attempts.find((e) => 'itemConfirmed' in e).itemConfirmed, false)
 })

@@ -518,7 +518,7 @@ test('cancelamento após dig não retorna sucesso nem inicia depósito', async (
   assert.equal(result.code, 'CANCELLED')
 })
 
-test('cancelamento durante aproximação ao drop não confirma nem deposita a coleta', async () => {
+test('cancelamento durante pickup preserva item confirmado sem concluir nem depositar a tarefa', async () => {
   const pos = new Vec3(2, 63, 0)
   const bot = fakeBot({ blocks: { [pos.toString()]: 'iron_ore' } })
   const storage = { configured: () => true, withdrawBestTool: async () => null,
@@ -542,5 +542,6 @@ test('cancelamento durante aproximação ao drop não confirma nem deposita a co
   assert.equal(navigation, 2)
   assert.equal(result.ok, false)
   assert.equal(result.code, 'CANCELLED')
-  assert.equal(result.gathered, 0)
+  assert.equal(result.gathered, 1)
+  assert.equal(result.evidence[0].itemConfirmed, true)
 })

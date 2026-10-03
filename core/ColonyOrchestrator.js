@@ -1,5 +1,9 @@
 const husbandry = require('../lib/husbandry')
 
+const INTERRUPTION_BACKOFF_MS = 5000
+const INTERRUPTION_CODES = new Set(['CANCELLED'])
+const isInterruption = (result) => result?.cancelled === true || INTERRUPTION_CODES.has(result?.code)
+
 class ColonyOrchestrator {
   constructor({
     botManager,
@@ -411,7 +415,10 @@ class ColonyOrchestrator {
     return Promise.resolve()
       .then(() => controller.run(task))
       .then((result) => {
-        if (result?.ok === false) {
+        if (result?.ok === false && isInterruption(result)) {
+          // Nova ordem/cancelamento não é falha da tarefa: espera curta, sem escalar nem encurtar um backoff de falhas reais.
+          this.autoBackoff.set(worker.name, Math.max(this.autoBackoff.get(worker.name) || 0, Date.now() + INTERRUPTION_BACKOFF_MS))
+        } else if (result?.ok === false) {
           this.recordAutoFailure(worker.name)
         } else {
           this.autoBackoff.delete(worker.name)

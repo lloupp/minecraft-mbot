@@ -80,3 +80,22 @@ test('projeto com etapa que esgotou tentativas não é concluído', () => {
   assert.equal(manager.maybeComplete({ deficits: {} }), false)
   assert.equal(manager.history.length, 0)
 })
+
+test('interrupção (cancelamento) não escala o backoff nem encurta o de falha real; falha real escala', async () => {
+  const c = colony()
+  const worker = { name: 'worker' }
+  const task = { type: 'explorar' }
+  for (const result of [{ ok: false, cancelled: true }, { ok: false, code: 'CANCELLED' }]) {
+    await c.runAuto(worker, { run: async () => result }, task)
+    assert.equal(c.autoFailures.size, 0)
+    const wait = c.autoBackoff.get(worker.name) - Date.now()
+    assert.ok(wait > 0 && wait <= 5000)
+  }
+  await c.runAuto(worker, { run: async () => ({ ok: false, code: 'TIMEOUT' }) }, task)
+  assert.equal(c.autoFailures.get(worker.name), 1)
+  // uma interrupção não encurta o backoff já escalado por falhas reais
+  const farFuture = Date.now() + 120000
+  c.autoBackoff.set(worker.name, farFuture)
+  await c.runAuto(worker, { run: async () => ({ ok: false, cancelled: true }) }, task)
+  assert.equal(c.autoBackoff.get(worker.name), farFuture)
+})
