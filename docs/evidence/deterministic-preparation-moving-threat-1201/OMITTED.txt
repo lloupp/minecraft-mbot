@@ -1,0 +1,6 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    76787  docs/evidence/deterministic-preparation-moving-threat-1201/baseline/results.json
+   243889  docs/evidence/deterministic-preparation-moving-threat-1201/baseline/timeline.jsonl
+    90439  docs/evidence/deterministic-preparation-moving-threat-1201/final/results.json
+   297961  docs/evidence/deterministic-preparation-moving-threat-1201/final/timeline.jsonl
+   148657  docs/evidence/deterministic-preparation-moving-threat-1201/verification/timeline.jsonl

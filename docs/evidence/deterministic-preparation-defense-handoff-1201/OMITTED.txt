@@ -1,0 +1,8 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+   195527  docs/evidence/deterministic-preparation-defense-handoff-1201/baseline-affected/timeline.jsonl
+    64632  docs/evidence/deterministic-preparation-defense-handoff-1201/baseline-real/results.json
+   339268  docs/evidence/deterministic-preparation-defense-handoff-1201/baseline-real/timeline.jsonl
+    80135  docs/evidence/deterministic-preparation-defense-handoff-1201/final-handoff-table-in-range/timeline.jsonl
+    66327  docs/evidence/deterministic-preparation-defense-handoff-1201/final-handoff/timeline.jsonl
+    77092  docs/evidence/deterministic-preparation-defense-handoff-1201/reconnect/timeline.jsonl
+   199344  docs/evidence/deterministic-preparation-defense-handoff-1201/verification/timeline.jsonl

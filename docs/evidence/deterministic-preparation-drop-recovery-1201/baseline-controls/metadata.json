@@ -1,0 +1,15 @@
+{
+  "optIn": "1",
+  "juliaShadow": true,
+  "juliaExecutionAuthority": "none",
+  "minecraft": "1.20.1",
+  "revision": "b02f891e8224cdc40e107145a92d6fce966edcf8",
+  "selected": [
+    "blocked",
+    "ambiguous",
+    "wrong",
+    "outside",
+    "mixed",
+    "table"
+  ]
+}

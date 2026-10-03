@@ -10,8 +10,11 @@ const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = r
 const { resolveBlockNames } = require('./resources')
 const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
-const { candidateIntents } = require('../lib/player-loop')
+const { candidateIntents, deterministicPlayerPolicy } = require('../lib/player-loop')
 const { realStateSnapshot } = require('../lib/real-state')
+const worldObserver = require('../lib/world-observer')
+const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
+const { preparationRadius, executePreparationStep, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, preparationStateSnapshot } = require('../lib/forced-preparation')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -33,11 +36,34 @@ const PATH_THINK_MS = 25000
 // workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
 const MS_PER_BLOCK = 700
 const POINT_ARRIVAL_RADIUS = 2
+const PREPARATION_SITE_TTL_MS = 90000
+const PREPARATION_SITE_MAX_DISTANCE = 16
+const PREPARATION_STAGING_MAX_DISTANCE = 8
+const PREPARATION_STAGING_SAFETY_POLL_MS = 100
+const EXPLORE_FAR_MARGIN = 32
+const PHYSICAL_PREPARATION_REFUSALS = new Set(['TARGET_BLOCKED', 'APPROVED_TARGETS_INSUFFICIENT', 'MINING_PICKAXE_REQUIRED', 'COBBLESTONE_DROP_REQUIRED', 'NEARBY_TABLE_REQUIRED'])
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
   const d = Math.hypot(from.x - to.x, from.y - to.y, from.z - to.z)
   return Math.max(30000, Math.round(d * MS_PER_BLOCK))
+}
+
+function summarizeGatherRecovery(evidence = []) {
+  const failedWithAlternate = evidence.findIndex((attempt) =>
+    attempt?.code &&
+    attempt.code !== gather.COLLECTION_FAILURE.CANCELLED &&
+    attempt.alternateTargetCandidateObserved === true
+  )
+  if (failedWithAlternate < 0) {
+    return { alternateTargetObserved: false, alternateTargetRecoveryConfirmed: false }
+  }
+  return {
+    alternateTargetObserved: true,
+    alternateTargetRecoveryConfirmed: evidence
+      .slice(failedWithAlternate + 1)
+      .some((attempt) => attempt?.itemConfirmed === true)
+  }
 }
 
 function shadowObjectiveKey(task) {
@@ -71,7 +97,7 @@ function protectPenBlocks(moves, registry) {
 }
 
 class WorkerController {
-  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null }) {
+  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null }) {
     this.bot = bot
     this.name = name
     this.role = role
@@ -83,6 +109,8 @@ class WorkerController {
     // Shadow mode do Laya (opcional): só observa em paralelo, nunca decide
     // nada aqui. Ver a chamada em run() e lib/laya-shadow.js.
     this.shadow = shadow
+    // Memória espacial compartilhada (conhecimento, nunca executor): o mundo real continua sendo a verdade.
+    this.worldMemory = worldMemory
     this._shadowFailureStreak = 0
     this._shadowFailureKey = null
     this._shadowFailureEntry = null
@@ -90,6 +118,7 @@ class WorkerController {
     this.state = 'conectando'
     this.currentTask = null
     this.taskVersion = 0
+    this._preparationResumeCandidate = null
     this.exploreStep = 0
     this.workMoves = null
     this.penMoves = null
@@ -226,6 +255,17 @@ class WorkerController {
       : bot.nearestEntity((e) => e.type === 'hostile' && e.position.distanceTo(bot.entity.position) <= FLEE_DISTANCE)
     if (!threat) return null
 
+    const interruptedPreparation = this.currentTask?.type === 'preparar_combate_deterministico'
+      ? {
+          ...this.currentTask,
+          objective: this.currentTask.objective ? { ...this.currentTask.objective } : null,
+          allowedTargets: Array.isArray(this.currentTask.allowedTargets)
+            ? this.currentTask.allowedTargets.map((target) => ({ ...target }))
+            : []
+        }
+      : null
+    const preparationDrain = this._preparationDrain
+    this.rememberPreparationSiteWhenUnarmed()
     this.cancel()
     this.defending = true
     this.state = 'defendendo'
@@ -233,6 +273,8 @@ class WorkerController {
     const isCancelled = () => version !== this.taskVersion
     let result = 'fugi'
     try {
+      if (preparationDrain) await preparationDrain.catch(() => {})
+      if (isCancelled()) return 'cancelado'
       if (combat.decide(bot, threat) === 'lutar') {
         result = await combat.fight(bot, threat, isCancelled)
         if (result === 'recuei') await this.flee(threat, isCancelled)
@@ -246,7 +288,52 @@ class WorkerController {
       if (!isCancelled()) {
         this.state = 'ocioso'
         bot.pathfinder?.setGoal(null)
+        this._preparationResumeCandidate = interruptedPreparation
+          ? this.buildPreparationResumeTask(interruptedPreparation)
+          : null
       }
+    }
+  }
+
+  // Defesa com o explorador desarmado e recursos ao alcance: lembra o local para uma volta única depois.
+  rememberPreparationSiteWhenUnarmed() {
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') return
+    const site = this._preparationSite
+    if (site && Date.now() - site.at <= PREPARATION_SITE_TTL_MS) return
+    try {
+      const state = preparationStateSnapshot(this.bot, { type: 'explorar' }, {
+        homeProvider: this.homeProvider,
+        allowedTargets: this.nearbyPreparationAllowlist()
+      })
+      if (!state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+        this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+      }
+    } catch { /* melhor esforço: nunca atrasa a defesa */ }
+  }
+
+  buildPreparationResumeTask(interruptedTask) {
+    if (!interruptedTask?.objective || typeof interruptedTask.objective !== 'object') return null
+    const state = preparationStateSnapshot(this.bot, interruptedTask.objective, {
+      homeProvider: this.homeProvider,
+      allowedTargets: Array.isArray(interruptedTask.allowedTargets) ? interruptedTask.allowedTargets : []
+    })
+    return preparationDispatchTask({
+      enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
+      state,
+      objective: interruptedTask.objective,
+      allowedTargets: Array.isArray(interruptedTask.allowedTargets) ? interruptedTask.allowedTargets : [],
+      timeoutMs: interruptedTask.timeoutMs
+    })
+  }
+
+  pendingPreparationResume() {
+    if (!this._preparationResumeCandidate) return null
+    return {
+      ...this._preparationResumeCandidate,
+      objective: this._preparationResumeCandidate.objective ? { ...this._preparationResumeCandidate.objective } : null,
+      allowedTargets: Array.isArray(this._preparationResumeCandidate.allowedTargets)
+        ? this._preparationResumeCandidate.allowedTargets.map((target) => ({ ...target }))
+        : []
     }
   }
 
@@ -302,11 +389,17 @@ class WorkerController {
 
   async run(task) {
     await this.waitReady()
+    const preparationDrain = this._preparationDrain
     this.cancel()
+    this._preparationResumeCandidate = null
     const version = this.taskVersion
     const isCancelled = () => version !== this.taskVersion
     this.currentTask = { ...task }
     this.state = 'trabalhando'
+    // A submitted craft cannot be rolled back. Invalidate ownership immediately,
+    // but let that preparation settle before the new owner starts physical work.
+    if (preparationDrain) await preparationDrain.catch(() => {})
+    if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true }
 
     // A tarefa em si continua exatamente como antes, só que agora dentro de
     // uma função para termos uma promise (`taskPromise`) que podemos passar
@@ -345,7 +438,7 @@ class WorkerController {
           result = await this.captureAnimals(task.species, task.count || 1, isCancelled)
           break
         case 'explorar':
-          result = await this.explore(task.radius || 64, isCancelled, task.center || null)
+          result = await this.runExplorePlayerLoop(task, isCancelled)
           break
         case 'ir_local':
           result = await this.goToPoint(task.position, isCancelled)
@@ -380,6 +473,9 @@ class WorkerController {
         case 'voltar':
           result = await this.returnHome(isCancelled)
           break
+        case 'preparar_combate_deterministico':
+          result = await this.runDeterministicPreparation(task, isCancelled)
+          break
         default:
           throw new Error(`tarefa desconhecida: ${task.type}`)
       }
@@ -393,8 +489,33 @@ class WorkerController {
       }
     })()
 
-    this._observeShadow(task, isCancelled, taskPromise)
+    if (task.type === 'preparar_combate_deterministico') {
+      this._preparationDrain = taskPromise
+      const clearDrain = () => { if (this._preparationDrain === taskPromise) this._preparationDrain = null }
+      taskPromise.then(clearDrain, clearDrain)
+    }
+    this._observeShadow(task.type === 'preparar_combate_deterministico' ? (task.objective || task) : task, isCancelled, taskPromise)
     return taskPromise
+  }
+
+  async runDeterministicPreparation(task, isCancelled) {
+    const objective = task?.objective
+    if (!objective || typeof objective !== 'object' || !objective.type) {
+      return { ok: false, code: 'OBJECTIVE_REQUIRED', juliaExecutionAuthority: 'none' }
+    }
+
+    const ownerVersion = this.taskVersion
+    return executePreparationStep({
+      enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
+      bot: this.bot,
+      task: objective,
+      production: this.production,
+      allowedTargets: Array.isArray(task.allowedTargets) ? task.allowedTargets : [],
+      homeProvider: this.homeProvider,
+      isCancelled,
+      timeoutMs: Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 20000,
+      onEvent: event => this.logger.log?.(`[deterministic-preparation] ${JSON.stringify({ worker: this.name, taskVersion: ownerVersion, currentVersion: this.taskVersion, ...event })}`)
+    })
   }
 
   // Shadow mode do Laya: só observa, nunca decide. Nunca lança e nunca é
@@ -537,9 +658,25 @@ class WorkerController {
 
     // gather pula blocos inalcançáveis em vez de insistir sempre no mesmo.
     const evidence = []
-    const gathered = await gather.mineBlocks(this.bot, (name) => wanted.has(name), count, isCancelled, {
-      onAttempt: (attempt) => { evidence.push(attempt); if (evidence.length > 20) evidence.shift() }
+    const kind = [...wanted].map(worldObserver.resourceKindForBlock).find(Boolean) || null
+    const dim = worldObserver.dimensionOf(this.bot)
+    const mine = (n) => gather.mineBlocks(this.bot, (name) => wanted.has(name), n, isCancelled, {
+      onAttempt: (attempt) => {
+        evidence.push(attempt); if (evidence.length > 20) evidence.shift()
+        // Fonte confirmada no mundo (item no inventário) => registra a região do recurso.
+        if (attempt.itemConfirmed && kind && attempt.targetPosition && this.worldMemory) {
+          this.worldMemory.discover(kind, dim, attempt.targetPosition, { by: this.name })
+        }
+      }
     })
+    if (this.worldMemory) this.observeWorld()
+    let gathered = await mine(count)
+    // Nada à vista: a memória só sugere ONDE olhar; depois é o mesmo findBlocks/dig/confirmação de sempre.
+    if (gathered < count && !isCancelled() && kind && this.memoryGuideOn() &&
+        evidence.findLast((attempt) => attempt.code)?.code === gather.COLLECTION_FAILURE.RESOURCE_NOT_FOUND) {
+      if (await this.rememberedResourceDetour(kind, isCancelled)) gathered += await mine(count - gathered)
+    }
+    if (this.worldMemory && !isCancelled()) this.observeWorld() // recurso esgotado => região invalidada
 
     const deposited = !isCancelled() && this.storage?.configured()
       ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
@@ -547,7 +684,8 @@ class WorkerController {
     const ok = !isCancelled() && gathered >= count
     const code = isCancelled() ? gather.COLLECTION_FAILURE.CANCELLED
       : ok ? undefined : evidence.findLast((attempt) => attempt.code)?.code || gather.COLLECTION_FAILURE.RESOURCE_NOT_FOUND
-    return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, evidence }
+    const recovery = summarizeGatherRecovery(evidence)
+    return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, recovery, evidence }
   }
 
   // Currais construídos (com portão) em volta da base.
@@ -1147,7 +1285,425 @@ class WorkerController {
     }
   }
 
-  async explore(radius, isCancelled, center = null) {
+  nearbyPreparationAllowlist(maxDistance = preparationRadius(), maxTargets = 32) {
+    if (typeof this.bot.findBlocks !== 'function') return []
+    const blocks = this.bot.registry?.blocksArray || []
+    const idsFor = (predicate) => blocks.filter((block) => predicate(block.name)).map((block) => block.id)
+    const isStone = (name) => name === 'stone' || name === 'cobblestone'
+    const isLog = (name) => name.endsWith('_log')
+
+    // findBlocks devolve os mais próximos primeiro: em terreno natural eles são pedras enterradas ou um
+    // afloramento grande que esgotaria a cota e deixaria as árvores de fora. Duas varreduras limitadas,
+    // uma por recurso, mantendo só candidatos expostos e no máximo metade da cota para cada.
+    const seen = new Set()
+    const scan = (predicate, scanCount, cap) => {
+      const matching = idsFor(predicate)
+      if (!matching.length) return []
+      const found = []
+      for (const position of this.bot.findBlocks({ matching, maxDistance, count: scanCount }) || []) {
+        if (!position || found.length >= cap) break
+        const key = position.toString()
+        if (seen.has(key)) continue
+        const block = this.bot.blockAt?.(position)
+        if (!block || !predicate(block.name)) continue
+        if (!gather.isExposed(this.bot, position) || gather.hasFallingAbove(this.bot, position)) continue
+        seen.add(key)
+        found.push({ x: position.x, y: position.y, z: position.z, name: block.name })
+      }
+      return found
+    }
+    const half = Math.floor(maxTargets / 2)
+    return [...scan(isLog, maxTargets * 4, half), ...scan(isStone, maxTargets * 8, maxTargets - half)]
+  }
+
+  // Depois de uma ameaça interromper a preparação, a defesa pode deslocar o bot para fora da janela
+  // local. Uma única volta ao local validado (nunca busca nova); o resto é reavaliado pelo snapshot real.
+  async returnToPreparationSite(task, isCancelled) {
+    const site = this._preparationSite
+    if (!site || isCancelled()) return
+    if (Date.now() - site.at > PREPARATION_SITE_TTL_MS) { this._preparationSite = null; return }
+    const state = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [], isCancelled })
+    if (state.threat) return // ameaça ainda presente: mantém o local até o TTL
+    this._preparationSite = null
+    if (state.equippedWeapon) return
+    const distance = this.bot.entity.position.distanceTo(site.position)
+    if (distance <= 0.5 || distance > PREPARATION_SITE_MAX_DISTANCE) return
+    try {
+      await this.goTo(new goals.GoalBlock(Math.floor(site.position.x), Math.floor(site.position.y), Math.floor(site.position.z)), 15000)
+    } catch { /* sem caminho: segue com o snapshot real da posição atual */ }
+  }
+
+  async tryLocalPreparationStaging(isCancelled) {
+    if (isCancelled() || !this.production?.findCraftingTable || !this.bot?.entity?.position) return false
+
+    const table = this.production.findCraftingTable(this.bot, PREPARATION_STAGING_MAX_DISTANCE)
+    if (!table?.position) return false
+
+    const liveTable = this.bot.blockAt?.(table.position)
+    if (liveTable?.name !== 'crafting_table') return false
+
+    const distance = this.bot.entity.position.distanceTo(table.position)
+    if (distance > PREPARATION_STAGING_MAX_DISTANCE) return false
+
+    // The cache is only a hint; the physical executor/preflight still revalidates
+    // the block and distance before every craft.
+    this.production.rememberCraftingTable?.(this.bot, liveTable)
+
+    // If we are already adjacent, another movement would add no useful physical
+    // information. Let the normal fail-closed fallback handle the refusal.
+    if (distance <= 1.5) return false
+
+    let stagingThreat = null
+    let defenseStarted = false
+    const detectThreat = () => {
+      if (stagingThreat || isCancelled() || !this.bot?.entity?.position) return
+      const threat = this.bot.nearestEntity?.((entity) =>
+        entity?.type === 'hostile' &&
+        entity.position?.distanceTo(this.bot.entity.position) <= FLEE_DISTANCE
+      )
+      if (!threat) return
+
+      stagingThreat = threat
+      // Cancel the navigation immediately. defend() synchronously invalidates
+      // taskVersion before its first await, so the old explore owner cannot
+      // start another physical action after this point.
+      this.bot.pathfinder?.setGoal(null)
+      if (!defenseStarted && !this.defending) {
+        defenseStarted = true
+        this.defend(threat).catch((err) =>
+          this.logger.log?.(`[colônia] ${this.name} defesa durante staging: ${err.message}`)
+        )
+      }
+    }
+
+    detectThreat()
+    if (stagingThreat || isCancelled()) return false
+
+    const monitor = setInterval(detectThreat, PREPARATION_STAGING_SAFETY_POLL_MS)
+    try {
+      await this.goTo(
+        new goals.GoalNear(
+          Math.floor(table.position.x),
+          Math.floor(table.position.y),
+          Math.floor(table.position.z),
+          1
+        ),
+        10000
+      )
+    } catch {
+      return false
+    } finally {
+      clearInterval(monitor)
+    }
+
+    detectThreat()
+    if (stagingThreat || isCancelled()) return false
+    const after = this.bot.blockAt?.(table.position)
+    if (after?.name !== 'crafting_table') return false
+    return this.bot.entity.position.distanceTo(table.position) <= 2
+  }
+
+  async runExplorePlayerLoop(task, isCancelled) {
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') {
+      return this.explore(task.radius || 64, isCancelled, task.center || null)
+    }
+
+    const preparationSteps = []
+    const maxPreparationSteps = 3
+    let stagingAttempted = false
+    let memoryTripAttempted = false
+    // Muito além do raio de exploração (ex.: respawn no spawn do mundo): os alvos são relativos ao
+    // centro, então primeiro volta a ele com o retorno existente em vez de falhar caminhando 300+ blocos.
+    const center = task.center || this.homeProvider?.()
+    const farLimit = (task.radius || 64) + EXPLORE_FAR_MARGIN
+    if (center && this.bot.entity?.position && Math.hypot(this.bot.entity.position.x - center.x, this.bot.entity.position.z - center.z) > farLimit) {
+      const returned = await this.returnHome(isCancelled)
+      if (!returned.ok) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+    }
+    await this.returnToPreparationSite(task, isCancelled)
+
+    for (let step = 0; step < maxPreparationSteps;) {
+      if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+
+      const allowedTargets = this.nearbyPreparationAllowlist()
+      const state = preparationStateSnapshot(this.bot, task, {
+        homeProvider: this.homeProvider,
+        allowedTargets,
+        isCancelled
+      })
+      const candidates = candidateIntents(state)
+      const choice = deterministicPlayerPolicy(state, candidates)
+
+      if (choice === 'continue_objective') {
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+        return {
+          ...explored,
+          playerLoopPreparation: true,
+          preparationSteps
+        }
+      }
+
+      // Noite desarmado (ou outra necessidade de voltar): o retorno à base já existe (tarefa `voltar`);
+      // sem ele o explorador ficaria parado fora da base. Um único retorno, sob o mesmo owner.
+      if (choice === 'return_base' && this.homeProvider?.()) {
+        const returned = await this.returnHome(isCancelled)
+        return returned.ok
+          ? { ok: true, returnedToBase: true, intent: choice, playerLoopPreparation: true, preparationSteps }
+          : { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+      }
+
+      if (!['gather_materials', 'prepare_combat', 'equip_best_weapon'].includes(choice)) {
+        // Ameaça antes da preparação: lembra o local (desarmado + recursos ao alcance) para uma volta única depois.
+        if (state.threat && !state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+          this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+        }
+        return {
+          ok: false,
+          code: 'PLAYER_LOOP_PREEMPTED',
+          intent: choice,
+          candidates: candidates.map((candidate) => candidate.id),
+          preparationSteps
+        }
+      }
+
+      if (process.env.MBOT_DETERMINISTIC_PREPARATION !== '1') {
+        return {
+          ok: false,
+          code: 'PREPARATION_EXECUTOR_DISABLED',
+          intent: choice,
+          preparationSteps
+        }
+      }
+
+      // O preflight só aceita mesa já em cache; registra uma mesa real a ≤4 blocos (sem busca ampla).
+      if (!this.production.cachedCraftingTable?.(this.bot)) {
+        const nearbyTable = this.production.findCraftingTable?.(this.bot, 4)
+        if (nearbyTable) this.production.rememberCraftingTable(this.bot, nearbyTable)
+      }
+
+      const preflight = preparationIntegrationPreflight({
+        bot: this.bot,
+        production: this.production,
+        state,
+        allowedTargets
+      })
+      if (!preflight.ok) {
+        if (preflight.code === 'SAFETY_PRECEDENCE') {
+          return { ok: false, code: preflight.code, intent: choice, preparationSteps }
+        }
+
+        // One bounded staging move is allowed only for spatial refusals. This is
+        // not a resource search: it approaches one existing crafting table at
+        // <= 8 blocks, then rebuilds the allowlist/snapshot and re-runs preflight.
+        if (!stagingAttempted &&
+            ['NEARBY_TABLE_REQUIRED', 'APPROVED_TARGETS_INSUFFICIENT'].includes(preflight.code)) {
+          stagingAttempted = true
+          if (await this.tryLocalPreparationStaging(isCancelled)) continue
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        }
+
+        // Local esgotado: a memória pode conhecer um ponto com mesa+madeira+pedra. Uma viagem por tarefa;
+        // depois o loop reavalia tudo do zero (snapshot real, allowlist, preflight físico).
+        if (!memoryTripAttempted && this.memoryGuideOn() &&
+            ['NEARBY_TABLE_REQUIRED', 'APPROVED_TARGETS_INSUFFICIENT'].includes(preflight.code)) {
+          memoryTripAttempted = true
+          if (await this.tryRememberedPreparationSite(isCancelled)) continue
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        }
+
+        // Sem condições físicas para preparar aqui: não é erro da tarefa.
+        // Segue o caminho clássico em vez de deixar o explorador parado.
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+        return {
+          ...explored,
+          playerLoopPreparation: true,
+          preparationSkipped: { code: preflight.code || 'PREPARATION_PREFLIGHT_REFUSED', intent: choice },
+          preparationSteps
+        }
+      }
+
+      const preparationTask = preparationIntegrationTask({
+        enabled: true,
+        bot: this.bot,
+        production: this.production,
+        state,
+        objective: task,
+        allowedTargets,
+        // A caminhada de aproximação (até 8 s) do modo raio >4 faz parte da etapa: sem ela, 2 de 8 rodadas
+        // estouravam 20 s com o gather quase pronto (8 s de caminhada + dig + pickup + 2 pedras).
+        timeoutMs: 20000 + (preparationRadius() > 4 ? 8000 : 0)
+      })
+      if (!preparationTask) {
+        return {
+          ok: false,
+          code: 'PREPARATION_TASK_NOT_CREATED',
+          intent: choice,
+          preparationSteps
+        }
+      }
+
+      const ownerVersion = this.taskVersion
+      const siteBefore = this.bot.entity.position.clone()
+      const preparationPromise = this.runDeterministicPreparation(preparationTask, isCancelled)
+      this._preparationDrain = preparationPromise
+      try {
+        const result = await preparationPromise
+        preparationSteps.push({
+          intent: choice,
+          ok: result?.ok === true,
+          code: result?.code || null,
+          ownerVersion
+        })
+        if (!result?.ok) {
+          if (result?.code === 'THREAT') this._preparationSite = { position: siteBefore, at: Date.now() }
+          // Recusa física do executor (alvo coberto por folhas, falta de alvos/picareta/mesa): nada deu errado
+          // na tarefa; segue a exploração clássica em vez de virar falha com backoff exponencial.
+          if (PHYSICAL_PREPARATION_REFUSALS.has(result?.code)) {
+            const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+            return {
+              ...explored,
+              playerLoopPreparation: true,
+              preparationSkipped: { code: result.code, intent: choice, afterStep: true },
+              preparationSteps
+            }
+          }
+          return {
+            ...result,
+            playerLoopPreparation: true,
+            preparationSteps
+          }
+        }
+        step++
+      } finally {
+        if (this._preparationDrain === preparationPromise) this._preparationDrain = null
+      }
+    }
+
+    const finalTargets = this.nearbyPreparationAllowlist()
+    const finalState = preparationStateSnapshot(this.bot, task, {
+      homeProvider: this.homeProvider,
+      allowedTargets: finalTargets,
+      isCancelled
+    })
+    const finalCandidates = candidateIntents(finalState)
+    const finalChoice = deterministicPlayerPolicy(finalState, finalCandidates)
+    if (finalChoice === 'continue_objective') {
+      const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+      return { ...explored, playerLoopPreparation: true, preparationSteps }
+    }
+
+    return {
+      ok: false,
+      code: 'PREPARATION_STEP_LIMIT',
+      intent: finalChoice,
+      candidates: finalCandidates.map((candidate) => candidate.id),
+      preparationSteps
+    }
+  }
+
+  // Superfície caminhável em (x, z) perto de nearY a partir dos chunks já carregados. Água/lava na superfície
+  // (oceano, lago) ou nenhum chão => inválido; copas de árvore são atravessadas até o chão. unknown: chunk
+  // não carregado (mantém o alvo original).
+  surfaceAt(x, z, nearY) {
+    const top = Math.floor(nearY) + 24
+    for (let y = top; y >= Math.floor(nearY) - 32; y--) {
+      const block = this.bot.blockAt?.(new Vec3(x, y, z))
+      if (!block) return { unknown: true }
+      if (block.name === 'water' || block.name === 'lava' || block.name === 'bubble_column') return { ok: false, reason: block.name }
+      if (block.boundingBox === 'block' && !block.name.endsWith('_leaves')) return { ok: true, y: y + 1 }
+    }
+    return { ok: false, reason: 'no_ground' }
+  }
+
+  // ---------- memória espacial (conhecimento; nada aqui autoriza ação) ----------
+  memoryGuideOn() {
+    return Boolean(this.worldMemory) && process.env.MBOT_WORLD_MEMORY_GUIDE === '1'
+  }
+
+  observeWorld() {
+    if (!this.worldMemory) return null
+    try {
+      return worldObserver.observeSurroundings(this.bot, this.worldMemory, { by: this.name })
+    } catch (err) {
+      this.logger.log?.(`[world-memory] ${this.name}: observação falhou: ${err.message}`)
+      return null
+    }
+  }
+
+  // Vai até uma lembrança e CONFERE no mundo real. Só devolve present=true se o mundo confirmou.
+  async approachRemembered(place, isCancelled, { radius = 3 } = {}) {
+    const memory = this.worldMemory
+    const from = this.bot.entity?.position
+    if (!memory || !from) return { ok: false, present: false, code: 'NO_MEMORY' }
+    try {
+      await this.goTo(new goals.GoalNear(place.x, place.y, place.z, radius), travelTimeoutMs(from, place))
+    } catch {
+      if (isCancelled()) return { ok: false, present: false, cancelled: true }
+      memory.noteApproachFailure(place.key)
+      return { ok: false, present: false, code: 'PATH_FAILED' }
+    }
+    if (isCancelled()) return { ok: false, present: false, cancelled: true }
+    const conclusive = worldObserver.verifyPlace(this.bot, memory, place, { by: this.name })
+    this.observeWorld()
+    if (!conclusive) { memory.noteApproachFailure(place.key); return { ok: true, present: false, code: 'UNVERIFIED' } }
+    return { ok: true, present: place.status === MEMORY_STATUS.CONFIRMED }
+  }
+
+  // Lembrança de mesa+madeira+pedra: navega até a mesa conhecida; depois o fluxo normal (snapshot real,
+  // preflight físico, executor) decide tudo. Uma única viagem por tarefa.
+  async tryRememberedPreparationSite(isCancelled) {
+    if (!this.memoryGuideOn() || !this.bot.entity?.position) return false
+    const dim = worldObserver.dimensionOf(this.bot)
+    const site = this.worldMemory.suggestPreparationSite(dim, this.bot.entity.position, { radius: preparationRadius() + 4 })
+    if (!site) return false
+    const result = await this.approachRemembered(site.table, isCancelled, { radius: 2 })
+    this.logger.log?.(`[world-memory] ${this.name} preparation_site table=(${site.table.x},${site.table.y},${site.table.z}) present=${result.present} code=${result.code || 'ok'}`)
+    if (!result.present) return false
+    const live = this.bot.blockAt?.(site.table)
+    if (live?.name === 'crafting_table') this.production?.rememberCraftingTable?.(this.bot, live)
+    return true
+  }
+
+  // Recurso não está à vista: usa a memória só para decidir ONDE olhar; a coleta segue pelo mesmo
+  // caminho real (findBlocks + cavar + confirmação de inventário). Até 2 hipóteses por tarefa.
+  async rememberedResourceDetour(kind, isCancelled) {
+    const memory = this.worldMemory
+    const dim = worldObserver.dimensionOf(this.bot)
+    const tried = new Set()
+    for (let i = 0; i < 2 && !isCancelled(); i++) {
+      const [pick] = memory.suggest(kind, dim, this.bot.entity.position, { limit: 1, exclude: tried })
+      if (!pick) return false
+      tried.add(pick.place.key)
+      const result = await this.approachRemembered(pick.place, isCancelled, { radius: 4 })
+      this.logger.log?.(`[world-memory] ${this.name} resource_detour ${kind} (${pick.place.x},${pick.place.y},${pick.place.z}) ${pick.status} present=${result.present} code=${result.code || 'ok'}`)
+      if (result.cancelled) return false
+      if (result.present) return true
+    }
+    return false
+  }
+
+  // Destino de exploração: com a flag, a memória escolhe entre os pontos do anel clássico o menos visitado.
+  // Memória vazia (ou flag desligada) mantém exatamente o padrão geométrico.
+  exploreCandidates(home, radius, y) {
+    const directions = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+    const out = []
+    const seen = new Set()
+    const rings = Math.min(8, Math.ceil(radius / 16))
+    for (let ring = 1; ring <= rings; ring++) {
+      const distance = Math.min(radius, 16 * ring)
+      directions.forEach((d, i) => {
+        const x = Math.floor(home.x + d[0] * distance)
+        const z = Math.floor(home.z + d[1] * distance)
+        const key = `${x},${z}`
+        if (seen.has(key)) return
+        seen.add(key)
+        out.push({ x, z, y, distance, order: (ring - 1) * 8 + i })
+      })
+    }
+    return out
+  }
+
+  async explore(radius, isCancelled, center = null, { groundAware = false } = {}) {
     const home = center || this.homeProvider?.()
     if (!home) throw new Error('base/centro de exploração ainda não definido')
 
@@ -1155,15 +1711,68 @@ class WorkerController {
       [1, 0], [1, 1], [0, 1], [-1, 1],
       [-1, 0], [-1, -1], [0, -1], [1, -1]
     ]
-    const direction = directions[this.exploreStep % directions.length]
-    const ring = 1 + Math.floor(this.exploreStep / directions.length)
-    this.exploreStep++
-    const distance = Math.min(radius, 16 * ring)
-    const x = Math.floor(home.x + direction[0] * distance)
-    const z = Math.floor(home.z + direction[1] * distance)
-    const y = Number.isFinite(Number(home.y))
-      ? Math.floor(Number(home.y))
-      : Math.floor(this.bot.entity.position.y)
+    const pick = () => {
+      const direction = directions[this.exploreStep % directions.length]
+      const ring = 1 + Math.floor(this.exploreStep / directions.length)
+      this.exploreStep++
+      const distance = Math.min(radius, 16 * ring)
+      return {
+        distance,
+        x: Math.floor(home.x + direction[0] * distance),
+        z: Math.floor(home.z + direction[1] * distance),
+        y: Number.isFinite(Number(home.y)) ? Math.floor(Number(home.y)) : Math.floor(this.bot.entity.position.y)
+      }
+    }
+    const memory = this.worldMemory
+    const dim = worldObserver.dimensionOf(this.bot)
+    const homeY = Number.isFinite(Number(home.y)) ? Math.floor(Number(home.y)) : Math.floor(this.bot.entity.position.y)
+    let candidates = null
+    let guided = false
+    // Escolha guiada pela memória; sem flag ou com memória vazia mantém o padrão geométrico clássico.
+    const choose = () => {
+      if (memory && this.memoryGuideOn()) {
+        candidates ||= this.exploreCandidates(home, radius, homeY)
+        const best = candidates.length ? memory.chooseExploreTarget(dim, candidates, this.bot.entity.position) : null
+        if (best) {
+          candidates = candidates.filter((c) => c !== best.candidate)
+          this.exploreStep++
+          guided = true
+          return best.candidate
+        }
+      }
+      guided = false
+      return pick()
+    }
+    let chosen = choose()
+    if (groundAware) {
+      // Alvos em anel com y fixo caem no ar sobre o oceano ou dentro de rocha em terreno natural; cada tentativa
+      // custava ~30 s de pathfinder. Procura a superfície real e passa à próxima direção (sem se mover).
+      for (let tries = 0; tries < 8; tries++) {
+        const ground = this.surfaceAt(chosen.x, chosen.z, chosen.y)
+        if (ground.unknown) break
+        if (ground.ok) { chosen.y = ground.y; break }
+        if (memory && (ground.reason === 'water' || ground.reason === 'lava' || ground.reason === 'bubble_column')) {
+          memory.markHazard(ground.reason === 'lava' ? 'lava' : 'water', dim, { x: chosen.x, y: chosen.y, z: chosen.z }, { by: this.name })
+        }
+        chosen = choose()
+      }
+    }
+    const { distance, x, y, z } = chosen
+    memory?.recordExploreDestination(dim, { x, z }, { guided })
+
+    // Cobertura enquanto caminha (em memória; só persiste quando um chunk novo aparece).
+    const walkSampler = memory
+      ? setInterval(() => { if (this.bot.entity?.position) memory.visit(dim, this.bot.entity.position) }, 2500)
+      : null
+    walkSampler?.unref?.()
+    try {
+      return await this.exploreTo({ x, y, z, distance }, isCancelled, { memory, dim })
+    } finally {
+      if (walkSampler) clearInterval(walkSampler)
+    }
+  }
+
+  async exploreTo({ x, y, z, distance }, isCancelled, { memory = null, dim = 'overworld' } = {}) {
 
     const target = { x, y, z, radius: distance }
     if (process.env.MBOT_STATEMACHINE === '1') {
@@ -1174,13 +1783,24 @@ class WorkerController {
         logger: this.logger
       })
       if (!result.fallback) {
+        if (!isCancelled() && result.ok !== false) memory?.visit(dim, { x, z })
+        if (!isCancelled()) this.observeWorld()
         return { ...result, x, y, z, radius: distance }
       }
       this.logger.log?.('[statemachine] plugin indisponível; usando exploração clássica')
     }
 
-    await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
+    try {
+      await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
+    } catch (err) {
+      // Rota que falha repetidamente vira evidência local (afasta destinos futuros), nunca ordem.
+      if (memory && !isCancelled()) memory.markHazard('route_failed', dim, { x, y, z }, { by: this.name })
+      throw err
+    }
     if (isCancelled()) return { ok: false, cancelled: true }
+    // GoalNear(raio 3) para antes do alvo (pode ficar no chunk vizinho): chegar conta o chunk do alvo como visitado.
+    memory?.visit(dim, { x, z })
+    this.observeWorld()
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
   }
 
@@ -1201,6 +1821,7 @@ class WorkerController {
       const distance = actual ? actual.distanceTo(center) : Infinity
       finalDistance = Number.isFinite(distance) ? distance : null
       if (distance <= POINT_ARRIVAL_RADIUS) {
+        this.observeWorld()
         return {
           ok: true,
           verified: true,
@@ -1266,6 +1887,10 @@ class WorkerController {
     if (!home) throw new Error('base da colônia ainda não definida')
     const timeoutMs = travelTimeoutMs(this.bot.entity?.position, home)
     await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), timeoutMs)
+    if (!isCancelled() && this.worldMemory && this.bot.entity?.position?.distanceTo(home) <= 6) {
+      this.worldMemory.confirmLandmark('base')
+      this.observeWorld()
+    }
     return { ok: !isCancelled() }
   }
 
@@ -1747,4 +2372,4 @@ class WorkerController {
   }
 }
 
-module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey }
+module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey, summarizeGatherRecovery }

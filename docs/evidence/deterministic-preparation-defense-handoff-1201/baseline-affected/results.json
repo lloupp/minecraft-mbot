@@ -1,0 +1,1154 @@
+[
+  {
+    "scenario": "threat_precedence",
+    "elapsed_ms": 12968,
+    "targets": [
+      {
+        "x": 0,
+        "y": 200,
+        "z": 2,
+        "name": "stone"
+      },
+      {
+        "x": 2,
+        "y": 200,
+        "z": 0,
+        "name": "stone"
+      }
+    ],
+    "original": {
+      "type": "preparar_combate_deterministico",
+      "objective": {
+        "type": "explorar"
+      },
+      "allowedTargets": [
+        {
+          "x": 0,
+          "y": 200,
+          "z": 2,
+          "name": "stone"
+        },
+        {
+          "x": 2,
+          "y": 200,
+          "z": 0,
+          "name": "stone"
+        }
+      ],
+      "timeoutMs": 14000,
+      "deterministicIntent": "gather_materials"
+    },
+    "interrupted": {
+      "ok": false,
+      "code": "CANCELLED",
+      "interrupted": true,
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 1.5811388300841898,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "intent": "gather_materials",
+      "plan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 2
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 2
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "steps": [
+        {
+          "task": "gather",
+          "resource": "cobblestone",
+          "requested": 2,
+          "collected": 1,
+          "before": {
+            "stick": 1,
+            "stone_pickaxe": 1
+          },
+          "after": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "attempts": [
+            {
+              "targetBlock": "stone",
+              "targetPosition": {
+                "x": 0,
+                "y": 200,
+                "z": 2
+              },
+              "candidateCount": 2,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 1,
+              "expectedItems": [
+                "cobblestone"
+              ],
+              "inventoryBefore": 0,
+              "inventoryAfter": 1,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "visible_in_reach",
+              "positionBeforeDig": {
+                "x": 0.5,
+                "y": 200,
+                "z": 0.5
+              }
+            },
+            {
+              "targetBlock": "stone",
+              "targetPosition": {
+                "x": 2,
+                "y": 200,
+                "z": 0
+              },
+              "candidateCount": 1,
+              "alternateTargetCandidateObserved": false,
+              "alternateTargetCandidateCount": 0,
+              "expectedItems": [
+                "cobblestone"
+              ],
+              "inventoryBefore": 1,
+              "inventoryAfter": 1,
+              "delta": 0,
+              "itemConfirmed": false,
+              "navigation": "visible_in_reach",
+              "positionBeforeDig": {
+                "x": 0.5,
+                "y": 200,
+                "z": 2.4101184440648313
+              },
+              "code": "CANCELLED",
+              "message": "Digging aborted"
+            },
+            {
+              "code": "CANCELLED"
+            }
+          ],
+          "approvedPositions": [
+            "(0, 200, 2)",
+            "(2, 200, 0)"
+          ],
+          "inventoryConfirmed": false
+        }
+      ],
+      "final": {
+        "health": 17,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1,
+          "cobblestone": 1
+        },
+        "inventoryLoad": 0.08333333333333333,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": {
+          "type": "zombie",
+          "distance": 1,
+          "count": 1
+        },
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.52918502084914,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 2.8284271247461903,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": true,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "remainingPlan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 1
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 1
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "juliaExecutionAuthority": "none"
+    },
+    "partial": {
+      "stick": 1,
+      "stone_pickaxe": 1,
+      "cobblestone": 1
+    },
+    "duringDefense": {
+      "taskVersion": 3,
+      "state": "defendendo",
+      "inventory": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 1
+      }
+    },
+    "snapshots": [
+      {
+        "offset_ms": 1.1340959999979532,
+        "taskVersion": 3,
+        "state": {
+          "health": 17,
+          "food": 20,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": {
+            "type": "zombie",
+            "distance": 9,
+            "count": 1
+          },
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.64526704993976,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "escape_danger"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4174783061224752,
+          "y": 200,
+          "z": 3.517829988799728
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.0767890175045767
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 3.5657340554136447
+          }
+        ]
+      },
+      {
+        "offset_ms": 249.5428869999996,
+        "taskVersion": 3,
+        "state": {
+          "health": 17,
+          "food": 20,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": {
+            "type": "zombie",
+            "distance": 9,
+            "count": 1
+          },
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.64526704993976,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "escape_danger"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4174783061224752,
+          "y": 200,
+          "z": 3.517829988799728
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.0767890175045767
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 3.5657340554136447
+          }
+        ]
+      },
+      {
+        "offset_ms": 499.4465060000002,
+        "taskVersion": 3,
+        "state": {
+          "health": 17,
+          "food": 20,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": {
+            "type": "zombie",
+            "distance": 9,
+            "count": 1
+          },
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.64526704993976,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "escape_danger"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4174783061224752,
+          "y": 200,
+          "z": 3.517829988799728
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.0767890175045767
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 3.5657340554136447
+          }
+        ]
+      },
+      {
+        "offset_ms": 1000.2592629999999,
+        "taskVersion": 3,
+        "state": {
+          "health": 17,
+          "food": 20,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": {
+            "type": "zombie",
+            "distance": 9,
+            "count": 1
+          },
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.64526704993976,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "escape_danger"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4174783061224752,
+          "y": 200,
+          "z": 3.517829988799728
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.0767890175045767
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 3.5657340554136447
+          }
+        ]
+      }
+    ],
+    "candidate": null,
+    "reevaluated": null,
+    "summary": {
+      "blocked": true,
+      "reevaluated": false,
+      "candidates": [
+        "escape_danger"
+      ]
+    }
+  },
+  {
+    "scenario": "hunger_precedence",
+    "elapsed_ms": 17678,
+    "targets": [
+      {
+        "x": 0,
+        "y": 200,
+        "z": 2,
+        "name": "stone"
+      },
+      {
+        "x": 2,
+        "y": 200,
+        "z": 0,
+        "name": "stone"
+      }
+    ],
+    "original": {
+      "type": "preparar_combate_deterministico",
+      "objective": {
+        "type": "explorar"
+      },
+      "allowedTargets": [
+        {
+          "x": 0,
+          "y": 200,
+          "z": 2,
+          "name": "stone"
+        },
+        {
+          "x": 2,
+          "y": 200,
+          "z": 0,
+          "name": "stone"
+        }
+      ],
+      "timeoutMs": 14000,
+      "deterministicIntent": "gather_materials"
+    },
+    "interrupted": {
+      "ok": false,
+      "code": "CANCELLED",
+      "interrupted": true,
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 1.5811388300841898,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "intent": "gather_materials",
+      "plan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 2
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 2
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "steps": [
+        {
+          "task": "gather",
+          "resource": "cobblestone",
+          "requested": 2,
+          "collected": 1,
+          "before": {
+            "stick": 1,
+            "stone_pickaxe": 1
+          },
+          "after": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "attempts": [
+            {
+              "targetBlock": "stone",
+              "targetPosition": {
+                "x": 0,
+                "y": 200,
+                "z": 2
+              },
+              "candidateCount": 2,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 1,
+              "expectedItems": [
+                "cobblestone"
+              ],
+              "inventoryBefore": 0,
+              "inventoryAfter": 1,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "visible_in_reach",
+              "positionBeforeDig": {
+                "x": 0.5,
+                "y": 200,
+                "z": 0.5
+              }
+            },
+            {
+              "targetBlock": "stone",
+              "targetPosition": {
+                "x": 2,
+                "y": 200,
+                "z": 0
+              },
+              "candidateCount": 1,
+              "alternateTargetCandidateObserved": false,
+              "alternateTargetCandidateCount": 0,
+              "expectedItems": [
+                "cobblestone"
+              ],
+              "inventoryBefore": 1,
+              "inventoryAfter": 1,
+              "delta": 0,
+              "itemConfirmed": false,
+              "navigation": "visible_in_reach",
+              "positionBeforeDig": {
+                "x": 0.5,
+                "y": 200,
+                "z": 2.4101184440648313
+              },
+              "code": "CANCELLED",
+              "message": "Digging aborted"
+            },
+            {
+              "code": "CANCELLED"
+            }
+          ],
+          "approvedPositions": [
+            "(0, 200, 2)",
+            "(2, 200, 0)"
+          ],
+          "inventoryConfirmed": false
+        }
+      ],
+      "final": {
+        "health": 17,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1,
+          "cobblestone": 1
+        },
+        "inventoryLoad": 0.08333333333333333,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.52918502084914,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 2.8284271247461903,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": true,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "remainingPlan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 1
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 1
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "juliaExecutionAuthority": "none"
+    },
+    "partial": {
+      "stick": 1,
+      "stone_pickaxe": 1,
+      "cobblestone": 1
+    },
+    "duringDefense": {
+      "taskVersion": 6,
+      "state": "defendendo",
+      "inventory": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 1
+      }
+    },
+    "snapshots": [
+      {
+        "offset_ms": 1.1459329999997863,
+        "taskVersion": 6,
+        "state": {
+          "health": 8,
+          "food": 5,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": null,
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.6762753010335,
+          "nearby": {
+            "food": true,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": 3.644345760908891,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "find_food"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4299455528477183,
+          "y": 200,
+          "z": 4.577299812202367
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.947408795211028
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 4.6126603650719735
+          }
+        ]
+      },
+      {
+        "offset_ms": 249.98822800000198,
+        "taskVersion": 6,
+        "state": {
+          "health": 8,
+          "food": 5,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": null,
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.6762753010335,
+          "nearby": {
+            "food": true,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": 3.644345760908891,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "find_food"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4299455528477183,
+          "y": 200,
+          "z": 4.577299812202367
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.947408795211028
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 4.6126603650719735
+          }
+        ]
+      },
+      {
+        "offset_ms": 500.0646919999999,
+        "taskVersion": 6,
+        "state": {
+          "health": 8,
+          "food": 5,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": null,
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.6762753010335,
+          "nearby": {
+            "food": true,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": 3.644345760908891,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "find_food"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4299455528477183,
+          "y": 200,
+          "z": 4.577299812202367
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.947408795211028
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 4.6126603650719735
+          }
+        ]
+      },
+      {
+        "offset_ms": 999.6548630000034,
+        "taskVersion": 6,
+        "state": {
+          "health": 8,
+          "food": 5,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": null,
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 98.6762753010335,
+          "nearby": {
+            "food": true,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": 3.644345760908891,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          "find_food"
+        ],
+        "plan": {
+          "weapon": "stone_sword",
+          "missing": {
+            "stick": 0,
+            "cobblestone": 1
+          },
+          "collect": {
+            "logs": 0,
+            "cobblestone": 1
+          },
+          "conversions": [],
+          "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+        },
+        "resume": null,
+        "position": {
+          "x": 1.4299455528477183,
+          "y": 200,
+          "z": 4.577299812202367
+        },
+        "liveTargets": [
+          {
+            "x": 0,
+            "y": 200,
+            "z": 2,
+            "name": "stone",
+            "actual": "air",
+            "distance": 2.947408795211028
+          },
+          {
+            "x": 2,
+            "y": 200,
+            "z": 0,
+            "name": "stone",
+            "actual": "stone",
+            "distance": 4.6126603650719735
+          }
+        ]
+      }
+    ],
+    "candidate": null,
+    "reevaluated": null,
+    "summary": {
+      "blocked": true,
+      "reevaluated": false,
+      "candidates": [
+        "find_food"
+      ]
+    }
+  }
+]

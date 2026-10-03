@@ -1,0 +1,5 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    82821  docs/evidence/deterministic-preparation-preflight-1201/baseline/timeline-append.jsonl
+    82978  docs/evidence/deterministic-preparation-preflight-1201/baseline/timeline.jsonl
+   107804  docs/evidence/deterministic-preparation-preflight-1201/verification/timeline-append.jsonl
+   107964  docs/evidence/deterministic-preparation-preflight-1201/verification/timeline.jsonl

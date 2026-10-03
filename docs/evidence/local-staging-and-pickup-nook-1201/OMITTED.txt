@@ -1,0 +1,8 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    71966  docs/evidence/local-staging-and-pickup-nook-1201/invalid-and-superseded/soak1_timeline.jsonl
+    73532  docs/evidence/local-staging-and-pickup-nook-1201/invalid-and-superseded/soak2_timeline.jsonl
+    77723  docs/evidence/local-staging-and-pickup-nook-1201/invalid-and-superseded/soak3_timeline.jsonl
+    72447  docs/evidence/local-staging-and-pickup-nook-1201/invalid-and-superseded/soak4_timeline.jsonl
+    88185  docs/evidence/local-staging-and-pickup-nook-1201/invalid-and-superseded/soak5_timeline.jsonl
+    77068  docs/evidence/local-staging-and-pickup-nook-1201/invalid-and-superseded/soak6_timeline.jsonl
+  1116266  docs/evidence/local-staging-and-pickup-nook-1201/timeline-all.jsonl

@@ -1,0 +1,4 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    15909  docs/evidence/julia-alternate-target-1201/julia-shadow.jsonl
+     7434  docs/evidence/julia-alternate-target-1201/probe-dispatch.jsonl
+     2135  docs/evidence/julia-alternate-target-1201/probe.js

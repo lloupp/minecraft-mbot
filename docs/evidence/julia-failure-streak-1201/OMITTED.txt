@@ -1,0 +1,11 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+     2516  docs/evidence/julia-failure-streak-1201/hunger_guard.sh
+     3974  docs/evidence/julia-failure-streak-1201/pathfinder/routeprobe.jsonl
+     2056  docs/evidence/julia-failure-streak-1201/probe.js
+     3208  docs/evidence/julia-failure-streak-1201/routeprobe.cjs
+    56417  docs/evidence/julia-failure-streak-1201/runtime/julia-payloads.jsonl
+    99251  docs/evidence/julia-failure-streak-1201/runtime/julia-shadow.jsonl
+       60  docs/evidence/julia-failure-streak-1201/runtime/lag-max.json
+    67264  docs/evidence/julia-failure-streak-1201/runtime/probe-dispatch.jsonl
+     2713  docs/evidence/julia-failure-streak-1201/smoke.sh
+     1782  docs/evidence/julia-failure-streak-1201/tee_proxy.py

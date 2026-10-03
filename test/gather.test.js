@@ -149,10 +149,97 @@ test('drop esperado acompanha a ferramenta escolhida com silk touch', () => {
   assert.deepEqual([...gather.expectedDrops(bot, { name: 'stone' }, { enchants: [{ name: 'silk_touch' }] })], ['stone'])
 })
 
+
+test('mineBlocks registra candidato alternativo observado sem afirmar alcançabilidade', async () => {
+  const first = new Vec3(10, 64, 0)
+  const second = new Vec3(20, 64, 0)
+  const present = new Set([first.toString(), second.toString()])
+  const items = []
+  const attempts = []
+  const bot = {
+    registry: { blocksArray: [{ id: 1, name: 'oak_log' }] },
+    entities: {},
+    inventory: { items: () => items },
+    findBlocks: () => [first, second].filter((p) => present.has(p.toString())),
+    blockAt: (p) => ({ name: present.has(p.toString()) ? 'oak_log' : 'air', position: p }),
+    pathfinder: {
+      goto: async (goal) => {
+        if (goal.x === first.x) throw new Error('Took to long to decide path to goal!')
+      },
+      bestHarvestTool: () => null
+    },
+    equip: async () => {},
+    dig: async (block) => {
+      present.delete(block.position.toString())
+      items.push({ name: block.name, count: 1 })
+    }
+  }
+
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false, {
+    onAttempt: e => attempts.push(e)
+  }), 1)
+
+  assert.equal(attempts[0].code, 'PATH_FAILED')
+  assert.equal(attempts[0].candidateCount, 2)
+  assert.equal(attempts[0].alternateTargetCandidateObserved, true)
+  assert.equal(attempts[0].alternateTargetCandidateCount, 1)
+  assert.equal(attempts[1].itemConfirmed, true)
+})
+
+test('mineBlocks não marca alvo alternativo quando só há um candidato', async () => {
+  const attempts = []
+  const bot = collectionBot({ drop: null })
+  await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false, { onAttempt: e => attempts.push(e) })
+  assert.equal(attempts[0].candidateCount, 1)
+  assert.equal(attempts[0].alternateTargetCandidateObserved, false)
+  assert.equal(attempts[0].alternateTargetCandidateCount, 0)
+})
+
+test('generic gather keeps stage failure code when a dig error carries a library code', async () => {
+  const bot=collectionBot(),attempts=[]
+  bot.dig=async()=>{throw Object.assign(new Error('library dig error'),{code:'EIO'})}
+  assert.equal(await gather.mineBlocks(bot,n=>n==='oak_log',1,()=>false,{onAttempt:e=>attempts.push(e)}),0)
+  assert.equal(attempts[0].code,'DIG_FAILED')
+})
+
+// Observado em 1.20.1: o tronco caiu a ~1,7 blocos do bot e o orçamento de 3 s de
+// collectDrops terminou antes do pickup. retryPickup (opt-in) dá uma segunda passada.
+function lateDropBot(pickupOnCall) {
+  const bot = collectionBot({ drop: null })
+  const items = bot.inventory.items()
+  let calls = 0
+  bot.entities = { 7: { name: 'item', isValid: true, position: new Vec3(3.2, 64, 2), getDroppedItem: () => ({ name: 'oak_log' }) } }
+  bot.pathfinder.goto = async () => { if (++calls === pickupOnCall) { items.push({ name: 'oak_log', count: 1 }); bot.entities = {} } }
+  return bot
+}
+
+test('retryPickup recolhe um drop que ainda está no chão; sem a opção o caminho clássico não muda', async () => {
+  const attempts = []
+  // goto #1 é a navegação até o bloco, #2–#4 a primeira passada de pickup, #5 a segunda.
+  assert.equal(await gather.mineBlocks(lateDropBot(5), n => n === 'oak_log', 1, () => false,
+    { retryPickup: true, onAttempt: e => attempts.push(e) }), 1)
+  assert.equal(attempts[0].itemConfirmed, true)
+  assert.equal(await gather.mineBlocks(lateDropBot(5), n => n === 'oak_log', 1, () => false), 0)
+})
+
+test('anchor devolve o bot à posição validada antes de checar visibilidade/alcance', async () => {
+  const bot = collectionBot()
+  bot.entity = { position: new Vec3(8.5, 64, 8.5) } // deslocado por um pickup anterior
+  bot.canDigBlock = () => true
+  bot.lookAt = async () => {}
+  bot.blockAtCursor = () => ({ position: new Vec3(2, 64, 2) })
+  const goals = []
+  bot.pathfinder.goto = async (goal) => { goals.push([goal.x, goal.z]); if (goals.length === 1) bot.entity.position = new Vec3(0.5, 64, 0.5) }
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, anchor: new Vec3(0.5, 64, 0.5) }), 1)
+  assert.deepEqual(goals, [[0, 0]]) // GoalNear usa o bloco; só a volta à âncora; o alvo já estava visível
+})
+
 test('collectDrops cai para uma célula adjacente quando o alvo exato do drop é inalcançável', async () => {
   const food = require('../lib/food')
   const drop = { name: 'item', isValid: true, position: new Vec3(3.05, 64, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
   const goalsTried = []
+  const guard = []
   let picked = false
   const bot = {
     entities: { 1: drop },
@@ -165,8 +252,11 @@ test('collectDrops cai para uma célula adjacente quando o alvo exato do drop é
       }
     }
   }
-  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 3000, done: () => picked })
+  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, {
+    timeoutMs: 3000, done: () => picked, beforeMove: (d) => guard.push(d === drop)
+  })
   assert.deepEqual(goalsTried, [0.5, 1])
+  assert.deepEqual(guard, [true, true]) // o guard de ownership/segurança roda antes de cada movimento
   assert.equal(picked, true)
 })
 
@@ -247,4 +337,88 @@ test('cancelamento antes do dig não credita um pickup ambiente do mesmo item', 
   const attempts = []
   assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => cancelled, { onAttempt: e => attempts.push(e) }), 0)
   assert.equal(attempts.find((e) => 'itemConfirmed' in e).itemConfirmed, false)
+})
+
+test('mineBlocks com lista aprovada usa a própria lista, não só os 64 blocos mais próximos', async () => {
+  const bot = collectionBot()
+  bot.findBlocks = () => []                       // os mais próximos são irrelevantes (ex.: enterrados)
+  const approved = new Set([new Vec3(2, 64, 2).toString()])
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false, { allowedPositions: approved }), 1)
+})
+
+test('visibilidade em alcance tenta a face superior quando a mira ao centro é ocluída e há ar por cima', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  const aims = []
+  bot.lookAt = async (v) => { aims.push(+v.y.toFixed(2)) }
+  // O raio ao centro (y=64.5) raspa num vizinho; o raio à face superior (y=64.95) acerta o alvo.
+  bot.blockAtCursor = () => (aims[aims.length - 1] === 64.95 ? { position: new Vec3(2, 64, 2) } : { position: new Vec3(1, 64, 2) })
+  const attempts = []
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, allowedPositions: new Set([new Vec3(2, 64, 2).toString()]), onAttempt: e => attempts.push(e) }), 1)
+  assert.deepEqual(aims.slice(0, 2), [64.5, 64.95])
+  assert.equal(attempts[0].navigation, 'visible_in_reach')
+})
+
+test('visibilidade em alcance tenta faces laterais com ar quando topo e centro são ocluídos', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  bot.entity = { position: new Vec3(0.5, 64, 2.5) }
+  const aims = []
+  bot.lookAt = async (v) => { aims.push([+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(2)]) }
+  // Só a face voltada para o bot (lado -x, x=2-0.45+0.5=2.05) acerta o alvo; centro e topo raspam num vizinho.
+  bot.blockAtCursor = () => (aims[aims.length - 1][0] === 2.05 ? { position: new Vec3(2, 64, 2) } : { position: new Vec3(3, 64, 2) })
+  const origAt = bot.blockAt
+  // acima do alvo há outro bloco (tronco de cima): só faces laterais são candidatas
+  bot.blockAt = (p) => (p.equals(new Vec3(2, 65, 2)) ? { name: 'oak_log', position: p } : origAt(p))
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, allowedPositions: new Set([new Vec3(2, 64, 2).toString()]) }), 1)
+  assert.ok(aims.some(a => a[0] === 2.05))
+  assert.ok(!aims.some(a => a[1] === 64.95))          // sem topo: não há ar em cima
+})
+
+test('clearLeaves cava só as folhas que estão no raio de visada do alvo aprovado e reavalia a visibilidade', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  bot.entity = { position: new Vec3(0.5, 64, 2.5) }
+  bot.lookAt = async () => {}
+  let leaf = { name: 'oak_leaves', position: new Vec3(1, 64, 2) }
+  const dug = []
+  bot.blockAtCursor = () => (leaf ? leaf : { position: new Vec3(2, 64, 2) })
+  const origDig = bot.dig
+  const origAt = bot.blockAt
+  bot.blockAt = (p) => (p.equals(new Vec3(2, 65, 2)) ? { name: 'oak_log', position: p } : origAt(p))
+  const origDigBase = bot.dig
+  bot.dig = async (block) => { if (block.name === 'oak_leaves') { dug.push(block.position.toString()); leaf = null; return } return origDigBase(block) }
+  const approved = new Set([new Vec3(2, 64, 2).toString()])
+  // sem a opção: recusa (comportamento anterior)
+  const attempts = []
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, allowedPositions: approved, onAttempt: e => attempts.push(e) }), 0)
+  assert.equal(attempts[0].code, 'TARGET_BLOCKED')
+  assert.deepEqual(dug, [])
+  // com a opção: cava 1 folha e minera o tronco
+  leaf = { name: 'oak_leaves', position: new Vec3(1, 64, 2) }
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, clearLeaves: true, allowedPositions: approved }), 1)
+  assert.deepEqual(dug, [new Vec3(1, 64, 2).toString()])
+})
+
+test('clearLeaves: se o raio já atinge o alvo no início da iteração (atualização atrasada), o alvo é visível', async () => {
+  const bot = collectionBot()
+  bot.canDigBlock = () => true
+  bot.entity = { position: new Vec3(0.5, 64, 2.5) }
+  bot.lookAt = async () => {}
+  const leaf = { name: 'oak_leaves', position: new Vec3(1, 64, 2) }
+  // 1ª leitura (aims/centro) ocluída; após o dig a checagem imediata ainda vê folha; na leitura seguinte já é o alvo.
+  let dug = 0, staleLeft = 1
+  bot.blockAtCursor = () => (dug === 0 ? leaf : staleLeft-- > 0 ? leaf : { position: new Vec3(2, 64, 2) })
+  const origAt = bot.blockAt
+  bot.blockAt = (p) => (p.equals(new Vec3(2, 65, 2)) ? { name: 'oak_log', position: p } : origAt(p))
+  const origDig = bot.dig
+  bot.dig = async (b) => { if (b.name === 'oak_leaves') { dug++; return } return origDig(b) }
+  const approved = new Set([new Vec3(2, 64, 2).toString()])
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => false,
+    { preferInReach: true, requireInReach: true, clearLeaves: true, allowedPositions: approved }), 1)
+  assert.equal(dug, 1)
 })

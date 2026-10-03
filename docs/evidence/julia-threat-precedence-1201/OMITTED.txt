@@ -1,0 +1,9 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+     2678  docs/evidence/julia-threat-precedence-1201/prec.sh
+     4057  docs/evidence/julia-threat-precedence-1201/prec_analysis.py
+    26465  docs/evidence/julia-threat-precedence-1201/precedence/julia-payloads.jsonl
+    42325  docs/evidence/julia-threat-precedence-1201/precedence/julia-shadow.jsonl
+     1791  docs/evidence/julia-threat-precedence-1201/precedence/prec-analysis.json
+    29059  docs/evidence/julia-threat-precedence-1201/precedence/probe-dispatch.jsonl
+     1625  docs/evidence/julia-threat-precedence-1201/probe.js
+     2321  docs/evidence/julia-threat-precedence-1201/route/probe-dispatch.jsonl

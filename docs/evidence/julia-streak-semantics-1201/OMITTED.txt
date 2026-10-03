@@ -1,0 +1,5 @@
+Arquivos brutos omitidos desta branch (preservados na tag archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    17697  docs/evidence/julia-streak-semantics-1201/julia-payloads.jsonl
+    30427  docs/evidence/julia-streak-semantics-1201/julia-shadow.jsonl
+    13672  docs/evidence/julia-streak-semantics-1201/probe-dispatch.jsonl
+     2056  docs/evidence/julia-streak-semantics-1201/probe.js

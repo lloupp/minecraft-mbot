@@ -1,0 +1,134 @@
+[
+  {
+    "ts": "2026-10-01T00:17:48.700Z",
+    "command": "gamerule doDaylightCycle false"
+  },
+  {
+    "ts": "2026-10-01T00:17:48.880Z",
+    "command": "time set day"
+  },
+  {
+    "ts": "2026-10-01T00:17:49.061Z",
+    "command": "gamerule doMobSpawning false"
+  },
+  {
+    "ts": "2026-10-01T00:17:49.241Z",
+    "command": "gamerule randomTickSpeed 0"
+  },
+  {
+    "ts": "2026-10-01T00:17:49.422Z",
+    "command": "gamerule naturalRegeneration false"
+  },
+  {
+    "ts": "2026-10-01T00:17:56.620Z",
+    "command": "difficulty peaceful"
+  },
+  {
+    "ts": "2026-10-01T00:17:56.800Z",
+    "command": "kill @e[type=!minecraft:player]"
+  },
+  {
+    "ts": "2026-10-01T00:17:56.980Z",
+    "command": "time set day"
+  },
+  {
+    "ts": "2026-10-01T00:17:57.162Z",
+    "command": "effect clear guardrail_probe"
+  },
+  {
+    "ts": "2026-10-01T00:17:57.343Z",
+    "command": "clear guardrail_probe"
+  },
+  {
+    "ts": "2026-10-01T00:17:57.523Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-10-01T00:17:57.703Z",
+    "command": "fill -8 200 -8 8 204 8 minecraft:air"
+  },
+  {
+    "ts": "2026-10-01T00:17:57.883Z",
+    "command": "tp guardrail_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-10-01T00:17:58.063Z",
+    "command": "effect give guardrail_probe minecraft:saturation 1 255 true"
+  },
+  {
+    "ts": "2026-10-01T00:17:59.343Z",
+    "command": "effect clear guardrail_probe"
+  },
+  {
+    "ts": "2026-10-01T00:17:59.823Z",
+    "command": "give guardrail_probe minecraft:stick 1"
+  },
+  {
+    "ts": "2026-10-01T00:18:00.003Z",
+    "command": "give guardrail_probe minecraft:stone_pickaxe 1"
+  },
+  {
+    "ts": "2026-10-01T00:18:00.184Z",
+    "command": "setblock 2 200 0 minecraft:stone"
+  },
+  {
+    "ts": "2026-10-01T00:18:00.364Z",
+    "command": "setblock 0 200 2 minecraft:stone"
+  },
+  {
+    "ts": "2026-10-01T00:18:00.545Z",
+    "command": "setblock -1 200 -1 minecraft:crafting_table"
+  },
+  {
+    "ts": "2026-10-01T00:18:05.885Z",
+    "command": "difficulty peaceful"
+  },
+  {
+    "ts": "2026-10-01T00:18:06.065Z",
+    "command": "kill @e[type=!minecraft:player]"
+  },
+  {
+    "ts": "2026-10-01T00:18:06.247Z",
+    "command": "time set day"
+  },
+  {
+    "ts": "2026-10-01T00:18:06.427Z",
+    "command": "effect clear guardrail_probe"
+  },
+  {
+    "ts": "2026-10-01T00:18:06.608Z",
+    "command": "clear guardrail_probe"
+  },
+  {
+    "ts": "2026-10-01T00:18:06.787Z",
+    "command": "fill -8 199 -8 8 199 8 minecraft:dirt"
+  },
+  {
+    "ts": "2026-10-01T00:18:06.967Z",
+    "command": "fill -8 200 -8 8 204 8 minecraft:air"
+  },
+  {
+    "ts": "2026-10-01T00:18:07.147Z",
+    "command": "tp guardrail_probe 0.5 200 0.5"
+  },
+  {
+    "ts": "2026-10-01T00:18:07.327Z",
+    "command": "effect give guardrail_probe minecraft:saturation 1 255 true"
+  },
+  {
+    "ts": "2026-10-01T00:18:08.607Z",
+    "command": "effect clear guardrail_probe"
+  },
+  {
+    "ts": "2026-10-01T00:18:09.088Z",
+    "command": "give guardrail_probe minecraft:cobblestone 2"
+  },
+  {
+    "ts": "2026-10-01T00:18:09.268Z",
+    "command": "setblock 2 200 0 minecraft:oak_log"
+  },
+  {
+    "ts": "2026-10-01T00:18:09.448Z",
+    "command": "setblock -1 200 -1 minecraft:crafting_table"
+  }
+]
