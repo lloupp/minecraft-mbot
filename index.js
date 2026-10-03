@@ -39,6 +39,8 @@ const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
 const { LayaShadowObserver } = require('./lib/laya-shadow')
+const { JuliaShadowObserver } = require('./lib/julia-shadow')
+const { combineShadows } = require('./lib/shadow-fanout')
 const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
 const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
 const { resolveReference, blockVariants, searchTerms } = require('./core/References')
@@ -196,6 +198,10 @@ async function main() {
   // Só observa em paralelo (ver lib/laya-shadow.js e docs/LAYA_SHADOW_MODE.md);
   // nunca decide nem executa nada no bot real.
   const layaShadow = new LayaShadowObserver({ logger: console })
+  // Shadow mode da Julia-1 (MBOT_JULIA_SHADOW=1 + JULIA_PLAYER_LOOP_URL): mesma
+  // regra, sem autoridade de execução (lib/julia-shadow.js).
+  const juliaShadow = new JuliaShadowObserver({ logger: console })
+  const shadowObservers = combineShadows(layaShadow, juliaShadow)
 
   function createWorker({ name, role }) {
     const worker = createBot(mineflayer, CONFIG, { username: name })
@@ -210,7 +216,7 @@ async function main() {
       ownerProvider: () => ownerEntity(),
       storage,
       production,
-      shadow: layaShadow
+      shadow: shadowObservers
     })
 
     worker.once('spawn', () => {

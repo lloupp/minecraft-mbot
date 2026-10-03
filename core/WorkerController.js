@@ -40,6 +40,25 @@ function travelTimeoutMs(from, to) {
   return Math.max(30000, Math.round(d * MS_PER_BLOCK))
 }
 
+function shadowObjectiveKey(task) {
+  if (!task) return 'none'
+  const point = (value) => value && Number.isFinite(Number(value.x)) && Number.isFinite(Number(value.y)) && Number.isFinite(Number(value.z))
+    ? [Math.floor(Number(value.x)), Math.floor(Number(value.y)), Math.floor(Number(value.z))]
+    : null
+  return JSON.stringify({
+    type: task.type || null,
+    resource: task.resource || null,
+    item: task.item || null,
+    product: task.product || null,
+    species: task.species || null,
+    planta: task.planta || null,
+    region: task.region || null,
+    position: point(task.position),
+    center: point(task.center),
+    origin: point(task.origin)
+  })
+}
+
 // Cercas e portões nunca podem ser quebrados pelo pathfinder: um buraco no
 // curral solta os animais (e com canOpenDoors=false ele prefere cavar a cerca).
 function protectPenBlocks(moves, registry) {
@@ -65,6 +84,9 @@ class WorkerController {
     // nada aqui. Ver a chamada em run() e lib/laya-shadow.js.
     this.shadow = shadow
     this._shadowFailureStreak = 0
+    this._shadowFailureKey = null
+    this._shadowFailureEntry = null
+    this._shadowLineageSeq = 0
     this.state = 'conectando'
     this.currentTask = null
     this.taskVersion = 0
@@ -378,7 +400,33 @@ class WorkerController {
   // Shadow mode do Laya: só observa, nunca decide. Nunca lança e nunca é
   // `await`ado por run() — ver lib/laya-shadow.js para as garantias.
   _observeShadow(task, isCancelled, taskPromise) {
-    if (!this.shadow?.enabled?.()) return
+    try { if (!this.shadow?.enabled?.()) return } catch { return }
+    // Retomada: a tarefa anterior foi interrompida (ainda rodava quando esta
+    // chegou, ou foi cancelada antes de terminar, ex.: por um reflexo) e o
+    // objetivo é o mesmo (mesma chave de objetivo: tipo, recurso, alvo...). Só leitura, para o registro.
+    // Qualquer falha aqui nunca pode virar rejeição de run(): fail-open.
+    let resumed = false
+    let taskLineageId = null
+    let failureKey = null
+    let entry = null
+    try {
+      const prev = this._shadowPrev
+      failureKey = shadowObjectiveKey(task)
+      resumed = Boolean(prev && (!prev.settled || prev.interrupted) && prev.failureKey === failureKey)
+      taskLineageId = resumed && prev?.taskLineageId
+        ? prev.taskLineageId
+        : `${this.name}:${++this._shadowLineageSeq}`
+      if (this._shadowFailureKey !== failureKey) {
+        this._shadowFailureKey = failureKey
+        this._shadowFailureStreak = 0
+      }
+      entry = { task, settled: false, interrupted: false, taskLineageId, failureKey }
+      this._shadowPrev = entry
+      this._shadowFailureEntry = entry
+    } catch (error) {
+      this.logger.log?.(`[laya-shadow] ${this.name}: falha ao registrar linhagem: ${error.message}`)
+      return
+    }
     try {
       const state = realStateSnapshot(this.bot, task, {
         homeProvider: this.homeProvider,
@@ -393,7 +441,7 @@ class WorkerController {
           executedChoice: task.type,
           resultPromise: taskPromise,
           nextStateProvider: () => realStateSnapshot(this.bot, task, { homeProvider: this.homeProvider }),
-          meta: { worker: this.name, interruptedCheck: isCancelled }
+          meta: { worker: this.name, interruptedCheck: isCancelled, resumed, taskLineageId }
         })
       }
     } catch (error) {
@@ -401,8 +449,24 @@ class WorkerController {
     }
 
     taskPromise.then(
-      () => { this._shadowFailureStreak = 0 },
-      () => { this._shadowFailureStreak++ }
+      (value) => {
+        entry.settled = true
+        entry.interrupted = isCancelled()
+        if (this._shadowFailureEntry !== entry || this._shadowFailureKey !== entry.failureKey) return
+
+        const cancelled = entry.interrupted || value?.cancelled === true || value?.code === 'CANCELLED'
+        if (cancelled) return
+
+        const failed = value && value.ok === false
+        this._shadowFailureStreak = failed ? this._shadowFailureStreak + 1 : 0
+      },
+      () => {
+        entry.settled = true
+        entry.interrupted = isCancelled()
+        if (this._shadowFailureEntry !== entry || this._shadowFailureKey !== entry.failureKey) return
+        if (entry.interrupted) return
+        this._shadowFailureStreak++
+      }
     )
   }
 
@@ -1683,4 +1747,4 @@ class WorkerController {
   }
 }
 
-module.exports = { WorkerController, protectPenBlocks }
+module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey }
