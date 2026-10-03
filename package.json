@@ -7,7 +7,8 @@
     "start": "node index.js",
     "sempre": "while true; do node index.js && break; echo 'Reconectando em 15s...'; sleep 15; done",
     "check": "for f in index.js core/*.js lib/*.js; do node --check \"$f\" || exit 1; done",
-    "test": "node --test"
+    "test": "node --test",
+    "gauntlet:decision": "node scripts/decision-gauntlet.js"
   },
   "keywords": [
     "minecraft",

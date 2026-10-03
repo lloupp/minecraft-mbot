@@ -20,4 +20,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m py_compile scripts/laya-decision-server.py
+      - run: python -m unittest discover -s test -p 'test_laya_sidecar.py'
       - run: npm test
