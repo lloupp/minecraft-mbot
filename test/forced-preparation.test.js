@@ -814,3 +814,32 @@ test('local-only preparation ignores configured storage and never invokes storag
   assert.equal(storageCalls, 0)
   assert.equal(f.crafts(), 1)
 })
+
+test('preparation radius is 4 by default and opt-in up to 8 (walk once to a far source before mining)', async () => {
+  const { preparationRadius } = require('../lib/forced-preparation')
+  const saved = process.env.MBOT_PREPARATION_RADIUS
+  try {
+    delete process.env.MBOT_PREPARATION_RADIUS; assert.equal(preparationRadius(), 4)
+    process.env.MBOT_PREPARATION_RADIUS = '99'; assert.equal(preparationRadius(), 8)
+    process.env.MBOT_PREPARATION_RADIUS = '1'; assert.equal(preparationRadius(), 4)
+    process.env.MBOT_PREPARATION_RADIUS = 'x'; assert.equal(preparationRadius(), 4)
+
+    process.env.MBOT_PREPARATION_RADIUS = '8'
+    const bot = unarmedBot(), items = [{ name:'stick', count:1 }, { name:'cobblestone', count:1 }, { name:'stone_pickaxe', count:1 }]
+    const target = new Vec3(7, 64, 0)                       // 7 blocos: além do alcance, dentro do raio 8
+    bot.inventory.items = () => items
+    bot.blockAt = p => ({ name: p.equals(target) ? 'stone' : 'air', position:p })
+    bot.registry = { blocksByName:{ stone:{ drops:[1] } }, items:{ 1:{ name:'cobblestone' } } }
+    bot.pathfinder = { bestHarvestTool: () => items[2], setGoal() {} }
+    const originalMine = gather.mineBlocks, originalGoTo = food.goTo
+    const walks = []
+    gather.mineBlocks = async (_, __, ___, ____, options) => { assert.equal(options.requireInReach, true); items[1].count++; options.onAttempt({ delta:1, itemConfirmed:true }); return 1 }
+    food.goTo = async (_bot, goal) => { walks.push([goal.x, goal.z]); bot.entity.position = new Vec3(5, 64, 0) }
+    try {
+      const result = await executePreparationStep({ enabled:true, bot, task:{ type:'explorar' },
+        production:{ cachedCraftingTable: () => ({ position:new Vec3(-1,64,-1) }) }, allowedTargets:[{ x:7,y:64,z:0,name:'stone' }] })
+      assert.equal(result.ok, true)
+      assert.deepEqual(walks[0], [7, 0])                    // caminhada única até o recurso
+    } finally { gather.mineBlocks = originalMine; food.goTo = originalGoTo }
+  } finally { if (saved === undefined) delete process.env.MBOT_PREPARATION_RADIUS; else process.env.MBOT_PREPARATION_RADIUS = saved }
+})

@@ -12,7 +12,7 @@ const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
 const { candidateIntents, deterministicPlayerPolicy } = require('../lib/player-loop')
 const { realStateSnapshot } = require('../lib/real-state')
-const { executePreparationStep, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, preparationStateSnapshot } = require('../lib/forced-preparation')
+const { preparationRadius, executePreparationStep, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, preparationStateSnapshot } = require('../lib/forced-preparation')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -1255,7 +1255,7 @@ class WorkerController {
     }
   }
 
-  nearbyPreparationAllowlist(maxDistance = 4, maxTargets = 32) {
+  nearbyPreparationAllowlist(maxDistance = preparationRadius(), maxTargets = 32) {
     if (typeof this.bot.findBlocks !== 'function') return []
     const supported = (this.bot.registry?.blocksArray || [])
       .filter((block) => block.name === 'stone' || block.name === 'cobblestone' || block.name.endsWith('_log'))
