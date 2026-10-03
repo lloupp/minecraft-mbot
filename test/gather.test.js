@@ -216,3 +216,35 @@ test('collectDrops não empurra às cegas quando o pathfinder falhou longe do dr
   await food.collectDrops(bot, new Vec3(8, 64, 2), () => false, { timeoutMs: 2000 })
   assert.deepEqual(controls, [])
 })
+
+test('collectDrops não empurra em desnível, sobre líquido ou sem chão firme', async () => {
+  const food = require('../lib/food')
+  const run = async ({ dropY = 64, below = 'stone', at = 'air' }) => {
+    const drop = { name: 'item', isValid: true, position: new Vec3(3.05, dropY, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+    const controls = []
+    const bot = {
+      entities: { 1: drop },
+      entity: { position: new Vec3(4.55, 64, 2.4) }, // 1,5 do item: seria empurrado
+      blockAt: (p) => ({ name: p.y < Math.floor(dropY) ? below : at, boundingBox: (p.y < Math.floor(dropY) ? below : at) === 'air' ? 'empty' : 'block' }),
+      lookAt: async () => {},
+      setControlState: (name, on) => { controls.push([name, on]); if (on) setTimeout(() => { drop.isValid = false }, 100) },
+      pathfinder: { setGoal() {}, goto: async () => {} }
+    }
+    await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 2000 })
+    return controls
+  }
+  assert.deepEqual(await run({}), [['forward', true], ['forward', false]])
+  assert.deepEqual(await run({ dropY: 66 }), [])            // desnível > 1
+  assert.deepEqual(await run({ below: 'lava' }), [])        // líquido sob o item
+  assert.deepEqual(await run({ below: 'air' }), [])         // sem chão (queda)
+})
+
+test('cancelamento antes do dig não credita um pickup ambiente do mesmo item', async () => {
+  let cancelled = false
+  const bot = collectionBot()
+  bot.pathfinder.goto = async () => { bot.inventory.items().push({ name: 'oak_log', count: 1 }); cancelled = true } // item entra de outra fonte
+  bot.dig = async () => assert.fail('não pode cavar depois de cancelado')
+  const attempts = []
+  assert.equal(await gather.mineBlocks(bot, n => n === 'oak_log', 1, () => cancelled, { onAttempt: e => attempts.push(e) }), 0)
+  assert.equal(attempts.find((e) => 'itemConfirmed' in e).itemConfirmed, false)
+})
