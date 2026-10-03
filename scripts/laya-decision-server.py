@@ -92,6 +92,15 @@ def _confidence(answer: dict[str, Any], probabilities: dict[str, float], choice:
     return None if raw is None else float(raw)
 
 
+def process_rss_mb() -> float | None:
+    try:
+        import resource
+        peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return peak / (1024 if os.name != "darwin" else 1024 * 1024)
+    except Exception:
+        return None
+
+
 def decide(payload: dict[str, Any]) -> dict[str, Any]:
     actions = ordered_actions(payload.get("available_actions"))
     if not actions:
@@ -245,6 +254,7 @@ def choose(payload: dict[str, Any]) -> dict[str, Any]:
         "latency_ms": latency_ms,
         "model_calls": 1,
         "neutral_option": key,
+        "rss_mb": process_rss_mb(),
     }
 
 
@@ -310,7 +320,12 @@ class Handler(BaseHTTPRequestHandler):
             result = decide(payload) if self.path == "/decision" else choose(payload)
             self._json(200, result)
         except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
-            self._json(400, {"error": "invalid_request", "detail": str(exc)})
+            detail = str(exc)
+            invalid_model_output = "returned invalid neutral option" in detail or "returned unavailable action" in detail
+            self._json(422 if invalid_model_output else 400, {
+                "error": "invalid_choice" if invalid_model_output else "invalid_request",
+                "detail": detail,
+            })
         except Exception as exc:
             self._json(
                 500,

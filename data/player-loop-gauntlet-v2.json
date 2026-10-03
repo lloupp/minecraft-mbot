@@ -185,6 +185,7 @@
     },
     "events": [
       {
+        "id": "introduce_threat_after_initial_exploration",
         "afterProgress": 1,
         "threat": {
           "type": "zombie",
@@ -196,7 +197,8 @@
     "success": {
       "healthMin": 8,
       "threatCleared": true,
-      "objectiveComplete": true
+      "objectiveComplete": true,
+      "resumedAfterInterrupt": true
     }
   },
   {
