@@ -1,7 +1,7 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 const { Vec3 } = require('vec3')
-const { realStateSnapshot, objectiveTypeFor } = require('../lib/real-state')
+const { realStateSnapshot, objectiveTypeFor, nearbySignals } = require('../lib/real-state')
 
 function fakeBot({ health = 20, food = 20, items = [], heldItem = null, entities = {}, position = new Vec3(0, 64, 0), timeOfDay = 1000 } = {}) {
   return {
@@ -94,4 +94,71 @@ test('craftable é derivado do inventário real pelas mesmas regras do Gauntlet'
   const state = realStateSnapshot(bot, null, {})
   assert.ok(state.craftable.includes('stone_sword'))
   assert.ok(state.craftable.includes('stone_pickaxe'))
+})
+
+
+test('nearbySignals detecta recursos com amostragem limitada sem findBlock/findBlocks', () => {
+  const origin = new Vec3(0, 64, 0)
+  let calls = 0
+  const blocks = new Map([
+    ['2,64,0', 'oak_log'],
+    ['-2,64,0', 'stone'],
+    ['0,64,2', 'iron_ore'],
+    ['0,65,0', 'wheat']
+  ])
+  const bot = fakeBot({ position: origin })
+  bot.blockAt = (pos) => {
+    calls++
+    const name = blocks.get(`${pos.x},${pos.y},${pos.z}`)
+    return name ? { name } : { name: 'air' }
+  }
+  bot.findBlock = () => { throw new Error('findBlock não deve ser usado') }
+  bot.findBlocks = () => { throw new Error('findBlocks não deve ser usado') }
+
+  const nearby = nearbySignals(bot)
+  assert.equal(nearby.food, true)
+  assert.equal(nearby.wood, true)
+  assert.equal(nearby.stone, true)
+  assert.equal(nearby.iron, true)
+  assert.ok(nearby.foodDistance != null)
+  assert.ok(nearby.woodDistance != null)
+  assert.ok(nearby.stoneDistance != null)
+  assert.ok(nearby.ironDistance != null)
+  assert.ok(calls <= 125)
+})
+
+test('nearbySignals usa animais carregados como sinal de comida', () => {
+  const cow = { name: 'cow', type: 'animal', position: new Vec3(3, 64, 0) }
+  const bot = fakeBot({ entities: { 1: cow } })
+  bot.blockAt = () => ({ name: 'air' })
+  assert.equal(nearbySignals(bot).food, true)
+})
+
+
+test('realStateSnapshot registra distância aproximada da base', () => {
+  const bot = fakeBot({ position: new Vec3(0, 64, 0) })
+  bot.blockAt = () => ({ name: 'air' })
+  const state = realStateSnapshot(bot, null, { homeProvider: () => new Vec3(3, 64, 4) })
+  assert.equal(state.baseKnown, true)
+  assert.equal(state.baseDistance, 5)
+})
+
+test('nearbySignals registra distância do animal comestível mais próximo', () => {
+  const near = { name: 'cow', type: 'animal', position: new Vec3(3, 64, 0) }
+  const far = { name: 'pig', type: 'animal', position: new Vec3(7, 64, 0) }
+  const bot = fakeBot({ entities: { 1: far, 2: near } })
+  bot.blockAt = () => ({ name: 'air' })
+  const nearby = nearbySignals(bot)
+  assert.equal(nearby.food, true)
+  assert.equal(nearby.foodDistance, 3)
+})
+
+test('nearbySignals devolve a distância mínima mesmo quando todos os sinais já foram vistos', () => {
+  const { nearbySignals } = require('../lib/real-state')
+  const origin = new Vec3(0, 64, 0)
+  const blocks = new Map([['-4,64,-4', 'oak_log'], ['-4,64,-2', 'stone'], ['-4,64,0', 'iron_ore'], ['-4,64,2', 'wheat'], ['0,64,2', 'oak_log']])
+  const bot = { entity: { position: origin }, entities: {}, blockAt: (p) => ({ name: blocks.get(`${p.x},${p.y},${p.z}`) || 'air' }) }
+  const out = nearbySignals(bot)
+  assert.equal(out.wood && out.stone && out.iron && out.food, true)
+  assert.equal(out.woodDistance, 2) // a tora a 2 blocos, não a primeira da varredura
 })

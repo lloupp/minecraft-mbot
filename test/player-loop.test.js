@@ -47,11 +47,109 @@ test('unarmed exploration exposes preparation as a strategic choice', () => {
   )
 })
 
-test('repeated failures expose replan before stop', () => {
+
+test('unarmed exploration with nearby basic materials forces gather before progress', () => {
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { wood: true, stone: true, iron: false },
+    objective: { type: 'explore', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents(state).map(item => item.id),
+    ['gather_materials']
+  )
+})
+
+test('armed-tool mine_iron still gathers combat materials before unarmed progress', () => {
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: { stone_pickaxe: 1, stick: 1 },
+    craftable: [],
+    equippedWeapon: null,
+    equippedTool: 'stone_pickaxe',
+    nearby: { wood: false, stone: true, iron: true },
+    objective: { type: 'mine_iron', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents(state).map(item => item.id),
+    ['gather_materials']
+  )
+})
+
+test('unarmed objective without nearby materials does not invent a gather target', () => {
+  const state = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    nearby: { wood: false, stone: false, iron: false },
+    objective: { type: 'explore', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents(state).map(item => item.id),
+    ['continue_objective']
+  )
+})
+
+
+test('forced unarmed gather requires an actionable wood-plus-stone preparation path', () => {
+  const base = {
+    health: 20,
+    food: 20,
+    inventory: {},
+    craftable: [],
+    equippedWeapon: null,
+    objective: { type: 'explore', progress: 0, target: 1, completed: false },
+    time: 'day',
+    atBase: false,
+    baseKnown: true
+  }
+
+  assert.deepEqual(
+    candidateIntents({ ...base, inventory: { oak_planks: 1 }, nearby: { stone: true } }).map(item => item.id),
+    ['continue_objective']
+  )
+  assert.deepEqual(
+    candidateIntents({ ...base, nearby: { wood: true, stone: false, iron: false } }).map(item => item.id),
+    ['continue_objective']
+  )
+  assert.deepEqual(
+    candidateIntents({ ...base, nearby: { wood: false, stone: false, iron: true } }).map(item => item.id),
+    ['continue_objective']
+  )
+  assert.deepEqual(
+    candidateIntents({ ...base, inventory: { stick: 1 }, nearby: { wood: false, stone: true, iron: false } }).map(item => item.id),
+    ['gather_materials']
+  )
+  assert.deepEqual(
+    candidateIntents({ ...base, inventory: { cobblestone: 2 }, nearby: { wood: true, stone: false, iron: false } }).map(item => item.id),
+    ['gather_materials']
+  )
+})
+
+test('repeated failures with a known alternative route expose only replan', () => {
   const state = byId('repeated_failure_replan').initialState
   assert.deepEqual(
     candidateIntents(state).map(item => item.id),
-    ['replan_route', 'stop_task']
+    ['replan_route']
   )
 })
 
@@ -105,4 +203,45 @@ test('interrupted objective resumes after the safety reaction', async () => {
   )
   assert.equal(run.finalState.resumedAfterInterrupt, true)
   assert.equal(run.finalState.objective.completed, true)
+})
+
+test('adaptive gather scenario exposes threat after first exploration and resumes safely', async () => {
+  const scenario = byId('gather_then_prepare_then_explore')
+  const run = await runScenario(scenario, async (state, candidates) => ({
+    choice: deterministicPlayerPolicy(state, candidates), source: 'rules'
+  }), { policyName: 'rules' })
+  assert.equal(run.success, true)
+  assert.equal(run.finalState.health >= 8, true)
+  assert.equal(run.finalState.resumedAfterInterrupt, true)
+  assert.deepEqual(run.trace.map(step => step.choice), [
+    'gather_materials', 'prepare_combat', 'continue_objective',
+    'fight_threat', 'continue_objective'
+  ])
+})
+
+test('fire and drowning are forced safety decisions outside model candidates', () => {
+  for (const hazard of [{ onFire: true }, { drowning: true }]) {
+    assert.deepEqual(candidateIntents({ health: 20, food: 18, ...hazard }).map(x => x.id), ['escape_danger'])
+  }
+})
+
+test('report separates endpoint attempts, confirmed model calls, and invalid-choice fallbacks', async () => {
+  const scenario = byId('prepare_before_explore')
+  const transportFailure = await runScenario(scenario, async (_state, candidates) => ({
+    choice: deterministicPlayerPolicy({}, candidates), source: 'nanoandy_fallback:timeout',
+    model_calls: 0
+  }), { policyName: 'nanoandy' })
+  assert.equal(transportFailure.modelRequests, 1)
+  assert.equal(transportFailure.modelCalls, 0)
+  assert.equal(summarizeRuns([transportFailure]).technical_fallbacks, 1)
+
+  const invalidOutput = await runScenario(scenario, async () => ({
+    choice: '__invented__', source: 'nanoandy', model_calls: 1
+  }), { policyName: 'nanoandy' })
+  const invalidSummary = summarizeRuns([invalidOutput])
+  assert.equal(invalidOutput.invalidChoices, 1)
+  assert.equal(invalidOutput.modelCalls, 1)
+  assert.equal(invalidSummary.invalid_choice_fallbacks, 1)
+  assert.equal(invalidSummary.fallbacks, 1)
+  assert.equal(invalidSummary.technical_fallbacks, 0)
 })
