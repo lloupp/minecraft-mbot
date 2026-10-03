@@ -37,6 +37,9 @@ const { ProductionManager, normalizeItemName } = require('./core/ProductionManag
 const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
+const { TaskCheckpointStore } = require('./core/TaskCheckpointStore')
+const { MinecraftToolLayer } = require('./core/MinecraftToolLayer')
+const { ToolApiServer } = require('./lib/tool-api-server')
 const { SmokeTest } = require('./core/SmokeTest')
 const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
 const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
@@ -168,6 +171,11 @@ async function main() {
   const demandPlanner = new DemandPlanner()
   const stateStore = new StateStore()
   const savedState = await stateStore.load()
+  const taskCheckpointStore = new TaskCheckpointStore()
+  await taskCheckpointStore.load()
+  if (taskCheckpointStore.lastLoadError) {
+    console.log('[checkpoint] arquivo inválido; execução de novas tools será bloqueada até recuperação manual')
+  }
   if (stateStore.lastLoadError) {
     console.log(`[estado] ${stateStore.lastLoadError.message}; restauração automática desativada e arquivo preservado. Salvamento bloqueado até recuperação manual e reinício.`)
   }
@@ -205,6 +213,11 @@ async function main() {
       storage,
       production
     })
+    worker.minecraftTools = new MinecraftToolLayer({
+      worker: worker.colonyController,
+      workerId: name,
+      checkpointStore: taskCheckpointStore
+    })
 
     worker.once('spawn', () => {
       console.log(`[colônia] ${name} conectado como ${role}`)
@@ -220,6 +233,15 @@ async function main() {
     orchestratorName: CONFIG.username,
     maxBots: maxColonyBots
   })
+  const toolApiServer = process.env.MBOT_TOOL_API === '1'
+    ? new ToolApiServer({
+      botManager,
+      host: '127.0.0.1',
+      port: Number(process.env.MBOT_TOOL_API_PORT || 3091)
+    })
+    : null
+  toolApiServer?.start()
+
   const colony = new ColonyOrchestrator({
     botManager,
     homeProvider,
@@ -997,6 +1019,7 @@ async function main() {
     botManager.stopAll()
     statusServer.stop()
     dashboardServer?.stop()
+    await toolApiServer?.stop()
     webViews?.viewer?.close?.()
     webViews?.inventory?.close?.()
     stopLan()
