@@ -1,0 +1,515 @@
+{"t": 1791036681979, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 14992]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036686979, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 9992]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036691979, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 4992]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036696980, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036696980, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036696980, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036696980, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 5, "pos": [-23.7, 72, -171.3]}
+{"t": 1791036696980, "ev": "cancel", "w": "explorador_01", "vBefore": 5}
+{"t": 1791036696987, "ev": "xpl.start", "w": "explorador_01", "v": 6, "pos": [-23.7, 72, -171.3], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036697011, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 16, "summ": {"stone": {"n": 16, "min": 1, "max": 2.5}}, "pos": [-23.7, 72, -171.3], "radiusEnv": "8"}
+{"t": 1791036697012, "ev": "explore.start", "w": "explorador_01", "v": 6, "pos": [-23.7, 72, -171.3], "sm": "0"}
+{"t": 1791036697012, "ev": "goTo", "w": "explorador_01", "v": 6, "goal": [-31, 72, -180, 3], "from": [-23.69, 72, -171.31]}
+{"t": 1791036698421, "ev": "xpl.end", "w": "explorador_01", "v": 6, "ok": true, "steps": [], "pos": [-28.3, 72, -177.3], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036698421, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 6, "ok": true, "steps": [], "pos": [-28.3, 72, -177.3]}
+{"t": 1791036699012, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-28.3, 72, -177.3]}
+{"t": 1791036701981, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036701981, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036701981, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036701981, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 6, "pos": [-28.3, 72, -177.3]}
+{"t": 1791036701981, "ev": "cancel", "w": "explorador_01", "vBefore": 6}
+{"t": 1791036701987, "ev": "xpl.start", "w": "explorador_01", "v": 7, "pos": [-28.3, 72, -177.3], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036702018, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 16, "summ": {"stone": {"n": 16, "min": 1, "max": 2.7}}, "pos": [-28.3, 72, -177.3], "radiusEnv": "8"}
+{"t": 1791036702019, "ev": "explore.start", "w": "explorador_01", "v": 7, "pos": [-28.3, 72, -177.3], "sm": "0"}
+{"t": 1791036702019, "ev": "goTo", "w": "explorador_01", "v": 7, "goal": [-31, 72, -196, 3], "from": [-28.32, 72, -177.31]}
+{"t": 1791036703012, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-29.5, 72, -182.1]}
+{"t": 1791036704019, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-30.4, 72, -187.6]}
+{"t": 1791036704871, "ev": "xpl.end", "w": "explorador_01", "v": 7, "ok": true, "steps": [], "pos": [-30.5, 72, -192.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036704872, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 7, "ok": true, "steps": [], "pos": [-30.5, 72, -192.5]}
+{"t": 1791036706981, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791036706982, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791036706982, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 7, "pos": [-30.5, 72, -192.5]}
+{"t": 1791036706982, "ev": "cancel", "w": "explorador_01", "vBefore": 7}
+{"t": 1791036706986, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791036708019, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-27, 72, -189]}
+{"t": 1791036711248, "ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 8, "ok": true, "pos": [-14.4, 72, -177.7]}
+{"t": 1791036711981, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036711981, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036711981, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036711982, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 8, "pos": [-14.4, 72, -177.7]}
+{"t": 1791036711982, "ev": "cancel", "w": "explorador_01", "vBefore": 8}
+{"t": 1791036711986, "ev": "xpl.start", "w": "explorador_01", "v": 9, "pos": [-14.4, 72, -177.7], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036712045, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 19, "summ": {"oak_log": {"n": 1, "min": 5.9, "max": 5.9}, "birch_log": {"n": 2, "min": 7.9, "max": 8}, "stone": {"n": 15, "min": 2.3, "max": 4.4}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.4, 72, -177.7], "radiusEnv": "8"}
+{"t": 1791036712046, "ev": "staging.start", "w": "explorador_01", "v": 9, "pos": [-14.39, 72, -177.69]}
+{"t": 1791036712050, "ev": "table.search", "maxDistance": 8, "bot": [-14.39, 72, -177.69], "found": [-14, 72, -182]}
+{"t": 1791036712050, "ev": "goTo", "w": "explorador_01", "v": 9, "goal": [-14, 72, -182, 1], "from": [-14.39, 72, -177.69]}
+{"t": 1791036712815, "ev": "staging.end", "w": "explorador_01", "v": 9, "ok": true, "pos": [-13.5, 72, -180.56]}
+{"t": 1791036712844, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 2, "summ": {"oak_log": {"n": 1, "min": 5.9, "max": 5.9}, "cobblestone": {"n": 1, "min": 3.5, "max": 3.5}}, "pos": [-13.5, 72, -180.6], "radiusEnv": "8"}
+{"t": 1791036712846, "ev": "explore.start", "w": "explorador_01", "v": 9, "pos": [-13.5, 72, -180.6], "sm": "0"}
+{"t": 1791036712846, "ev": "goTo", "w": "explorador_01", "v": 9, "goal": [-15, 72, -196, 3], "from": [-13.5, 72, -180.56]}
+{"t": 1791036714846, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-14.5, 72, -189.9]}
+{"t": 1791036715275, "ev": "xpl.end", "w": "explorador_01", "v": 9, "ok": true, "skipped": {"code": "APPROVED_TARGETS_INSUFFICIENT", "intent": "gather_materials"}, "steps": [], "pos": [-14.5, 72, -192.4], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036715275, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 9, "ok": true, "steps": [], "pos": [-14.5, 72, -192.4]}
+{"t": 1791036716981, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036716982, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036716982, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036716982, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 9, "pos": [-14.5, 72, -192.4]}
+{"t": 1791036716982, "ev": "cancel", "w": "explorador_01", "vBefore": 9}
+{"t": 1791036716987, "ev": "xpl.start", "w": "explorador_01", "v": 10, "pos": [-14.5, 72, -192.4], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036717034, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 16, "summ": {"stone": {"n": 16, "min": 1, "max": 6}}, "pos": [-14.5, 72, -192.4], "radiusEnv": "8"}
+{"t": 1791036717035, "ev": "explore.start", "w": "explorador_01", "v": 10, "pos": [-14.5, 72, -192.4], "sm": "0"}
+{"t": 1791036717035, "ev": "goTo", "w": "explorador_01", "v": 10, "goal": [1, 72, -196, 3], "from": [-14.5, 72, -192.4]}
+{"t": 1791036718846, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-7.2, 72, -188.6]}
+{"t": 1791036719035, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-6.4, 72, -188.5]}
+{"t": 1791036721803, "ev": "xpl.end", "w": "explorador_01", "v": 10, "ok": true, "steps": [], "pos": [2.5, 70, -193.3], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036721803, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 10, "ok": true, "steps": [], "pos": [2.5, 70, -193.3]}
+{"t": 1791036723035, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [2.5, 70, -193.3]}
+{"t": 1791036739668, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791036746982, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036746982, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036746982, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036746982, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 10, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036746982, "ev": "cancel", "w": "explorador_01", "vBefore": 10}
+{"t": 1791036746988, "ev": "xpl.start", "w": "explorador_01", "v": 11, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036747043, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 17, "summ": {"oak_log": {"n": 1, "min": 6.3, "max": 6.3}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036747047, "ev": "prep.start", "w": "explorador_01", "v": 11, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036751985, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036755055, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036755060, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "TARGET_BLOCKED", "target": {"x": -9, "y": 72, "z": -178}, "nav": "refused_blocked_target", "delta": 0, "confirmed": false, "msg": "authorized target is not visible in physical reach", "invNow": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036755061, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 0, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036755063, "ev": "prep.end", "w": "explorador_01", "v": 11, "ok": false, "code": "TARGET_BLOCKED", "pos": [-11.7, 72, -177.5]}
+{"t": 1791036755063, "ev": "xpl.end", "w": "explorador_01", "v": 11, "ok": false, "code": "TARGET_BLOCKED", "steps": [{"intent": "gather_materials", "ok": false, "code": "TARGET_BLOCKED", "ownerVersion": 11}], "pos": [-11.7, 72, -177.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036755063, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 11, "ok": false, "code": "TARGET_BLOCKED", "steps": [{"intent": "gather_materials", "ok": false, "code": "TARGET_BLOCKED", "ownerVersion": 11}], "pos": [-11.7, 72, -177.5]}
+{"t": 1791036756986, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 13077]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036761985, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 8078]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036766985, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 3078]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036771985, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791036771985, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791036771985, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 11, "pos": [-11.7, 72, -177.5]}
+{"t": 1791036771985, "ev": "cancel", "w": "explorador_01", "vBefore": 11}
+{"t": 1791036771990, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791036773131, "ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 12, "ok": true, "pos": [-12.5, 72, -177.5]}
+{"t": 1791036776985, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036776985, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036776985, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036776985, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 12, "pos": [-12.5, 72, -177.5]}
+{"t": 1791036776985, "ev": "cancel", "w": "explorador_01", "vBefore": 12}
+{"t": 1791036776990, "ev": "xpl.start", "w": "explorador_01", "v": 13, "pos": [-12.5, 72, -177.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036777041, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 21, "summ": {"oak_log": {"n": 1, "min": 4, "max": 4}, "birch_log": {"n": 4, "min": 6.7, "max": 7.3}, "stone": {"n": 15, "min": 3, "max": 4.6}, "cobblestone": {"n": 1, "min": 3.7, "max": 3.7}}, "pos": [-12.5, 72, -177.5], "radiusEnv": "8"}
+{"t": 1791036777041, "ev": "staging.start", "w": "explorador_01", "v": 13, "pos": [-12.5, 72, -177.5]}
+{"t": 1791036777046, "ev": "table.search", "maxDistance": 8, "bot": [-12.5, 72, -177.5], "found": [-14, 72, -182]}
+{"t": 1791036777046, "ev": "goTo", "w": "explorador_01", "v": 13, "goal": [-14, 72, -182, 1], "from": [-12.5, 72, -177.5]}
+{"t": 1791036777652, "ev": "staging.end", "w": "explorador_01", "v": 13, "ok": true, "pos": [-13.56, 72, -180.37]}
+{"t": 1791036777676, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 2, "summ": {"oak_log": {"n": 1, "min": 5.8, "max": 5.8}, "cobblestone": {"n": 1, "min": 3.4, "max": 3.4}}, "pos": [-13.6, 72, -180.4], "radiusEnv": "8"}
+{"t": 1791036777677, "ev": "explore.start", "w": "explorador_01", "v": 13, "pos": [-13.6, 72, -180.4], "sm": "0"}
+{"t": 1791036777677, "ev": "goTo", "w": "explorador_01", "v": 13, "goal": [17, 72, -180, 3], "from": [-13.56, 72, -180.37]}
+{"t": 1791036779677, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-2.7, 72, -180.5]}
+{"t": 1791036781985, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036782762, "ev": "xpl.end", "w": "explorador_01", "v": 13, "ok": true, "skipped": {"code": "APPROVED_TARGETS_INSUFFICIENT", "intent": "gather_materials"}, "steps": [], "pos": [14.4, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036782762, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 13, "ok": true, "steps": [], "pos": [14.4, 72, -179.5]}
+{"t": 1791036783678, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [14.4, 72, -179.5]}
+{"t": 1791036805188, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791036811985, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036811985, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036811985, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036811985, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 13, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036811986, "ev": "cancel", "w": "explorador_01", "vBefore": 13}
+{"t": 1791036811989, "ev": "xpl.start", "w": "explorador_01", "v": 14, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036812044, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 19, "summ": {"oak_log": {"n": 3, "min": 6.3, "max": 6.6}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036812046, "ev": "prep.start", "w": "explorador_01", "v": 14, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036813017, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036813362, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "CANCELLED", "target": {"x": -9, "y": 72, "z": -178}, "nav": "visible_in_reach", "delta": 0, "confirmed": false, "msg": "Digging aborted", "invNow": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036813362, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "CANCELLED", "invNow": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036813362, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 0, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036813363, "ev": "prep.end", "w": "explorador_01", "v": 14, "ok": false, "code": "THREAT", "pos": [-9.7, 72, -178.5]}
+{"t": 1791036813363, "ev": "xpl.end", "w": "explorador_01", "v": 14, "ok": false, "code": "THREAT", "steps": [{"intent": "gather_materials", "ok": false, "code": "THREAT", "ownerVersion": 14}], "pos": [-9.7, 72, -178.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036813363, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 14, "ok": false, "code": "THREAT", "steps": [{"intent": "gather_materials", "ok": false, "code": "THREAT", "ownerVersion": 14}], "pos": [-9.7, 72, -178.5]}
+{"t": 1791036816985, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 1378]], "fails": null, "fresh": true}
+{"t": 1791036819713, "ev": "collectDrops", "w": "eduardo_bot", "phase": "start", "center": [-12.47, 72, -176.03], "bot": [-14.5, 72, -176.5], "items": [{"n": "rotten_flesh", "p": [-12.52, 72, -176.29], "d": 0.26, "valid": true}]}
+{"t": 1791036820815, "ev": "collectDrops", "w": "eduardo_bot", "phase": "end", "bot": [-12.49, 72, -176.5], "items": []}
+{"t": 1791036821985, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": null, "fresh": true}
+{"t": 1791036821986, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036821986, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036821986, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 14, "pos": [-9.7, 72, -178.5]}
+{"t": 1791036821986, "ev": "cancel", "w": "explorador_01", "vBefore": 14}
+{"t": 1791036821992, "ev": "xpl.start", "w": "explorador_01", "v": 15, "pos": [-9.7, 72, -178.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036821992, "ev": "goTo", "w": "explorador_01", "v": 15, "goal": [-15, 72, -180, null], "from": [-9.68, 72, -178.5]}
+{"t": 1791036823031, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 19, "summ": {"oak_log": {"n": 3, "min": 6.2, "max": 6.5}, "stone": {"n": 15, "min": 2.4, "max": 4.4}, "cobblestone": {"n": 1, "min": 2.5, "max": 2.5}}, "pos": [-14.4, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036823033, "ev": "prep.start", "w": "explorador_01", "v": 15, "pos": [-14.4, 72, -179.5]}
+{"t": 1791036824043, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036824045, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "TARGET_BLOCKED", "target": {"x": -9, "y": 72, "z": -178}, "nav": "refused_blocked_target", "delta": 0, "confirmed": false, "msg": "authorized target is not visible in physical reach", "invNow": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036826985, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": true}
+{"t": 1791036827049, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-9, 73, -178], "bot": [-9.58, 72, -178.5], "items": []}
+{"t": 1791036829106, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-8.5, 72, -178.5], "items": []}
+{"t": 1791036829107, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -9, "y": 73, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791036829108, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 1, "inv": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791036830874, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036831985, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": true}
+{"t": 1791036833727, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -179], "bot": [-15.46, 71, -178.5], "items": []}
+{"t": 1791036834498, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.5, 71, -178.5], "items": []}
+{"t": 1791036834499, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791036834500, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "RESOURCE_NOT_FOUND", "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791036835397, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-18, 71, -178], "bot": [-15.69, 71, -178.5], "items": []}
+{"t": 1791036836603, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-17.66, 71, -177.5], "items": []}
+{"t": 1791036836604, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -18, "y": 71, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791036836605, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791036836985, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791036838108, "ev": "prep.end", "w": "explorador_01", "v": 15, "ok": true, "pos": [-14.6, 72, -179.5]}
+{"t": 1791036838161, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.4, "max": 6.7}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.6, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036838161, "ev": "prep.start", "w": "explorador_01", "v": 15, "pos": [-14.6, 72, -179.5]}
+{"t": 1791036839020, "ev": "prep.end", "w": "explorador_01", "v": 15, "ok": true, "pos": [-14.6, 72, -179.5]}
+{"t": 1791036839083, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.4, "max": 6.7}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.6, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036839084, "ev": "explore.start", "w": "explorador_01", "v": 15, "pos": [-14.6, 72, -179.5], "sm": "0"}
+{"t": 1791036839084, "ev": "goTo", "w": "explorador_01", "v": 15, "goal": [17, 72, -148, 3], "from": [-14.64, 72, -179.45]}
+{"t": 1791036841084, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-7, 72, -172]}
+{"t": 1791036841985, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791036845092, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [9.8, 71, -159.2]}
+{"t": 1791036846986, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791036847699, "ev": "xpl.end", "w": "explorador_01", "v": 15, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 15}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 15}], "pos": [17.5, 69, -149.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t": 1791036847699, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 15, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 15}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 15}], "pos": [17.5, 69, -149.5]}
+{"t": 1791036851986, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791036851986, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791036851986, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 15, "pos": [17.5, 69, -149.5]}
+{"t": 1791036851986, "ev": "cancel", "w": "explorador_01", "vBefore": 15}
+{"t": 1791036851992, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791036856986, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791036861986, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791036881338, "ev": "run.reject", "w": "explorador_01", "err": "demorei demais para chegar ao estoque"}
+{"t": 1791036882712, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791036891989, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 9349]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036896989, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 4349]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036901989, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036901990, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036901990, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036901990, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 16, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036901990, "ev": "cancel", "w": "explorador_01", "vBefore": 16}
+{"t": 1791036901995, "ev": "xpl.start", "w": "explorador_01", "v": 17, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036902064, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 19, "summ": {"oak_log": {"n": 3, "min": 6.3, "max": 6.6}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036902066, "ev": "prep.start", "w": "explorador_01", "v": 17, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036902975, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036905979, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-9, 72, -178], "bot": [-9.65, 72, -178.5], "items": []}
+{"t": 1791036906997, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036908443, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-7.49, 72, -177.5], "items": []}
+{"t": 1791036908444, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791036908445, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 1, "inv": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791036910649, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036911997, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791036913503, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -179], "bot": [-15.49, 71, -178.5], "items": []}
+{"t": 1791036914269, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.31, 71, -178.5], "items": []}
+{"t": 1791036914270, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791036915073, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -178], "bot": [-15.5, 71, -178.5], "items": []}
+{"t": 1791036916072, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.51, 71, -177.5], "items": []}
+{"t": 1791036916074, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791036916074, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791036916998, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791036917032, "ev": "prep.end", "w": "explorador_01", "v": 17, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791036917131, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791036917132, "ev": "prep.start", "w": "explorador_01", "v": 17, "pos": [-14.7, 72, -179.3]}
+{"t": 1791036917239, "ev": "prep.end", "w": "explorador_01", "v": 17, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791036917289, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791036917290, "ev": "explore.start", "w": "explorador_01", "v": 17, "pos": [-14.7, 72, -179.3], "sm": "0"}
+{"t": 1791036917290, "ev": "goTo", "w": "explorador_01", "v": 17, "goal": [-15, 72, -148, 3], "from": [-14.7, 72, -179.3]}
+{"t": 1791036919290, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-14.5, 72, -168.7]}
+{"t": 1791036921999, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791036922412, "ev": "xpl.end", "w": "explorador_01", "v": 17, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 17}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 17}], "pos": [-14.5, 72, -150.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t": 1791036922412, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 17, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 17}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 17}], "pos": [-14.5, 72, -150.5]}
+{"t": 1791036923290, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-14.5, 72, -150.5]}
+{"t": 1791036927000, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791036927000, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791036927000, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 17, "pos": [-14.5, 72, -150.5]}
+{"t": 1791036927000, "ev": "cancel", "w": "explorador_01", "vBefore": 17}
+{"t": 1791036927004, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791036931696, "ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 18, "ok": true, "pos": [-13.5, 72, -174.5]}
+{"t": 1791036948230, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791036957001, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791036957001, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036957001, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036957001, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 18, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036957001, "ev": "cancel", "w": "explorador_01", "vBefore": 18}
+{"t": 1791036957007, "ev": "xpl.start", "w": "explorador_01", "v": 19, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036957062, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.3, "max": 6.4}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036957063, "ev": "xpl.end", "w": "explorador_01", "v": 19, "ok": false, "code": "PLAYER_LOOP_PREEMPTED", "steps": [], "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036957063, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 19, "ok": false, "code": "PLAYER_LOOP_PREEMPTED", "steps": [], "pos": [-14.5, 72, -179.5]}
+{"t": 1791036962001, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 62]], "fails": null, "fresh": true}
+{"t": 1791036962233, "ev": "collectDrops", "w": "eduardo_bot", "phase": "start", "center": [-20.39, 72, -177.94], "bot": [-19.5, 72, -178.67], "items": [{"n": "rotten_flesh", "p": [-20.45, 72, -177.18], "d": 0.77, "valid": true}]}
+{"t": 1791036962763, "ev": "collectDrops", "w": "eduardo_bot", "phase": "end", "bot": [-20.5, 72, -177.5], "items": []}
+{"t": 1791036967001, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": null, "fresh": true}
+{"t": 1791036967001, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791036967001, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791036967001, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 19, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036967001, "ev": "cancel", "w": "explorador_01", "vBefore": 19}
+{"t": 1791036967011, "ev": "xpl.start", "w": "explorador_01", "v": 20, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036967073, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.3, "max": 6.4}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791036967075, "ev": "prep.start", "w": "explorador_01", "v": 20, "pos": [-14.5, 72, -179.5]}
+{"t": 1791036968035, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036968038, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "TARGET_BLOCKED", "target": {"x": -9, "y": 72, "z": -178}, "nav": "refused_blocked_target", "delta": 0, "confirmed": false, "msg": "authorized target is not visible in physical reach", "invNow": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036971044, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-9, 73, -178], "bot": [-9.5, 72, -178.48], "items": []}
+{"t": 1791036972002, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": true}
+{"t": 1791036973098, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-8.69, 72, -178.49], "items": []}
+{"t": 1791036973100, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -9, "y": 73, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791036973100, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 1, "inv": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791036974848, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791036977002, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": true}
+{"t": 1791036977703, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -179], "bot": [-15.58, 71, -178.69], "items": []}
+{"t": 1791036978461, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.38, 71, -178.52], "items": []}
+{"t": 1791036978462, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791036978463, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "RESOURCE_NOT_FOUND", "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791036979215, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -178], "bot": [-15.5, 71, -178.51], "items": []}
+{"t": 1791036980218, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.51, 71, -177.5], "items": []}
+{"t": 1791036980219, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791036980219, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791036981177, "ev": "prep.end", "w": "explorador_01", "v": 20, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791036981251, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791036981252, "ev": "prep.start", "w": "explorador_01", "v": 20, "pos": [-14.7, 72, -179.3]}
+{"t": 1791036981411, "ev": "prep.end", "w": "explorador_01", "v": 20, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791036981477, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791036981484, "ev": "explore.start", "w": "explorador_01", "v": 20, "pos": [-14.7, 72, -179.3], "sm": "0"}
+{"t": 1791036981484, "ev": "goTo", "w": "explorador_01", "v": 20, "goal": [-47, 72, -148, 3], "from": [-14.7, 72, -179.3]}
+{"t": 1791036982002, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791036983484, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-20.4, 72, -171.4]}
+{"t": 1791036987002, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791036987484, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-28.1, 71, -152.9]}
+{"t": 1791036992011, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791036997011, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791037002011, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": null, "fresh": false}
+{"t": 1791037011484, "ev": "runExplorePlayerLoop.reject", "w": "explorador_01", "err": "caminho demorou demais"}
+{"t": 1791037011485, "ev": "run.reject", "w": "explorador_01", "err": "caminho demorou demais"}
+{"t": 1791037014187, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037014187, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037015186, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037015186, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037016186, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037016186, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037017187, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037017187, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037018186, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037018186, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037019186, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037019186, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037020186, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037020186, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037021187, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037021187, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037022186, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037022187, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037023186, "ev": "defend.start", "w": "explorador_01", "vBefore": 20, "vAfter": 20, "defending": false, "state": "ocioso"}
+{"t": 1791037023186, "ev": "defend.end", "w": "explorador_01", "result": null}
+{"t": 1791037024188, "ev": "cancel", "w": "explorador_01", "vBefore": 20}
+{"t": 1791037025757, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791037032020, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037032020, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791037032020, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791037032020, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 21, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037032020, "ev": "cancel", "w": "explorador_01", "vBefore": 21}
+{"t": 1791037032026, "ev": "xpl.start", "w": "explorador_01", "v": 22, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037032094, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.3, "max": 6.4}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791037032096, "ev": "prep.start", "w": "explorador_01", "v": 22, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037033032, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037033035, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "TARGET_BLOCKED", "target": {"x": -9, "y": 72, "z": -178}, "nav": "refused_blocked_target", "delta": 0, "confirmed": false, "msg": "authorized target is not visible in physical reach", "invNow": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037036039, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-9, 73, -178], "bot": [-9.5, 72, -178.48], "items": []}
+{"t": 1791037037021, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037038453, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-9.49, 72, -177.5], "items": []}
+{"t": 1791037038455, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -9, "y": 73, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791037038456, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 1, "inv": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791037039956, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037042021, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037042810, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -179], "bot": [-15.61, 71, -178.69], "items": []}
+{"t": 1791037043525, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.5, 71, -178.57], "items": []}
+{"t": 1791037043526, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791037043527, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "RESOURCE_NOT_FOUND", "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791037044335, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -178], "bot": [-15.69, 71, -178.51], "items": []}
+{"t": 1791037045290, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.49, 71, -177.5], "items": []}
+{"t": 1791037045292, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791037045292, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791037046293, "ev": "prep.end", "w": "explorador_01", "v": 22, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791037046345, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791037046346, "ev": "prep.start", "w": "explorador_01", "v": 22, "pos": [-14.7, 72, -179.3]}
+{"t": 1791037046503, "ev": "prep.end", "w": "explorador_01", "v": 22, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791037046555, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791037046556, "ev": "explore.start", "w": "explorador_01", "v": 22, "pos": [-14.7, 72, -179.3], "sm": "0"}
+{"t": 1791037046556, "ev": "goTo", "w": "explorador_01", "v": 22, "goal": [-47, 72, -180, 3], "from": [-14.7, 72, -179.3]}
+{"t": 1791037047028, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037048556, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-25.6, 72, -179.5]}
+{"t": 1791037052028, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037052556, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-39.5, 71, -180.5]}
+{"t": 1791037057028, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037062033, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037067033, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037075143, "ev": "runExplorePlayerLoop.reject", "w": "explorador_01", "err": "Took to long to decide path to goal!"}
+{"t": 1791037075144, "ev": "run.reject", "w": "explorador_01", "err": "Took to long to decide path to goal!"}
+{"t": 1791037091276, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791037102034, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 13110]], "fails": "[[\"explorador_01\",2]]", "fresh": true}
+{"t": 1791037104842, "ev": "collectDrops", "w": "eduardo_bot", "phase": "start", "center": [-19.33, 72, -174], "bot": [-18.5, 72, -176.63], "items": []}
+{"t": 1791037106342, "ev": "collectDrops", "w": "eduardo_bot", "phase": "end", "bot": [-18.5, 72, -176.63], "items": []}
+{"t": 1791037107034, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 8110]], "fails": "[[\"explorador_01\",2]]", "fresh": true}
+{"t": 1791037112034, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 3110]], "fails": "[[\"explorador_01\",2]]", "fresh": true}
+{"t": 1791037117035, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",2]]", "fresh": true}
+{"t": 1791037117035, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791037117035, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791037117035, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 22, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037117035, "ev": "cancel", "w": "explorador_01", "vBefore": 22}
+{"t": 1791037117040, "ev": "xpl.start", "w": "explorador_01", "v": 23, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037117099, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 19, "summ": {"oak_log": {"n": 3, "min": 6.3, "max": 6.6}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791037117100, "ev": "prep.start", "w": "explorador_01", "v": 23, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037118012, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037118013, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "TARGET_BLOCKED", "target": {"x": -9, "y": 72, "z": -178}, "nav": "refused_blocked_target", "delta": 0, "confirmed": false, "msg": "authorized target is not visible in physical reach", "invNow": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037121016, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-9, 73, -178], "bot": [-9.5, 72, -178.48], "items": []}
+{"t": 1791037122035, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",2]]", "fresh": true}
+{"t": 1791037123071, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-8.69, 72, -178.49], "items": []}
+{"t": 1791037123072, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -9, "y": 73, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791037123073, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 1, "inv": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791037124833, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037127036, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",2]]", "fresh": false}
+{"t": 1791037127686, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -179], "bot": [-15.58, 71, -178.69], "items": []}
+{"t": 1791037128474, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.38, 71, -178.52], "items": []}
+{"t": 1791037128475, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791037128476, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "RESOURCE_NOT_FOUND", "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791037129277, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -178], "bot": [-15.5, 71, -178.51], "items": []}
+{"t": 1791037130268, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.51, 71, -177.5], "items": []}
+{"t": 1791037130272, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791037130272, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791037131240, "ev": "prep.end", "w": "explorador_01", "v": 23, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791037131292, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791037131293, "ev": "prep.start", "w": "explorador_01", "v": 23, "pos": [-14.7, 72, -179.3]}
+{"t": 1791037131449, "ev": "prep.end", "w": "explorador_01", "v": 23, "ok": true, "pos": [-14.7, 72, -179.3]}
+{"t": 1791037131508, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.5, "max": 6.8}, "stone": {"n": 15, "min": 2.1, "max": 4.1}, "cobblestone": {"n": 1, "min": 2.3, "max": 2.3}}, "pos": [-14.7, 72, -179.3], "radiusEnv": "8"}
+{"t": 1791037131509, "ev": "explore.start", "w": "explorador_01", "v": 23, "pos": [-14.7, 72, -179.3], "sm": "0"}
+{"t": 1791037131509, "ev": "goTo", "w": "explorador_01", "v": 23, "goal": [-47, 72, -212, 3], "from": [-14.7, 72, -179.3]}
+{"t": 1791037132035, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",2]]", "fresh": false}
+{"t": 1791037133509, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-22.2, 72, -187.2]}
+{"t": 1791037137035, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",2]]", "fresh": false}
+{"t": 1791037137509, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-37.3, 72, -203.3]}
+{"t": 1791037139549, "ev": "xpl.end", "w": "explorador_01", "v": 23, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 23}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 23}], "pos": [-44.3, 70, -211.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t": 1791037139549, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 23, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 23}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 23}], "pos": [-44.3, 70, -211.5]}
+{"t": 1791037142036, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791037142036, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791037142036, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 23, "pos": [-44.3, 70, -211.5]}
+{"t": 1791037142036, "ev": "cancel", "w": "explorador_01", "vBefore": 23}
+{"t": 1791037142044, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791037147036, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791037151540, "ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 24, "ok": true, "pos": [-14.6, 72, -177.4]}
+{"t": 1791037168801, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791037177036, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037177036, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791037177036, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791037177036, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 24, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037177036, "ev": "cancel", "w": "explorador_01", "vBefore": 24}
+{"t": 1791037177040, "ev": "xpl.start", "w": "explorador_01", "v": 25, "pos": [-14.5, 72, -179.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037177092, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 18, "summ": {"oak_log": {"n": 2, "min": 6.3, "max": 6.4}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.4, "max": 2.4}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791037177094, "ev": "prep.start", "w": "explorador_01", "v": 25, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037178108, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 1, "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037181110, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-9, 72, -178], "bot": [-9.65, 72, -178.5], "items": []}
+{"t": 1791037182036, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037183165, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-8.5, 72, -178.5], "items": []}
+{"t": 1791037183166, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791037183166, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 1, "inv": "stone_pickaxe:1,cooked_beef:8,oak_log:1"}
+{"t": 1791037184887, "ev": "mineBlocks", "w": "explorador_01", "phase": "start", "count": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037187036, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037187742, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -178], "bot": [-15.46, 71, -178.5], "items": []}
+{"t": 1791037189002, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.51, 71, -177.37], "items": []}
+{"t": 1791037189003, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791037189004, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "code": "RESOURCE_NOT_FOUND", "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t": 1791037192036, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037192563, "ev": "collectDrops", "w": "explorador_01", "phase": "start", "center": [-17, 71, -179], "bot": [-15.55, 71, -178.67], "items": []}
+{"t": 1791037193334, "ev": "collectDrops", "w": "explorador_01", "phase": "end", "bot": [-16.35, 71, -178.53], "items": []}
+{"t": 1791037193335, "ev": "mineBlocks", "w": "explorador_01", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "nav": "visible_in_reach", "delta": 1, "confirmed": true, "invNow": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791037193335, "ev": "mineBlocks", "w": "explorador_01", "phase": "end", "mined": 2, "inv": "oak_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t": 1791037193939, "ev": "prep.end", "w": "explorador_01", "v": 25, "ok": true, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037194000, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 17, "summ": {"oak_log": {"n": 1, "min": 6.4, "max": 6.4}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.5, "max": 2.5}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791037194001, "ev": "prep.start", "w": "explorador_01", "v": 25, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037194261, "ev": "prep.end", "w": "explorador_01", "v": 25, "ok": true, "pos": [-14.5, 72, -179.5]}
+{"t": 1791037194351, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 17, "summ": {"oak_log": {"n": 1, "min": 6.4, "max": 6.4}, "stone": {"n": 15, "min": 2.2, "max": 4.2}, "cobblestone": {"n": 1, "min": 2.5, "max": 2.5}}, "pos": [-14.5, 72, -179.5], "radiusEnv": "8"}
+{"t": 1791037194352, "ev": "explore.start", "w": "explorador_01", "v": 25, "pos": [-14.5, 72, -179.5], "sm": "0"}
+{"t": 1791037194352, "ev": "goTo", "w": "explorador_01", "v": 25, "goal": [-15, 72, -212, 3], "from": [-14.5, 72, -179.52]}
+{"t": 1791037196352, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-14.5, 72, -190.7]}
+{"t": 1791037197036, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037199474, "ev": "xpl.end", "w": "explorador_01", "v": 25, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 25}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 25}], "pos": [-14.5, 72, -208.4], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t": 1791037199474, "ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 25, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 25}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 25}], "pos": [-14.5, 72, -208.4]}
+{"t": 1791037200352, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-14.5, 72, -208.4]}
+{"t": 1791037202036, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791037202036, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791037202036, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 25, "pos": [-14.5, 72, -208.4]}
+{"t": 1791037202038, "ev": "cancel", "w": "explorador_01", "vBefore": 25}
+{"t": 1791037202049, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791037207036, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791037207748, "ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 26, "ok": true, "pos": [-13.5, 72, -178.7]}
+{"t": 1791037212036, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037212037, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791037212037, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791037212037, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 26, "pos": [-13.5, 72, -178.7]}
+{"t": 1791037212037, "ev": "cancel", "w": "explorador_01", "vBefore": 26}
+{"t": 1791037212041, "ev": "xpl.start", "w": "explorador_01", "v": 27, "pos": [-13.5, 72, -178.7], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t": 1791037212094, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 17, "summ": {"oak_log": {"n": 1, "min": 5.2, "max": 5.2}, "cobblestone": {"n": 1, "min": 2.8, "max": 2.8}, "stone": {"n": 15, "min": 3.3, "max": 5.1}}, "pos": [-13.5, 72, -178.7], "radiusEnv": "8"}
+{"t": 1791037212094, "ev": "explore.start", "w": "explorador_01", "v": 27, "pos": [-13.5, 72, -178.7], "sm": "0"}
+{"t": 1791037212095, "ev": "goTo", "w": "explorador_01", "v": 27, "goal": [17, 72, -212, 3], "from": [-13.5, 72, -178.69]}
+{"t": 1791037214096, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-9.5, 72, -187.8]}
+{"t": 1791037218096, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [-1.7, 77, -197.9]}
+{"t": 1791037234319, "ev": "storage.summary", "w": "eduardo_bot", "args": []}
+{"t": 1791037242037, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037242095, "ev": "runExplorePlayerLoop.reject", "w": "explorador_01", "err": "caminho demorou demais"}
+{"t": 1791037242096, "ev": "run.reject", "w": "explorador_01", "err": "caminho demorou demais"}
+{"t": 1791037247037, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 15059]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037250220, "ev": "collectDrops", "w": "eduardo_bot", "phase": "start", "center": [-17.7, 72, -175.93], "bot": [-18.56, 72, -179.04], "items": []}
+{"t": 1791037251748, "ev": "collectDrops", "w": "eduardo_bot", "phase": "end", "bot": [-18.56, 72, -179.04], "items": []}
+{"t": 1791037252037, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 10059]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037257037, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 5059]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037262037, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 59]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+{"t": 1791037267037, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037267038, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791037267038, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 27, "pos": [-10.6, 72, -188.8]}
+{"t": 1791037267038, "ev": "cancel", "w": "explorador_01", "vBefore": 27}
+{"t": 1791037267043, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791037269533, "ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 28, "ok": true, "pos": [-12.5, 72, -177.6]}
+{"t": 1791037272037, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037272037, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791037272037, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791037272037, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 28, "pos": [-12.5, 72, -177.6]}
+{"t": 1791037272037, "ev": "cancel", "w": "explorador_01", "vBefore": 28}
+{"t": 1791037272043, "ev": "xpl.start", "w": "explorador_01", "v": 29, "pos": [-12.5, 72, -177.6], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037272098, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 22, "summ": {"oak_log": {"n": 3, "min": 4, "max": 4.5}, "birch_log": {"n": 3, "min": 6.8, "max": 7.1}, "stone": {"n": 15, "min": 3.1, "max": 4.7}, "cobblestone": {"n": 1, "min": 3.7, "max": 3.7}}, "pos": [-12.5, 72, -177.6], "radiusEnv": "8"}
+{"t": 1791037272099, "ev": "staging.start", "w": "explorador_01", "v": 29, "pos": [-12.5, 72, -177.62]}
+{"t": 1791037272104, "ev": "table.search", "maxDistance": 8, "bot": [-12.5, 72, -177.62], "found": [-14, 72, -182]}
+{"t": 1791037272104, "ev": "goTo", "w": "explorador_01", "v": 29, "goal": [-14, 72, -182, 1], "from": [-12.5, 72, -177.62]}
+{"t": 1791037272744, "ev": "staging.end", "w": "explorador_01", "v": 29, "ok": true, "pos": [-12.5, 72, -181.5]}
+{"t": 1791037272767, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 6, "summ": {"oak_log": {"n": 5, "min": 5.7, "max": 7.3}, "cobblestone": {"n": 1, "min": 4.7, "max": 4.7}}, "pos": [-12.5, 72, -181.5], "radiusEnv": "8"}
+{"t": 1791037272768, "ev": "explore.start", "w": "explorador_01", "v": 29, "pos": [-12.5, 72, -181.5], "sm": "0"}
+{"t": 1791037272768, "ev": "goTo", "w": "explorador_01", "v": 29, "goal": [33, 72, -180, 3], "from": [-12.5, 72, -181.5]}
+{"t": 1791037274768, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-3.8, 72, -181.5]}
+{"t": 1791037277037, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037278768, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [15.7, 73.8, -181.5]}
+{"t": 1791037282037, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037287038, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037292040, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037297040, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037302040, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+{"t": 1791037302769, "ev": "runExplorePlayerLoop.reject", "w": "explorador_01", "err": "caminho demorou demais"}
+{"t": 1791037302769, "ev": "run.reject", "w": "explorador_01", "err": "caminho demorou demais"}
+{"t": 1791037307040, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 15729]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037312040, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 10729]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037317040, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 5729]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037322040, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 729]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037327040, "ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037327040, "ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+{"t": 1791037327040, "ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 29, "pos": [33.5, 79, -179.5]}
+{"t": 1791037327040, "ev": "cancel", "w": "explorador_01", "vBefore": 29}
+{"t": 1791037327048, "ev": "storage.summary", "w": "explorador_01", "args": []}
+{"t": 1791037332040, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037337040, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+{"t": 1791037337087, "ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 30, "ok": true, "pos": [-11.4, 72, -176.5]}
+{"t": 1791037342040, "ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037342040, "ev": "planner.plan", "plan": [{"w": "explorador_01", "type": "explorar", "reason": "estoque_estavel"}], "deficits": {"food": 0, "wood": 0, "fuel": 0, "ironTotal": 0, "ironIngot": 0, "building": 0, "ironPickaxe": 2, "ironAxe": 2, "ironSword": 0}}
+{"t": 1791037342040, "ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+{"t": 1791037342040, "ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 30, "pos": [-11.4, 72, -176.5]}
+{"t": 1791037342040, "ev": "cancel", "w": "explorador_01", "vBefore": 30}
+{"t": 1791037342046, "ev": "xpl.start", "w": "explorador_01", "v": 31, "pos": [-11.4, 72, -176.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+{"t": 1791037342109, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 22, "summ": {"oak_log": {"n": 3, "min": 3.1, "max": 3.7}, "birch_log": {"n": 3, "min": 5.3, "max": 5.7}, "stone": {"n": 16, "min": 1.7, "max": 4.4}}, "pos": [-11.4, 72, -176.5], "radiusEnv": "8"}
+{"t": 1791037342110, "ev": "staging.start", "w": "explorador_01", "v": 31, "pos": [-11.39, 72, -176.5]}
+{"t": 1791037342115, "ev": "table.search", "maxDistance": 8, "bot": [-11.39, 72, -176.5], "found": [-14, 72, -182]}
+{"t": 1791037342115, "ev": "goTo", "w": "explorador_01", "v": 31, "goal": [-14, 72, -182, 1], "from": [-11.39, 72, -176.5]}
+{"t": 1791037343060, "ev": "staging.end", "w": "explorador_01", "v": 31, "ok": true, "pos": [-12.3, 72, -181.41]}
+{"t": 1791037343088, "ev": "allowlist", "w": "explorador_01", "args": [], "n": 6, "summ": {"oak_log": {"n": 5, "min": 5.5, "max": 7.2}, "cobblestone": {"n": 1, "min": 4.8, "max": 4.8}}, "pos": [-12.3, 72, -181.4], "radiusEnv": "8"}
+{"t": 1791037343089, "ev": "explore.start", "w": "explorador_01", "v": 31, "pos": [-12.3, 72, -181.4], "sm": "0"}
+{"t": 1791037343089, "ev": "goTo", "w": "explorador_01", "v": 31, "goal": [33, 72, -132, 3], "from": [-12.3, 72, -181.41]}
+{"t": 1791037345090, "ev": "explore.pos+2000", "w": "explorador_01", "pos": [-6.1, 72, -174.1]}
+{"t": 1791037347040, "ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+{"t": 1791037349089, "ev": "explore.pos+6000", "w": "explorador_01", "pos": [11.9, 73.2, -162.4]}

@@ -1,0 +1,63 @@
+=== r8-1
+6.1 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "code": "RESOURCE_NOT_FOUND"}
+16.5 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "delta": 1, "confirmed": true}
+17.1 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.4 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.4 {"ev": "goTo", "goal": [-31, 72, -180, 3], "from": [-14.5, 72, -179.52]}
+19.8 {"ev": "xpl.end", "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 6}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 6}], "pos": [-27.4, 72
+=== r8-2
+8.1 {"ev": "prep.end", "ok": false, "code": "TARGET_BLOCKED", "pos": [-10.6, 72, -179.5]}
+8.1 {"ev": "xpl.end", "ok": false, "code": "TARGET_BLOCKED", "steps": [{"intent": "gather_materials", "ok": false, "code": "TARGET_BLOCKED", "ownerVersion": 7}], "pos": [-10.6, 72, -179.5]}
+8.1 {"ev": "mineBlocks", "phase": "attempt", "code": "TARGET_BLOCKED", "target": {"x": -9, "y": 72, "z": -178}, "delta": 0, "confirmed": false, "msg": "authorized target is not visible in physical reach"}
+=== r8-3
+6.1 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "code": "RESOURCE_NOT_FOUND"}
+16.5 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "delta": 1, "confirmed": true}
+17.1 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.4 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.4 {"ev": "goTo", "goal": [-31, 72, -196, 3], "from": [-14.5, 72, -179.52]}
+20.9 {"ev": "xpl.end", "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 8}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 8}], "pos": [-28.5, 72
+=== r8-4
+6.1 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "code": "RESOURCE_NOT_FOUND"}
+16.5 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "delta": 1, "confirmed": true}
+17.1 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.4 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.5 {"ev": "goTo", "goal": [-15, 72, -196, 3], "from": [-14.5, 72, -179.52]}
+19.8 {"ev": "xpl.end", "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 9}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 9}], "pos": [-14.5, 72
+=== r8-5
+6.0 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "delta": 1, "confirmed": true}
+12.0 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "delta": 1, "confirmed": true}
+12.0 {"ev": "mineBlocks", "phase": "attempt", "code": "RESOURCE_NOT_FOUND"}
+16.3 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "delta": 1, "confirmed": true}
+16.9 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.2 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.3 {"ev": "goTo", "goal": [1, 72, -196, 3], "from": [-14.5, 72, -179.52]}
+22.4 {"ev": "xpl.end", "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 10}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 10}], "pos": [2.5, 70
+=== r8-6
+6.0 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "delta": 1, "confirmed": true}
+12.0 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "delta": 1, "confirmed": true}
+12.0 {"ev": "mineBlocks", "phase": "attempt", "code": "RESOURCE_NOT_FOUND"}
+16.3 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "delta": 1, "confirmed": true}
+17.0 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.2 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.3 {"ev": "goTo", "goal": [1, 72, -180, 3], "from": [-14.5, 72, -179.52]}
+19.7 {"ev": "xpl.end", "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 11}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 11}], "pos": [-1.6, 7
+=== r8-7
+6.0 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -9, "y": 72, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -178}, "delta": 1, "confirmed": true}
+12.1 {"ev": "mineBlocks", "phase": "attempt", "code": "RESOURCE_NOT_FOUND"}
+16.4 {"ev": "mineBlocks", "phase": "attempt", "target": {"x": -17, "y": 71, "z": -179}, "delta": 1, "confirmed": true}
+17.0 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.3 {"ev": "prep.end", "ok": true, "pos": [-14.5, 72, -179.5]}
+17.4 {"ev": "goTo", "goal": [1, 72, -164, 3], "from": [-14.5, 72, -179.52]}
+21.1 {"ev": "xpl.end", "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 12}, {"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 12}], "pos": [-0.5, 7
+=== r8-8
+8.1 {"ev": "prep.end", "ok": false, "code": "TARGET_BLOCKED", "pos": [-10.6, 72, -179.5]}
+8.1 {"ev": "xpl.end", "ok": false, "code": "TARGET_BLOCKED", "steps": [{"intent": "gather_materials", "ok": false, "code": "TARGET_BLOCKED", "ownerVersion": 13}], "pos": [-10.6, 72, -179.5]}
+8.1 {"ev": "mineBlocks", "phase": "attempt", "code": "TARGET_BLOCKED", "target": {"x": -9, "y": 72, "z": -178}, "delta": 0, "confirmed": false, "msg": "authorized target is not visible in physical reach"}
+FIN
