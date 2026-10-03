@@ -259,3 +259,18 @@ test('collectDrops cai para uma célula adjacente quando o alvo exato do drop é
   assert.deepEqual(guard, [true, true]) // o guard de ownership/segurança roda antes de cada movimento
   assert.equal(picked, true)
 })
+
+test('collectDrops empurra o bot ao drop quando o fallback para fora da janela de coleta e sempre solta o controle', async () => {
+  const food = require('../lib/food')
+  const drop = { name: 'item', isValid: true, position: new Vec3(3.23, 64, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+  const controls = []
+  const bot = {
+    entities: { 1: drop },
+    entity: { position: new Vec3(4.67, 64, 2.4) }, // 1,44 do item: fora da janela de 1,425
+    lookAt: async () => {},
+    setControlState: (name, on) => { controls.push([name, on]); if (on) setTimeout(() => { drop.isValid = false }, 120) },
+    pathfinder: { setGoal() {}, goto: async (goal) => { if (goal.rangeSq < 1) throw new Error('No path to the goal!') } }
+  }
+  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 3000 })
+  assert.deepEqual(controls, [['forward', true], ['forward', false]])
+})
