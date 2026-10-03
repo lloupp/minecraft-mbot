@@ -1276,7 +1276,7 @@ class WorkerController {
         if (seen.has(key)) continue
         const block = this.bot.blockAt?.(position)
         if (!block || !predicate(block.name)) continue
-        if (!gather.isExposed(this.bot, position)) continue
+        if (!gather.isExposed(this.bot, position) || gather.hasFallingAbove(this.bot, position)) continue
         seen.add(key)
         found.push({ x: position.x, y: position.y, z: position.z, name: block.name })
       }

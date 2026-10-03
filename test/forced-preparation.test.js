@@ -395,6 +395,25 @@ test('gather returns once to the validated anchor when pickups drifted the bot a
   } finally { gather.mineBlocks = originalMine; food.goTo = originalGoTo }
 })
 
+test('executor approves only usable stone: a source covered by falling sand is not offered to mineBlocks', async () => {
+  const bot = unarmedBot(), items = [{ name:'stick', count:1 }, { name:'cobblestone', count:1 }, { name:'stone_pickaxe', count:1 }]
+  const covered = new Vec3(1, 64, 1), usable = new Vec3(0, 64, 2), sand = new Vec3(1, 65, 1)
+  bot.inventory.items = () => items
+  bot.blockAt = p => ({ name: p.equals(covered) || p.equals(usable) ? 'stone' : p.equals(sand) ? 'sand' : 'air', position:p })
+  bot.registry = { blocksByName:{ stone:{ drops:[1] } }, items:{ 1:{ name:'cobblestone' } } }
+  bot.pathfinder = { bestHarvestTool: () => items[2], setGoal() {} }
+  const originalMine = gather.mineBlocks
+  let offered = null
+  gather.mineBlocks = async (_, __, ___, ____, options) => { offered = [...options.allowedPositions]; items[1].count++; options.onAttempt({ delta:1, itemConfirmed:true }); return 1 }
+  try {
+    const result = await executePreparationStep({ enabled:true, bot, task:{ type:'explorar' },
+      production:{ cachedCraftingTable: () => ({ position:new Vec3(-1,64,-1) }) },
+      allowedTargets:[{ x:1,y:64,z:1,name:'stone' }, { x:0,y:64,z:2,name:'stone' }] })
+    assert.equal(result.ok, true)
+    assert.deepEqual(offered, [usable.toString()])
+  } finally { gather.mineBlocks = originalMine }
+})
+
 function recipePreparation() {
   const { ProductionManager } = require('../core/ProductionManager')
   const bot = unarmedBot(), pos = new Vec3(-1,64,-1)
