@@ -234,3 +234,28 @@ test('anchor devolve o bot à posição validada antes de checar visibilidade/al
     { preferInReach: true, requireInReach: true, anchor: new Vec3(0.5, 64, 0.5) }), 1)
   assert.deepEqual(goals, [[0, 0]]) // GoalNear usa o bloco; só a volta à âncora; o alvo já estava visível
 })
+
+test('collectDrops cai para uma célula adjacente quando o alvo exato do drop é inalcançável', async () => {
+  const food = require('../lib/food')
+  const drop = { name: 'item', isValid: true, position: new Vec3(3.05, 64, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+  const goalsTried = []
+  const guard = []
+  let picked = false
+  const bot = {
+    entities: { 1: drop },
+    pathfinder: {
+      setGoal() {},
+      goto: async (goal) => {
+        goalsTried.push(Math.sqrt(goal.rangeSq))
+        if (goal.rangeSq < 1) throw new Error('No path to the goal!') // célula sem altura sob os troncos
+        picked = true; drop.isValid = false
+      }
+    }
+  }
+  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, {
+    timeoutMs: 3000, done: () => picked, beforeMove: (d) => guard.push(d === drop)
+  })
+  assert.deepEqual(goalsTried, [0.5, 1])
+  assert.deepEqual(guard, [true, true]) // o guard de ownership/segurança roda antes de cada movimento
+  assert.equal(picked, true)
+})
