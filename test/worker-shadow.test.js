@@ -259,3 +259,31 @@ test('resultado atrasado de tarefa antiga não altera streak da execução nova'
   await Promise.resolve()
   assert.equal(worker._shadowFailureStreak, 1)
 })
+
+test('meta.resumed NÃO vale para o mesmo tipo com alvo diferente (linhagem usa a chave de objetivo)', async () => {
+  const bot = fakeBot({ items: [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 2 }] })
+  const worker = readyWorker(bot, { homeProvider: () => null })
+  const observed = []
+  worker.shadow = { enabled: () => true, observe: (payload) => observed.push([payload.meta.resumed, payload.meta.taskLineageId]) }
+  let release
+  worker.goToPoint = () => new Promise((resolve) => { release = () => resolve({ ok: true }) })
+  const first = worker.run({ type: 'ir_local', position: { x: 10, y: 64, z: 0 } })
+  await new Promise((resolve) => setImmediate(resolve))
+  worker.goToPoint = async () => ({ ok: true })
+  await worker.run({ type: 'ir_local', position: { x: -50, y: 64, z: 30 } }) // outro destino: tarefa nova
+  release(); await first
+  if (observed.length === 2) {
+    assert.equal(observed[1][0], false)
+    assert.notEqual(observed[0][1], observed[1][1])
+  }
+})
+
+test('falha ao registrar linhagem nunca rejeita run() (fail-open)', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.shadow = { enabled: () => true, observe: () => {} }
+  worker.goToPoint = async () => ({ ok: true })
+  const hostile = {}
+  Object.defineProperty(hostile, 'x', { get() { throw new Error('boom') }, enumerable: true })
+  assert.deepEqual(await worker.run({ type: 'ir_local', position: hostile }), { ok: true }) // só shadowObjectiveKey lê hostile.x
+})

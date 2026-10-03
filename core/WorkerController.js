@@ -400,24 +400,33 @@ class WorkerController {
   // Shadow mode do Laya: só observa, nunca decide. Nunca lança e nunca é
   // `await`ado por run() — ver lib/laya-shadow.js para as garantias.
   _observeShadow(task, isCancelled, taskPromise) {
-    if (!this.shadow?.enabled?.()) return
+    try { if (!this.shadow?.enabled?.()) return } catch { return }
     // Retomada: a tarefa anterior foi interrompida (ainda rodava quando esta
     // chegou, ou foi cancelada antes de terminar, ex.: por um reflexo) e o
-    // objetivo é o mesmo. Só leitura, para o registro.
-    const prev = this._shadowPrev
-    const resumed = Boolean(prev && (!prev.settled || prev.interrupted) && prev.task.type === task.type &&
-      (prev.task.resource ?? null) === (task.resource ?? null))
-    const taskLineageId = resumed && prev?.taskLineageId
-      ? prev.taskLineageId
-      : `${this.name}:${++this._shadowLineageSeq}`
-    const failureKey = shadowObjectiveKey(task)
-    if (this._shadowFailureKey !== failureKey) {
-      this._shadowFailureKey = failureKey
-      this._shadowFailureStreak = 0
+    // objetivo é o mesmo (mesma chave de objetivo: tipo, recurso, alvo...). Só leitura, para o registro.
+    // Qualquer falha aqui nunca pode virar rejeição de run(): fail-open.
+    let resumed = false
+    let taskLineageId = null
+    let failureKey = null
+    let entry = null
+    try {
+      const prev = this._shadowPrev
+      failureKey = shadowObjectiveKey(task)
+      resumed = Boolean(prev && (!prev.settled || prev.interrupted) && prev.failureKey === failureKey)
+      taskLineageId = resumed && prev?.taskLineageId
+        ? prev.taskLineageId
+        : `${this.name}:${++this._shadowLineageSeq}`
+      if (this._shadowFailureKey !== failureKey) {
+        this._shadowFailureKey = failureKey
+        this._shadowFailureStreak = 0
+      }
+      entry = { task, settled: false, interrupted: false, taskLineageId, failureKey }
+      this._shadowPrev = entry
+      this._shadowFailureEntry = entry
+    } catch (error) {
+      this.logger.log?.(`[laya-shadow] ${this.name}: falha ao registrar linhagem: ${error.message}`)
+      return
     }
-    const entry = { task, settled: false, interrupted: false, taskLineageId, failureKey }
-    this._shadowPrev = entry
-    this._shadowFailureEntry = entry
     try {
       const state = realStateSnapshot(this.bot, task, {
         homeProvider: this.homeProvider,
