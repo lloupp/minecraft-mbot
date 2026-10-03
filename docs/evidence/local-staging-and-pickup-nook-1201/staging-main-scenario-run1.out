@@ -1,0 +1,22 @@
+0.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+0.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+0.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 7, "pos": [310.5, 200, -316.5]}
+0.0 {"ev": "table.search", "maxDistance": 4, "bot": [310.5, 200, -316.5], "found": null}
+0.0 {"ev": "staging.start", "w": "explorador_01", "v": 8, "pos": [310.5, 200, -316.5]}
+0.1 {"ev": "table.search", "maxDistance": 8, "bot": [310.5, 200, -316.5], "found": [317, 200, -317]}
+0.1 {"ev": "goTo", "w": "explorador_01", "v": 8, "goal": [317, 200, -317, 1], "from": [310.5, 200, -316.5]}
+1.7 {"ev": "staging.end", "w": "explorador_01", "v": 8, "ok": true, "pos": [316.32, 200, -316.43]}
+5.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+10.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+15.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+17.8 {"ev": "explore.start", "w": "explorador_01", "v": 8, "pos": [316.5, 200, -316.5], "sm": "0"}
+17.8 {"ev": "goTo", "w": "explorador_01", "v": 8, "goal": [314, 200, -333, 3], "from": [316.5, 200, -316.5]}
+20.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+20.3 {"ev": "xpl.end", "w": "explorador_01", "v": 8, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 8}, {"intent": "prepare_combat", "ok": true, "code": null
+20.3 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 8, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 8}, {"intent": "prepare_combat", "ok"
+25.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+25.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+25.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 8, "pos": [314.5, 200, -329.5]}
+25.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+28.3 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 9, "ok": true, "pos": [317.6, 200, -314.6]}
+FIN
