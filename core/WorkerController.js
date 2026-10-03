@@ -1491,7 +1491,9 @@ class WorkerController {
         state,
         objective: task,
         allowedTargets,
-        timeoutMs: 20000
+        // A caminhada de aproximação (até 8 s) do modo raio >4 faz parte da etapa: sem ela, 2 de 8 rodadas
+        // estouravam 20 s com o gather quase pronto (8 s de caminhada + dig + pickup + 2 pedras).
+        timeoutMs: 20000 + (preparationRadius() > 4 ? 8000 : 0)
       })
       if (!preparationTask) {
         return {

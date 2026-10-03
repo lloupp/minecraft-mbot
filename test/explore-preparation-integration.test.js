@@ -700,3 +700,18 @@ test('ground-aware explore skips ocean/no-ground directions and targets the real
   await worker.explore(32, () => false, null)
   assert.deepEqual(goalsSeen[2], [-16, 64, 0])
 }))
+
+test('preparation step budget is 20s by default and 28s when the local radius is opt-in widened', () => withPreparationFlags(async () => {
+  const saved = process.env.MBOT_PREPARATION_RADIUS
+  try {
+    for (const [radius, expected] of [[undefined, 20000], ['8', 28000]]) {
+      if (radius === undefined) delete process.env.MBOT_PREPARATION_RADIUS; else process.env.MBOT_PREPARATION_RADIUS = radius
+      const { worker } = integrationWorker()
+      let seen
+      worker.runDeterministicPreparation = async (task) => { seen = task.timeoutMs; return { ok: false, code: 'TIMEOUT' } }
+      worker.explore = async () => ({ ok: true })
+      await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+      assert.equal(seen, expected)
+    }
+  } finally { if (saved === undefined) delete process.env.MBOT_PREPARATION_RADIUS; else process.env.MBOT_PREPARATION_RADIUS = saved }
+}))
