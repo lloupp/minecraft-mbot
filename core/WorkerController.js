@@ -1351,7 +1351,6 @@ class WorkerController {
     if (stagingThreat || isCancelled()) return false
 
     const monitor = setInterval(detectThreat, PREPARATION_STAGING_SAFETY_POLL_MS)
-    monitor.unref?.()
     try {
       await this.goTo(
         new goals.GoalNear(
