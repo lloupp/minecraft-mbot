@@ -502,3 +502,67 @@ test('defense remembers the preparation site only when unarmed with resources ne
   await worker.defend(threat)
   assert.equal(worker._preparationSite, null) // flag desligada: comportamento clássico
 }))
+
+
+test('local staging refuses to move when a hostile is already inside the defense radius', async () => {
+  const { worker } = integrationWorker()
+  const tablePos = new Vec3(6, 64, 0)
+  const threat = { name: 'zombie', type: 'hostile', position: new Vec3(4, 64, 0), isValid: true }
+  let moved = 0
+  let defended = null
+  let cancelled = false
+
+  worker.production.findCraftingTable = () => ({ name: 'crafting_table', position: tablePos })
+  worker.bot.blockAt = position => ({ name: position.equals(tablePos) ? 'crafting_table' : 'air', position })
+  worker.bot.nearestEntity = predicate => predicate(threat) ? threat : null
+  worker.bot.pathfinder.setGoal = () => {}
+  worker.goTo = async () => { moved++ }
+  worker.defend = async hostile => {
+    defended = hostile
+    cancelled = true
+    return 'fugi'
+  }
+
+  const staged = await worker.tryLocalPreparationStaging(() => cancelled)
+
+  assert.equal(staged, false)
+  assert.equal(moved, 0)
+  assert.equal(defended, threat)
+})
+
+test('hostile appearing during local staging stops navigation and hands control to defense', async () => {
+  const { worker } = integrationWorker()
+  const tablePos = new Vec3(6, 64, 0)
+  const threat = { name: 'zombie', type: 'hostile', position: new Vec3(5, 64, 0), isValid: true }
+  let threatVisible = false
+  let cancelled = false
+  let defended = null
+  let stopped = 0
+  let releaseMovement
+
+  worker.production.findCraftingTable = () => ({ name: 'crafting_table', position: tablePos })
+  worker.bot.blockAt = position => ({ name: position.equals(tablePos) ? 'crafting_table' : 'air', position })
+  worker.bot.nearestEntity = predicate => threatVisible && predicate(threat) ? threat : null
+  worker.bot.pathfinder.setGoal = goal => {
+    if (goal === null) {
+      stopped++
+      releaseMovement?.()
+    }
+  }
+  worker.goTo = async () => new Promise(resolve => {
+    releaseMovement = resolve
+    setTimeout(() => { threatVisible = true }, 20)
+  })
+  worker.defend = async hostile => {
+    defended = hostile
+    cancelled = true
+    return 'fugi'
+  }
+
+  const staged = await worker.tryLocalPreparationStaging(() => cancelled)
+
+  assert.equal(staged, false)
+  assert.equal(defended, threat)
+  assert.ok(stopped >= 1)
+  assert.equal(cancelled, true)
+})
