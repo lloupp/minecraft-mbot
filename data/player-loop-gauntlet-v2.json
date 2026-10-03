@@ -161,8 +161,8 @@
   },
   {
     "id": "gather_then_prepare_then_explore",
-    "description": "Player wants to explore, lacks a weapon and materials, but nearby wood/stone can support preparation.",
-    "maxSteps": 7,
+    "description": "Player begins exploring unarmed with no threat present; a hostile appears mid-objective and must be resolved (preparation, combat, or disengagement) before the objective can finish.",
+    "maxSteps": 8,
     "initialState": {
       "health": 20,
       "food": 18,
@@ -179,12 +179,23 @@
       "objective": {
         "type": "explore",
         "progress": 0,
-        "target": 1,
+        "target": 2,
         "completed": false
       }
     },
+    "events": [
+      {
+        "afterProgress": 1,
+        "threat": {
+          "type": "zombie",
+          "distance": 6,
+          "count": 1
+        }
+      }
+    ],
     "success": {
-      "weaponReady": true,
+      "healthMin": 8,
+      "threatCleared": true,
       "objectiveComplete": true
     }
   },

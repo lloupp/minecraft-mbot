@@ -9,7 +9,8 @@
     "check": "for f in index.js core/*.js lib/*.js; do node --check \"$f\" || exit 1; done",
     "test": "node --test",
     "gauntlet:decision": "node scripts/decision-gauntlet.js",
-    "gauntlet:player-loop": "node scripts/player-loop-gauntlet-v2.js"
+    "gauntlet:player-loop": "node scripts/player-loop-gauntlet-v2.js",
+    "shadow:report": "node scripts/laya-shadow-report.js"
   },
   "keywords": [
     "minecraft",
