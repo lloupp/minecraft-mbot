@@ -39,6 +39,7 @@ const PREPARATION_SITE_MAX_DISTANCE = 16
 const PREPARATION_STAGING_MAX_DISTANCE = 8
 const PREPARATION_STAGING_SAFETY_POLL_MS = 100
 const EXPLORE_FAR_MARGIN = 32
+const PHYSICAL_PREPARATION_REFUSALS = new Set(['TARGET_BLOCKED', 'APPROVED_TARGETS_INSUFFICIENT', 'MINING_PICKAXE_REQUIRED', 'COBBLESTONE_DROP_REQUIRED', 'NEARBY_TABLE_REQUIRED'])
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
@@ -1515,6 +1516,17 @@ class WorkerController {
         })
         if (!result?.ok) {
           if (result?.code === 'THREAT') this._preparationSite = { position: siteBefore, at: Date.now() }
+          // Recusa física do executor (alvo coberto por folhas, falta de alvos/picareta/mesa): nada deu errado
+          // na tarefa; segue a exploração clássica em vez de virar falha com backoff exponencial.
+          if (PHYSICAL_PREPARATION_REFUSALS.has(result?.code)) {
+            const explored = await this.explore(task.radius || 64, isCancelled, task.center || null)
+            return {
+              ...explored,
+              playerLoopPreparation: true,
+              preparationSkipped: { code: result.code, intent: choice, afterStep: true },
+              preparationSteps
+            }
+          }
           return {
             ...result,
             playerLoopPreparation: true,

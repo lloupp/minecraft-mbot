@@ -652,3 +652,26 @@ test('nearby preparation allowlist keeps logs even when many closer exposed ston
   assert.equal(count('stone'), 16)
   assert.ok(targets.length <= 32)
 })
+
+test('physical refusal from the preparation executor falls back to classic exploration; real failures still fail', () => withPreparationFlags(async () => {
+  const { worker } = integrationWorker()
+  let explored = 0
+  worker.explore = async () => { explored++; return { ok: true } }
+
+  worker.runDeterministicPreparation = async () => ({ ok: false, code: 'TARGET_BLOCKED' })
+  const refused = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(refused.ok, true)
+  assert.equal(explored, 1)
+  assert.deepEqual(refused.preparationSkipped, { code: 'TARGET_BLOCKED', intent: 'gather_materials', afterStep: true })
+
+  worker.runDeterministicPreparation = async () => ({ ok: false, code: 'TIMEOUT' })
+  const failed = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(failed.ok, false)
+  assert.equal(failed.code, 'TIMEOUT')
+  assert.equal(explored, 1)                                     // falha real: não explora
+
+  worker.runDeterministicPreparation = async () => ({ ok: false, code: 'THREAT' })
+  const threat = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(threat.code, 'THREAT')                           // ameaça nunca degrada para explorar
+  assert.equal(explored, 1)
+}))
