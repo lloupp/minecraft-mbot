@@ -274,3 +274,20 @@ test('collectDrops empurra o bot ao drop quando o fallback para fora da janela d
   await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 3000 })
   assert.deepEqual(controls, [['forward', true], ['forward', false]])
 })
+
+test('collectDrops empurra o bot também quando o goto exato resolve sem se mover (nicho inalcançável)', async () => {
+  const food = require('../lib/food')
+  const drop = { name: 'item', isValid: true, position: new Vec3(3.05, 64, 2.28), getDroppedItem: () => ({ name: 'oak_log' }) }
+  const goals = []
+  const controls = []
+  const bot = {
+    entities: { 1: drop },
+    entity: { position: new Vec3(4.55, 64, 2.4) }, // 1,5 do item: fora da janela de coleta (1,425)
+    lookAt: async () => {},
+    setControlState: (name, on) => { controls.push([name, on]); if (on) setTimeout(() => { drop.isValid = false }, 100) },
+    pathfinder: { setGoal() {}, goto: async (goal) => { goals.push(Math.sqrt(goal.rangeSq)) } } // resolve sem mover
+  }
+  await food.collectDrops(bot, new Vec3(3, 64, 2), () => false, { timeoutMs: 3000 })
+  assert.deepEqual(goals, [0.5])
+  assert.deepEqual(controls, [['forward', true], ['forward', false]])
+})
