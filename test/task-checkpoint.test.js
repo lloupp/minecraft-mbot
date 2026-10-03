@@ -51,3 +51,14 @@ test('corrupt checkpoint blocks overwrite', async t => {
   await store.load()
   await assert.rejects(() => store.save(), err => err.code === 'CHECKPOINT_RECOVERY_REQUIRED')
 })
+
+
+test('checkpoint task id cannot be overwritten', async t => {
+  const store = new TaskCheckpointStore(await tempFile(t))
+  store.create({ id: 'same-id', worker: 'a', action: 'gather', args: { resource: 'oak_log' } })
+  assert.throws(
+    () => store.create({ id: 'same-id', worker: 'b', action: 'craft' }),
+    err => err.code === 'TASK_ID_EXISTS'
+  )
+  assert.equal(store.get('same-id').worker, 'a')
+})
