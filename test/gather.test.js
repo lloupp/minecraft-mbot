@@ -375,3 +375,27 @@ test('clearLeaves: se o raio já atinge o alvo no início da iteração (atualiz
     { preferInReach: true, requireInReach: true, clearLeaves: true, allowedPositions: approved }), 1)
   assert.equal(dug, 1)
 })
+
+test('clearLeaves cava só folhas de teto na linha bot→drop (máx. 3) e anuncia cada dig; sem a opção não cava', async () => {
+  const build = () => {
+    const bot = lateDropBot(5)
+    bot.entity = { position: new Vec3(0.5, 64, 2.5) }
+    bot.canDigBlock = () => true
+    const roofs = new Set(['1,65,2', '2,65,2', '3,65,2', '9,65,9'])   // 3 na linha (x 1..3), 1 fora dela
+    const origAt = bot.blockAt
+    bot.blockAt = (p) => (roofs.has(`${p.x},${p.y},${p.z}`) ? { name: 'oak_leaves', position: p } : origAt(p))
+    const origDig = bot.dig
+    bot.dug = []
+    bot.dig = async (block) => { if (block.name === 'oak_leaves') { bot.dug.push(block.position.toString()); roofs.delete(`${block.position.x},${block.position.y},${block.position.z}`); return } return origDig(block) }
+    return bot
+  }
+  const announced = []
+  const withOption = build()
+  await gather.mineBlocks(withOption, n => n === 'oak_log', 1, () => false,
+    { retryPickup: true, clearLeaves: true, beforeAction: (a) => announced.push(a.operation + ':' + a.block?.name) })
+  assert.deepEqual(withOption.dug, [new Vec3(1, 65, 2).toString(), new Vec3(2, 65, 2).toString(), new Vec3(3, 65, 2).toString()])
+  assert.equal(announced.filter(a => a === 'dig:oak_leaves').length, 3)
+  const without = build()
+  await gather.mineBlocks(without, n => n === 'oak_log', 1, () => false, { retryPickup: true })
+  assert.deepEqual(without.dug, [])
+})

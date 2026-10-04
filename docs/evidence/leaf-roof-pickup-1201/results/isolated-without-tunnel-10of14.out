@@ -1,0 +1,60 @@
+(node:859) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1537 ms
+trial 0 RESULT true ms 2090 bot [ -7.64, 72, -170.5 ] drops left [] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1502 ms
+trial 1 RESULT true ms 2051 bot [ -7.64, 72, -170.5 ] drops left [] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.5, 72, -169.5 ] to [ -9.5, 72, -169.5 ] 47 ms
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -173 ] from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -174.09 ] 1508 ms
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -173 ] from [ -9.3, 72, -174.09 ] to [ -8.75, 72, -174.51 ] 303 ms
+ second pass
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -173 ] from [ -8.47, 72, -174.55 ] to [ -7.65, 72, -174.51 ] 1505 ms
+  goto OK [ -8, 72, -173 ] r 1 from [ -7.65, 72, -174.51 ] to [ -7.65, 72, -174.51 ] 50 ms
+  goto OK [ -8, 72, -173 ] r 0.5 from [ -7.31, 72, -174.3 ] to [ -7.31, 72, -174.3 ] 52 ms
+  STUCK item [ -7.37, 72, -172.35 ] bot [ -7.34, 72, -174.3 ] cell y0/y1/y2 air oak_leaves oak_leaves below grass_block nbrs(y0/y1) air/oak_leaves air/oak_leaves air/oak_log air/oak_leaves
+trial 2 RESULT false ms 6641 bot [ -7.34, 72, -174.3 ] drops left [{"p":[-7.37,72,-172.35],"d":1.95},{"p":[-3.88,72,-179.25],"d":6.04},{"p":[-4.65,72,-178.18],"d":4.72}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/oak_leaves
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -173 ] from [ -9.5, 72, -169.5 ] to [ -9.23, 72, -174.56 ] 1509 ms
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -173 ] from [ -9.23, 72, -174.56 ] to [ -7.5, 72, -174.49 ] 1505 ms
+ second pass
+  goto OK [ -8, 72, -173 ] r 0.5 from [ -7.5, 72, -174.49 ] to [ -7.5, 72, -174.49 ] 53 ms
+  goto ERR The goal was changed before it could be completed! [ -9, 72, -172 ] from [ -7.34, 72, -174.3 ] to [ -10.5, 72, -171.5 ] 1501 ms
+  goto OK [ -9, 72, -172 ] r 1 from [ -10.5, 72, -171.5 ] to [ -10.5, 72, -171.5 ] 50 ms
+  STUCK item [ -7.37, 72, -172.35 ] bot [ -10.3, 72, -171.17 ] cell y0/y1/y2 air oak_leaves oak_leaves below grass_block nbrs(y0/y1) air/oak_leaves air/oak_leaves air/oak_log air/oak_leaves
+  STUCK item [ -8.29, 72, -171.21 ] bot [ -10.3, 72, -171.17 ] cell y0/y1/y2 air oak_leaves oak_leaves below stone nbrs(y0/y1) air/oak_log air/oak_leaves air/oak_leaves air/oak_leaves
+trial 3 RESULT false ms 6464 bot [ -10.3, 72, -171.17 ] drops left [{"p":[-7.37,72,-172.35],"d":3.16},{"p":[-3.88,72,-179.25],"d":10.32},{"p":[-4.65,72,-178.18],"d":9},{"p":[-8.29,72,-171.21],"d":2.01}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/oak_leaves
+  goto OK [ -8, 72, -173 ] r 0.5 from [ -9.5, 72, -169.5 ] to [ -7.5, 72, -172.54 ] 900 ms
+trial 4 RESULT true ms 1200 bot [ -7.5, 72, -172.54 ] drops left [{"p":[-3.88,72,-179.25],"d":7.63},{"p":[-4.65,72,-178.18],"d":6.32}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1503 ms
+trial 5 RESULT true ms 2052 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.53},{"p":[-4.65,72,-178.18],"d":8.24}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.5, 72, -169.5 ] to [ -9.5, 72, -169.5 ] 44 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 51 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 50 ms
+ second pass
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 48 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 47 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 49 ms
+  STUCK item [ -7.29, 72, -171.32 ] bot [ -9.3, 72, -169.7 ] cell y0/y1/y2 air oak_log oak_log below grass_block nbrs(y0/y1) air/oak_leaves air/oak_leaves air/oak_leaves air/oak_leaves
+trial 6 RESULT false ms 5998 bot [ -9.3, 72, -169.7 ] drops left [{"p":[-3.88,72,-179.25],"d":10.98},{"p":[-4.65,72,-178.18],"d":9.67},{"p":[-7.29,72,-171.32],"d":2.58},{"p":[-1.84,72,-178.88],"d":11.83},{"p":[-4.93,72,-178.29],"d":9.64}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/oak_leaves
+  goto OK [ -7, 72, -172 ] r 0.5 from [ -9.5, 72, -169.5 ] to [ -6.49, 72, -171.5 ] 816 ms
+trial 7 RESULT true ms 1117 bot [ -6.49, 72, -171.5 ] drops left [{"p":[-3.88,72,-179.25],"d":8.18},{"p":[-4.65,72,-178.18],"d":6.93},{"p":[-1.84,72,-178.88],"d":8.72},{"p":[-4.85,72,-178.25],"d":6.95}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1504 ms
+  goto OK [ -8, 72, -173 ] r 1 from [ -7.64, 72, -170.5 ] to [ -7.5, 72, -172.54 ] 916 ms
+trial 8 RESULT true ms 2970 bot [ -7.5, 72, -172.54 ] drops left [{"p":[-3.88,72,-179.25],"d":7.62},{"p":[-4.65,72,-178.18],"d":6.31},{"p":[-1.84,72,-178.88],"d":8.49},{"p":[-4.85,72,-178.25],"d":6.3}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1501 ms
+trial 9 RESULT true ms 2051 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.53},{"p":[-4.65,72,-178.18],"d":8.24},{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1502 ms
+trial 10 RESULT true ms 2051 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.53},{"p":[-4.65,72,-178.18],"d":8.24},{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1500 ms
+trial 11 RESULT true ms 2051 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.53},{"p":[-4.65,72,-178.18],"d":8.24},{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.5, 72, -169.5 ] to [ -9.5, 72, -169.5 ] 42 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 49 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 51 ms
+ second pass
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 51 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 50 ms
+  goto OK [ -8, 72, -172 ] r 0.5 from [ -9.3, 72, -169.7 ] to [ -9.3, 72, -169.7 ] 48 ms
+  STUCK item [ -7.58, 72, -171.59 ] bot [ -9.3, 72, -169.7 ] cell y0/y1/y2 air oak_log oak_log below dirt nbrs(y0/y1) air/oak_leaves air/oak_leaves air/oak_leaves air/oak_leaves
+trial 12 RESULT false ms 5962 bot [ -9.3, 72, -169.7 ] drops left [{"p":[-3.88,72,-179.25],"d":10.98},{"p":[-4.65,72,-178.18],"d":9.67},{"p":[-1.84,72,-178.88],"d":11.83},{"p":[-4.85,72,-178.25],"d":9.64},{"p":[-7.58,72,-171.59],"d":2.55}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/oak_leaves
+  goto OK [ -9, 72, -172 ] r 0.5 from [ -9.5, 72, -169.5 ] to [ -8.45, 72, -171.5 ] 466 ms
+trial 13 RESULT true ms 767 bot [ -8.45, 72, -171.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9},{"p":[-4.65,72,-178.18],"d":7.69},{"p":[-1.84,72,-178.88],"d":9.91},{"p":[-4.85,72,-178.25],"d":7.66}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+SUMMARY 10/14

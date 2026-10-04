@@ -1,0 +1,35 @@
+(node:994) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -8.49, 72, -170.5 ] 1503 ms
+trial 0 RESULT true ms 4081 bot [ -8.49, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.89},{"p":[-4.65,72,-178.18],"d":8.59},{"p":[-1.84,72,-178.88],"d":10.7},{"p":[-4.85,72,-178.25],"d":8.57}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/oak_leaves
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -8.49, 72, -170.5 ] 1502 ms
+trial 1 RESULT true ms 4035 bot [ -8.49, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.89},{"p":[-4.65,72,-178.18],"d":8.59},{"p":[-1.84,72,-178.88],"d":10.7},{"p":[-4.85,72,-178.25],"d":8.57}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/oak_leaves
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1537 ms
+trial 2 RESULT true ms 2840 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.53},{"p":[-4.65,72,-178.18],"d":8.24},{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -8.49, 72, -170.5 ] 1503 ms
+trial 3 RESULT true ms 4096 bot [ -8.49, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.89},{"p":[-4.65,72,-178.18],"d":8.59},{"p":[-1.84,72,-178.88],"d":10.7},{"p":[-4.85,72,-178.25],"d":8.57}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/oak_leaves
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1507 ms
+  goto OK [ -8, 72, -173 ] r 1 from [ -7.64, 72, -170.5 ] to [ -7.5, 72, -172.54 ] 865 ms
+trial 4 RESULT true ms 3677 bot [ -7.5, 72, -172.54 ] drops left [{"p":[-3.88,72,-179.25],"d":7.62},{"p":[-4.65,72,-178.18],"d":6.31},{"p":[-1.84,72,-178.88],"d":8.49},{"p":[-4.85,72,-178.25],"d":6.3}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1510 ms
+trial 5 RESULT true ms 2812 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.53},{"p":[-4.65,72,-178.18],"d":8.24},{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1509 ms
+trial 6 RESULT true ms 2809 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.88,72,-179.25],"d":9.53},{"p":[-4.65,72,-178.18],"d":8.24},{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24},{"p":[-3.03,72,-177.04],"d":8}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1526 ms
+  goto OK [ -9, 72, -173 ] r 1 from [ -7.64, 72, -170.5 ] to [ -8.52, 72, -171.5 ] 414 ms
+trial 7 RESULT true ms 3242 bot [ -8.52, 72, -171.5 ] drops left [{"p":[-4.65,72,-178.18],"d":7.72},{"p":[-1.84,72,-178.88],"d":9.95},{"p":[-4.85,72,-178.25],"d":7.69},{"p":[-3.03,72,-177.04],"d":7.8}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1536 ms
+trial 8 RESULT true ms 2837 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24},{"p":[-3.03,72,-177.04],"d":8}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1535 ms
+trial 9 RESULT true ms 2837 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24},{"p":[-3.03,72,-177.04],"d":8}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1525 ms
+trial 10 RESULT true ms 2826 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24},{"p":[-3.03,72,-177.04],"d":8}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1528 ms
+trial 11 RESULT true ms 2832 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-1.84,72,-178.88],"d":10.19},{"p":[-4.85,72,-178.25],"d":8.24},{"p":[-3.03,72,-177.04],"d":8}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -8.49, 72, -170.5 ] 1501 ms
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -173 ] from [ -8.49, 72, -170.5 ] to [ -10.5, 72, -172.43 ] 1288 ms
+  goto OK [ -8, 72, -173 ] r 0.5 from [ -10.49, 72, -172.76 ] to [ -7.5, 72, -172.49 ] 600 ms
+trial 12 RESULT true ms 8041 bot [ -7.5, 72, -172.49 ] drops left [{"p":[-3.03,72,-177.04],"d":6.38}] | around 1,0:air/oak_leaves -1,0:air/oak_leaves 0,1:air/oak_leaves 0,-1:air/air
+  goto ERR The goal was changed before it could be completed! [ -8, 72, -172 ] from [ -9.5, 72, -169.5 ] to [ -7.64, 72, -170.5 ] 1514 ms
+trial 13 RESULT true ms 2815 bot [ -7.64, 72, -170.5 ] drops left [{"p":[-3.03,72,-177.04],"d":8}] | around 1,0:air/air -1,0:air/air 0,1:air/air 0,-1:air/air
+SUMMARY 14/14
