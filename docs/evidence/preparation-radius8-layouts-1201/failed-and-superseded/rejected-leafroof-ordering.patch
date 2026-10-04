@@ -1,0 +1,59 @@
+diff --git a/lib/gather.js b/lib/gather.js
+index 7427c55..e66786c 100644
+--- a/lib/gather.js
++++ b/lib/gather.js
+@@ -100,6 +100,12 @@ function alternateAims(bot, pos) {
+   return [...aims, ...sides]
+ }
+ 
++// Quantas das 4 células vizinhas (mesmo nível) têm folha logo acima: 0 = base livre, 4 = anel fechado.
++function leafRoofedSides(bot, pos) {
++  return [[1, 0], [-1, 0], [0, 1], [0, -1]]
++    .filter(([x, z]) => bot.blockAt(pos.offset(x, 1, z))?.name?.endsWith('_leaves')).length
++}
++
+ async function mineBlocks(bot, predicate, count, isCancelled, { onAttempt = () => {}, allowedPositions = null, preferInReach = false, requireInReach = false, retryPickup = false, clearLeaves = false, anchor = null, beforeAction = () => {} } = {}) {
+   const ids = blockIds(bot, predicate)
+   const skip = new Set()
+@@ -117,6 +123,10 @@ async function mineBlocks(bot, predicate, count, isCancelled, { onAttempt = () =
+     const pool = allowedPositions ? approvedPositions(allowedPositions, bot.entity?.position) : bot.findBlocks({ matching: ids, maxDistance: RANGE, count: 64 })
+     const candidates = pool
+       .filter((p) => (!allowedPositions || allowedPositions.has(p.toString())) && !skip.has(p.toString()) && !hasFallingAbove(bot, p))
++    // Opt-in: em carvalhos pequenos as folhas baixas formam um anel sobre as células vizinhas da base do tronco;
++    // a visada fica coberta e o drop cai num bolsão onde o bot não entra. Prefere o tronco menos coberto
++    // (ordenação estável: empate mantém a ordem original).
++    if (clearLeaves) candidates.sort((a, b) => leafRoofedSides(bot, a) - leafRoofedSides(bot, b))
+     const pos = candidates.find((p) => isExposed(bot, p)) || candidates[0]
+     if (!pos) { if (!mined && !failures) onAttempt({ code: COLLECTION_FAILURE.RESOURCE_NOT_FOUND }); break }
+     const block = bot.blockAt(pos)
+diff --git a/test/gather.test.js b/test/gather.test.js
+index 859d2bf..5f22a39 100644
+--- a/test/gather.test.js
++++ b/test/gather.test.js
+@@ -375,3 +375,26 @@ test('clearLeaves: se o raio já atinge o alvo no início da iteração (atualiz
+     { preferInReach: true, requireInReach: true, clearLeaves: true, allowedPositions: approved }), 1)
+   assert.equal(dug, 1)
+ })
++
++test('clearLeaves prefere o tronco aprovado menos coberto por folhas baixas; sem a opção a ordem não muda', async () => {
++  const ringed = new Vec3(2, 64, 2)
++  const open = new Vec3(8, 64, 2)
++  const mined = []
++  const build = () => {
++    const bot = collectionBot()
++    bot.findBlocks = () => []
++    bot.blockAt = (p) => {
++      if (p.equals(ringed) || p.equals(open)) return { name: 'oak_log', position: p }
++      if (p.y === 65 && Math.abs(p.x - ringed.x) + Math.abs(p.z - ringed.z) === 1) return { name: 'oak_leaves', position: p }
++      return { name: 'air', position: p }
++    }
++    bot.dig = async (block) => { mined.push(block.position.toString()); bot.inventory.items().push({ name: 'oak_log', count: 1 }) }
++    return bot
++  }
++  const approved = new Set([ringed.toString(), open.toString()])
++  const run = (options) => gather.mineBlocks(build(), n => n === 'oak_log', 1, () => false, { allowedPositions: approved, ...options })
++  assert.equal(await run({}), 1)
++  assert.equal(mined.pop(), ringed.toString())          // comportamento anterior: primeiro da lista aprovada
++  assert.equal(await run({ clearLeaves: true }), 1)
++  assert.equal(mined.pop(), open.toString())            // anel fechado fica por último
++})

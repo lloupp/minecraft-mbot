@@ -1,0 +1,9 @@
+round 1 zombie=n  01:no{'APPROVED_TARGETS_INSUFFICIENT': 2}
+round 2 zombie=y  01:no{'APPROVED_TARGETS_INSUFFICIENT': 1, 'NEARBY_TABLE_REQUIRED': 1}
+round 3 zombie=n  01:ARMED
+round 4 zombie=y  01:no{'PLAYER_LOOP_PREEMPTED': 2, 'RECIPE_INPUTS_NOT_CONFIRMED': 1}
+round 5 zombie=n  01:ARMED
+round 6 zombie=y  01:ARMED{'PLAYER_LOOP_PREEMPTED': 2}
+{'staging.start': 5}
+max backoff ms 12827
+rejects Counter()

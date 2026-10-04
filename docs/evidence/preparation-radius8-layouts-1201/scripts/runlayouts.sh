@@ -1,0 +1,1 @@
+for spec in "$@"; do L=${spec%%:*}; N=${spec##*:}; rm -f /tmp/run/multi.fin; bash /tmp/run/natmulti.sh $L $N 6 >/tmp/run/multi_${L}_$N.out 2>&1; d=/tmp/run/runs/${L}_x$N; mkdir -p $d; cp /tmp/run/xp.jsonl /tmp/run/soak.marks /tmp/run/ar.N $d/; python3 /tmp/run/multisumm.py > $d/summary.txt 2>&1; done; echo ALLDONE > /tmp/run/layouts.fin

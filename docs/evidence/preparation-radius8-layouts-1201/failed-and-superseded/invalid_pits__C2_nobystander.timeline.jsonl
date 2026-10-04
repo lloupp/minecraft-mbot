@@ -1,0 +1,388 @@
+{"t":1791076056565,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076056565,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076056565,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":4,"pos":[-12.5,72,-164.5]}
+{"t":1791076056565,"ev":"cancel","w":"explorador_01","vBefore":4}
+{"t":1791076056573,"ev":"xpl.start","w":"explorador_01","v":5,"pos":[-12.5,72,-164.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076056604,"ev":"allowlist","w":"explorador_01","args":[],"n":21,"summ":{"oak_log":{"n":2,"min":2.8,"max":3},"birch_log":{"n":3,"min":4.1,"max":4.6},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-12.5,72,-164.5],"radiusEnv":"8"}
+{"t":1791076056616,"ev":"table.search","maxDistance":4,"bot":[-12.5,72,-164.5],"found":null}
+{"t":1791076056616,"ev":"staging.start","w":"explorador_01","v":5,"pos":[-12.5,72,-164.5]}
+{"t":1791076056621,"ev":"table.search","maxDistance":8,"bot":[-12.5,72,-164.5],"found":[-13,72,-170]}
+{"t":1791076056622,"ev":"goTo","w":"explorador_01","v":5,"goal":[-13,72,-170,1],"from":[-12.5,72,-164.5]}
+{"t":1791076057471,"ev":"staging.end","w":"explorador_01","v":5,"ok":true,"pos":[-12.5,73,-169.36]}
+{"t":1791076057501,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":5.6,"max":5.6},"oak_log":{"n":3,"min":6.6,"max":7.2},"stone":{"n":16,"min":2,"max":3.5}},"pos":[-12.5,73,-169.4],"radiusEnv":"8"}
+{"t":1791076057503,"ev":"prep.start","w":"explorador_01","v":5,"pos":[-12.5,73,-169.4]}
+{"t":1791076058976,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":1,"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076061980,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-9,72,-166],"bot":[-8.54,72,-166.66],"items":[]}
+{"t":1791076062781,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-8.22,72,-166.3],"items":[]}
+{"t":1791076062783,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-9,"y":72,"z":-166},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076062783,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076063675,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076064279,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-11,71,-170],"bot":[-10.38,71,-168.36],"items":[]}
+{"t":1791076065080,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-10.47,71,-169.5],"items":[]}
+{"t":1791076065081,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-11,"y":71,"z":-170},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076065082,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"RESOURCE_NOT_FOUND","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076065896,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-11,71,-171],"bot":[-10.49,71,-168.69],"items":[]}
+{"t":1791076066835,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-10.5,71,-170.32],"items":[]}
+{"t":1791076066836,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-11,"y":71,"z":-171},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t":1791076066837,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t":1791076066838,"ev":"prep.end","w":"explorador_01","v":5,"ok":true,"pos":[-10.5,71,-170.3]}
+{"t":1791076066863,"ev":"allowlist","w":"explorador_01","args":[],"n":19,"summ":{"oak_log":{"n":1,"min":4.5,"max":4.5},"birch_log":{"n":2,"min":5.6,"max":6},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-10.5,71,-170.3],"radiusEnv":"8"}
+{"t":1791076066863,"ev":"prep.start","w":"explorador_01","v":5,"pos":[-10.5,71,-170.3]}
+{"t":1791076067702,"ev":"prep.end","w":"explorador_01","v":5,"ok":true,"pos":[-10.5,71,-170.3]}
+{"t":1791076067725,"ev":"allowlist","w":"explorador_01","args":[],"n":19,"summ":{"oak_log":{"n":1,"min":4.5,"max":4.5},"birch_log":{"n":2,"min":5.6,"max":6},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-10.5,71,-170.3],"radiusEnv":"8"}
+{"t":1791076067726,"ev":"explore.start","w":"explorador_01","v":5,"pos":[-10.5,71,-170.3],"sm":"0"}
+{"t":1791076067726,"ev":"goTo","w":"explorador_01","v":5,"goal":[-30,68,-154,3],"from":[-10.5,71,-170.32]}
+{"t":1791076069745,"ev":"explore.pos+2000","w":"explorador_01","pos":[-15.4,72,-163.5]}
+{"t":1791076073409,"ev":"xpl.end","w":"explorador_01","v":5,"ok":true,"steps":[{"intent":"gather_materials","ok":true,"code":null,"ownerVersion":5},{"intent":"prepare_combat","ok":true,"code":null,"ownerVersion":5}],"pos":[-29.5,68,-155.5],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076073410,"ev":"run.end","w":"explorador_01","task":"explorar","v":5,"ok":true,"steps":[{"intent":"gather_materials","ok":true,"code":null,"ownerVersion":5},{"intent":"prepare_combat","ok":true,"code":null,"ownerVersion":5}],"pos":[-29.5,68,-155.5]}
+{"t":1791076073726,"ev":"explore.pos+6000","w":"explorador_01","pos":[-29.5,68,-155.5]}
+{"t":1791076076602,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076076602,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076076603,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":5,"pos":[-29.5,68,-155.5]}
+{"t":1791076076603,"ev":"cancel","w":"explorador_01","vBefore":5}
+{"t":1791076076608,"ev":"xpl.start","w":"explorador_01","v":6,"pos":[-29.5,68,-155.5],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076076626,"ev":"allowlist","w":"explorador_01","args":[],"n":16,"summ":{"stone":{"n":16,"min":1,"max":2.8}},"pos":[-29.5,68,-155.5],"radiusEnv":"8"}
+{"t":1791076076626,"ev":"explore.start","w":"explorador_01","v":6,"pos":[-29.5,68,-155.5],"sm":"0"}
+{"t":1791076076627,"ev":"goTo","w":"explorador_01","v":6,"goal":[-30,71,-170,3],"from":[-29.49,68,-155.5]}
+{"t":1791076078627,"ev":"explore.pos+2000","w":"explorador_01","pos":[-27.5,69.2,-161.8]}
+{"t":1791076080417,"ev":"xpl.end","w":"explorador_01","v":6,"ok":true,"steps":[],"pos":[-28.6,71,-167.4],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076080417,"ev":"run.end","w":"explorador_01","task":"explorar","v":6,"ok":true,"steps":[],"pos":[-28.6,71,-167.4]}
+{"t":1791076081602,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076081602,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076081602,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":6,"pos":[-28.6,71,-167.4]}
+{"t":1791076081602,"ev":"cancel","w":"explorador_01","vBefore":6}
+{"t":1791076081607,"ev":"xpl.start","w":"explorador_01","v":7,"pos":[-28.6,71,-167.4],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076081627,"ev":"allowlist","w":"explorador_01","args":[],"n":16,"summ":{"stone":{"n":13,"min":1,"max":2.4},"cobblestone":{"n":3,"min":1.9,"max":2.4}},"pos":[-28.6,71,-167.4],"radiusEnv":"8"}
+{"t":1791076081628,"ev":"explore.start","w":"explorador_01","v":7,"pos":[-28.6,71,-167.4],"sm":"0"}
+{"t":1791076081628,"ev":"goTo","w":"explorador_01","v":7,"goal":[-30,72,-186,3],"from":[-28.56,71,-167.39]}
+{"t":1791076082627,"ev":"explore.pos+6000","w":"explorador_01","pos":[-30.5,73,-170.6]}
+{"t":1791076083629,"ev":"explore.pos+2000","w":"explorador_01","pos":[-30.5,72,-176.4]}
+{"t":1791076084744,"ev":"xpl.end","w":"explorador_01","v":7,"ok":true,"steps":[],"pos":[-29.7,72,-182.4],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076084744,"ev":"run.end","w":"explorador_01","task":"explorar","v":7,"ok":true,"steps":[],"pos":[-29.7,72,-182.4]}
+{"t":1791076086602,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076086602,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076086602,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":7,"pos":[-29.7,72,-182.4]}
+{"t":1791076086602,"ev":"cancel","w":"explorador_01","vBefore":7}
+{"t":1791076086607,"ev":"xpl.start","w":"explorador_01","v":8,"pos":[-29.7,72,-182.4],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076086629,"ev":"allowlist","w":"explorador_01","args":[],"n":16,"summ":{"stone":{"n":16,"min":1,"max":2.6}},"pos":[-29.7,72,-182.4],"radiusEnv":"8"}
+{"t":1791076086629,"ev":"explore.start","w":"explorador_01","v":8,"pos":[-29.7,72,-182.4],"sm":"0"}
+{"t":1791076086630,"ev":"goTo","w":"explorador_01","v":8,"goal":[-14,72,-186,3],"from":[-29.67,72,-182.44]}
+{"t":1791076087628,"ev":"explore.pos+6000","w":"explorador_01","pos":[-25.8,72,-185.2]}
+{"t":1791076088629,"ev":"explore.pos+2000","w":"explorador_01","pos":[-20.3,72,-185.5]}
+{"t":1791076089242,"ev":"xpl.end","w":"explorador_01","v":8,"ok":true,"steps":[],"pos":[-16.7,72,-185.5],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076089242,"ev":"run.end","w":"explorador_01","task":"explorar","v":8,"ok":true,"steps":[],"pos":[-16.7,72,-185.5]}
+{"t":1791076091602,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076091602,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076091603,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":8,"pos":[-16.7,72,-185.5]}
+{"t":1791076091603,"ev":"cancel","w":"explorador_01","vBefore":8}
+{"t":1791076091608,"ev":"xpl.start","w":"explorador_01","v":9,"pos":[-16.7,72,-185.5],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076091628,"ev":"allowlist","w":"explorador_01","args":[],"n":16,"summ":{"stone":{"n":16,"min":1,"max":3.3}},"pos":[-16.7,72,-185.5],"radiusEnv":"8"}
+{"t":1791076091629,"ev":"explore.start","w":"explorador_01","v":9,"pos":[-16.7,72,-185.5],"sm":"0"}
+{"t":1791076091629,"ev":"goTo","w":"explorador_01","v":9,"goal":[2,72,-186,3],"from":[-16.69,72,-185.5]}
+{"t":1791076092629,"ev":"explore.pos+6000","w":"explorador_01","pos":[-11.4,72,-185.5]}
+{"t":1791076093630,"ev":"explore.pos+2000","w":"explorador_01","pos":[-5.8,72,-185.5]}
+{"t":1791076094489,"ev":"xpl.end","w":"explorador_01","v":9,"ok":true,"steps":[],"pos":[-0.5,72,-185.5],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076094490,"ev":"run.end","w":"explorador_01","task":"explorar","v":9,"ok":true,"steps":[],"pos":[-0.5,72,-185.5]}
+{"t":1791076097630,"ev":"explore.pos+6000","w":"explorador_01","pos":[-0.5,72,-185.5]}
+{"t":1791076115784,"ev":"storage.summary","w":"eduardo_bot","args":[]}
+{"t":1791076126604,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076126604,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076126604,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":9,"pos":[-13.5,70,-169.5]}
+{"t":1791076126604,"ev":"cancel","w":"explorador_01","vBefore":9}
+{"t":1791076126611,"ev":"xpl.start","w":"explorador_01","v":10,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076126633,"ev":"allowlist","w":"explorador_01","args":[],"n":20,"summ":{"birch_log":{"n":2,"min":6.7,"max":7.1},"oak_log":{"n":2,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.2}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076126636,"ev":"prep.start","w":"explorador_01","v":10,"pos":[-13.5,70,-169.5]}
+{"t":1791076128657,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":1,"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076131758,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-9,72,-166],"bot":[-9.5,72,-166.53],"items":[]}
+{"t":1791076134180,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-9.49,72,-165.5],"items":[]}
+{"t":1791076134182,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-9,"y":72,"z":-166},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076134184,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076135645,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076135651,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-13, 71, -170)","bot":[-11.51,72,-169.31],"dist":1.92,"neighbors":{"0,1,0":"crafting_table","1,0,0":"stone","-1,0,0":"air","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076135651,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-13,"y":71,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076135653,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 71, -171)","bot":[-11.51,72,-169.31],"dist":3.17,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076135653,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":71,"z":-171},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076135654,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 69, -169)","bot":[-11.51,72,-169.31],"dist":3.91,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076135654,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":69,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076135656,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 69, -170)","bot":[-11.51,72,-169.31],"dist":3.96,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"stone@(-14, 69, -168)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076135656,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":69,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076135660,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":0,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076135661,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 70, -169)","bot":[-11.51,72,-169.31],"dist":4.04,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076135661,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":70,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076135661,"ev":"prep.end","w":"explorador_01","v":10,"ok":false,"code":"TARGET_BLOCKED","pos":[-11.5,72,-169.3]}
+{"t":1791076135661,"ev":"explore.start","w":"explorador_01","v":10,"pos":[-11.5,72,-169.3],"sm":"0"}
+{"t":1791076135661,"ev":"goTo","w":"explorador_01","v":10,"goal":[18,72,-170,3],"from":[-11.51,72,-169.31]}
+{"t":1791076135662,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 70, -170)","bot":[-11.51,72,-169.31],"dist":4.08,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076135662,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":70,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076137662,"ev":"explore.pos+2000","w":"explorador_01","pos":[-0.9,72,-169.5]}
+{"t":1791076140555,"ev":"xpl.end","w":"explorador_01","v":10,"ok":true,"skipped":{"code":"TARGET_BLOCKED","intent":"gather_materials","afterStep":true},"steps":[{"intent":"gather_materials","ok":false,"code":"TARGET_BLOCKED","ownerVersion":10}],"pos":[15.4,72,-169.5],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076140555,"ev":"run.end","w":"explorador_01","task":"explorar","v":10,"ok":true,"steps":[{"intent":"gather_materials","ok":false,"code":"TARGET_BLOCKED","ownerVersion":10}],"pos":[15.4,72,-169.5]}
+{"t":1791076141604,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076141604,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076141604,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":10,"pos":[15.4,72,-169.5]}
+{"t":1791076141605,"ev":"cancel","w":"explorador_01","vBefore":10}
+{"t":1791076141613,"ev":"xpl.start","w":"explorador_01","v":11,"pos":[15.4,72,-169.5],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076141688,"ev":"allowlist","w":"explorador_01","args":[],"n":16,"summ":{"stone":{"n":16,"min":5,"max":7}},"pos":[15.4,72,-169.5],"radiusEnv":"8"}
+{"t":1791076141689,"ev":"staging.start","w":"explorador_01","v":11,"pos":[15.37,72,-169.5]}
+{"t":1791076141698,"ev":"table.search","maxDistance":8,"bot":[15.37,72,-169.5],"found":null}
+{"t":1791076141698,"ev":"staging.end","w":"explorador_01","v":11,"ok":false,"pos":[15.37,72,-169.5]}
+{"t":1791076141698,"ev":"explore.start","w":"explorador_01","v":11,"pos":[15.4,72,-169.5],"sm":"0"}
+{"t":1791076141699,"ev":"goTo","w":"explorador_01","v":11,"goal":[-14,64,-138,3],"from":[15.37,72,-169.5]}
+{"t":1791076141723,"ev":"explore.pos+6000","w":"explorador_01","pos":[15.2,72,-169.3]}
+{"t":1791076143699,"ev":"explore.pos+2000","w":"explorador_01","pos":[9.9,71,-160.9]}
+{"t":1791076147698,"ev":"explore.pos+6000","w":"explorador_01","pos":[-0.1,65.5,-146.3]}
+{"t":1791076150658,"ev":"xpl.end","w":"explorador_01","v":11,"ok":true,"skipped":{"code":"NEARBY_TABLE_REQUIRED","intent":"gather_materials"},"steps":[],"pos":[-11.3,64,-139.5],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076150658,"ev":"run.end","w":"explorador_01","task":"explorar","v":11,"ok":true,"steps":[],"pos":[-11.3,64,-139.5]}
+{"t":1791076151604,"ev":"orch.runAuto","w":"explorador_01","task":"sincronizar_estoque","reason":"atualizar_estoque"}
+{"t":1791076151604,"ev":"run.start","w":"explorador_01","task":"sincronizar_estoque","src":"orchestrator","reason":"atualizar_estoque","v":11,"pos":[-11.3,64,-139.5]}
+{"t":1791076151604,"ev":"cancel","w":"explorador_01","vBefore":11}
+{"t":1791076151610,"ev":"storage.summary","w":"explorador_01","args":[]}
+{"t":1791076158798,"ev":"run.end","w":"explorador_01","task":"sincronizar_estoque","v":12,"ok":true,"pos":[-12.5,72,-165.5]}
+{"t":1791076161604,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076161604,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076161604,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":12,"pos":[-12.5,72,-165.5]}
+{"t":1791076161604,"ev":"cancel","w":"explorador_01","vBefore":12}
+{"t":1791076161610,"ev":"xpl.start","w":"explorador_01","v":13,"pos":[-12.5,72,-165.5],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:7"}
+{"t":1791076161633,"ev":"allowlist","w":"explorador_01","args":[],"n":19,"summ":{"oak_log":{"n":2,"min":3.6,"max":3.7},"birch_log":{"n":1,"min":4.1,"max":4.1},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-12.5,72,-165.5],"radiusEnv":"8"}
+{"t":1791076161633,"ev":"staging.start","w":"explorador_01","v":13,"pos":[-12.5,72,-165.5]}
+{"t":1791076161639,"ev":"table.search","maxDistance":8,"bot":[-12.5,72,-165.5],"found":[-13,72,-170]}
+{"t":1791076161639,"ev":"goTo","w":"explorador_01","v":13,"goal":[-13,72,-170,1],"from":[-12.5,72,-165.5]}
+{"t":1791076162355,"ev":"staging.end","w":"explorador_01","v":13,"ok":false,"pos":[-12.5,73.88,-169.39]}
+{"t":1791076162355,"ev":"explore.start","w":"explorador_01","v":13,"pos":[-12.5,73.9,-169.4],"sm":"0"}
+{"t":1791076162356,"ev":"goTo","w":"explorador_01","v":13,"goal":[-46,68,-202,3],"from":[-12.5,73.88,-169.39]}
+{"t":1791076164356,"ev":"explore.pos+2000","w":"explorador_01","pos":[-17.7,72,-174.7]}
+{"t":1791076168356,"ev":"explore.pos+6000","w":"explorador_01","pos":[-33.9,72,-189.9]}
+{"t":1791076171224,"ev":"xpl.end","w":"explorador_01","v":13,"ok":true,"skipped":{"code":"NEARBY_TABLE_REQUIRED","intent":"gather_materials"},"steps":[],"pos":[-44.5,69.9,-199.3],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:7"}
+{"t":1791076171225,"ev":"run.end","w":"explorador_01","task":"explorar","v":13,"ok":true,"steps":[],"pos":[-44.5,69.9,-199.3]}
+{"t":1791076181313,"ev":"storage.summary","w":"eduardo_bot","args":[]}
+{"t":1791076191604,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076191604,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076191604,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":13,"pos":[-13.5,70,-169.5]}
+{"t":1791076191604,"ev":"cancel","w":"explorador_01","vBefore":13}
+{"t":1791076191610,"ev":"xpl.start","w":"explorador_01","v":14,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076191634,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":6.7,"max":7.5},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.2}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076191635,"ev":"xpl.end","w":"explorador_01","v":14,"ok":false,"code":"PLAYER_LOOP_PREEMPTED","steps":[],"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076191635,"ev":"run.end","w":"explorador_01","task":"explorar","v":14,"ok":false,"code":"PLAYER_LOOP_PREEMPTED","steps":[],"pos":[-13.5,70,-169.5]}
+{"t":1791076198310,"ev":"collectDrops","w":"eduardo_bot","phase":"start","center":[-11.22,72,-176.7],"bot":[-13.23,72,-172.72],"items":[]}
+{"t":1791076199811,"ev":"collectDrops","w":"eduardo_bot","phase":"end","bot":[-13.23,72,-172.72],"items":[]}
+{"t":1791076201605,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076201605,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076201605,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":14,"pos":[-13.5,70,-169.5]}
+{"t":1791076201605,"ev":"cancel","w":"explorador_01","vBefore":14}
+{"t":1791076201611,"ev":"xpl.start","w":"explorador_01","v":15,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076201635,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":6.7,"max":7.5},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.2}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076201636,"ev":"prep.start","w":"explorador_01","v":15,"pos":[-13.5,70,-169.5]}
+{"t":1791076203647,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":1,"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076218748,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-9,72,-166],"bot":[-9.5,72,-166.54],"items":[]}
+{"t":1791076220803,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-8.69,72,-166.52],"items":[]}
+{"t":1791076220804,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-9,"y":72,"z":-166},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076220804,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076222325,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076222330,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-13, 71, -170)","bot":[-11.65,72.5,-169.5],"dist":2.08,"neighbors":{"0,1,0":"crafting_table","1,0,0":"stone","-1,0,0":"air","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"stone@(-14, 71, -171)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076222330,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-13,"y":71,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076222332,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 71, -171)","bot":[-11.65,72.5,-169.5],"dist":3.17,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076222333,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":71,"z":-171},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076222334,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 70, -170)","bot":[-11.65,72.5,-169.5],"dist":4.21,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"stone@(-14, 71, -172)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076222334,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":70,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076222336,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 70, -169)","bot":[-11.65,72.5,-169.5],"dist":4.21,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076222336,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":70,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076222338,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":0,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076222339,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 69, -170)","bot":[-11.65,72.5,-169.5],"dist":4.24,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"stone@(-15, 70, -168)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076222339,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":69,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076222339,"ev":"prep.end","w":"explorador_01","v":15,"ok":false,"code":"TARGET_BLOCKED","pos":[-11.6,72.5,-169.5]}
+{"t":1791076222339,"ev":"explore.start","w":"explorador_01","v":15,"pos":[-11.6,72.5,-169.5],"sm":"0"}
+{"t":1791076222340,"ev":"goTo","w":"explorador_01","v":15,"goal":[-14,72,-202,3],"from":[-11.65,72.5,-169.5]}
+{"t":1791076222340,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 69, -169)","bot":[-11.65,72.5,-169.5],"dist":4.24,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076222340,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":69,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076224340,"ev":"explore.pos+2000","w":"explorador_01","pos":[-12.5,72,-178.6]}
+{"t":1791076227911,"ev":"xpl.end","w":"explorador_01","v":15,"ok":true,"skipped":{"code":"TARGET_BLOCKED","intent":"gather_materials","afterStep":true},"steps":[{"intent":"gather_materials","ok":false,"code":"TARGET_BLOCKED","ownerVersion":15}],"pos":[-13.5,72,-198.5],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076227911,"ev":"run.end","w":"explorador_01","task":"explorar","v":15,"ok":true,"steps":[{"intent":"gather_materials","ok":false,"code":"TARGET_BLOCKED","ownerVersion":15}],"pos":[-13.5,72,-198.5]}
+{"t":1791076228339,"ev":"explore.pos+6000","w":"explorador_01","pos":[-13.5,72,-198.5]}
+{"t":1791076231605,"ev":"orch.runAuto","w":"explorador_01","task":"sincronizar_estoque","reason":"atualizar_estoque"}
+{"t":1791076231605,"ev":"run.start","w":"explorador_01","task":"sincronizar_estoque","src":"orchestrator","reason":"atualizar_estoque","v":15,"pos":[-13.5,72,-198.5]}
+{"t":1791076231605,"ev":"cancel","w":"explorador_01","vBefore":15}
+{"t":1791076231614,"ev":"storage.summary","w":"explorador_01","args":[]}
+{"t":1791076238149,"ev":"run.end","w":"explorador_01","task":"sincronizar_estoque","v":16,"ok":true,"pos":[-13.5,71,-166.6]}
+{"t":1791076258845,"ev":"storage.summary","w":"eduardo_bot","args":[]}
+{"t":1791076266606,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076266606,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076266606,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":16,"pos":[-13.5,70,-169.5]}
+{"t":1791076266606,"ev":"cancel","w":"explorador_01","vBefore":16}
+{"t":1791076266611,"ev":"xpl.start","w":"explorador_01","v":17,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076266635,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":6.7,"max":7.5},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.2}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076266637,"ev":"prep.start","w":"explorador_01","v":17,"pos":[-13.5,70,-169.5]}
+{"t":1791076268705,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":1,"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076283805,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-9,72,-166],"bot":[-9.5,72,-166.54],"items":[]}
+{"t":1791076286771,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-8.5,72,-164.46],"items":[]}
+{"t":1791076286773,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-9,"y":72,"z":-166},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076286773,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076289614,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076292467,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-14,69,-168],"bot":[-13.47,70,-167.6],"items":[]}
+{"t":1791076293027,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-13.47,69,-167.6],"items":[]}
+{"t":1791076293029,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-14,"y":69,"z":-168},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076293029,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"RESOURCE_NOT_FOUND","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076294657,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"CANCELLED","target":{"x":-14,"y":69,"z":-169},"nav":"visible_in_reach","delta":0,"confirmed":false,"msg":"Digging aborted","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076294657,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"CANCELLED","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076294657,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076294659,"ev":"prep.end","w":"explorador_01","v":17,"ok":false,"code":"TIMEOUT","pos":[-13.5,69,-167.6]}
+{"t":1791076294659,"ev":"xpl.end","w":"explorador_01","v":17,"ok":false,"code":"TIMEOUT","steps":[{"intent":"gather_materials","ok":false,"code":"TIMEOUT","ownerVersion":17}],"pos":[-13.5,69,-167.6],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076294659,"ev":"run.end","w":"explorador_01","task":"explorar","v":17,"ok":false,"code":"TIMEOUT","steps":[{"intent":"gather_materials","ok":false,"code":"TIMEOUT","ownerVersion":17}],"pos":[-13.5,69,-167.6]}
+{"t":1791076324370,"ev":"storage.summary","w":"eduardo_bot","args":[]}
+{"t":1791076331608,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076331608,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076331608,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":17,"pos":[-13.5,70,-169.5]}
+{"t":1791076331608,"ev":"cancel","w":"explorador_01","vBefore":17}
+{"t":1791076331614,"ev":"xpl.start","w":"explorador_01","v":18,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076331644,"ev":"allowlist","w":"explorador_01","args":[],"n":21,"summ":{"birch_log":{"n":3,"min":6.7,"max":7.5},"oak_log":{"n":2,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076331645,"ev":"prep.start","w":"explorador_01","v":18,"pos":[-13.5,70,-169.5]}
+{"t":1791076332453,"ev":"prep.end","w":"explorador_01","v":18,"ok":false,"code":"THREAT","pos":[-12.7,71,-166.4]}
+{"t":1791076332454,"ev":"xpl.end","w":"explorador_01","v":18,"ok":false,"code":"THREAT","steps":[{"intent":"gather_materials","ok":false,"code":"THREAT","ownerVersion":18}],"pos":[-12.7,71,-166.4],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076332454,"ev":"run.end","w":"explorador_01","task":"explorar","v":18,"ok":false,"code":"THREAT","steps":[{"intent":"gather_materials","ok":false,"code":"THREAT","ownerVersion":18}],"pos":[-12.7,71,-166.4]}
+{"t":1791076340170,"ev":"collectDrops","w":"eduardo_bot","phase":"start","center":[-13.66,72,-173.89],"bot":[-10.47,71,-173.63],"items":[]}
+{"t":1791076341609,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076341609,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076341609,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":18,"pos":[-12.4,71,-166.5]}
+{"t":1791076341609,"ev":"cancel","w":"explorador_01","vBefore":18}
+{"t":1791076341614,"ev":"xpl.start","w":"explorador_01","v":19,"pos":[-12.4,71,-166.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076341614,"ev":"goTo","w":"explorador_01","v":19,"goal":[-14,70,-170,null],"from":[-12.41,71,-166.5]}
+{"t":1791076341673,"ev":"collectDrops","w":"eduardo_bot","phase":"end","bot":[-10.47,71,-173.63],"items":[]}
+{"t":1791076342445,"ev":"allowlist","w":"explorador_01","args":[],"n":21,"summ":{"birch_log":{"n":3,"min":6.7,"max":7.6},"oak_log":{"n":2,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076342447,"ev":"prep.start","w":"explorador_01","v":19,"pos":[-13.5,70,-169.5]}
+{"t":1791076344278,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":1,"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076347427,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-9,72,-166],"bot":[-9.5,72,-166.47],"items":[]}
+{"t":1791076349487,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-8.69,72,-166.49],"items":[]}
+{"t":1791076349488,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-9,"y":72,"z":-166},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076349489,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076351032,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076351036,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-13, 71, -170)","bot":[-11.65,72.5,-169.5],"dist":2.07,"neighbors":{"0,1,0":"crafting_table","1,0,0":"stone","-1,0,0":"air","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"stone@(-14, 71, -171)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"stone@(-15, 71, -171)"}],"canDig":true}
+{"t":1791076351036,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-13,"y":71,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076351038,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 71, -171)","bot":[-11.65,72.5,-169.5],"dist":3.16,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"stone@(-15, 71, -171)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076351038,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":71,"z":-171},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076351040,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 71, -171)","bot":[-11.65,72.5,-169.5],"dist":3.96,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"gravel","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"stone@(-14, 71, -172)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076351040,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":71,"z":-171},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076351042,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 70, -170)","bot":[-11.65,72.5,-169.5],"dist":4.2,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"stone@(-14, 71, -172)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076351042,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":70,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076351043,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":0,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076351045,"ev":"prep.end","w":"explorador_01","v":19,"ok":false,"code":"TARGET_BLOCKED","pos":[-11.7,72.5,-169.5]}
+{"t":1791076351045,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 70, -169)","bot":[-11.65,72.5,-169.5],"dist":4.2,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076351045,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":70,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076351045,"ev":"explore.start","w":"explorador_01","v":19,"pos":[-11.7,72.5,-169.5],"sm":"0"}
+{"t":1791076351045,"ev":"goTo","w":"explorador_01","v":19,"goal":[18,80,-202,3],"from":[-11.65,72.5,-169.5]}
+{"t":1791076351045,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 69, -170)","bot":[-11.65,72.5,-169.5],"dist":4.24,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"stone@(-15, 70, -168)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076351045,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":69,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076353045,"ev":"explore.pos+2000","w":"explorador_01","pos":[-8.6,72,-178.4]}
+{"t":1791076357100,"ev":"explore.pos+6000","w":"explorador_01","pos":[6.8,74.4,-188.6]}
+{"t":1791076361120,"ev":"xpl.end","w":"explorador_01","v":19,"ok":true,"skipped":{"code":"TARGET_BLOCKED","intent":"gather_materials","afterStep":true},"steps":[{"intent":"gather_materials","ok":false,"code":"TARGET_BLOCKED","ownerVersion":19}],"pos":[17.5,79,-199.5],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076361120,"ev":"run.end","w":"explorador_01","task":"explorar","v":19,"ok":true,"steps":[{"intent":"gather_materials","ok":false,"code":"TARGET_BLOCKED","ownerVersion":19}],"pos":[17.5,79,-199.5]}
+{"t":1791076361610,"ev":"orch.runAuto","w":"explorador_01","task":"sincronizar_estoque","reason":"atualizar_estoque"}
+{"t":1791076361610,"ev":"run.start","w":"explorador_01","task":"sincronizar_estoque","src":"orchestrator","reason":"atualizar_estoque","v":19,"pos":[17.5,79,-199.5]}
+{"t":1791076361610,"ev":"cancel","w":"explorador_01","vBefore":19}
+{"t":1791076361615,"ev":"storage.summary","w":"explorador_01","args":[]}
+{"t":1791076370916,"ev":"run.end","w":"explorador_01","task":"sincronizar_estoque","v":20,"ok":true,"pos":[-11.4,72,-168.5]}
+{"t":1791076371610,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076371610,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076371610,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":20,"pos":[-11.4,72,-168.5]}
+{"t":1791076371610,"ev":"cancel","w":"explorador_01","vBefore":20}
+{"t":1791076371616,"ev":"xpl.start","w":"explorador_01","v":21,"pos":[-11.4,72,-168.5],"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076371638,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":4.2,"max":5.1},"oak_log":{"n":3,"min":6,"max":6.4},"stone":{"n":16,"min":1.5,"max":3.1}},"pos":[-11.4,72,-168.5],"radiusEnv":"8"}
+{"t":1791076371640,"ev":"prep.start","w":"explorador_01","v":21,"pos":[-11.4,72,-168.5]}
+{"t":1791076371642,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076372246,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-12,71,-170],"bot":[-11.37,72,-168.45],"items":[]}
+{"t":1791076373104,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-11.51,71,-169.54],"items":[]}
+{"t":1791076373106,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-12,"y":71,"z":-170},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076373106,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"RESOURCE_NOT_FOUND","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076376407,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-11,70,-170],"bot":[-11.5,72,-168.5],"items":[]}
+{"t":1791076377848,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-10.43,70,-169.66],"items":[]}
+{"t":1791076377849,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-11,"y":70,"z":-170},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t":1791076377849,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t":1791076378806,"ev":"prep.end","w":"explorador_01","v":21,"ok":true,"pos":[-11.4,72,-168.5]}
+{"t":1791076378828,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":4.3,"max":5.2},"oak_log":{"n":3,"min":6.1,"max":6.4},"stone":{"n":16,"min":1.8,"max":3}},"pos":[-11.4,72,-168.5],"radiusEnv":"8"}
+{"t":1791076378828,"ev":"prep.start","w":"explorador_01","v":21,"pos":[-11.4,72,-168.5]}
+{"t":1791076379410,"ev":"prep.end","w":"explorador_01","v":21,"ok":true,"pos":[-11.4,72,-168.5]}
+{"t":1791076379432,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":4.3,"max":5.2},"oak_log":{"n":3,"min":6.1,"max":6.4},"stone":{"n":16,"min":1.8,"max":3}},"pos":[-11.4,72,-168.5],"radiusEnv":"8"}
+{"t":1791076379433,"ev":"explore.start","w":"explorador_01","v":21,"pos":[-11.4,72,-168.5],"sm":"0"}
+{"t":1791076379433,"ev":"goTo","w":"explorador_01","v":21,"goal":[34,77,-170,3],"from":[-11.43,72,-168.5]}
+{"t":1791076381432,"ev":"explore.pos+2000","w":"explorador_01","pos":[-0.8,72,-168.5]}
+{"t":1791076385432,"ev":"explore.pos+6000","w":"explorador_01","pos":[20.8,73.2,-168.5]}
+{"t":1791076388668,"ev":"xpl.end","w":"explorador_01","v":21,"ok":true,"steps":[{"intent":"gather_materials","ok":true,"code":null,"ownerVersion":21},{"intent":"prepare_combat","ok":true,"code":null,"ownerVersion":21}],"pos":[31.7,77,-169.6],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076388668,"ev":"run.end","w":"explorador_01","task":"explorar","v":21,"ok":true,"steps":[{"intent":"gather_materials","ok":true,"code":null,"ownerVersion":21},{"intent":"prepare_combat","ok":true,"code":null,"ownerVersion":21}],"pos":[31.7,77,-169.6]}
+{"t":1791076401909,"ev":"storage.summary","w":"eduardo_bot","args":[]}
+{"t":1791076411612,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076411612,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076411612,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":21,"pos":[-13.5,70,-169.5]}
+{"t":1791076411612,"ev":"cancel","w":"explorador_01","vBefore":21}
+{"t":1791076411621,"ev":"xpl.start","w":"explorador_01","v":22,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076411663,"ev":"allowlist","w":"explorador_01","args":[],"n":21,"summ":{"birch_log":{"n":2,"min":6.7,"max":7.1},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076411665,"ev":"prep.start","w":"explorador_01","v":22,"pos":[-13.5,70,-169.5]}
+{"t":1791076413428,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":1,"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076416527,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-9,72,-166],"bot":[-9.5,72,-166.47],"items":[]}
+{"t":1791076418583,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-8.69,72,-166.49],"items":[]}
+{"t":1791076418586,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-9,"y":72,"z":-166},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076418587,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076419805,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076420455,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-13,71,-170],"bot":[-11.5,71,-169.54],"items":[]}
+{"t":1791076423430,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-13.6,70.23,-169.47],"items":[]}
+{"t":1791076423432,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-13,"y":71,"z":-170},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076423432,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"RESOURCE_NOT_FOUND","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:1"}
+{"t":1791076429040,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-14,69,-169],"bot":[-14.49,71,-168.04],"items":[]}
+{"t":1791076430270,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-13.5,69,-168.59],"items":[]}
+{"t":1791076430271,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-14,"y":69,"z":-169},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t":1791076430272,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8,cobblestone:2"}
+{"t":1791076430724,"ev":"prep.end","w":"explorador_01","v":22,"ok":true,"pos":[-13.5,70,-169.5]}
+{"t":1791076430758,"ev":"allowlist","w":"explorador_01","args":[],"n":20,"summ":{"birch_log":{"n":1,"min":7.1,"max":7.1},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076430758,"ev":"prep.start","w":"explorador_01","v":22,"pos":[-13.5,70,-169.5]}
+{"t":1791076431879,"ev":"prep.end","w":"explorador_01","v":22,"ok":true,"pos":[-13.5,70,-169.5]}
+{"t":1791076431916,"ev":"allowlist","w":"explorador_01","args":[],"n":20,"summ":{"birch_log":{"n":1,"min":7.1,"max":7.1},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076431917,"ev":"explore.start","w":"explorador_01","v":22,"pos":[-13.5,70,-169.5],"sm":"0"}
+{"t":1791076431918,"ev":"goTo","w":"explorador_01","v":22,"goal":[-14,72,-218,3],"from":[-13.5,70,-169.5]}
+{"t":1791076433917,"ev":"explore.pos+2000","w":"explorador_01","pos":[-14.5,72.5,-176.2]}
+{"t":1791076437917,"ev":"explore.pos+6000","w":"explorador_01","pos":[-14.5,72,-195.5]}
+{"t":1791076441233,"ev":"xpl.end","w":"explorador_01","v":22,"ok":true,"steps":[{"intent":"gather_materials","ok":true,"code":null,"ownerVersion":22},{"intent":"prepare_combat","ok":true,"code":null,"ownerVersion":22}],"pos":[-13.5,72,-214.5],"inv":"birch_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+{"t":1791076441233,"ev":"run.end","w":"explorador_01","task":"explorar","v":22,"ok":true,"steps":[{"intent":"gather_materials","ok":true,"code":null,"ownerVersion":22},{"intent":"prepare_combat","ok":true,"code":null,"ownerVersion":22}],"pos":[-13.5,72,-214.5]}
+{"t":1791076441620,"ev":"orch.runAuto","w":"explorador_01","task":"sincronizar_estoque","reason":"atualizar_estoque"}
+{"t":1791076441620,"ev":"run.start","w":"explorador_01","task":"sincronizar_estoque","src":"orchestrator","reason":"atualizar_estoque","v":22,"pos":[-13.5,72,-214.5]}
+{"t":1791076441620,"ev":"cancel","w":"explorador_01","vBefore":22}
+{"t":1791076441626,"ev":"storage.summary","w":"explorador_01","args":[]}
+{"t":1791076451011,"ev":"run.end","w":"explorador_01","task":"sincronizar_estoque","v":23,"ok":true,"pos":[-13.5,71,-166.6]}
+{"t":1791076467429,"ev":"storage.summary","w":"eduardo_bot","args":[]}
+{"t":1791076476620,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076476620,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076476620,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":23,"pos":[-13.5,70,-169.5]}
+{"t":1791076476620,"ev":"cancel","w":"explorador_01","vBefore":23}
+{"t":1791076476626,"ev":"xpl.start","w":"explorador_01","v":24,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076476650,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":6.7,"max":7.5},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076476651,"ev":"xpl.end","w":"explorador_01","v":24,"ok":false,"code":"PLAYER_LOOP_PREEMPTED","steps":[],"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076476651,"ev":"run.end","w":"explorador_01","task":"explorar","v":24,"ok":false,"code":"PLAYER_LOOP_PREEMPTED","steps":[],"pos":[-13.5,70,-169.5]}
+{"t":1791076483848,"ev":"collectDrops","w":"eduardo_bot","phase":"start","center":[-15.48,72,-176.72],"bot":[-12.52,72,-176.5],"items":[{"n":"rotten_flesh","p":[-14.38,72,-177.18],"d":1.2,"valid":true}]}
+{"t":1791076484456,"ev":"collectDrops","w":"eduardo_bot","phase":"end","bot":[-13.5,72,-177.5],"items":[]}
+{"t":1791076486620,"ev":"planner.plan","plan":[{"w":"explorador_01","type":"explorar","reason":"estoque_estavel"}],"deficits":{"food":0,"wood":0,"fuel":0,"ironTotal":0,"ironIngot":0,"building":0,"ironPickaxe":2,"ironAxe":2,"ironSword":0}}
+{"t":1791076486620,"ev":"orch.runAuto","w":"explorador_01","task":"explorar","reason":"estoque_estavel","radius":96}
+{"t":1791076486620,"ev":"run.start","w":"explorador_01","task":"explorar","src":"orchestrator","reason":"estoque_estavel","v":24,"pos":[-13.5,70,-169.5]}
+{"t":1791076486620,"ev":"cancel","w":"explorador_01","vBefore":24}
+{"t":1791076486625,"ev":"xpl.start","w":"explorador_01","v":25,"pos":[-13.5,70,-169.5],"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076486651,"ev":"allowlist","w":"explorador_01","args":[],"n":22,"summ":{"birch_log":{"n":3,"min":6.7,"max":7.5},"oak_log":{"n":3,"min":7.5,"max":7.9},"stone":{"n":16,"min":1,"max":2.4}},"pos":[-13.5,70,-169.5],"radiusEnv":"8"}
+{"t":1791076486653,"ev":"prep.start","w":"explorador_01","v":25,"pos":[-13.5,70,-169.5]}
+{"t":1791076488412,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":1,"inv":"stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076503511,"ev":"collectDrops","w":"explorador_01","phase":"start","center":[-9,72,-166],"bot":[-9.5,72,-166.47],"items":[]}
+{"t":1791076505567,"ev":"collectDrops","w":"explorador_01","phase":"end","bot":[-8.69,72,-166.49],"items":[]}
+{"t":1791076505569,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","target":{"x":-9,"y":72,"z":-166},"nav":"visible_in_reach","delta":1,"confirmed":true,"invNow":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076505569,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":1,"inv":"stone_pickaxe:1,cooked_beef:8,birch_log:1"}
+{"t":1791076506358,"ev":"mineBlocks","w":"explorador_01","phase":"start","count":2,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076506363,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-12, 70, -169)","bot":[-10.5,71,-168.33],"dist":1.92,"neighbors":{"0,1,0":"copper_ore","1,0,0":"stone","-1,0,0":"air","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.95,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[1.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[-0.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,1.45],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,-0.45],"hit":"copper_ore@(-12, 71, -169)"}],"canDig":true}
+{"t":1791076506363,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-12,"y":70,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076506365,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-13, 70, -170)","bot":[-10.5,71,-168.33],"dist":3.17,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"air","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.95,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[1.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[-0.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,1.45],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,-0.45],"hit":"crafting_table@(-13, 72, -170)"}],"canDig":true}
+{"t":1791076506365,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-13,"y":70,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076506367,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 69, -170)","bot":[-10.5,71,-168.33],"dist":4.36,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.95,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[1.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[-0.45,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.5,1.45],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,-0.45],"hit":"copper_ore@(-12, 71, -169)"}],"canDig":true}
+{"t":1791076506367,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":69,"z":-170},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076506370,"ev":"mineBlocks","w":"explorador_01","phase":"end","mined":0,"inv":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076506371,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 71, -171)","bot":[-10.5,71,-168.33],"dist":4.4,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"air","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.95,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[1.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[-0.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,1.45],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,-0.45],"hit":"copper_ore@(-12, 71, -169)"}],"canDig":true}
+{"t":1791076506371,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":71,"z":-171},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076506371,"ev":"prep.end","w":"explorador_01","v":25,"ok":false,"code":"TARGET_BLOCKED","pos":[-10.5,71,-168.3]}
+{"t":1791076506371,"ev":"explore.start","w":"explorador_01","v":25,"pos":[-10.5,71,-168.3],"sm":"0"}
+{"t":1791076506372,"ev":"goTo","w":"explorador_01","v":25,"goal":[34,87,-218,3],"from":[-10.5,71,-168.33]}
+{"t":1791076506372,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-15, 70, -169)","bot":[-10.5,71,-168.33],"dist":4.66,"neighbors":{"0,1,0":"air","1,0,0":"air","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"crafting_table@(-13, 72, -170)"},{"off":[0.5,0.95,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[1.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[-0.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,1.45],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,-0.45],"hit":"copper_ore@(-12, 71, -169)"}],"canDig":true}
+{"t":1791076506372,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-15,"y":70,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076506372,"ev":"mineBlocks","w":"explorador_01","phase":"blocked_diag","target":"(-14, 68, -169)","bot":[-10.5,71,-168.33],"dist":4.66,"neighbors":{"0,1,0":"air","1,0,0":"stone","-1,0,0":"stone","0,0,1":"stone","0,0,-1":"stone","0,-1,0":"stone"},"hits":[{"off":[0.5,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.95,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[1.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[-0.45,0.5,0.5],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,1.45],"hit":"copper_ore@(-12, 71, -169)"},{"off":[0.5,0.5,-0.45],"hit":"copper_ore@(-12, 71, -169)"}],"canDig":false}
+{"t":1791076506372,"ev":"mineBlocks","w":"explorador_01","phase":"attempt","code":"TARGET_BLOCKED","target":{"x":-14,"y":68,"z":-169},"nav":"refused_blocked_target","delta":0,"confirmed":false,"msg":"authorized target is not visible in physical reach","invNow":"birch_planks:2,stick:4,stone_pickaxe:1,cooked_beef:8"}
+{"t":1791076508371,"ev":"explore.pos+2000","w":"explorador_01","pos":[-7.5,72,-174.6]}
+{"t":1791076512371,"ev":"explore.pos+6000","w":"explorador_01","pos":[6.6,74.4,-188.7]}
