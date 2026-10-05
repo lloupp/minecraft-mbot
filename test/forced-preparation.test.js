@@ -999,3 +999,24 @@ test('bootstrap (opt-in): com mesa perto mas sem picareta para a pedra, faz só 
     assert.ok(items.some(i => i.name === 'wooden_pickaxe'))
   } finally { gather.mineBlocks = original }
 }))
+
+test('durante a etapa o pedregulho (insumo da espada) não serve de andaime; a lista volta ao final', async () => {
+  const bot = unarmedBot(), items = [{ name: 'stick', count: 1 }, { name: 'cobblestone', count: 1 }, { name: 'stone_pickaxe', count: 1 }]
+  const target = new Vec3(1, 64, 1)
+  bot.inventory.items = () => items
+  bot.blockAt = p => ({ name: p.equals(target) ? 'stone' : 'air', position: p })
+  bot.registry = { blocksByName: { stone: { drops: [1] } }, items: { 1: { name: 'cobblestone' } }, itemsByName: { cobblestone: { id: 1 }, dirt: { id: 7 } } }
+  const scaffolding = [7, 1]
+  bot.pathfinder = { bestHarvestTool: () => items[2], movements: { scafoldingBlocks: scaffolding } }
+  const original = gather.mineBlocks
+  let during = null
+  gather.mineBlocks = async () => { during = [...bot.pathfinder.movements.scafoldingBlocks]; items[1].count++; return 1 }
+  try {
+    const result = await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' },
+      production: { cachedCraftingTable: () => ({ position: new Vec3(-1, 64, -1) }) }, allowedTargets: [{ x: 1, y: 64, z: 1, name: 'stone' }] })
+    assert.equal(result.ok, true, String(result.code))
+    assert.deepEqual(during, [7])
+    assert.equal(bot.pathfinder.movements.scafoldingBlocks, scaffolding)
+    assert.deepEqual(bot.pathfinder.movements.scafoldingBlocks, [7, 1])
+  } finally { gather.mineBlocks = original }
+})
