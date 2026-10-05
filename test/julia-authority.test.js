@@ -295,7 +295,8 @@ test('player loop: com fome, a escolha find_food da Julia caça com o executor d
   const worker = loopWorker(auth)
   worker.bot.inventory.items = () => []
   worker.bot.food = 6
-  const cow = { name: 'cow', type: 'passive', position: new Vec3(15, 64, 0) }
+  worker.bot.entity.position = new Vec3(20, 64, 0)        // fora da base: return_base continua opção
+  const cow = { name: 'cow', type: 'passive', position: new Vec3(30, 64, 0) }
   worker.bot.entities = { 1: cow }
   worker.builtPens = () => []
   let hunted = 0, ate = 0

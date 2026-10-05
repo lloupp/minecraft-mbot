@@ -245,3 +245,11 @@ test('report separates endpoint attempts, confirmed model calls, and invalid-cho
   assert.equal(invalidSummary.fallbacks, 1)
   assert.equal(invalidSummary.technical_fallbacks, 0)
 })
+
+test('com fome e sem comida, já na base: return_base não é oferecido (segue o objetivo para achar comida)', () => {
+  const { candidateIntents } = require('../lib/player-loop')
+  const base = { health: 20, food: 6, inventory: {}, objective: { type: 'explore' }, baseKnown: true, nearby: {}, threat: null }
+  assert.deepEqual(candidateIntents({ ...base, atBase: false }).map(c => c.id), ['return_base'])
+  assert.ok(!candidateIntents({ ...base, atBase: true }).some(c => c.id === 'return_base'))
+  assert.deepEqual(candidateIntents({ ...base, atBase: true, nearby: { food: true } }).map(c => c.id), ['find_food'])
+})

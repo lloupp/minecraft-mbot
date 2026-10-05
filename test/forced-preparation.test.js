@@ -982,3 +982,20 @@ test('bootstrap: madeira aprovada insuficiente é recusada antes de cavar; amea�
   assert.equal(threatened.ok, false)
   assert.ok(['THREAT', 'NO_PREPARATION_INTENT'].includes(threatened.code), threatened.code)
 }))
+
+test('bootstrap (opt-in): com mesa perto mas sem picareta para a pedra, faz só a picareta de madeira', () => withBootstrap(async () => {
+  const { bot, items, production, crafted, add, placed, approved } = bootstrapWorld()
+  const table = { name: 'crafting_table', position: new Vec3(1, 64, 1) }
+  production.rememberCraftingTable(bot, table)
+  add('oak_planks', 3); add('stick', 4)
+  const original = gather.mineBlocks
+  gather.mineBlocks = async () => assert.fail('3 tábuas + gravetos bastam: nada a cavar')
+  try {
+    const result = await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, production, allowedTargets: approved() })
+    assert.equal(result.ok, true, String(result.code) + ' ' + result.intent + ' ' + JSON.stringify(result.initial?.inventory))
+    assert.equal(result.bootstrap, true)
+    assert.deepEqual(crafted, ['wooden_pickaxe'])
+    assert.equal(placed.size, 0)
+    assert.ok(items.some(i => i.name === 'wooden_pickaxe'))
+  } finally { gather.mineBlocks = original }
+}))
