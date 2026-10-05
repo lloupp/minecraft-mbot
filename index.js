@@ -41,6 +41,7 @@ const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
 const { LayaShadowObserver } = require('./lib/laya-shadow')
 const { JuliaShadowObserver } = require('./lib/julia-shadow')
+const { JuliaAuthority } = require('./lib/julia-authority')
 const { combineShadows } = require('./lib/shadow-fanout')
 const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
 const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
@@ -227,6 +228,13 @@ async function main() {
   // regra, sem autoridade de execução (lib/julia-shadow.js).
   const juliaShadow = new JuliaShadowObserver({ logger: console })
   const shadowObservers = combineShadows(layaShadow, juliaShadow)
+  // Autoridade da Julia-1 (MBOT_JULIA_AUTHORITY=1 + JULIA_PLAYER_LOOP_URL): escolhe entre os candidatos do
+  // player loop do explorador; guardrails e executor determinístico continuam valendo (lib/julia-authority.js).
+  const juliaAuthority = new JuliaAuthority({ logger: console })
+  if (juliaAuthority.enabled()) {
+    console.log(`[julia-authority] LIGADA: ${juliaAuthority.endpoint} (timeout ${juliaAuthority.timeoutMs} ms)`)
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') console.log('[julia-authority] aviso: sem MBOT_EXPLORE_PREPARATION=1 o player loop não roda e a Julia não decide nada')
+  }
 
   function createWorker({ name, role }) {
     const worker = createBot(mineflayer, CONFIG, { username: name })
@@ -242,7 +250,8 @@ async function main() {
       storage,
       production,
       shadow: shadowObservers,
-      worldMemory
+      worldMemory,
+      juliaAuthority
     })
 
     worker.once('spawn', () => {

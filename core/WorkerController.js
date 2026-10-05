@@ -97,7 +97,7 @@ function protectPenBlocks(moves, registry) {
 }
 
 class WorkerController {
-  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null }) {
+  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null, juliaAuthority = null }) {
     this.bot = bot
     this.name = name
     this.role = role
@@ -111,6 +111,9 @@ class WorkerController {
     this.shadow = shadow
     // Memória espacial compartilhada (conhecimento, nunca executor): o mundo real continua sendo a verdade.
     this.worldMemory = worldMemory
+    // Autoridade da Julia (opt-in, MBOT_JULIA_AUTHORITY=1): escolhe entre os candidatos do player loop; a execução
+    // continua no executor determinístico. Desligada, a escolha é a determinística de sempre.
+    this.juliaAuthority = juliaAuthority
     this._shadowFailureStreak = 0
     this._shadowFailureKey = null
     this._shadowFailureEntry = null
@@ -514,6 +517,7 @@ class WorkerController {
       homeProvider: this.homeProvider,
       isCancelled,
       timeoutMs: Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 20000,
+      authorizedIntent: task.authorizedIntent || null,
       onEvent: event => this.logger.log?.(`[deterministic-preparation] ${JSON.stringify({ worker: this.name, taskVersion: ownerVersion, currentVersion: this.taskVersion, ...event })}`)
     })
   }
@@ -1404,6 +1408,36 @@ class WorkerController {
   }
 
   async runExplorePlayerLoop(task, isCancelled) {
+    if (!this.juliaAuthority?.enabled?.()) return this._runExplorePlayerLoop(task, isCancelled)
+    let result = null
+    try {
+      result = await this._runExplorePlayerLoop(task, isCancelled)
+      return result
+    } catch (error) {
+      result = { ok: false, code: 'ERROR', error: error?.message || String(error) }
+      throw error
+    } finally {
+      this._settleJuliaDecision(task, result)
+    }
+  }
+
+  // Escolha do player loop: Julia (se autorizada) entre os candidatos dados, senão a política determinística.
+  async _playerLoopChoice(state, candidates, isCancelled) {
+    if (!this.juliaAuthority?.enabled?.()) return { choice: deterministicPlayerPolicy(state, candidates), source: 'deterministic' }
+    return this.juliaAuthority.decide({ state, candidates, isCancelled, meta: { worker: this.name, taskVersion: this.taskVersion } })
+  }
+
+  _settleJuliaDecision(task, result, action = null) {
+    if (!this.juliaAuthority?.enabled?.()) return
+    let nextState = null
+    try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
+    const executed = action || (result?.returnedToBase ? 'return_base'
+      : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
+        : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
+    this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
+  }
+
+  async _runExplorePlayerLoop(task, isCancelled) {
     if (process.env.MBOT_EXPLORE_PREPARATION !== '1') {
       return this.explore(task.radius || 64, isCancelled, task.center || null)
     }
@@ -1432,7 +1466,10 @@ class WorkerController {
         isCancelled
       })
       const candidates = candidateIntents(state)
-      const choice = deterministicPlayerPolicy(state, candidates)
+      const decision = await this._playerLoopChoice(state, candidates, isCancelled)
+      if (decision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+      const choice = decision.choice
+      const authorizedIntent = decision.source === 'julia' ? choice : null
 
       if (choice === 'continue_objective') {
         const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
@@ -1485,7 +1522,8 @@ class WorkerController {
         bot: this.bot,
         production: this.production,
         state,
-        allowedTargets
+        allowedTargets,
+        authorizedIntent
       })
       if (!preflight.ok) {
         if (preflight.code === 'SAFETY_PRECEDENCE') {
@@ -1529,6 +1567,7 @@ class WorkerController {
         state,
         objective: task,
         allowedTargets,
+        authorizedIntent,
         // A caminhada de aproximação (até 8 s) do modo raio >4 faz parte da etapa: sem ela, 2 de 8 rodadas
         // estouravam 20 s com o gather quase pronto (8 s de caminhada + dig + pickup + 2 pedras).
         timeoutMs: 20000 + (preparationRadius() > 4 ? 8000 : 0)
@@ -1573,6 +1612,7 @@ class WorkerController {
             preparationSteps
           }
         }
+        this._settleJuliaDecision(task, result, `preparation:${choice}`)
         step++
       } finally {
         if (this._preparationDrain === preparationPromise) this._preparationDrain = null
@@ -1586,7 +1626,9 @@ class WorkerController {
       isCancelled
     })
     const finalCandidates = candidateIntents(finalState)
-    const finalChoice = deterministicPlayerPolicy(finalState, finalCandidates)
+    const finalDecision = await this._playerLoopChoice(finalState, finalCandidates, isCancelled)
+    if (finalDecision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+    const finalChoice = finalDecision.choice
     if (finalChoice === 'continue_objective') {
       const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
       return { ...explored, playerLoopPreparation: true, preparationSteps }
