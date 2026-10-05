@@ -1828,13 +1828,13 @@ class WorkerController {
       : null
     walkSampler?.unref?.()
     try {
-      return await this.exploreTo({ x, y, z, distance }, isCancelled, { memory, dim })
+      return await this.exploreTo({ x, y, z, distance }, isCancelled, { memory, dim, digEscape: groundAware })
     } finally {
       if (walkSampler) clearInterval(walkSampler)
     }
   }
 
-  async exploreTo({ x, y, z, distance }, isCancelled, { memory = null, dim = 'overworld' } = {}) {
+  async exploreTo({ x, y, z, distance }, isCancelled, { memory = null, dim = 'overworld', digEscape = false } = {}) {
 
     const target = { x, y, z, radius: distance }
     if (process.env.MBOT_STATEMACHINE === '1') {
@@ -1853,7 +1853,14 @@ class WorkerController {
     }
 
     try {
-      await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
+      try {
+        await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
+      } catch (err) {
+        // Explorador do player loop num buraco natural (sem cavar e sem blocos para subir): toda perna dá
+        // "No path" e ele só sai morrendo. Uma única nova tentativa da mesma perna podendo cavar (curral protegido).
+        if (!digEscape || isCancelled() || !/No path to the goal/.test(err?.message || '')) throw err
+        await this.goToWithDigging(new goals.GoalNear(x, y, z, 3), 20000)
+      }
     } catch (err) {
       // Rota que falha repetidamente vira evidência local (afasta destinos futuros), nunca ordem.
       if (memory && !isCancelled()) memory.markHazard('route_failed', dim, { x, y, z }, { by: this.name })
@@ -1864,6 +1871,20 @@ class WorkerController {
     memory?.visit(dim, { x, z })
     this.observeWorld()
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
+  }
+
+  async goToWithDigging(goal, timeoutMs) {
+    const escape = new Movements(this.bot)
+    escape.canDig = true
+    escape.allow1by1towers = true
+    protectPenBlocks(escape, this.bot.registry)
+    this.logger.log?.(`[colônia] ${this.name} sem caminho sem cavar; tentando uma vez cavando`)
+    this.bot.pathfinder.setMovements(escape)
+    try {
+      await this.goTo(goal, timeoutMs)
+    } finally {
+      if (this.workMoves) this.bot.pathfinder.setMovements(this.workMoves)
+    }
   }
 
   async goToPoint(position, isCancelled) {

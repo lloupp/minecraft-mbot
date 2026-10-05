@@ -570,3 +570,23 @@ test('goTo não desiste por correções isoladas ou com progresso (ex.: teleport
   await pending
   assert.equal(bot.listenerCount('forcedMove'), 0)
 })
+
+test('exploreTo do player loop tenta uma vez cavando quando não há caminho sem cavar; exploração clássica não', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  const noPath = async () => { throw new Error('No path to the goal!') }
+  let escapes = 0
+  worker.goToWithDigging = async () => { escapes++ }
+  worker.goTo = noPath
+  const ok = await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true })
+  assert.equal(ok.ok, true)
+  assert.equal(escapes, 1)
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false), /No path/)
+  assert.equal(escapes, 1)
+  worker.goTo = async () => { throw new Error('caminho demorou demais') }   // outro erro: não cava
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true }), /demorou/)
+  worker.goTo = noPath                                                   // cancelado: não cava
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), /No path/)
+  assert.equal(escapes, 1)
+})
