@@ -1471,8 +1471,8 @@ class WorkerController {
     const center = task.center || this.homeProvider?.()
     const farLimit = (task.radius || 64) + EXPLORE_FAR_MARGIN
     if (center && this.bot.entity?.position && Math.hypot(this.bot.entity.position.x - center.x, this.bot.entity.position.z - center.z) > farLimit) {
-      const returned = await this.returnHome(isCancelled)
-      if (!returned.ok) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+      const returned = await this.returnHome(isCancelled, { verify: true })
+      if (!returned.ok) return { ok: false, code: returned.code || 'CANCELLED', cancelled: !returned.code, preparationSteps }
     }
     await this.returnToPreparationSite(task, isCancelled)
 
@@ -1503,10 +1503,10 @@ class WorkerController {
       // Noite desarmado (ou outra necessidade de voltar): o retorno à base já existe (tarefa `voltar`);
       // sem ele o explorador ficaria parado fora da base. Um único retorno, sob o mesmo owner.
       if (choice === 'return_base' && this.homeProvider?.()) {
-        const returned = await this.returnHome(isCancelled)
+        const returned = await this.returnHome(isCancelled, { verify: true })
         return returned.ok
           ? { ok: true, returnedToBase: true, intent: choice, playerLoopPreparation: true, preparationSteps }
-          : { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+          : { ok: false, code: returned.code || 'CANCELLED', cancelled: !returned.code, intent: choice, preparationSteps }
       }
 
       // Ameaça: fugir ou lutar vai para os executores determinísticos que já existem (flee / combat.fight).
@@ -1887,13 +1887,17 @@ class WorkerController {
     }
 
     try {
+      const goal = new goals.GoalNear(x, y, z, 3)
       try {
-        await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
+        await this.goTo(goal, 30000)
+        // Sucesso falso do pathfinder (caminho parcial vazio): o player loop confere a chegada.
+        if (digEscape && !isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (pathfinder parou sem chegar)')
       } catch (err) {
         // Explorador do player loop num buraco natural (sem cavar e sem blocos para subir): toda perna dá
         // "No path" e ele só sai morrendo. Uma única nova tentativa da mesma perna podendo cavar (curral protegido).
         if (!digEscape || isCancelled() || !/No path to the goal/.test(err?.message || '')) throw err
-        await this.goToWithDigging(new goals.GoalNear(x, y, z, 3), 20000)
+        await this.goToWithDigging(goal, 20000)
+        if (!isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (nem cavando)')
       }
     } catch (err) {
       // Rota que falha repetidamente vira evidência local (afasta destinos futuros), nunca ordem.
@@ -1905,6 +1909,12 @@ class WorkerController {
     memory?.visit(dim, { x, z })
     this.observeWorld()
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
+  }
+
+  arrivedAt(goal) {
+    const position = this.bot.entity?.position
+    if (!position || typeof goal?.isEnd !== 'function') return true
+    return goal.isEnd(position.floored()) || goal.isEnd(position.floored().offset(0, 1, 0))
   }
 
   async goToWithDigging(goal, timeoutMs) {
@@ -1999,11 +2009,19 @@ class WorkerController {
     return { ok: true }
   }
 
-  async returnHome(isCancelled) {
+  async returnHome(isCancelled, { verify = false } = {}) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
     const timeoutMs = travelTimeoutMs(this.bot.entity?.position, home)
-    await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), timeoutMs)
+    const goal = new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3)
+    await this.goTo(goal, timeoutMs)
+    // Player loop: o goto do mineflayer-pathfinder resolve como sucesso quando o caminho parcial é vazio (sem
+    // progresso possível). Visto no Minecraft: 41 return_base "ok" seguidos sem o bot sair do lugar. Confere a chegada,
+    // tenta uma vez podendo cavar e, se ainda não chegou, diz isso.
+    if (verify && !isCancelled() && !this.arrivedAt(goal)) {
+      await this.goToWithDigging(goal, 20000).catch(() => {})
+      if (!isCancelled() && !this.arrivedAt(goal)) return { ok: false, code: 'NOT_ARRIVED' }
+    }
     if (!isCancelled() && this.worldMemory && this.bot.entity?.position?.distanceTo(home) <= 6) {
       this.worldMemory.confirmLandmark('base')
       this.observeWorld()

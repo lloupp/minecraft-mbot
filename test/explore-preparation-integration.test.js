@@ -687,7 +687,7 @@ test('ground-aware explore skips ocean/no-ground directions and targets the real
   const { worker } = integrationWorker()
   worker.exploreStep = 0
   const goalsSeen = []
-  worker.goTo = async (goal) => { goalsSeen.push([goal.x, goal.y, goal.z]) }
+  worker.goTo = async (goal) => { goalsSeen.push([goal.x, goal.y, goal.z]); worker.bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
   // Terreno: x>=0 tem chão em y=70; x<0 (oeste) é oceano (água em y=62); z>... resto em y=70.
   worker.bot.blockAt = (p) => {
     if (p.x < 0) return { name: p.y <= 62 ? (p.y === 62 ? 'water' : 'sand') : 'air', boundingBox: p.y <= 62 && p.y !== 62 ? 'block' : 'empty', position: p }

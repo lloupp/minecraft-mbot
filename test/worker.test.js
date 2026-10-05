@@ -577,7 +577,7 @@ test('exploreTo do player loop tenta uma vez cavando quando não há caminho sem
   worker.observeWorld = () => null
   const noPath = async () => { throw new Error('No path to the goal!') }
   let escapes = 0
-  worker.goToWithDigging = async () => { escapes++ }
+  worker.goToWithDigging = async (goal) => { escapes++; bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
   worker.goTo = noPath
   const ok = await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true })
   assert.equal(ok.ok, true)
@@ -589,4 +589,24 @@ test('exploreTo do player loop tenta uma vez cavando quando não há caminho sem
   worker.goTo = noPath                                                   // cancelado: não cava
   await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), /No path/)
   assert.equal(escapes, 1)
+})
+
+test('player loop: sucesso falso do pathfinder (resolve sem chegar) vira tentativa cavando; returnHome diz NOT_ARRIVED', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  worker.homeProvider = () => new Vec3(100, 64, 0)
+  worker.goTo = async () => {}                                   // resolve sem mover (caminho parcial vazio)
+  let escapes = 0
+  worker.goToWithDigging = async () => { escapes++ }             // nem cavando sai do lugar
+  await assert.rejects(worker.exploreTo({ x: 40, y: 64, z: 0, distance: 32 }, () => false, { digEscape: true }), /nem cavando/)
+  assert.equal(escapes, 1)
+  const home = await worker.returnHome(() => false, { verify: true })
+  assert.deepEqual(home, { ok: false, code: 'NOT_ARRIVED' })
+  assert.equal(escapes, 2)
+  // sem verificação (tarefa voltar / clássico): comportamento anterior
+  assert.equal((await worker.returnHome(() => false)).ok, true)
+  // cavando chega: sucesso
+  worker.goToWithDigging = async (goal) => { escapes++; bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
+  assert.equal((await worker.returnHome(() => false, { verify: true })).ok, true)
 })
