@@ -287,3 +287,28 @@ test('player loop: escolha da Julia sob ameaça (lutar x fugir) vai para os exec
     } finally { combat.fight = original }
   }
 }))
+
+test('player loop: com fome, a escolha find_food da Julia caça com o executor de comida existente e come', () => withFlags(async () => {
+  const food = require('../lib/food')
+  const original = food.gatherFood
+  const { auth, rows } = authority(reply({ choice: 'find_food' }))
+  const worker = loopWorker(auth)
+  worker.bot.inventory.items = () => []
+  worker.bot.food = 6
+  const cow = { name: 'cow', type: 'passive', position: new Vec3(15, 64, 0) }
+  worker.bot.entities = { 1: cow }
+  worker.builtPens = () => []
+  let hunted = 0, ate = 0
+  food.gatherFood = async () => { hunted++; return 'cacei um(a) cow' }
+  worker.eat = async () => { ate++; return 'beef' }
+  worker.returnHome = async () => assert.fail('a escolha da Julia foi find_food')
+  try {
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(result.ok, true)
+    assert.equal(hunted, 1)
+    assert.equal(ate, 1)
+    const decision = rows.find((r) => r.type === 'julia_authority_decision').data
+    assert.deepEqual(decision.candidates, ['find_food', 'return_base'])
+    assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'find_food:got+ate')
+  } finally { food.gatherFood = original }
+}))

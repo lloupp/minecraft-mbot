@@ -1451,7 +1451,7 @@ class WorkerController {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
     try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
-    const executed = action || (result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
+    const executed = action || (result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
       : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
         : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
@@ -1530,6 +1530,16 @@ class WorkerController {
           if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
           return { ok: true, intent: choice, threatHandled: choice, combat: outcome, playerLoopPreparation: true, preparationSteps }
         }
+      }
+
+      // Fome: procurar comida usa o executor de comida que já existe (caça/frutas/plantação ao alcance) e come.
+      if (choice === 'find_food') {
+        const pens = this.builtPens()
+        const gathered = await food.gatherFood(this.bot, isCancelled, { spare: (entity) => pens.some((plan) => pointInsidePen(entity.position, plan)) })
+          .catch((error) => { this.logger.log?.(`[colônia] ${this.name} comida: ${error.message}`); return null })
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        const ate = await this.eat()
+        return { ok: Boolean(gathered), intent: choice, foodGathered: gathered || null, ate: Boolean(ate), playerLoopPreparation: true, preparationSteps }
       }
 
       if (!['gather_materials', 'prepare_combat', 'equip_best_weapon'].includes(choice)) {

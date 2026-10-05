@@ -176,3 +176,11 @@ test('ameaça ignora neutros não provocados longe (aranha de dia, enderman); de
   assert.equal(snap({ spider: { ...spider, position: at(2) } }, 6000).type, 'spider')  // colada: conta
   assert.equal(snap({ spider, zombie }, 6000).type, 'zombie')                // zumbi continua ameaça
 })
+
+test('animal de comida visível a até 16 blocos conta como comida próxima', () => {
+  const cow = (x) => ({ name: 'cow', type: 'passive', position: new Vec3(x, 64, 0) })
+  const near = realStateSnapshot(fakeBot({ entities: { c: cow(12) } }), { type: 'explorar' }, { homeProvider: () => null })
+  assert.equal(near.nearby.food, true)
+  const far = realStateSnapshot(fakeBot({ entities: { c: cow(20) } }), { type: 'explorar' }, { homeProvider: () => null })
+  assert.equal(far.nearby.food, false)
+})
