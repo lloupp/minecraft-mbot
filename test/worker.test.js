@@ -545,3 +545,28 @@ test('cancelamento durante pickup preserva item confirmado sem concluir nem depo
   assert.equal(result.gathered, 1)
   assert.equal(result.evidence[0].itemConfirmed, true)
 })
+
+test('goTo desiste cedo quando o servidor rejeita o movimento a cada tick sem progresso', async () => {
+  const bot = fakeBot()
+  bot.pathfinder.goto = () => new Promise(() => {})   // o pathfinder nunca conclui (repete o mesmo passo)
+  const worker = readyWorker(bot)
+  const started = Date.now()
+  const pending = worker.goTo({ x: 30, y: 64, z: 0 }, 30000)
+  for (let i = 0; i < 40; i++) bot.emit('forcedMove')   // posição devolvida no mesmo ponto
+  await assert.rejects(pending, /servidor rejeitou o movimento/)
+  assert.ok(Date.now() - started < 1000)
+  assert.equal(bot.pathfinder.goal, null)
+  assert.equal(bot.listenerCount('forcedMove'), 0)
+})
+
+test('goTo não desiste por correções isoladas ou com progresso (ex.: teleporte normal)', async () => {
+  const bot = fakeBot()
+  let finish
+  bot.pathfinder.goto = () => new Promise((resolve) => { finish = resolve })
+  const worker = readyWorker(bot)
+  const pending = worker.goTo({ x: 30, y: 64, z: 0 }, 30000)
+  for (let i = 0; i < 60; i++) { bot.entity.position = new Vec3(i, 64, 0); bot.emit('forcedMove') }   // avança 1 bloco por correção
+  finish()
+  await pending
+  assert.equal(bot.listenerCount('forcedMove'), 0)
+})

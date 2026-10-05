@@ -41,6 +41,8 @@ const PREPARATION_SITE_MAX_DISTANCE = 16
 const PREPARATION_STAGING_MAX_DISTANCE = 8
 const PREPARATION_STAGING_SAFETY_POLL_MS = 100
 const EXPLORE_FAR_MARGIN = 32
+// Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
+const GOTO_REJECTED_MOVES = 40
 const PHYSICAL_PREPARATION_REFUSALS = new Set(['TARGET_BLOCKED', 'APPROVED_TARGETS_INSUFFICIENT', 'MINING_PICKAXE_REQUIRED', 'COBBLESTONE_DROP_REQUIRED', 'NEARBY_TABLE_REQUIRED'])
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
@@ -622,16 +624,34 @@ class WorkerController {
 
   async goTo(goal, timeoutMs = 20000) {
     let timer
+    let onForcedMove = null
     const timeout = new Promise((_, reject) => {
       timer = setTimeout(() => {
         this.bot.pathfinder.setGoal(null)
         reject(new Error('caminho demorou demais'))
       }, timeoutMs)
+      // Num degrau em diagonal a física do cliente pode pôr a caixa do bot dentro do bloco: o servidor devolve a
+      // posição a cada tick e o pathfinder repete o mesmo passo até o timeout. Sem progresso, desiste cedo.
+      let streak = 0
+      let anchor = null
+      let last = 0
+      onForcedMove = () => {
+        const position = this.bot.entity?.position
+        const now = Date.now()
+        if (!position) return
+        if (!anchor || now - last > 500 || position.distanceTo(anchor) > 0.5) { anchor = position.clone(); streak = 0 }
+        last = now
+        if (++streak < GOTO_REJECTED_MOVES) return
+        this.bot.pathfinder.setGoal(null)
+        reject(new Error('servidor rejeitou o movimento'))
+      }
+      this.bot.on?.('forcedMove', onForcedMove)
     })
     try {
       await Promise.race([this.bot.pathfinder.goto(goal), timeout])
     } finally {
       clearTimeout(timer)
+      this.bot.removeListener?.('forcedMove', onForcedMove)
     }
   }
 

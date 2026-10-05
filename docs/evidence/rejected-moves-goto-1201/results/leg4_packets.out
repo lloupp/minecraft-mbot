@@ -1,0 +1,42 @@
+(node:3153) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+SENT
+look {"x":-2.5,"y":74,"z":-211.5,"yaw":-44.97885513305664,"pitch":0,"onGround":true,"tick":40,"flags":{"onGround":true,"hasHorizontalCollision":f
+position {"x":-2.4099478138005486,"y":74,"z":-211.409881319782,"yaw":-44.97885513305664,"pitch":0,"onGround":true,"tick":40,"flags":{"onGround":true,
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":true,"tick":56,"flags":{"onGround":true,"hasHorizonta
+position_look {"x":-2.2083115163397116,"y":74,"z":-211.1060338725473,"yaw":-49.47885513305664,"pitch":0,"onGround":true,"tick":57,"flags":{"onGround":true
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-49.47885513305664,"pitch":0,"onGround":false,"tick":58,"flags":{"onGround":false,"hasHorizon
+position_look {"x":-2.2806309642910882,"y":74,"z":-211.25400275467118,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":58,"flags":{"onGround":fa
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":59,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":59,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":60,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":60,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":61,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":61,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":62,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":62,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":63,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":63,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":64,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":64,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":65,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":65,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":66,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":66,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":67,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":67,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":68,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":68,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":69,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":69,"flags":{"onGround":fals
+position_look {"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":70,"flags":{"onGround":false,"hasHorizon
+position {"x":-2.281662310478138,"y":74,"z":-211.2528671775714,"yaw":-46.02885437011719,"pitch":0,"onGround":false,"tick":70,"flags":{"onGround":fals
+RECV
+{"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-49.47885513305664,"pitch":0,"flags":0,"teleportId":3}
+{"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"flags":0,"teleportId":4}
+{"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"flags":0,"teleportId":5}
+{"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"flags":0,"teleportId":6}
+{"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"flags":0,"teleportId":7}
+{"x":-2.3,"y":74,"z":-211.27055784016497,"yaw":-46.02885437011719,"pitch":0,"flags":0,"teleportId":8}
+posPackets 76 physicsTicks 80
+trial 0 timeout30 4001 ms end [ -2.3, 74, -211.3 ] trace [{"p":[-2.3,74,-211.3],"g":false,"v":[0,0,0],"c":"","here":"air","ph":true}] upd success:32,success:32

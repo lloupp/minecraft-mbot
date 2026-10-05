@@ -1,0 +1,5 @@
+(node:3163) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+trial 0 rejected@2126-2.3,74,-211.3 total 2126 end [ -2.3, 74, -211.3 ]
+trial 1 rejected@2117-2.3,74,-211.3 total 2117 end [ -2.3, 74, -211.3 ]
+trial 2 rejected@2123-2.3,74,-211.3 total 2123 end [ -2.3, 74, -211.3 ]

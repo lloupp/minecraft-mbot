@@ -1,0 +1,9 @@
+round 1 zombie=n  01:ARMED
+round 2 zombie=y  01:ARMED{'PLAYER_LOOP_PREEMPTED': 1, 'TARGET_BLOCKED': 1}
+round 3 zombie=n  01:ARMED
+round 4 zombie=y  01:ARMED{'THREAT': 1}
+round 5 zombie=n  01:ARMED
+round 6 zombie=y  01:no{'THREAT': 1, 'PLAYER_LOOP_PREEMPTED': 1}
+{'staging.start': 1}
+max backoff ms 1717
+rejects Counter()
