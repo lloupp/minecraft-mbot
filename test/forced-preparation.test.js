@@ -880,3 +880,105 @@ test('clearStandingCell picks the side cell whose eye ray reaches the trunk (low
   delete bot.world
   assert.equal(clearStandingCell(bot, target), null)             // sem raycast: comportamento anterior
 })
+
+function withBootstrap(fn) {
+  const previous = process.env.MBOT_PREPARATION_BOOTSTRAP
+  process.env.MBOT_PREPARATION_BOOTSTRAP = '1'
+  return Promise.resolve().then(fn).finally(() => {
+    if (previous === undefined) delete process.env.MBOT_PREPARATION_BOOTSTRAP
+    else process.env.MBOT_PREPARATION_BOOTSTRAP = previous
+  })
+}
+
+// Mundo sem mesa: 3 troncos aprovados ao alcance, chão sólido em y=63.
+function bootstrapWorld() {
+  const logs = [new Vec3(2, 64, 0), new Vec3(2, 65, 0), new Vec3(2, 66, 0)]
+  const stones = [new Vec3(-2, 64, 0), new Vec3(0, 64, -2)]
+  const placed = new Map()
+  const items = []
+  const add = (name, n) => { const it = items.find(i => i.name === name); if (it) it.count += n; else items.push({ name, count: n }) }
+  const take = (name, n) => { const it = items.find(i => i.name === name); it.count -= n; if (it.count <= 0) items.splice(items.indexOf(it), 1) }
+  const bot = unarmedBot()
+  bot.inventory.items = () => items
+  bot.blockAt = p => {
+    if (placed.has(p.toString())) return { name: placed.get(p.toString()), position: p, boundingBox: 'block' }
+    if (logs.some(l => l.equals(p))) return { name: 'oak_log', position: p, boundingBox: 'block' }
+    if (stones.some(l => l.equals(p))) return { name: 'stone', position: p, boundingBox: 'block' }
+    if (p.y <= 63) return { name: 'grass_block', position: p, boundingBox: 'block' }
+    return { name: 'air', position: p, boundingBox: 'empty' }
+  }
+  bot.canDigBlock = () => true
+  bot.canSeeBlock = () => true
+  bot.equip = async () => {}
+  bot.placeBlock = async (below) => { placed.set(below.position.offset(0, 1, 0).toString(), 'crafting_table'); take('crafting_table', 1) }
+  let table = null
+  const crafted = []
+  const recipes = {
+    oak_planks: { out: 4, needs: { oak_log: 1 } }, crafting_table: { out: 1, needs: { oak_planks: 4 } },
+    stick: { out: 4, needs: { oak_planks: 2 } }, wooden_pickaxe: { out: 1, needs: { oak_planks: 3, stick: 2 }, table: true }
+  }
+  const production = {
+    cachedCraftingTable: () => table,
+    rememberCraftingTable: (_bot, block) => { table = block; return block },
+    craftInternal: async (_bot, name, quantity, _d, _t, execution) => {
+      assert.equal(execution.localOnly, true)
+      const r = recipes[name]
+      if (r.table && !table) throw new Error('NEARBY_TABLE_REQUIRED')
+      const runs = Math.ceil(quantity / r.out)
+      for (const [k, v] of Object.entries(r.needs)) take(k, v * runs)
+      add(name, r.out * runs)
+      crafted.push(name)
+    }
+  }
+  const approved = (only = logs) => [...only.map(p => ({ x: p.x, y: p.y, z: p.z, name: 'oak_log' })), ...stones.map(p => ({ x: p.x, y: p.y, z: p.z, name: 'stone' }))]
+  return { bot, items, logs, production, crafted, add, placed, approved }
+}
+
+test('bootstrap (opt-in): sem mesa, a coleta forçada faz tábuas, coloca a mesa ao lado e faz picareta de madeira', () => withBootstrap(async () => {
+  const { bot, items, production, crafted, add, placed, approved } = bootstrapWorld()
+  const original = gather.mineBlocks
+  const mined = []
+  gather.mineBlocks = async (_bot, _pred, quantity, _stopped, options) => {
+    const wood = [...options.allowedPositions].filter(k => k.startsWith('(2, '))
+    for (let i = 0; i < quantity; i++) { mined.push(wood[i]); add('oak_log', 1) }
+    return quantity
+  }
+  try {
+    const allowedTargets = approved()
+    const state = { health: 20, food: 20, inventory: {}, craftable: [], nearby: { wood: true, stone: true }, objective: { type: 'explore' }, threat: null }
+    const preflight = preparationIntegrationPreflight({ bot, production, state: { ...state, nearby: { wood: true, stone: true } }, allowedTargets })
+    assert.equal(preflight.ok, true)
+    assert.equal(preflight.bootstrap, true)
+    assert.equal(preflight.requiredTargets, 3)
+    const result = await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, production, allowedTargets })
+    assert.equal(result.ok, true, JSON.stringify(result.code))
+    assert.equal(result.bootstrap, true)
+    assert.deepEqual(mined, ['(2, 64, 0)', '(2, 65, 0)', '(2, 66, 0)'])
+    assert.ok(crafted.includes('crafting_table') && crafted.includes('wooden_pickaxe'), crafted.join(','))
+    assert.equal([...placed.values()][0], 'crafting_table')
+    assert.ok(production.cachedCraftingTable())
+    assert.ok(items.some(i => i.name === 'wooden_pickaxe'))
+    assert.ok(result.steps.some(s => s.task === 'place' && s.inventoryConfirmed))
+  } finally { gather.mineBlocks = original }
+}))
+
+test('bootstrap desligado: sem mesa continua NEARBY_TABLE_REQUIRED (comportamento anterior)', async () => {
+  const { bot, production, approved } = bootstrapWorld()
+  const allowedTargets = approved()
+  const state = { health: 20, food: 20, inventory: {}, craftable: [], nearby: { wood: true, stone: true }, objective: { type: 'explore' }, threat: null }
+  assert.equal(preparationIntegrationPreflight({ bot, production, state, allowedTargets }).code, 'NEARBY_TABLE_REQUIRED')
+  assert.equal((await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, production, allowedTargets })).code, 'NEARBY_TABLE_REQUIRED')
+})
+
+test('bootstrap: madeira aprovada insuficiente é recusada antes de cavar; ameaça interrompe', () => withBootstrap(async () => {
+  const { bot, logs, production, approved } = bootstrapWorld()
+  bot.dig = () => { throw new Error('must not dig') }
+  const one = approved([logs[0]])
+  const refused = await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, production, allowedTargets: one })
+  assert.equal(refused.code, 'APPROVED_TARGETS_INSUFFICIENT')
+  bot.entities = { z: { name: 'zombie', type: 'hostile', position: new Vec3(3, 64, 0) } }
+  bot.nearestEntity = (match) => Object.values(bot.entities).find(match) || null
+  const threatened = await executePreparationStep({ enabled: true, bot, task: { type: 'explorar' }, production, allowedTargets: approved() })
+  assert.equal(threatened.ok, false)
+  assert.ok(['THREAT', 'NO_PREPARATION_INTENT'].includes(threatened.code), threatened.code)
+}))
