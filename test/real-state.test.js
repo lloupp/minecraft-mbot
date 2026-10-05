@@ -162,3 +162,17 @@ test('nearbySignals devolve a distância mínima mesmo quando todos os sinais j�
   assert.equal(out.wood && out.stone && out.iron && out.food, true)
   assert.equal(out.woodDistance, 2) // a tora a 2 blocos, não a primeira da varredura
 })
+
+test('ameaça ignora neutros não provocados longe (aranha de dia, enderman); de noite ou perto a aranha conta', () => {
+  const at = (x) => new Vec3(x, 64, 0)
+  const spider = { name: 'spider', type: 'hostile', position: at(14) }
+  const enderman = { name: 'enderman', type: 'hostile', position: at(8) }
+  const zombie = { name: 'zombie', type: 'hostile', position: at(12) }
+  const snap = (entities, timeOfDay) => realStateSnapshot(fakeBot({ entities, timeOfDay }), { type: 'explorar' }, { homeProvider: () => null }).threat
+  assert.equal(snap({ spider }, 6000), null)
+  assert.equal(snap({ enderman }, 6000), null)
+  assert.equal(snap({ enderman }, 18000), null)
+  assert.equal(snap({ spider }, 18000).type, 'spider')                       // noite: hostil
+  assert.equal(snap({ spider: { ...spider, position: at(2) } }, 6000).type, 'spider')  // colada: conta
+  assert.equal(snap({ spider, zombie }, 6000).type, 'zombie')                // zumbi continua ameaça
+})
