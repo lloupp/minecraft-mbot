@@ -43,6 +43,8 @@ const PREPARATION_STAGING_SAFETY_POLL_MS = 100
 const EXPLORE_FAR_MARGIN = 32
 // Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
 const GOTO_REJECTED_MOVES = 40
+// Falhas de movimento que significam "não deu para chegar daqui" (e não cancelamento/troca de dono).
+const UNREACHED_MOVE = /No path to the goal|caminho demorou demais|Took to long to decide path|servidor rejeitou o movimento/
 const PHYSICAL_PREPARATION_REFUSALS = new Set(['TARGET_BLOCKED', 'APPROVED_TARGETS_INSUFFICIENT', 'MINING_PICKAXE_REQUIRED', 'COBBLESTONE_DROP_REQUIRED', 'NEARBY_TABLE_REQUIRED'])
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
@@ -1895,7 +1897,7 @@ class WorkerController {
       } catch (err) {
         // Explorador do player loop num buraco natural (sem cavar e sem blocos para subir): toda perna dá
         // "No path" e ele só sai morrendo. Uma única nova tentativa da mesma perna podendo cavar (curral protegido).
-        if (!digEscape || isCancelled() || !/No path to the goal/.test(err?.message || '')) throw err
+        if (!digEscape || isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) throw err
         await this.goToWithDigging(goal, 20000)
         if (!isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (nem cavando)')
       }
@@ -1921,6 +1923,9 @@ class WorkerController {
     const escape = new Movements(this.bot)
     escape.canDig = true
     escape.allow1by1towers = true
+    // Visto no Minecraft: o primeiro nó do caminho era um pulo de parkour que o bot não acerta; o pathfinder
+    // reseta por "stuck" e replaneja o mesmo pulo até o timeout. Na tentativa de escape não há parkour.
+    escape.allowParkour = false
     protectPenBlocks(escape, this.bot.registry)
     this.logger.log?.(`[colônia] ${this.name} sem caminho sem cavar; tentando uma vez cavando`)
     this.bot.pathfinder.setMovements(escape)
@@ -2014,7 +2019,11 @@ class WorkerController {
     if (!home) throw new Error('base da colônia ainda não definida')
     const timeoutMs = travelTimeoutMs(this.bot.entity?.position, home)
     const goal = new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3)
-    await this.goTo(goal, timeoutMs)
+    try {
+      await this.goTo(goal, timeoutMs)
+    } catch (err) {
+      if (!verify || isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) throw err
+    }
     // Player loop: o goto do mineflayer-pathfinder resolve como sucesso quando o caminho parcial é vazio (sem
     // progresso possível). Visto no Minecraft: 41 return_base "ok" seguidos sem o bot sair do lugar. Confere a chegada,
     // tenta uma vez podendo cavar e, se ainda não chegou, diz isso.

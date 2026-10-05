@@ -584,8 +584,8 @@ test('exploreTo do player loop tenta uma vez cavando quando não há caminho sem
   assert.equal(escapes, 1)
   await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false), /No path/)
   assert.equal(escapes, 1)
-  worker.goTo = async () => { throw new Error('caminho demorou demais') }   // outro erro: não cava
-  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true }), /demorou/)
+  worker.goTo = async () => { throw new Error('The goal was changed before it could be completed!') }   // troca de dono: não cava
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true }), /goal was changed/)
   worker.goTo = noPath                                                   // cancelado: não cava
   await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), /No path/)
   assert.equal(escapes, 1)
@@ -609,4 +609,18 @@ test('player loop: sucesso falso do pathfinder (resolve sem chegar) vira tentati
   // cavando chega: sucesso
   worker.goToWithDigging = async (goal) => { escapes++; bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
   assert.equal((await worker.returnHome(() => false, { verify: true })).ok, true)
+})
+
+test('player loop: timeout/pulo impossível também dispara a tentativa de escape (explore e returnHome)', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  worker.homeProvider = () => new Vec3(30, 64, 0)
+  worker.goTo = async () => { throw new Error('caminho demorou demais') }
+  let escapes = 0
+  worker.goToWithDigging = async (goal) => { escapes++; bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
+  assert.equal((await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true })).ok, true)
+  assert.equal((await worker.returnHome(() => false, { verify: true })).ok, true)
+  assert.equal(escapes, 2)
+  await assert.rejects(worker.returnHome(() => false), /demorou/)       // tarefa voltar: comportamento anterior
 })
