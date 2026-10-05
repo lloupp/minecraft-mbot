@@ -1754,7 +1754,8 @@ class WorkerController {
     const result = await this.approachRemembered(site.table, isCancelled, { radius: 2 })
     this.logger.log?.(`[world-memory] ${this.name} preparation_site table=(${site.table.x},${site.table.y},${site.table.z}) present=${result.present} code=${result.code || 'ok'}`)
     if (!result.present) return false
-    const live = this.bot.blockAt?.(site.table)
+    // A memória guarda pontos simples {x,y,z}; blockAt do mineflayer exige Vec3 (sem isso: 'pos.floored is not a function').
+    const live = this.bot.blockAt?.(new Vec3(site.table.x, site.table.y, site.table.z))
     if (live?.name === 'crafting_table') this.production?.rememberCraftingTable?.(this.bot, live)
     return true
   }

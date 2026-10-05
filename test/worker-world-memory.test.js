@@ -193,3 +193,15 @@ test('preparação: sítio lembrado só é aceito se a mesa existir de verdade a
   assert.equal(await worker.tryRememberedPreparationSite(never), true)
   assert.equal(worker.remembered.name, 'crafting_table')
 })
+
+test('preparação: sítio lembrado consulta o mundo com Vec3 (blockAt do mineflayer chama floored())', async () => {
+  const { worker, world, memory } = setup()
+  world.set('60,64,0', 'crafting_table'); world.set('62,64,3', 'oak_log'); world.set('58,64,-3', 'stone')
+  for (const [kind, x, z] of [['crafting_table', 60, 0], ['wood', 62, 3], ['stone', 58, -3]]) memory.discover(kind, 'overworld', { x, y: 64, z })
+  worker.production = { rememberCraftingTable: (_b, block) => { worker.remembered = block } }
+  const original = worker.bot.blockAt
+  worker.bot.blockAt = (p) => { p.floored(); return original(p) }   // como o mineflayer: ponto simples quebra aqui
+  worker.bot.entity.position = new Vec3(0, 64, 0)
+  assert.equal(await worker.tryRememberedPreparationSite(never), true)
+  assert.equal(worker.remembered.name, 'crafting_table')
+})
