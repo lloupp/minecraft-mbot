@@ -1451,7 +1451,7 @@ class WorkerController {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
     try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
-    const executed = action || (result?.returnedToBase ? 'return_base'
+    const executed = action || (result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
       : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
         : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
@@ -1507,6 +1507,29 @@ class WorkerController {
         return returned.ok
           ? { ok: true, returnedToBase: true, intent: choice, playerLoopPreparation: true, preparationSteps }
           : { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+      }
+
+      // Ameaça: fugir ou lutar vai para os executores determinísticos que já existem (flee / combat.fight).
+      // Sem isto o loop só devolvia PLAYER_LOOP_PREEMPTED e, sem dano para acionar o reflexo, ficava parado ao lado
+      // da ameaça (visto no Minecraft: 103 ciclos idênticos perto de uma aranha).
+      if ((choice === 'escape_danger' || choice === 'fight_threat') && state.threat) {
+        const threat = this.bot.nearestEntity?.((entity) => entity?.type === 'hostile' && entity.name === state.threat.type &&
+          entity.position?.distanceTo(this.bot.entity.position) <= FLEE_DISTANCE)
+        if (threat) {
+          if (!state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+            this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+          }
+          let outcome = 'fugi'
+          if (choice === 'fight_threat') {
+            outcome = await combat.fight(this.bot, threat, isCancelled)
+            if (outcome === 'recuei' && !isCancelled()) await this.flee(threat, isCancelled)
+          } else {
+            await this.flee(threat, isCancelled)
+          }
+          this.bot.pathfinder?.setGoal(null)
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+          return { ok: true, intent: choice, threatHandled: choice, combat: outcome, playerLoopPreparation: true, preparationSteps }
+        }
       }
 
       if (!['gather_materials', 'prepare_combat', 'equip_best_weapon'].includes(choice)) {

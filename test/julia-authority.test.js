@@ -262,3 +262,28 @@ test('player loop sem autoridade: comportamento determinístico idêntico (nenhu
     assert.equal(prepared, 1)
   }
 }))
+
+test('player loop: escolha da Julia sob ameaça (lutar x fugir) vai para os executores existentes', () => withFlags(async () => {
+  const combat = require('../lib/combat')
+  const original = combat.fight
+  for (const pick of ['fight_threat', 'escape_danger']) {
+    const { auth, rows } = authority(reply({ choice: pick }))
+    const worker = loopWorker(auth)
+    const zombie = { name: 'zombie', type: 'hostile', position: new Vec3(9, 64, 0), health: 20 }
+    worker.bot.heldItem = { name: 'stone_sword' }                       // armado: candidatos [fight_threat, escape_danger]
+    worker.bot.nearestEntity = (match) => (match(zombie) ? zombie : null)
+    worker.bot.entities = { 1: zombie }
+    worker.bot.pathfinder.setGoal = () => {}
+    const done = []
+    combat.fight = async () => { done.push('fight'); return 'morto' }
+    worker.flee = async () => { done.push('flee') }
+    try {
+      const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+      assert.equal(result.threatHandled, pick)
+      assert.deepEqual(done, [pick === 'fight_threat' ? 'fight' : 'flee'])
+      const decision = rows.find((r) => r.type === 'julia_authority_decision').data
+      assert.deepEqual(decision.candidates, ['fight_threat', 'escape_danger'])
+      assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, `threat:${pick}:${pick === 'fight_threat' ? 'morto' : 'fugi'}`)
+    } finally { combat.fight = original }
+  }
+}))

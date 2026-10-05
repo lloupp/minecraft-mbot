@@ -349,6 +349,8 @@ test('preparation site is not revisited while a threat persists, when stale, or 
   await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
   worker._preparationSite = { position: new Vec3(0, 64, 0), at: Date.now() }
   worker.bot.nearestEntity = () => ({ name: 'zombie', type: 'hostile', position: new Vec3(11, 64, 0), health: 20 })
+  worker.flee = async () => {}
+  worker.bot.pathfinder.setGoal = () => {}
   await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
   assert.deepEqual(goals, [])
   assert.ok(worker._preparationSite) // ameaça presente: local preservado até o TTL
@@ -466,9 +468,14 @@ test('threat before preparation remembers the site only when unarmed with resour
   const { worker } = integrationWorker()
   worker.explore = async () => assert.fail('must not explore while the threat preempts the loop')
   worker.bot.nearestEntity = () => ({ name: 'zombie', type: 'hostile', position: new Vec3(3, 64, 0), health: 20 })
+  const fled = []
+  worker.flee = async (threat) => { fled.push(threat.name) }
+  worker.bot.pathfinder.setGoal = () => {}
 
+  // Ameaça: o loop executa a fuga existente (antes só devolvia PLAYER_LOOP_PREEMPTED e ficava parado).
   const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
-  assert.equal(result.code, 'PLAYER_LOOP_PREEMPTED')
+  assert.equal(result.threatHandled, 'escape_danger')
+  assert.deepEqual(fled, ['zombie'])
   assert.deepEqual(worker._preparationSite.position, new Vec3(0, 64, 0))
 
   worker._preparationSite = null
