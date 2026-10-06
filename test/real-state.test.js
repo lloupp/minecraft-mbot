@@ -184,3 +184,27 @@ test('animal de comida visível a até 16 blocos conta como comida próxima', ()
   const far = realStateSnapshot(fakeBot({ entities: { c: cow(20) } }), { type: 'explorar' }, { homeProvider: () => null })
   assert.equal(far.nearby.food, false)
 })
+
+test('comida próxima segue o executor de comida (48 blocos, poupa os últimos animais salvo com fome extrema)', () => {
+  const cow = (id, x) => ({ id, name: 'cow', type: 'passive', position: new Vec3(x, 64, 0) })
+  const bot = (entities, food) => {
+    const b = fakeBot({ entities, food })
+    b.registry = { blocksByName: {} }
+    b.findBlock = () => null
+    b.nearestEntity = (match) => Object.values(entities).filter(match).sort((p, q) => p.position.x - q.position.x)[0] || null
+    return b
+  }
+  const herd = { a: cow(1, 40), b: cow(2, 41), c: cow(3, 42) }
+  assert.equal(realStateSnapshot(bot(herd, 8), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, true)
+  const pair = { a: cow(1, 40), b: cow(2, 41) }                            // só 2: poupados com fome moderada
+  assert.equal(realStateSnapshot(bot(pair, 8), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, false)
+  assert.equal(realStateSnapshot(bot(pair, 3), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, true)
+  assert.equal(realStateSnapshot(bot({ a: cow(1, 60), b: cow(2, 61), c: cow(3, 62) }, 8), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, false)
+})
+
+test('abrigo próximo: de noite, quando há lugar seguro para cavar; de dia não conta', () => {
+  const solid = (p) => ({ name: p.y <= 63 ? 'dirt' : 'air', boundingBox: p.y <= 63 ? 'block' : 'empty', position: p })
+  const at = (timeOfDay) => { const b = fakeBot({ timeOfDay }); b.blockAt = solid; return b }
+  assert.equal(realStateSnapshot(at(18000), { type: 'explorar' }, { homeProvider: () => null }).shelterNearby, true)
+  assert.equal(realStateSnapshot(at(6000), { type: 'explorar' }, { homeProvider: () => null }).shelterNearby, false)
+})

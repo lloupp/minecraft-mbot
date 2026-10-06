@@ -10,7 +10,8 @@ const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = r
 const { resolveBlockNames } = require('./resources')
 const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
-const { candidateIntents, deterministicPlayerPolicy } = require('../lib/player-loop')
+const { candidateIntents, deterministicPlayerPolicy, bestWeapon } = require('../lib/player-loop')
+const night = require('../lib/night')
 const { realStateSnapshot } = require('../lib/real-state')
 const worldObserver = require('../lib/world-observer')
 const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
@@ -1453,7 +1454,7 @@ class WorkerController {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
     try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
-    const executed = action || (result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
+    const executed = action || (result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
       : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
         : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
@@ -1532,6 +1533,27 @@ class WorkerController {
           if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
           return { ok: true, intent: choice, threatHandled: choice, combat: outcome, playerLoopPreparation: true, preparationSteps }
         }
+      }
+
+      // Arma carregada sob ameaça: o player loop só oferece equipar com a ameaça a ≥5 blocos. O executor de preparação
+      // recusa qualquer etapa com ameaça (SAFETY_PRECEDENCE) e a escolha válida não tinha efeito (r3: 10×). Equipar é uma
+      // única ação: feita aqui, confirmada na mão; a etapa de preparação continua recusando o resto sob ameaça.
+      if (choice === 'equip_best_weapon' && state.threat) {
+        const name = bestWeapon(state).name
+        const item = name && this.bot.inventory.items().find((i) => i.name === name)
+        if (item && !isCancelled()) await this.bot.equip(item, 'hand').catch(() => {})
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        const equipped = this.bot.heldItem?.name === name
+        return { ok: equipped, code: equipped ? null : 'EQUIP_NOT_CONFIRMED', intent: choice, equipped: equipped ? name : null, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Noite: abrigo/cama usa o executor que já existe (lib/night.js: dorme numa cama a ≤32 ou cava um abrigo de 3 blocos,
+      // tampa e espera o dia). Antes não havia executor: ficar parado na base a noite inteira (r3: 102×) e phantoms (6 mortes).
+      if (choice === 'sleep_or_shelter') {
+        const how = await night.spendNight(this.bot, isCancelled)
+          .catch((error) => { this.logger.log?.(`[colônia] ${this.name} noite: ${error.message}`); return null })
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        return { ok: Boolean(how), code: how ? null : 'SHELTER_FAILED', intent: choice, night: how, playerLoopPreparation: true, preparationSteps }
       }
 
       // Fome: procurar comida usa o executor de comida que já existe (caça/frutas/plantação ao alcance) e come.

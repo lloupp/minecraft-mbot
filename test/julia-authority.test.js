@@ -313,3 +313,37 @@ test('player loop: com fome, a escolha find_food da Julia caça com o executor d
     assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'find_food:got+ate')
   } finally { food.gatherFood = original }
 }))
+
+test('player loop: sleep_or_shelter executa a noite (lib/night) e equip sob ameaça equipa direto', () => withFlags(async () => {
+  const night = require('../lib/night')
+  const original = night.spendNight
+  try {
+    // noite, na base, desarmado e sem recursos: candidatos de noite; Julia escolhe abrigo
+    const { auth } = authority(async (_url, init) => {
+      const ids = JSON.parse(init.body).candidates.map((c) => c.id)
+      return reply({ choice: ids.includes('sleep_or_shelter') ? 'sleep_or_shelter' : ids[0] })()
+    })
+    const worker = loopWorker(auth)
+    worker.bot.time = { timeOfDay: 18000 }
+    worker.bot.entity.position = new Vec3(2, 64, 0)
+    worker.bot.inventory.items = () => [{ name: 'cobblestone', count: 2 }, { name: 'stick', count: 1 }]
+    worker.production.cachedCraftingTable = () => ({ position: new Vec3(1, 64, 1) })
+    worker.bot.blockAt = (p) => (p.x === 1 && p.y === 64 && p.z === 1 ? { name: 'crafting_table', position: p } : { name: 'air', position: p })
+    let nights = 0
+    night.spendNight = async () => { nights++; return 'abrigo' }
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(nights, 1, JSON.stringify(result))
+    assert.equal(result.night, 'abrigo')
+  } finally { night.spendNight = original }
+
+  const { auth } = authority(reply({ choice: 'equip_best_weapon' }))
+  const worker = loopWorker(auth)
+  const zombie = { name: 'zombie', type: 'hostile', position: new Vec3(13, 64, 0), health: 20 }
+  worker.bot.nearestEntity = (match) => (match(zombie) ? zombie : null)
+  worker.bot.entities = { 1: zombie }
+  worker.runDeterministicPreparation = async () => assert.fail('sob ameaça a etapa de preparação não roda')
+  worker.bot.equip = async (item) => { worker.bot.heldItem = item }
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(result.ok, true)
+  assert.equal(result.equipped, 'stone_sword')
+}))
