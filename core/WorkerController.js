@@ -12,6 +12,7 @@ const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
 const { candidateIntents, deterministicPlayerPolicy, bestWeapon } = require('../lib/player-loop')
 const night = require('../lib/night')
+const bedLib = require('../lib/bed')
 const { realStateSnapshot } = require('../lib/real-state')
 const worldObserver = require('../lib/world-observer')
 const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
@@ -42,6 +43,12 @@ const PREPARATION_SITE_MAX_DISTANCE = 16
 const PREPARATION_STAGING_MAX_DISTANCE = 8
 const PREPARATION_STAGING_SAFETY_POLL_MS = 100
 const EXPLORE_FAR_MARGIN = 32
+// À noite, a cama da base conta como abrigo até esta distância (o executor volta à base e dorme).
+const BASE_BED_TRAVEL = 64
+// Trabalhando sem sair de um raio de 2 blocos por tanto tempo (fora de abrigo/cama): registra o contexto e libera o
+// worker. Visto no Minecraft: 24 min parado num ponto do qual um bot de teste sai em 6 s, sem causa identificada.
+const NO_PROGRESS_MS = Number(process.env.MBOT_NO_PROGRESS_MS || 180000)
+const NO_PROGRESS_RADIUS = 2
 // Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
 const GOTO_REJECTED_MOVES = 40
 // Falhas de movimento que significam "não deu para chegar daqui" (e não cancelamento/troca de dono).
@@ -140,6 +147,11 @@ class WorkerController {
     this.lastHealth = null
     this.lastAttacker = null
     this.survivalTimer = null
+    this._baseBed = null           // posição da cama da base (vista ou colocada)
+    this._failedHunts = new Set()  // ovelhas que a caça não alcançou (não volta a oferecer as mesmas)
+    this._sheltered = false        // dentro do abrigo cavado (o vigia de progresso não conta)
+    this._progressAnchor = null
+    this._loopIntent = null
 
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
@@ -210,6 +222,29 @@ class WorkerController {
       return
     }
     if (this.bot.food <= HUNGRY && !this.bot.targetDigBlock) this.eat()
+    this.progressTick()
+  }
+
+  // Vigia genérico de falta de progresso: não decide nada sobre o jogo, só registra o que o worker fazia e o libera
+  // (cancel → ocioso; quem dá tarefas assume de novo, com estado novo).
+  progressTick(now = Date.now()) {
+    const position = this.bot.entity?.position
+    if (!position || this.state !== 'trabalhando' || this._sheltered || this.bot.isSleeping) {
+      this._progressAnchor = null
+      return false
+    }
+    if (!this._progressAnchor || position.distanceTo(this._progressAnchor.position) > NO_PROGRESS_RADIUS) {
+      this._progressAnchor = { position: position.clone(), at: now }
+      return false
+    }
+    if (now - this._progressAnchor.at < NO_PROGRESS_MS) return false
+    const goal = this.bot.pathfinder?.goal
+    this.logger.log?.(`[colônia] ${this.name} sem progresso ${Math.round((now - this._progressAnchor.at) / 60000)} min em ${position.floored()}: ` +
+      `tarefa=${this.currentTask?.type || '-'} intenção=${this._loopIntent || '-'} caminho=${goal ? goal.constructor?.name : 'nenhum'} ` +
+      `movendo=${Boolean(this.bot.pathfinder?.isMoving?.())} cavando=${Boolean(this.bot.targetDigBlock)} vida=${this.bot.health} fome=${this.bot.food}`)
+    this._progressAnchor = null
+    this.cancel()
+    return true
   }
 
   // Bloco sólido e cavável na altura dos olhos: o bot está sufocando.
@@ -1454,7 +1489,7 @@ class WorkerController {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
     try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
-    const executed = action || (result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
+    const executed = action || (result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
       : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
         : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
@@ -1490,10 +1525,12 @@ class WorkerController {
         deep: true
       })
       this.rememberedFoodHint(state)
+      this.bedFacts(state)
       const candidates = candidateIntents(state)
       const decision = await this._playerLoopChoice(state, candidates, isCancelled)
       if (decision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
       const choice = decision.choice
+      this._loopIntent = choice
       const authorizedIntent = decision.source === 'julia' ? choice : null
 
       if (choice === 'continue_objective') {
@@ -1552,10 +1589,25 @@ class WorkerController {
       // Noite: abrigo/cama usa o executor que já existe (lib/night.js: dorme numa cama a ≤32 ou cava um abrigo de 3 blocos,
       // tampa e espera o dia). Antes não havia executor: ficar parado na base a noite inteira (r3: 102×) e phantoms (6 mortes).
       if (choice === 'sleep_or_shelter') {
-        const how = await night.spendNight(this.bot, isCancelled)
+        // Cama da base fora do alcance do executor (32): volta à base primeiro (o mesmo retorno de return_base).
+        if (state.shelterKind === 'base_bed' && !night.findBed(this.bot)) {
+          const returned = await this.returnHome(isCancelled, { verify: true })
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+          if (!returned.ok) this.logger.log?.(`[colônia] ${this.name} noite: não cheguei à cama da base (${returned.code})`)
+        }
+        const how = await night.spendNight(this.bot, isCancelled, { onShelter: (inside) => { this._sheltered = inside } })
           .catch((error) => { this.logger.log?.(`[colônia] ${this.name} noite: ${error.message}`); return null })
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
         return { ok: Boolean(how), code: how ? null : 'SHELTER_FAILED', intent: choice, night: how, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Cama na base: lã (ovelha ou linha), fabricar, voltar à base, colocar e usar (ponto de renascimento / dormir).
+      if (choice === 'make_bed') {
+        const outcome = await this.makeBaseBed(isCancelled)
+          .catch((error) => ({ ok: false, step: 'error', error: error?.message || String(error) }))
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        if (outcome.error) this.logger.log?.(`[colônia] ${this.name} cama (${outcome.step}): ${outcome.error}`)
+        return { ok: outcome.ok, code: outcome.ok ? null : 'BED_FAILED', intent: choice, bed: outcome.step, error: outcome.error || null, playerLoopPreparation: true, preparationSteps }
       }
 
       // Fome: procurar comida usa o executor de comida que já existe (caça/frutas/plantação ao alcance) e come.
@@ -1709,6 +1761,7 @@ class WorkerController {
       deep: true
     })
     this.rememberedFoodHint(finalState)
+    this.bedFacts(finalState)
     const finalCandidates = candidateIntents(finalState)
     const finalDecision = await this._playerLoopChoice(finalState, finalCandidates, isCancelled)
     if (finalDecision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
@@ -1953,6 +2006,57 @@ class WorkerController {
     memory?.visit(dim, { x, z })
     this.observeWorld()
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
+  }
+
+  // Percepção da cama da base (só fatos do mundo): existe? há material? ovelha alcançável à vista? À noite, a cama da
+  // base a até BASE_BED_TRAVEL conta como abrigo executável.
+  bedFacts(state) {
+    const home = this.homeProvider?.()
+    if (!state || !home || !this.bot.entity?.position) return
+    let bed = null
+    try { bed = bedLib.findBedNear(this.bot, home) } catch { bed = null }
+    if (bed) this._baseBed = bed.position.clone()
+    else if (this._baseBed && this.bot.blockAt?.(this._baseBed)) this._baseBed = null // chunk carregado e a cama sumiu
+    state.baseHasBed = Boolean(this._baseBed)
+    try { state.bedMaterials = bedLib.hasBedMaterials(this.bot) } catch { state.bedMaterials = false }
+    const sheep = this.nearestSheep()
+    state.nearby = state.nearby || {}
+    state.nearby.sheep = Boolean(sheep)
+    state.nearby.sheepDistance = sheep ? Math.round(sheep.position.distanceTo(this.bot.entity.position)) : null
+    if (state.time === 'night' && state.baseHasBed && state.shelterKind !== 'bed' && Number(state.baseDistance) <= BASE_BED_TRAVEL) {
+      state.shelterKind = 'base_bed'
+      state.shelterNearby = true
+    }
+  }
+
+  nearestSheep() {
+    const position = this.bot.entity?.position
+    if (!position || typeof this.bot.nearestEntity !== 'function') return null
+    return this.bot.nearestEntity((e) => e?.name === 'sheep' && !this._failedHunts.has(e.id) && e.position?.distanceTo(position) <= 48) || null
+  }
+
+  async makeBaseBed(isCancelled) {
+    if (!bedLib.hasBedMaterials(this.bot)) {
+      const sheep = this.nearestSheep()
+      if (!sheep) return { ok: false, step: 'no_sheep' }
+      const before = bedLib.woolEquivalent(this.bot)
+      await food.hunt(this.bot, sheep, isCancelled).catch(() => false)
+      const gained = bedLib.woolEquivalent(this.bot) > before
+      if (!gained) this._failedHunts.add(sheep.id)
+      return { ok: gained, step: 'wool' }
+    }
+    const item = await bedLib.craftBed(this.bot, isCancelled)
+    if (isCancelled()) return { ok: false, step: 'cancelled' }
+    if (!item) return { ok: false, step: 'craft' }
+    const returned = await this.returnHome(isCancelled, { verify: true })
+    if (isCancelled()) return { ok: false, step: 'cancelled' }
+    if (!returned.ok) return { ok: false, step: 'return', error: returned.code || null }
+    const bed = await bedLib.placeBed(this.bot, isCancelled)
+    if (!bed) return { ok: false, step: 'place' }
+    this._baseBed = bed.position.clone()
+    this.logger.log?.(`[colônia] ${this.name} cama colocada na base em ${bed.position}`)
+    const used = await bedLib.useBed(this.bot, bed, isCancelled)
+    return { ok: true, step: `placed:${used}` }
   }
 
   // Com fome, sem comida e sem nada caçável a 48 blocos: um rebanho lembrado (WorldMemory, até 160) conta como comida

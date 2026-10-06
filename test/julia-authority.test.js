@@ -375,3 +375,22 @@ test('caça: animal além do alcance de luta (24) é abordado antes de lutar', a
   assert.equal(goals.length, 1)
   assert.ok(Math.abs(goals[0].x - 37) < 1 && Math.sqrt(goals[0].rangeSq) <= 3)
 })
+
+test('dataset: decisões com escolha real viram exemplos com a entrada vista, a escolha e o desfecho (inclui morte)', async () => {
+  const { auth, rows } = authority(reply({ choice: 'continue_objective' }))
+  await auth.decide({ state: { ...calmState, inventory: { stick: 1 } }, candidates: two, meta: { worker: 'w' } })
+  auth.settle('w', { action: 'explore', result: { ok: true }, nextState: { health: 12, food: 18, inventory: { stick: 1, oak_log: 2 } } })
+  await auth.decide({ state: calmState, candidates: [two[0]], meta: { worker: 'w' } })      // forçada: não entra
+  auth.settle('w', { action: 'x', result: { ok: true } })
+  const { examples } = require('../scripts/julia-authority-dataset')
+  const settledAt = Date.parse(rows.find((r) => r.type === 'julia_authority_cycle').data.settledAt) / 1000
+  const out = examples(rows, [settledAt + 60])
+  assert.equal(out.length, 1)
+  assert.deepEqual(out[0].input.candidates.map((c) => c.id), ['prepare_combat', 'continue_objective'])
+  assert.equal(out[0].input.state.health, 20)
+  assert.equal(out[0].choice, 'continue_objective')
+  assert.equal(out[0].outcome.healthDelta, -8)
+  assert.deepEqual(out[0].outcome.inventoryDelta, { oak_log: 2 })
+  assert.equal(out[0].outcome.diedDuringAction, false)
+  assert.equal(out[0].outcome.diedWithinWindow, true)
+})
