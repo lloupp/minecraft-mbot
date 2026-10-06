@@ -1,0 +1,85 @@
+{
+ "inicio": "16:26:10",
+ "fim": "16:56:08",
+ "duracao_min": 30.0,
+ "decisoes": 53,
+ "ciclos": 52,
+ "forcadas_candidato_unico": 46,
+ "julia_validas": 7,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "prepare_combat,continue_objective -> continue_objective": 5,
+  "prepare_combat,continue_objective -> prepare_combat": 1,
+  "find_food,return_base -> return_base": 1
+ },
+ "julia_divergiu_da_deterministica": 6,
+ "latencia_ms": {
+  "mediana": 391,
+  "p90": 553,
+  "max": 553
+ },
+ "acoes": {
+  "None": 33,
+  "explore": 12,
+  "threat:escape_danger:fugi": 4,
+  "preparation:gather_materials": 2,
+  "return_base": 1
+ },
+ "resultados": {
+  "ok": 16,
+  "ERROR": 15,
+  "NOT_ARRIVED": 9,
+  "CANCELLED": 6,
+  "TARGET_BLOCKED": 3,
+  "NOT_SETTLED": 2,
+  "none": 1
+ },
+ "erros_texto": {
+  "caminho demorou demais": 15
+ },
+ "itens_ganhos": {
+  "oak_planks": 3,
+  "cobblestone": 3,
+  "oak_log": 2,
+  "stick": 2,
+  "oak_sapling": 1,
+  "wooden_pickaxe": 1
+ },
+ "repeticoes_>=10_ciclos_identicos": [
+  "12x continue_objective -> ERROR"
+ ],
+ "mortes": 1,
+ "mortes_causas": {
+  "drowned": 1
+ },
+ "conexoes": {},
+ "acoes_fisicas": {
+  "dig": 10,
+  "move": 5,
+  "equip": 4,
+  "craft": 4
+ },
+ "crafts": {
+  "oak_planks": 2,
+  "stick": 1,
+  "wooden_pickaxe": 1
+ },
+ "combates_reflexo": {
+  "fugi": 9
+ },
+ "worldmemory": {
+  "discover": 100,
+  "explore": 28,
+  "explored": 13,
+  "suggest": 4,
+  "preparation_site": 2,
+  "missing": 1
+ },
+ "infra": [
+  "1791303913 bot_start_fresh"
+ ]
+}

@@ -1,0 +1,87 @@
+{
+ "inicio": "14:08:14",
+ "fim": "14:23:04",
+ "duracao_min": 14.8,
+ "decisoes": 39,
+ "ciclos": 39,
+ "forcadas_candidato_unico": 34,
+ "julia_validas": 5,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "continue_objective,return_base -> continue_objective": 2,
+  "find_food,return_base -> return_base": 2,
+  "prepare_combat,continue_objective -> prepare_combat": 1
+ },
+ "julia_divergiu_da_deterministica": 2,
+ "latencia_ms": {
+  "mediana": 539,
+  "p90": 2873,
+  "max": 2873
+ },
+ "acoes": {
+  "explore": 21,
+  "return_base": 7,
+  "threat:escape_danger:fugi": 4,
+  "find_food": 3,
+  "preparation:gather_materials": 2,
+  "preparation:prepare_combat": 1,
+  "None": 1
+ },
+ "resultados": {
+  "ok": 37,
+  "TARGET_BLOCKED": 1,
+  "none": 1
+ },
+ "erros_texto": {},
+ "itens_ganhos": {
+  "oak_planks": 3,
+  "stick": 2,
+  "wooden_pickaxe": 2,
+  "cobblestone": 2,
+  "white_wool": 2,
+  "mutton": 2,
+  "beef": 2,
+  "oak_log": 1,
+  "stone_sword": 1,
+  "leather": 1
+ },
+ "repeticoes_>=10_ciclos_identicos": [
+  "11x continue_objective -> None"
+ ],
+ "mortes": 1,
+ "mortes_causas": {
+  "was blown up by Creeper": 1
+ },
+ "conexoes": {},
+ "acoes_fisicas": {
+  "dig": 5,
+  "craft": 5,
+  "equip": 4,
+  "move": 2
+ },
+ "crafts": {
+  "oak_planks": 2,
+  "stick": 1,
+  "wooden_pickaxe": 1,
+  "stone_sword": 1
+ },
+ "combates_reflexo": {
+  "recuei": 1,
+  "fugi": 5
+ },
+ "worldmemory": {
+  "discover": 137,
+  "explore": 22,
+  "explored": 21,
+  "suggest": 4,
+  "food": 3,
+  "missing": 1
+ },
+ "infra": [
+  "1791295631 bot_start_fresh"
+ ]
+}

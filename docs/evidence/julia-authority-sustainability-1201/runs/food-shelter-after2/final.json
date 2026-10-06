@@ -1,0 +1,66 @@
+{
+ "inicio": "13:13:23",
+ "fim": "13:23:51",
+ "duracao_min": 10.5,
+ "decisoes": 94,
+ "ciclos": 94,
+ "forcadas_candidato_unico": 93,
+ "julia_validas": 1,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "return_base,sleep_or_shelter -> return_base": 1
+ },
+ "julia_divergiu_da_deterministica": 0,
+ "latencia_ms": {
+  "mediana": 533,
+  "p90": 533,
+  "max": 533
+ },
+ "acoes": {
+  "night:failed": 84,
+  "threat:escape_danger:fugi": 5,
+  "return_base": 2,
+  "None": 2,
+  "explore": 1
+ },
+ "resultados": {
+  "SHELTER_FAILED": 84,
+  "ok": 8,
+  "ERROR": 1,
+  "CANCELLED": 1
+ },
+ "erros_texto": {
+  "The goal was changed before it could be compl": 1
+ },
+ "itens_ganhos": {},
+ "repeticoes_>=10_ciclos_identicos": [
+  "60x sleep_or_shelter -> SHELTER_FAILED",
+  "24x sleep_or_shelter -> SHELTER_FAILED"
+ ],
+ "mortes": 1,
+ "mortes_causas": {
+  "was slain by Phantom": 1
+ },
+ "conexoes": {},
+ "acoes_fisicas": {},
+ "crafts": {},
+ "combates_reflexo": {
+  "não": 84,
+  "fugi": 4,
+  "cancelado": 1,
+  "recuei": 1
+ },
+ "worldmemory": {
+  "discover": 16,
+  "explored": 2,
+  "missing": 1,
+  "explore": 1
+ },
+ "infra": [
+  "1791292345 bot_start_fresh"
+ ]
+}
