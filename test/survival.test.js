@@ -179,3 +179,43 @@ test('abrigo só onde dá para tampar: pedra exige picareta, terra/grama saem co
   for (let x = -8; x <= 8; x++) for (let z = -8; z <= 8; z++) grass[new Vec3(x, 63, z).toString()] = 'grass_block'
   assert.ok(night.findShelterSpot(at(grass, [])))                                         // grama dá terra com a mão
 })
+
+test('sair do abrigo: espera a tampa cavada entrar no inventário antes de subir empilhando', async () => {
+  const items = [{ name: 'dirt', count: 2 }]
+  const lid = new Vec3(0, 70, 0), surface = new Vec3(0, 71, 0)
+  let lidPresent = true
+  const countsAtClimb = []
+  const bot = {
+    entity: { position: new Vec3(0.5, 68, 0.5) },
+    inventory: { items: () => items },
+    blockAt: (p) => {
+      if (p.equals(lid)) return { name: lidPresent ? 'dirt' : 'air', boundingBox: lidPresent ? 'block' : 'empty', position: p }
+      if (p.y <= 70) return { name: 'dirt', boundingBox: 'block', position: p }
+      return { name: 'air', boundingBox: 'empty', position: p }
+    },
+    dig: async () => { lidPresent = false; setTimeout(() => { items[0].count++ }, 300) },
+    pathfinder: { goto: async () => { countsAtClimb.push(items[0].count); bot.entity.position = new Vec3(1.5, 71, 0.5) }, setGoal: () => {} }
+  }
+  assert.equal(await night.leaveShelter(bot, lid, surface), true)
+  assert.deepEqual(countsAtClimb, [3])
+})
+
+test('tampa recusada pelo servidor (bot ainda caindo) é tentada de novo depois de pousar', async () => {
+  const ground = new Vec3(0, 70, 0)
+  const dug = new Set()
+  let attempts = 0
+  const bot = {
+    entity: { position: new Vec3(0.5, 71, 0.5), onGround: true },
+    inventory: { items: () => (dug.size ? [{ name: 'dirt', count: dug.size }] : []) },
+    blockAt: (p) => {
+      const solid = p.y < 71 && !dug.has(p.toString())
+      return { name: solid ? 'dirt' : 'air', boundingBox: solid ? 'block' : 'empty', position: p }
+    },
+    pathfinder: { bestHarvestTool: () => null },
+    equip: async () => {},
+    dig: async (block) => { dug.add(block.position.toString()); bot.entity.position = new Vec3(0.5, block.position.y, 0.5) },
+    placeBlock: async () => { attempts++; if (attempts === 1) throw new Error('Server refused to place dirt: the block is still air') }
+  }
+  assert.equal(String(await night.digShelter(bot, ground, () => false)), String(ground))
+  assert.equal(attempts, 2)
+})
