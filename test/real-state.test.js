@@ -195,16 +195,30 @@ test('comida próxima segue o executor de comida (48 blocos, poupa os últimos a
     return b
   }
   const herd = { a: cow(1, 40), b: cow(2, 41), c: cow(3, 42) }
-  assert.equal(realStateSnapshot(bot(herd, 8), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, true)
+  const deep = { homeProvider: () => null, deep: true }
+  assert.equal(realStateSnapshot(bot(herd, 8), { type: 'explorar' }, deep).nearby.food, true)
   const pair = { a: cow(1, 40), b: cow(2, 41) }                            // só 2: poupados com fome moderada
-  assert.equal(realStateSnapshot(bot(pair, 8), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, false)
-  assert.equal(realStateSnapshot(bot(pair, 3), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, true)
-  assert.equal(realStateSnapshot(bot({ a: cow(1, 60), b: cow(2, 61), c: cow(3, 62) }, 8), { type: 'explorar' }, { homeProvider: () => null }).nearby.food, false)
+  assert.equal(realStateSnapshot(bot(pair, 8), { type: 'explorar' }, deep).nearby.food, false)
+  assert.equal(realStateSnapshot(bot(pair, 3), { type: 'explorar' }, deep).nearby.food, true)
+  assert.equal(realStateSnapshot(bot({ a: cow(1, 60), b: cow(2, 61), c: cow(3, 62) }, 8), { type: 'explorar' }, deep).nearby.food, false)
 })
 
 test('abrigo próximo: de noite, quando há lugar seguro para cavar; de dia não conta', () => {
   const solid = (p) => ({ name: p.y <= 63 ? 'dirt' : 'air', boundingBox: p.y <= 63 ? 'block' : 'empty', position: p })
   const at = (timeOfDay) => { const b = fakeBot({ timeOfDay }); b.blockAt = solid; return b }
-  assert.equal(realStateSnapshot(at(18000), { type: 'explorar' }, { homeProvider: () => null }).shelterNearby, true)
-  assert.equal(realStateSnapshot(at(6000), { type: 'explorar' }, { homeProvider: () => null }).shelterNearby, false)
+  assert.equal(realStateSnapshot(at(18000), { type: 'explorar' }, { homeProvider: () => null, deep: true }).shelterNearby, true)
+  assert.equal(realStateSnapshot(at(6000), { type: 'explorar' }, { homeProvider: () => null, deep: true }).shelterNearby, false)
+})
+
+test('snapshot comum (monitor do executor, a cada 250 ms) não faz as buscas caras; só o de decisão (deep)', () => {
+  const b = fakeBot({ food: 3, timeOfDay: 18000 })
+  let scans = 0
+  b.findBlock = () => { scans++; return null }
+  b.blockAt = (p) => { scans++; return { name: 'air', boundingBox: 'empty', position: p } }
+  b.nearestEntity = () => { scans++; return null }
+  realStateSnapshot(b, { type: 'explorar' }, { homeProvider: () => null })
+  const cheap = scans
+  realStateSnapshot(b, { type: 'explorar' }, { homeProvider: () => null, deep: true })
+  assert.ok(scans > cheap)
+  assert.ok(cheap < 200, `snapshot comum fez ${cheap} consultas`)
 })

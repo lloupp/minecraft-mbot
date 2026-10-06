@@ -1486,7 +1486,8 @@ class WorkerController {
       const state = preparationStateSnapshot(this.bot, task, {
         homeProvider: this.homeProvider,
         allowedTargets,
-        isCancelled
+        isCancelled,
+        deep: true
       })
       this.rememberedFoodHint(state)
       const candidates = candidateIntents(state)
@@ -1704,8 +1705,10 @@ class WorkerController {
     const finalState = preparationStateSnapshot(this.bot, task, {
       homeProvider: this.homeProvider,
       allowedTargets: finalTargets,
-      isCancelled
+      isCancelled,
+      deep: true
     })
+    this.rememberedFoodHint(finalState)
     const finalCandidates = candidateIntents(finalState)
     const finalDecision = await this._playerLoopChoice(finalState, finalCandidates, isCancelled)
     if (finalDecision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
