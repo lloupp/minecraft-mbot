@@ -63,18 +63,20 @@ test('cama: lã equivalente conta 4 linhas por lã branca e exige 3 da mesma cor
   assert.equal(bed.hasBedMaterials(inventoryBot([['red_bed', 1]])), true)
 })
 
-test('cama: o lugar tem pé e cabeceira livres sobre chão firme, sem ocupar a célula do bot', () => {
+test('cama: pé e cabeceira livres sobre chão firme; a cabeceira segue a direção do bot até o pé', () => {
   const bot = {
     entity: { position: new Vec3(0.5, 64, 0.5) },
-    blockAt: (p) => (p.y <= 63 ? { name: 'dirt', boundingBox: 'block' } : p.x === 1 && p.z === 0 ? { name: 'stone', boundingBox: 'block' } : { name: 'air', boundingBox: 'empty' })
+    blockAt: (p) => (p.y <= 63 ? { name: 'dirt', boundingBox: 'block' } : p.x === 2 && p.z === 0 ? { name: 'stone', boundingBox: 'block' } : { name: 'air', boundingBox: 'empty' })
   }
   const spots = bed.bedSpots(bot)
   assert.ok(spots.length > 0)
   for (const { foot, head } of spots) {
     assert.equal(foot.distanceTo(head), 1)
-    assert.ok(!(foot.x === 1 && foot.z === 0) && !(head.x === 1 && head.z === 0))
-    assert.ok(!(head.x === 0 && head.z === 0 && head.y === 64))
+    assert.ok(!(foot.x === 2 && foot.z === 0) && !(head.x === 2 && head.z === 0))
+    const away = Math.abs(head.x) + Math.abs(head.z) > Math.abs(foot.x) + Math.abs(foot.z)
+    assert.ok(away, `cabeceira ${head} deveria ficar depois do pé ${foot} visto do bot`)
   }
+  assert.ok(!spots.some((s) => s.foot.x === 1 && s.foot.z === 0))       // cabeceira cairia na pedra
 })
 
 function bedWorker(choice) {
