@@ -1926,6 +1926,11 @@ class WorkerController {
     } catch (err) {
       // Rota que falha repetidamente vira evidência local (afasta destinos futuros), nunca ordem.
       if (memory && !isCancelled()) memory.markHazard('route_failed', dim, { x, y, z }, { by: this.name })
+      if (!isCancelled()) {
+        const from = this.bot.entity?.position
+        const ground = this.surfaceAt(x, z, y)
+        this.logger.log?.(`[colônia] ${this.name} perna falhou alvo=(${x},${y},${z}) dist=${from ? Math.round(from.distanceTo(new Vec3(x, y, z))) : '?'} chao=${ground.unknown ? 'desconhecido' : ground.ok ? ground.y : ground.reason} erro=${err?.message}`)
+      }
       throw err
     }
     if (isCancelled()) return { ok: false, cancelled: true }

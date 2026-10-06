@@ -167,3 +167,15 @@ test('autonomia aumenta backoff progressivamente e zera após sucesso', () => {
   assert.equal(autonomy.failures.has(goal.name), false)
   assert.equal(autonomy.blockedUntil.has(goal.name), false)
 })
+
+test('abrigo só onde dá para tampar: pedra exige picareta, terra/grama saem com a mão', () => {
+  const air = {}
+  for (let x = -8; x <= 8; x++) for (let z = -8; z <= 8; z++) for (let y = 64; y <= 66; y++) air[new Vec3(x, y, z).toString()] = 'air'
+  const at = (extra, items) => { const b = fakeBot({ blocks: { ...air, ...extra }, items }); b.entity = { position: new Vec3(0, 64, 0) }; return b }
+  assert.equal(night.findShelterSpot(at({}, [])), null)                                   // só pedra, sem picareta
+  assert.ok(night.findShelterSpot(at({}, [['wooden_pickaxe']])))                          // com picareta
+  assert.ok(night.findShelterSpot(at({}, [['dirt', 3]])))                                 // já tem a tampa
+  const grass = {}
+  for (let x = -8; x <= 8; x++) for (let z = -8; z <= 8; z++) grass[new Vec3(x, 63, z).toString()] = 'grass_block'
+  assert.ok(night.findShelterSpot(at(grass, [])))                                         // grama dá terra com a mão
+})

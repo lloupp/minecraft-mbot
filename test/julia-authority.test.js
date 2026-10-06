@@ -347,3 +347,19 @@ test('player loop: sleep_or_shelter executa a noite (lib/night) e equip sob amea
   assert.equal(result.ok, true)
   assert.equal(result.equipped, 'stone_sword')
 }))
+
+test('caça: animal além do alcance de luta (24) é abordado antes de lutar', async () => {
+  const food = require('../lib/food')
+  const { Vec3: V } = require('vec3')
+  const cows = [1, 2, 3].map((id) => ({ id, name: 'cow', type: 'passive', isValid: true, position: new V(36 + id, 64, 0) }))
+  const goals = []
+  const bot = {
+    food: 8, entity: { position: new V(0, 64, 0) }, entities: Object.fromEntries(cows.map((c) => [c.id, c])),
+    registry: { blocksByName: {} }, findBlock: () => null,
+    nearestEntity: (match) => cows.filter(match)[0] || null,
+    pathfinder: { goto: async (goal) => { goals.push(goal); cows[0].isValid = false }, setGoal: () => {} }
+  }
+  assert.equal(await food.gatherFood(bot, () => false), null)    // o alvo sumiu durante a aproximação: sem luta
+  assert.equal(goals.length, 1)
+  assert.ok(Math.abs(goals[0].x - 37) < 1 && Math.sqrt(goals[0].rangeSq) <= 3)
+})
