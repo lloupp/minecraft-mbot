@@ -33,51 +33,57 @@ aparecem somente no documento histórico, evitando vazar a escolha final da cons
 
 ## 1. Exportar um corpus
 
-Exemplo com três execuções já versionadas:
+Todo o histórico real versionado (deduplicado, IDs prefixados pelo run):
 
 ```bash
-node scripts/export-embedding-memory-corpus.js \
-  docs/evidence/julia-authority-sustainability-1201/runs/equip-threat/julia-authority.jsonl \
-  docs/evidence/julia-authority-sustainability-1201/runs/food-after/julia-authority.jsonl \
-  docs/evidence/julia-authority-sustainability-1201/runs/nav-post-r4/julia-authority.jsonl \
-  > /tmp/minecraft-experiences.json
+node scripts/export-embedding-memory-corpus.js --all-evidence > .data/corpus.json
+node scripts/export-embedding-memory-corpus.js --all-evidence --stats   # só estatísticas
 ```
 
-Também pode apontar para `.data/julia-authority.jsonl` após uma sessão física.
+Também aceita arquivos específicos, por exemplo `.data/julia-authority.jsonl` após uma sessão física.
+
+Cada episódio tem `query`/`document` e variantes de representação para ablação (`full`, `no_inventory`,
+`no_candidates`, `no_distances`, `compact`), além de `category`, `features` e `flags` de desfecho.
 
 ## 2. Rodar EmbeddingGemma 2 localmente
 
-Com `uv`:
-
 ```bash
-uv run scripts/embeddinggemma2-memory-benchmark.py \
-  --corpus /tmp/minecraft-experiences.json \
-  --dimensions 256 \
-  --top-k 3 \
-  --output .data/embeddinggemma2-memory-results.json
+uv run scripts/embeddinggemma2-memory-benchmark.py --corpus .data/corpus.json --output-dir .data/bench
 ```
 
-O primeiro uso baixa o modelo `google/embeddinggemma-2`.
+O modelo roda em CPU, só com o encoder de texto. Os embeddings ficam em cache em `.data/embedding-memory/` (ignorado
+pelo Git). `--no-gemma` roda só os baselines.
 
-A configuração inicial usa:
+- `SearchQuery` para estados atuais e `Document` para experiências históricas;
+- encode único em 768d, com truncamento Matryoshka para 128/256/512/768 e renormalização;
+- só episódios com `settledAt < decidedAt` da query (nunca o próprio, futuros ou ações ainda em execução);
+- **somente decisões com 2+ candidatos na pontuação principal** (`--all-decisions` só para diagnóstico).
 
-- `SearchQuery` para estados atuais;
-- `Document` para experiências históricas;
-- vetores truncados para **256 dimensões**;
-- cosine similarity;
-- somente episódios anteriores ao episódio avaliado;
-- **somente decisões com 2+ candidatos na pontuação principal**.
-
-Episódios com um único candidato continuam disponíveis como memória histórica, mas não contam na métrica principal.
-Isso evita que decisões forçadas inflem artificialmente o resultado. Para diagnóstico, `--all-decisions` inclui tudo.
+Baselines: random, recência, rule match exato (ameaça, faixa de distância, vida, fome, objetivo, conjunto de candidatos),
+rule match + preferência por desfecho positivo, TF-IDF (ajustado só no passado permitido).
 
 ## Métricas
 
-- `semanticTop1SameAction`: top-1 recuperado tem a mesma ação do episódio atual;
-- `recencyTop1SameAction`: baseline — episódio imediatamente anterior tem a mesma ação;
-- `semanticUsefulAtK`: top-k contém experiência anterior bem-sucedida com a mesma ação;
-- `mrrSameAction`: posição média da primeira experiência com a mesma ação;
-- tempo de carregamento e geração dos embeddings.
+- `top1SameAction`, `hit@1/3/5`, `mrr`: proxy de "mesma ação";
+- `usefulAt3`: top-3 contém episódio com mesma ação e desfecho positivo;
+- `memoryUtilityAt3`: utilidade por resultado histórico, penalizando falhas, safety, cancelamentos, bloqueios, ações
+  indisponíveis e categorias diferentes (definição no script);
+- tudo também por categoria e por ação, com bootstrap pareado contra cada baseline e metade cronológica posterior
+  (held-out);
+- latência de busca, encode por query, RAM, tamanho do índice.
+
+Testes: `node --test test/embedding-memory-corpus.test.js` e `python -m unittest discover -s test/python`.
+
+## Resultado (2026-10-06)
+
+**NEUTRO.** Detalhes em `docs/evidence/embeddinggemma2-memory-1201/README.md`.
+
+291 decisões contestadas reais. Gemma 256d com representação compacta: top1 0.839 / useful@3 0.495 / utility@3 0.224.
+Recência: 0.536 / 0.330 / −0.247. TF-IDF: 0.777 / 0.450 / 0.107. Rule match + desfecho: 0.869 / 0.519 / 0.194.
+Gemma é claramente melhor que recência e TF-IDF, mas empata (ou perde levemente) com um rule match estruturado que
+custa ~2 ms e nenhum modelo. Com texto completo, o Gemma perde até para TF-IDF.
+
+Por isso o gate abaixo **não** foi cumprido e a integração online não foi construída.
 
 ## Gate para próxima fase
 
@@ -86,8 +92,8 @@ Não ligar a recuperação ao Julia ao vivo ainda.
 Avançar para **shadow online** somente se:
 
 1. houver número razoável de episódios reais e variados com 2+ candidatos;
-2. `semanticTop1SameAction` superar recência de forma material;
-3. `semanticUsefulAtK` mostrar recuperação útil em ameaça, fome, preparação e exploração;
+2. superar recência **e** os baselines baratos (rule match, TF-IDF) de forma material, com IC pareado fora de zero;
+3. `usefulAt3`/`memoryUtilityAt3` mostrarem recuperação útil em ameaça, fome, preparação e exploração;
 4. não houver vazamento de ação/resultado para a query;
 5. memória e latência forem aceitáveis no hardware alvo.
 

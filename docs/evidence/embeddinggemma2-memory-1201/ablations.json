@@ -1,0 +1,933 @@
+{
+  "executionAuthority": "none",
+  "evaluationMode": "contested_only",
+  "temporalRule": "retrievable = episodes with settledAt < query.decidedAt (excluding itself)",
+  "topK": 3,
+  "warmup": 3,
+  "evaluated": 291,
+  "skipped": {
+    "warmup": 3,
+    "forced": 1815
+  },
+  "episodes": 2109,
+  "dimensions": 256,
+  "indexSecondsPerVariant": {
+    "full": 0.02,
+    "no_inventory": 0.01,
+    "no_candidates": 0.02,
+    "no_distances": 0.04,
+    "compact": 0.04
+  },
+  "variants": {
+    "full": {
+      "gemma": {
+        "method": "gemma_256_full",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.6804,
+          "hit@1": 0.6804,
+          "hit@3": 0.8351,
+          "hit@5": 0.8729,
+          "mrr": 0.7655,
+          "usefulAt3": 0.4192,
+          "memoryUtilityAt3": -0.0687
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.2895,
+            "hit@1": 0.2895,
+            "hit@3": 0.7368,
+            "hit@5": 0.8421,
+            "mrr": 0.5139,
+            "usefulAt3": 0.6316,
+            "memoryUtilityAt3": -0.0482
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8077,
+            "hit@1": 0.8077,
+            "hit@3": 0.8077,
+            "hit@5": 0.8846,
+            "mrr": 0.8383,
+            "usefulAt3": 0.8077,
+            "memoryUtilityAt3": 0.3718
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.8043,
+            "hit@1": 0.8043,
+            "hit@3": 0.8841,
+            "hit@5": 0.8986,
+            "mrr": 0.8476,
+            "usefulAt3": 0.1232,
+            "memoryUtilityAt3": -0.3726
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.7561,
+            "hit@1": 0.7561,
+            "hit@3": 0.9268,
+            "hit@5": 0.9756,
+            "mrr": 0.8496,
+            "usefulAt3": 0.9268,
+            "memoryUtilityAt3": 0.5955
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.5,
+            "hit@1": 0.5,
+            "hit@3": 0.7083,
+            "hit@5": 0.7292,
+            "mrr": 0.6174,
+            "usefulAt3": 0.4583,
+            "memoryUtilityAt3": -0.0174
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.86,
+          "equip_best_weapon": 0.3889,
+          "escape_danger": 0.9444,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.4091,
+          "return_base": 0.8205,
+          "sleep_or_shelter": 1.0
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 0.358,
+          "p50": 0.327,
+          "p95": 0.578
+        }
+      },
+      "tfidf": {
+        "method": "tfidf_full",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.7732,
+          "hit@1": 0.7732,
+          "hit@3": 0.9038,
+          "hit@5": 0.9313,
+          "mrr": 0.8435,
+          "usefulAt3": 0.5052,
+          "memoryUtilityAt3": 0.0667
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.5,
+            "hit@1": 0.5,
+            "hit@3": 0.9211,
+            "hit@5": 0.9474,
+            "mrr": 0.7039,
+            "usefulAt3": 0.8684,
+            "memoryUtilityAt3": 0.2368
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8846,
+            "hit@1": 0.8846,
+            "hit@3": 0.9615,
+            "hit@5": 1.0,
+            "mrr": 0.9263,
+            "usefulAt3": 0.9231,
+            "memoryUtilityAt3": 0.5769
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.8333,
+            "hit@1": 0.8333,
+            "hit@3": 0.8913,
+            "hit@5": 0.9203,
+            "mrr": 0.8738,
+            "usefulAt3": 0.1594,
+            "memoryUtilityAt3": -0.2579
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.9024,
+            "hit@1": 0.9024,
+            "hit@3": 0.9756,
+            "hit@5": 0.9756,
+            "mrr": 0.9325,
+            "usefulAt3": 0.9756,
+            "memoryUtilityAt3": 0.6443
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.6458,
+            "hit@1": 0.6458,
+            "hit@3": 0.8333,
+            "hit@5": 0.875,
+            "mrr": 0.7458,
+            "usefulAt3": 0.5833,
+            "memoryUtilityAt3": 0.0955
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.9,
+          "equip_best_weapon": 0.7778,
+          "escape_danger": 0.8889,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.5455,
+          "return_base": 0.9487,
+          "sleep_or_shelter": 0.9902
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 53.887,
+          "p50": 51.599,
+          "p95": 86.047
+        }
+      }
+    },
+    "no_inventory": {
+      "gemma": {
+        "method": "gemma_256_no_inventory",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.7113,
+          "hit@1": 0.7113,
+          "hit@3": 0.8522,
+          "hit@5": 0.9003,
+          "mrr": 0.793,
+          "usefulAt3": 0.4536,
+          "memoryUtilityAt3": -0.0198
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.3947,
+            "hit@1": 0.3947,
+            "hit@3": 0.8158,
+            "hit@5": 0.9474,
+            "mrr": 0.6226,
+            "usefulAt3": 0.7632,
+            "memoryUtilityAt3": 0.0526
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8077,
+            "hit@1": 0.8077,
+            "hit@3": 0.8846,
+            "hit@5": 0.9231,
+            "mrr": 0.8607,
+            "usefulAt3": 0.8462,
+            "memoryUtilityAt3": 0.4038
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.8043,
+            "hit@1": 0.8043,
+            "hit@3": 0.8768,
+            "hit@5": 0.9058,
+            "mrr": 0.8486,
+            "usefulAt3": 0.1377,
+            "memoryUtilityAt3": -0.3388
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.8293,
+            "hit@1": 0.8293,
+            "hit@3": 0.9268,
+            "hit@5": 0.9756,
+            "mrr": 0.8858,
+            "usefulAt3": 0.9268,
+            "memoryUtilityAt3": 0.6301
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.5417,
+            "hit@1": 0.5417,
+            "hit@3": 0.7292,
+            "hit@5": 0.7708,
+            "mrr": 0.6524,
+            "usefulAt3": 0.5,
+            "memoryUtilityAt3": 0.0556
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.92,
+          "equip_best_weapon": 0.3889,
+          "escape_danger": 1.0,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.3182,
+          "return_base": 0.859,
+          "sleep_or_shelter": 1.0
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 0.396,
+          "p50": 0.359,
+          "p95": 0.613
+        }
+      },
+      "tfidf": {
+        "method": "tfidf_no_inventory",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.7732,
+          "hit@1": 0.7732,
+          "hit@3": 0.9003,
+          "hit@5": 0.945,
+          "mrr": 0.8422,
+          "usefulAt3": 0.4948,
+          "memoryUtilityAt3": 0.0584
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.4474,
+            "hit@1": 0.4474,
+            "hit@3": 0.8684,
+            "hit@5": 0.9474,
+            "mrr": 0.6456,
+            "usefulAt3": 0.8158,
+            "memoryUtilityAt3": 0.136
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8846,
+            "hit@1": 0.8846,
+            "hit@3": 0.9615,
+            "hit@5": 0.9615,
+            "mrr": 0.9145,
+            "usefulAt3": 0.9615,
+            "memoryUtilityAt3": 0.625
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.8478,
+            "hit@1": 0.8478,
+            "hit@3": 0.9058,
+            "hit@5": 0.942,
+            "mrr": 0.8872,
+            "usefulAt3": 0.1739,
+            "memoryUtilityAt3": -0.2572
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.9024,
+            "hit@1": 0.9024,
+            "hit@3": 0.9512,
+            "hit@5": 0.9756,
+            "mrr": 0.9266,
+            "usefulAt3": 0.9512,
+            "memoryUtilityAt3": 0.6341
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.6458,
+            "hit@1": 0.6458,
+            "hit@3": 0.8333,
+            "hit@5": 0.9167,
+            "mrr": 0.7571,
+            "usefulAt3": 0.5208,
+            "memoryUtilityAt3": 0.1059
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.98,
+          "equip_best_weapon": 0.6667,
+          "escape_danger": 0.9444,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.5,
+          "return_base": 0.9103,
+          "sleep_or_shelter": 0.9902
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 50.256,
+          "p50": 48.736,
+          "p95": 77.587
+        }
+      }
+    },
+    "no_candidates": {
+      "gemma": {
+        "method": "gemma_256_no_candidates",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.3024,
+          "hit@1": 0.3024,
+          "hit@3": 0.5601,
+          "hit@5": 0.6289,
+          "mrr": 0.4754,
+          "usefulAt3": 0.3265,
+          "memoryUtilityAt3": -0.1458
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.2632,
+            "hit@1": 0.2632,
+            "hit@3": 0.4737,
+            "hit@5": 0.6842,
+            "mrr": 0.4312,
+            "usefulAt3": 0.4474,
+            "memoryUtilityAt3": -0.1996
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8077,
+            "hit@1": 0.8077,
+            "hit@3": 0.8077,
+            "hit@5": 0.8846,
+            "mrr": 0.8386,
+            "usefulAt3": 0.7692,
+            "memoryUtilityAt3": 0.4103
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.1087,
+            "hit@1": 0.1087,
+            "hit@3": 0.471,
+            "hit@5": 0.4855,
+            "mrr": 0.3407,
+            "usefulAt3": 0.0942,
+            "memoryUtilityAt3": -0.2965
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.3902,
+            "hit@1": 0.3902,
+            "hit@3": 0.6585,
+            "hit@5": 0.7561,
+            "mrr": 0.5557,
+            "usefulAt3": 0.6341,
+            "memoryUtilityAt3": 0.0528
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.5417,
+            "hit@1": 0.5417,
+            "hit@3": 0.6667,
+            "hit@5": 0.75,
+            "mrr": 0.6325,
+            "usefulAt3": 0.3958,
+            "memoryUtilityAt3": -0.1406
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.82,
+          "equip_best_weapon": 0.4444,
+          "escape_danger": 0.7778,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.3182,
+          "return_base": 0.5513,
+          "sleep_or_shelter": 0.4804
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 0.395,
+          "p50": 0.356,
+          "p95": 0.62
+        }
+      },
+      "tfidf": {
+        "method": "tfidf_no_candidates",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.5567,
+          "hit@1": 0.5567,
+          "hit@3": 0.7045,
+          "hit@5": 0.7595,
+          "mrr": 0.6489,
+          "usefulAt3": 0.3333,
+          "memoryUtilityAt3": -0.1738
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.4474,
+            "hit@1": 0.4474,
+            "hit@3": 0.6579,
+            "hit@5": 0.7105,
+            "mrr": 0.5681,
+            "usefulAt3": 0.6316,
+            "memoryUtilityAt3": 0.0855
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8077,
+            "hit@1": 0.8077,
+            "hit@3": 0.9231,
+            "hit@5": 1.0,
+            "mrr": 0.8699,
+            "usefulAt3": 0.8846,
+            "memoryUtilityAt3": 0.5256
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.6812,
+            "hit@1": 0.6812,
+            "hit@3": 0.8043,
+            "hit@5": 0.8188,
+            "mrr": 0.7548,
+            "usefulAt3": 0.1014,
+            "memoryUtilityAt3": -0.3665
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.2927,
+            "hit@1": 0.2927,
+            "hit@3": 0.439,
+            "hit@5": 0.6098,
+            "mrr": 0.4196,
+            "usefulAt3": 0.4146,
+            "memoryUtilityAt3": -0.2663
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.375,
+            "hit@1": 0.375,
+            "hit@3": 0.5625,
+            "hit@5": 0.625,
+            "mrr": 0.4846,
+            "usefulAt3": 0.3958,
+            "memoryUtilityAt3": -0.125
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.92,
+          "equip_best_weapon": 0.1667,
+          "escape_danger": 0.7778,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.0909,
+          "return_base": 0.5385,
+          "sleep_or_shelter": 0.951
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 52.062,
+          "p50": 49.425,
+          "p95": 80.837
+        }
+      }
+    },
+    "no_distances": {
+      "gemma": {
+        "method": "gemma_256_no_distances",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.6701,
+          "hit@1": 0.6701,
+          "hit@3": 0.8213,
+          "hit@5": 0.8557,
+          "mrr": 0.7571,
+          "usefulAt3": 0.4124,
+          "memoryUtilityAt3": -0.049
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.5,
+            "hit@1": 0.5,
+            "hit@3": 0.7895,
+            "hit@5": 0.8421,
+            "mrr": 0.6576,
+            "usefulAt3": 0.7105,
+            "memoryUtilityAt3": 0.1513
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8077,
+            "hit@1": 0.8077,
+            "hit@3": 0.8462,
+            "hit@5": 0.8462,
+            "mrr": 0.8403,
+            "usefulAt3": 0.8077,
+            "memoryUtilityAt3": 0.4295
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.7899,
+            "hit@1": 0.7899,
+            "hit@3": 0.8551,
+            "hit@5": 0.8841,
+            "mrr": 0.8323,
+            "usefulAt3": 0.1159,
+            "memoryUtilityAt3": -0.3484
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.5854,
+            "hit@1": 0.5854,
+            "hit@3": 0.9268,
+            "hit@5": 0.9268,
+            "mrr": 0.7545,
+            "usefulAt3": 0.878,
+            "memoryUtilityAt3": 0.4167
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.4583,
+            "hit@1": 0.4583,
+            "hit@3": 0.6458,
+            "hit@5": 0.7292,
+            "mrr": 0.5766,
+            "usefulAt3": 0.4167,
+            "memoryUtilityAt3": -0.0035
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.82,
+          "equip_best_weapon": 0.3889,
+          "escape_danger": 0.8333,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.3636,
+          "return_base": 0.8462,
+          "sleep_or_shelter": 0.9902
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 0.394,
+          "p50": 0.351,
+          "p95": 0.624
+        }
+      },
+      "tfidf": {
+        "method": "tfidf_no_distances",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.7526,
+          "hit@1": 0.7526,
+          "hit@3": 0.9038,
+          "hit@5": 0.9278,
+          "mrr": 0.8299,
+          "usefulAt3": 0.5017,
+          "memoryUtilityAt3": 0.0544
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.5789,
+            "hit@1": 0.5789,
+            "hit@3": 0.9474,
+            "hit@5": 0.9737,
+            "mrr": 0.7434,
+            "usefulAt3": 0.8947,
+            "memoryUtilityAt3": 0.3706
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8846,
+            "hit@1": 0.8846,
+            "hit@3": 0.8846,
+            "hit@5": 0.9615,
+            "mrr": 0.9087,
+            "usefulAt3": 0.8846,
+            "memoryUtilityAt3": 0.5994
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.8333,
+            "hit@1": 0.8333,
+            "hit@3": 0.9058,
+            "hit@5": 0.913,
+            "mrr": 0.8761,
+            "usefulAt3": 0.1739,
+            "memoryUtilityAt3": -0.2548
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.8293,
+            "hit@1": 0.8293,
+            "hit@3": 0.9512,
+            "hit@5": 0.9756,
+            "mrr": 0.8805,
+            "usefulAt3": 0.9268,
+            "memoryUtilityAt3": 0.5122
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.5208,
+            "hit@1": 0.5208,
+            "hit@3": 0.8333,
+            "hit@5": 0.875,
+            "mrr": 0.6795,
+            "usefulAt3": 0.5625,
+            "memoryUtilityAt3": 0.0069
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.9,
+          "equip_best_weapon": 0.7222,
+          "escape_danger": 0.8889,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.6364,
+          "return_base": 0.9359,
+          "sleep_or_shelter": 0.9902
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 50.143,
+          "p50": 47.025,
+          "p95": 73.913
+        }
+      }
+    },
+    "compact": {
+      "gemma": {
+        "method": "gemma_256_compact",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.8385,
+          "hit@1": 0.8385,
+          "hit@3": 0.8797,
+          "hit@5": 0.9347,
+          "mrr": 0.871,
+          "usefulAt3": 0.4948,
+          "memoryUtilityAt3": 0.2239
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.9211,
+            "hit@1": 0.9211,
+            "hit@3": 0.9737,
+            "hit@5": 0.9737,
+            "mrr": 0.943,
+            "usefulAt3": 0.9474,
+            "memoryUtilityAt3": 0.6535
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.8077,
+            "hit@1": 0.8077,
+            "hit@3": 0.8846,
+            "hit@5": 0.9615,
+            "mrr": 0.8597,
+            "usefulAt3": 0.8846,
+            "memoryUtilityAt3": 0.8109
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.8551,
+            "hit@1": 0.8551,
+            "hit@3": 0.8696,
+            "hit@5": 0.9275,
+            "mrr": 0.8773,
+            "usefulAt3": 0.1304,
+            "memoryUtilityAt3": -0.2705
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 0.9756,
+            "hit@1": 0.9756,
+            "hit@3": 0.9756,
+            "hit@5": 0.9756,
+            "mrr": 0.9757,
+            "usefulAt3": 0.9756,
+            "memoryUtilityAt3": 0.9268
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.625,
+            "hit@1": 0.625,
+            "hit@3": 0.75,
+            "hit@5": 0.875,
+            "mrr": 0.7126,
+            "usefulAt3": 0.5625,
+            "memoryUtilityAt3": 0.3872
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.68,
+          "equip_best_weapon": 0.6667,
+          "escape_danger": 1.0,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.5455,
+          "return_base": 0.9872,
+          "sleep_or_shelter": 1.0
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 0.361,
+          "p50": 0.342,
+          "p95": 0.569
+        }
+      },
+      "tfidf": {
+        "method": "tfidf_compact",
+        "overall": {
+          "n": 291,
+          "top1SameAction": 0.7766,
+          "hit@1": 0.7766,
+          "hit@3": 0.8729,
+          "hit@5": 0.9588,
+          "mrr": 0.8345,
+          "usefulAt3": 0.4502,
+          "memoryUtilityAt3": 0.1068
+        },
+        "byCategory": {
+          "FOOD": {
+            "n": 38,
+            "top1SameAction": 0.1053,
+            "hit@1": 0.1053,
+            "hit@3": 0.6316,
+            "hit@5": 0.9474,
+            "mrr": 0.3662,
+            "usefulAt3": 0.3421,
+            "memoryUtilityAt3": -0.318
+          },
+          "NAVIGATION": {
+            "n": 26,
+            "top1SameAction": 0.9231,
+            "hit@1": 0.9231,
+            "hit@3": 0.9231,
+            "hit@5": 0.9231,
+            "mrr": 0.9264,
+            "usefulAt3": 0.9231,
+            "memoryUtilityAt3": 0.8365
+          },
+          "PREPARATION": {
+            "n": 138,
+            "top1SameAction": 0.9058,
+            "hit@1": 0.9058,
+            "hit@3": 0.913,
+            "hit@5": 0.971,
+            "mrr": 0.9225,
+            "usefulAt3": 0.1812,
+            "memoryUtilityAt3": -0.2071
+          },
+          "SHELTER": {
+            "n": 41,
+            "top1SameAction": 1.0,
+            "hit@1": 1.0,
+            "hit@3": 1.0,
+            "hit@5": 1.0,
+            "mrr": 1.0,
+            "usefulAt3": 1.0,
+            "memoryUtilityAt3": 0.9878
+          },
+          "THREAT": {
+            "n": 48,
+            "top1SameAction": 0.6667,
+            "hit@1": 0.6667,
+            "hit@3": 0.8125,
+            "hit@5": 0.9167,
+            "mrr": 0.7613,
+            "usefulAt3": 0.5833,
+            "memoryUtilityAt3": 0.1979
+          }
+        },
+        "actionRecallAt3": {
+          "continue_objective": 0.82,
+          "equip_best_weapon": 0.8333,
+          "escape_danger": 0.9444,
+          "fight_threat": 0.0,
+          "find_food": 0.5,
+          "prepare_combat": 0.7273,
+          "return_base": 0.8205,
+          "sleep_or_shelter": 0.9804
+        },
+        "actionCounts": {
+          "continue_objective": 50,
+          "equip_best_weapon": 18,
+          "escape_danger": 18,
+          "fight_threat": 1,
+          "find_food": 2,
+          "prepare_combat": 22,
+          "return_base": 78,
+          "sleep_or_shelter": 102
+        },
+        "searchMs": {
+          "mean": 39.214,
+          "p50": 36.465,
+          "p95": 60.929
+        }
+      }
+    }
+  }
+}

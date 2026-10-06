@@ -1,0 +1,27 @@
+{
+  "os": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
+  "python": "3.13.16",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "cpuCount": 4,
+  "ramTotalGB": 16.88,
+  "device": "cpu",
+  "torch": "2.14.1+cpu",
+  "transformers": "5.19.0",
+  "sentenceTransformers": "6.1.0",
+  "numpy": "2.5.3",
+  "model": "google/embeddinggemma-2",
+  "modelRevision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+  "modalitiesLoaded": "text-only (vision_config=None, audio_config=None)",
+  "modelLoadSeconds": 4.661,
+  "rssBeforeLoadMB": 569.0,
+  "rssAfterLoadMB": 1174.4,
+  "rssAfterIndexMB": 1204.9,
+  "queryEncodeLatencyMs": {
+    "n": 60,
+    "mean": 99.57,
+    "p50": 96.19,
+    "p95": 123.68
+  },
+  "rssAfterIndexMB_note": "rssAfterIndexMB here is from a run with a warm embedding cache; the cold run that encoded all 5 representation variants (~21k texts) peaked at the value below.",
+  "rssAfterColdIndexMB": 2428.3
+}
