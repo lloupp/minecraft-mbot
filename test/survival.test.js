@@ -219,3 +219,16 @@ test('tampa recusada pelo servidor (bot ainda caindo) é tentada de novo depois 
   assert.equal(String(await night.digShelter(bot, ground, () => false)), String(ground))
   assert.equal(attempts, 2)
 })
+
+test('abrigo: sem chegar em cima do buraco (pathfinder resolveu sem mover) não cava', async () => {
+  let digs = 0
+  const bot = {
+    entity: { position: new Vec3(5.5, 75, 0.5), onGround: true },
+    inventory: { items: () => [] },
+    blockAt: (p) => ({ name: p.y < 71 ? 'dirt' : 'air', boundingBox: p.y < 71 ? 'block' : 'empty', position: p }),
+    pathfinder: { goto: async () => {}, setGoal: () => {}, bestHarvestTool: () => null },
+    dig: async () => { digs++ }
+  }
+  await assert.rejects(night.digShelter(bot, new Vec3(0, 70, 0), () => false), /não cheguei/)
+  assert.equal(digs, 0)
+})

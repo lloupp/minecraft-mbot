@@ -633,3 +633,28 @@ test('player loop: perna interrompida por troca de dono vira cancelamento, não 
   assert.deepEqual(await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), { ok: false, cancelled: true })
   await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true), /goal was changed/)
 })
+
+test('exploração do player loop prefere direção com chão conhecido; desconhecido só se não houver outra', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.homeProvider = () => new Vec3(0, 64, 0)
+  worker.exploreStep = 0
+  const targets = []
+  worker.exploreTo = async (t) => { targets.push([t.x, t.z]); return { ok: true } }
+  worker.surfaceAt = (x) => (x > 0 ? { unknown: true } : { ok: true, y: 70 })     // leste desconhecido, oeste conhecido
+  await worker.explore(32, () => false, null, { groundAware: true })
+  assert.ok(targets[0][0] <= 0, `escolheu ${targets[0]}`)
+  worker.exploreStep = 0
+  worker.surfaceAt = () => ({ unknown: true })
+  await worker.explore(32, () => false, null, { groundAware: true })
+  assert.deepEqual(targets[1], [16, 0])                                             // tudo desconhecido: primeira direção
+})
+
+test('player loop: retorno à base interrompido por troca de dono é cancelamento, não erro', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.homeProvider = () => new Vec3(40, 64, 0)
+  worker.goTo = async () => { throw new Error('The goal was changed before it could be completed!') }
+  assert.deepEqual(await worker.returnHome(() => true, { verify: true }), { ok: false })
+  await assert.rejects(worker.returnHome(() => true), /goal was changed/)
+})

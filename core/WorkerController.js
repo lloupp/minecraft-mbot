@@ -1874,15 +1874,21 @@ class WorkerController {
     if (groundAware) {
       // Alvos em anel com y fixo caem no ar sobre o oceano ou dentro de rocha em terreno natural; cada tentativa
       // custava ~30 s de pathfinder. Procura a superfície real e passa à próxima direção (sem se mover).
+      // Chão desconhecido (chunk ainda não carregado) não ganha de cara: visto no Minecraft, esses alvos mantinham o y da
+      // base e caíam no oceano — perna nadando até o timeout (12 de 12 pernas falhas com chão água/sem chão) e
+      // afogamentos. Procura uma direção com chão conhecido; sem nenhuma, usa a primeira desconhecida (como antes).
+      let firstUnknown = null
+      let found = false
       for (let tries = 0; tries < 8; tries++) {
         const ground = this.surfaceAt(chosen.x, chosen.z, chosen.y)
-        if (ground.unknown) break
-        if (ground.ok) { chosen.y = ground.y; break }
-        if (memory && (ground.reason === 'water' || ground.reason === 'lava' || ground.reason === 'bubble_column')) {
+        if (ground.ok) { chosen.y = ground.y; found = true; break }
+        if (ground.unknown) firstUnknown ||= chosen
+        else if (memory && (ground.reason === 'water' || ground.reason === 'lava' || ground.reason === 'bubble_column')) {
           memory.markHazard(ground.reason === 'lava' ? 'lava' : 'water', dim, { x: chosen.x, y: chosen.y, z: chosen.z }, { by: this.name })
         }
         chosen = choose()
       }
+      if (!found && firstUnknown) chosen = firstUnknown
     }
     const { distance, x, y, z } = chosen
     memory?.recordExploreDestination(dim, { x, z }, { guided })
@@ -2090,7 +2096,9 @@ class WorkerController {
     try {
       await this.goTo(goal, timeoutMs)
     } catch (err) {
-      if (!verify || isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) throw err
+      // Player loop: troca de dono no meio do retorno é cancelamento (como na perna de exploração), não erro.
+      if (verify && isCancelled()) return { ok: false }
+      if (!verify || !UNREACHED_MOVE.test(err?.message || '')) throw err
     }
     // Player loop: o goto do mineflayer-pathfinder resolve como sucesso quando o caminho parcial é vazio (sem
     // progresso possível). Visto no Minecraft: 41 return_base "ok" seguidos sem o bot sair do lugar. Confere a chegada,
