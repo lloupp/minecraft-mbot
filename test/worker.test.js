@@ -586,8 +586,8 @@ test('exploreTo do player loop tenta uma vez cavando quando não há caminho sem
   assert.equal(escapes, 1)
   worker.goTo = async () => { throw new Error('The goal was changed before it could be completed!') }   // troca de dono: não cava
   await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true }), /goal was changed/)
-  worker.goTo = noPath                                                   // cancelado: não cava
-  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), /No path/)
+  worker.goTo = noPath                                                   // cancelado: não cava (vira cancelamento)
+  assert.deepEqual(await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), { ok: false, cancelled: true })
   assert.equal(escapes, 1)
 })
 
@@ -623,4 +623,13 @@ test('player loop: timeout/pulo impossível também dispara a tentativa de escap
   assert.equal((await worker.returnHome(() => false, { verify: true })).ok, true)
   assert.equal(escapes, 2)
   await assert.rejects(worker.returnHome(() => false), /demorou/)       // tarefa voltar: comportamento anterior
+})
+
+test('player loop: perna interrompida por troca de dono vira cancelamento, não erro; clássico continua lançando', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  worker.goTo = async () => { throw new Error('The goal was changed before it could be completed!') }
+  assert.deepEqual(await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), { ok: false, cancelled: true })
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true), /goal was changed/)
 })

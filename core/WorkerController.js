@@ -1929,6 +1929,8 @@ class WorkerController {
       }
     } catch (err) {
       // Rota que falha repetidamente vira evidência local (afasta destinos futuros), nunca ordem.
+      // Player loop: troca de dono no meio da perna (defesa/nova ordem) é cancelamento, não falha de navegação.
+      if (digEscape && isCancelled()) return { ok: false, cancelled: true }
       if (memory && !isCancelled()) memory.markHazard('route_failed', dim, { x, y, z }, { by: this.name })
       if (!isCancelled()) {
         const from = this.bot.entity?.position
