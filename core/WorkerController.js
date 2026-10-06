@@ -1488,6 +1488,7 @@ class WorkerController {
         allowedTargets,
         isCancelled
       })
+      this.rememberedFoodHint(state)
       const candidates = candidateIntents(state)
       const decision = await this._playerLoopChoice(state, candidates, isCancelled)
       if (decision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
@@ -1559,8 +1560,11 @@ class WorkerController {
       // Fome: procurar comida usa o executor de comida que já existe (caça/frutas/plantação ao alcance) e come.
       if (choice === 'find_food') {
         const pens = this.builtPens()
-        const gathered = await food.gatherFood(this.bot, isCancelled, { spare: (entity) => pens.some((plan) => pointInsidePen(entity.position, plan)) })
+        const hunt = () => food.gatherFood(this.bot, isCancelled, { spare: (entity) => pens.some((plan) => pointInsidePen(entity.position, plan)) })
           .catch((error) => { this.logger.log?.(`[colônia] ${this.name} comida: ${error.message}`); return null })
+        let gathered = await hunt()
+        const remembered = state.nearby?.foodRemembered
+        if (!gathered && remembered && !isCancelled()) gathered = await this.huntRememberedFood(remembered, hunt, isCancelled)
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
         const ate = await this.eat()
         return { ok: Boolean(gathered), intent: choice, foodGathered: gathered || null, ate: Boolean(ate), playerLoopPreparation: true, preparationSteps }
@@ -1938,6 +1942,38 @@ class WorkerController {
     memory?.visit(dim, { x, z })
     this.observeWorld()
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
+  }
+
+  // Com fome, sem comida e sem nada caçável a 48 blocos: um rebanho lembrado (WorldMemory, até 160) conta como comida
+  // alcançável. Só percepção; a ida e a caça são confirmadas no mundo e a lembrança é invalidada se não houver animal.
+  rememberedFoodHint(state) {
+    if (!this.memoryGuideOn() || state?.nearby?.food || Number(state?.food) > 8 || !this.bot.entity?.position) return null
+    if (Object.keys(state.inventory || {}).some((name) => this.bot.registry?.foodsByName?.[name])) return null
+    const dim = worldObserver.dimensionOf(this.bot)
+    const [pick] = this.worldMemory.suggest('food', dim, this.bot.entity.position, { limit: 1, maxDistance: 160 })
+    if (!pick) return null
+    const { x, y, z, key } = pick.place
+    state.nearby.food = true
+    state.nearby.foodDistance = Math.round(pick.distance)
+    state.nearby.foodRemembered = { x, y, z, key }
+    return state.nearby.foodRemembered
+  }
+
+  async huntRememberedFood(place, hunt, isCancelled) {
+    const goal = new goals.GoalNear(place.x, place.y, place.z, 6)
+    try {
+      await this.goTo(goal, travelTimeoutMs(this.bot.entity?.position, place))
+    } catch (err) {
+      if (isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) return null
+      await this.goToWithDigging(goal, 20000).catch(() => {})
+    }
+    if (isCancelled()) return null
+    const gathered = await hunt()
+    const animalsHere = Object.values(this.bot.entities || {}).some((e) =>
+      ['cow', 'pig', 'sheep', 'chicken', 'rabbit', 'mooshroom'].includes(e?.name) && e.position?.distanceTo(this.bot.entity.position) <= 24)
+    if (!gathered && !animalsHere) this.worldMemory?.invalidate(place.key, 'no_food_animals')
+    this.logger.log?.(`[world-memory] ${this.name} food (${place.x},${place.y},${place.z}) caça=${gathered ? 'ok' : 'nada'} animais=${animalsHere}`)
+    return gathered
   }
 
   arrivedAt(goal) {

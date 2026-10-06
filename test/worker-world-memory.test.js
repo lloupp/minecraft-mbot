@@ -205,3 +205,24 @@ test('preparação: sítio lembrado consulta o mundo com Vec3 (blockAt do minefl
   assert.equal(await worker.tryRememberedPreparationSite(never), true)
   assert.equal(worker.remembered.name, 'crafting_table')
 })
+
+test('comida: animais vistos viram lembrança "food"; com fome e nada caçável a 48, o rebanho lembrado vira comida alcançável', async () => {
+  const { worker, memory } = setup()
+  const worldObserver = require('../lib/world-observer')
+  worker.bot.entities = { 1: { name: 'cow', position: new Vec3(90, 64, 5) }, 2: { name: 'cow', position: new Vec3(91, 64, 6) }, 3: { name: 'zombie', position: new Vec3(5, 64, 5) } }
+  worldObserver.observeSurroundings(worker.bot, memory, { by: 'w1' })
+  const [pick] = memory.suggest('food', 'overworld', new Vec3(0, 64, 0), { limit: 1 })
+  assert.ok(pick && Math.abs(pick.place.x - 90) <= 1)
+  const state = (food, nearbyFood = false, inventory = {}) => ({ food, inventory, nearby: { food: nearbyFood } })
+  assert.equal(worker.rememberedFoodHint(state(15)), null)                  // sem fome: não usa a lembrança
+  assert.equal(worker.rememberedFoodHint(state(6, true)), null)             // já há comida caçável perto
+  const hungry = state(6)
+  assert.ok(worker.rememberedFoodHint(hungry))
+  assert.equal(hungry.nearby.food, true)
+
+  // Ida ao rebanho: chegou e não há animal nenhum -> lembrança invalidada.
+  worker.bot.entities = {}
+  const got = await worker.huntRememberedFood(hungry.nearby.foodRemembered, async () => null, never)
+  assert.equal(got, null)
+  assert.equal(memory.find('food', 'overworld', new Vec3(pick.place.x, pick.place.y, pick.place.z)).status, STATUS.INVALIDATED)
+})

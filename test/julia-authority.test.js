@@ -328,7 +328,8 @@ test('player loop: sleep_or_shelter executa a noite (lib/night) e equip sob amea
     worker.bot.entity.position = new Vec3(2, 64, 0)
     worker.bot.inventory.items = () => [{ name: 'cobblestone', count: 2 }, { name: 'stick', count: 1 }]
     worker.production.cachedCraftingTable = () => ({ position: new Vec3(1, 64, 1) })
-    worker.bot.blockAt = (p) => (p.x === 1 && p.y === 64 && p.z === 1 ? { name: 'crafting_table', position: p } : { name: 'air', position: p })
+    worker.bot.blockAt = (p) => (p.x === 1 && p.y === 64 && p.z === 1 ? { name: 'crafting_table', position: p, boundingBox: 'block' }
+      : p.y <= 63 ? { name: 'dirt', position: p, boundingBox: 'block' } : { name: 'air', position: p, boundingBox: 'empty' })
     let nights = 0
     night.spendNight = async () => { nights++; return 'abrigo' }
     const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)

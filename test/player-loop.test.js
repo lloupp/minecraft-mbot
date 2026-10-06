@@ -253,3 +253,11 @@ test('com fome e sem comida, já na base: return_base não é oferecido (segue o
   assert.ok(!candidateIntents({ ...base, atBase: true }).some(c => c.id === 'return_base'))
   assert.deepEqual(candidateIntents({ ...base, atBase: true, nearby: { food: true } }).map(c => c.id), ['find_food'])
 })
+
+test('sleep_or_shelter: shelterNearby explícito do runtime manda; sem o campo (Gauntlet) a base vale como abrigo', () => {
+  const { candidateIntents } = require('../lib/player-loop')
+  const night = { health: 20, food: 20, time: 'night', inventory: {}, objective: { type: 'explore' }, atBase: true, baseKnown: true, nearby: {}, threat: null }
+  assert.ok(candidateIntents(night).some(c => c.id === 'sleep_or_shelter'))
+  assert.ok(!candidateIntents({ ...night, shelterNearby: false }).some(c => c.id === 'sleep_or_shelter'))
+  assert.ok(candidateIntents({ ...night, atBase: false, shelterNearby: true }).some(c => c.id === 'sleep_or_shelter'))
+})
