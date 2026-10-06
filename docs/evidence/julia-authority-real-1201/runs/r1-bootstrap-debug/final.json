@@ -1,0 +1,117 @@
+{
+ "inicio": "20:29:06",
+ "fim": "21:50:18",
+ "duracao_min": 81.2,
+ "decisoes": 594,
+ "ciclos": 594,
+ "forcadas_candidato_unico": 592,
+ "julia_validas": 2,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "return_base,prepare_combat -> prepare_combat": 1,
+  "continue_objective,return_base -> continue_objective": 1
+ },
+ "julia_divergiu_da_deterministica": 1,
+ "latencia_ms": {
+  "mediana": 2812,
+  "p90": 2812,
+  "max": 2812
+ },
+ "acoes": {
+  "none_preempted": 280,
+  "return_base": 159,
+  "threat:escape_danger:fugi": 105,
+  "None": 25,
+  "explore": 22,
+  "preparation:gather_materials": 2,
+  "preparation:prepare_combat": 1
+ },
+ "resultados": {
+  "ok": 285,
+  "PLAYER_LOOP_PREEMPTED": 280,
+  "ERROR": 23,
+  "APPROVED_TARGETS_INSUFFICIENT": 2,
+  "RECIPE_INPUTS_CHANGED": 2,
+  "TARGET_BLOCKED": 1,
+  "MINING_PICKAXE_REQUIRED": 1
+ },
+ "erros_texto": {
+  "No path to the goal!": 9,
+  "caminho demorou demais": 8,
+  "The goal was changed before it could be compl": 6
+ },
+ "itens_ganhos": {
+  "stick": 6,
+  "oak_planks": 4,
+  "oak_log": 3,
+  "cobblestone": 2,
+  "birch_planks": 2,
+  "wooden_pickaxe": 1,
+  "stone_sword": 1
+ },
+ "repeticoes_>=10_ciclos_identicos": [
+  "130x escape_danger -> PLAYER_LOOP_PREEMPTED",
+  "82x return_base -> None",
+  "72x return_base -> None",
+  "67x escape_danger -> None",
+  "55x escape_danger -> PLAYER_LOOP_PREEMPTED",
+  "33x escape_danger -> None",
+  "22x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+  "17x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+  "10x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+  "10x continue_objective -> None"
+ ],
+ "mortes": 6,
+ "mortes_causas": {
+  "was blown up by Creeper": 1,
+  "drowned": 1,
+  "was slain by Zombie": 1,
+  "was impaled by Drowned": 1,
+  "was slain by Spider": 1,
+  "was slain by Phantom": 1
+ },
+ "conexoes": {
+  "desconexoes": 4,
+  "conexoes": 4
+ },
+ "acoes_fisicas": {
+  "dig": 14,
+  "craft": 13,
+  "equip": 10,
+  "move": 4,
+  "place": 3
+ },
+ "crafts": {
+  "oak_planks": 4,
+  "crafting_table": 3,
+  "stick": 2,
+  "birch_planks": 2,
+  "wooden_pickaxe": 1,
+  "stone_sword": 1
+ },
+ "combates_reflexo": {
+  "morto": 2,
+  "fugi": 13,
+  "tempo": 1,
+  "cancelado": 2,
+  "recuei": 2
+ },
+ "worldmemory": {
+  "discover": 125,
+  "explore": 45,
+  "explored": 22,
+  "loaded": 4,
+  "missing": 1
+ },
+ "infra": [
+  "1791231632 bot_start",
+  "1791233702 code_update_restart",
+  "1791234452 code_update_restart",
+  "1791235659 code_update_restart",
+  "1791236320 code_update_restart"
+ ]
+}
