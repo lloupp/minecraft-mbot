@@ -19,7 +19,6 @@ current action.
 from __future__ import annotations
 import argparse
 import json
-import math
 import time
 from pathlib import Path
 
@@ -63,6 +62,8 @@ def main():
     ap.add_argument("--warmup", type=int, default=3, help="minimum prior episodes before evaluating a query")
     ap.add_argument("--top-k", type=int, default=3)
     ap.add_argument("--limit", type=int, default=0, help="0 = all episodes")
+    ap.add_argument("--all-decisions", action="store_true",
+                    help="also score forced/single-candidate decisions; default scores only decisions with 2+ candidates")
     ap.add_argument("--output", type=Path)
     args = ap.parse_args()
 
@@ -85,6 +86,7 @@ def main():
     embed_s = time.perf_counter() - t0
 
     evaluated = 0
+    skipped_forced = 0
     top1_same_action = 0
     useful_at_k = 0
     recency_same_action = 0
@@ -93,6 +95,11 @@ def main():
 
     for i in range(args.warmup, len(episodes)):
         target = episodes[i]
+        candidates = target.get("candidates") or []
+        if not args.all_decisions and len(candidates) < 2:
+            skipped_forced += 1
+            continue
+
         q = query_vecs[i]
         sims = doc_vecs[:i] @ q
         order = np.argsort(-sims)
@@ -118,6 +125,7 @@ def main():
         rows.append({
             "queryEpisode": target.get("id"),
             "targetAction": target_action,
+            "candidateCount": len(candidates),
             "retrieved": [
                 {
                     "rank": rank + 1,
@@ -130,22 +138,27 @@ def main():
             ],
         })
 
+    if evaluated == 0:
+        raise SystemExit("no evaluable decisions: add more 2+ candidate episodes or pass --all-decisions for diagnostics")
+
     def rate(n):
-        return round(n / evaluated, 4) if evaluated else 0.0
+        return round(n / evaluated, 4)
 
     summary = {
         "model": args.model,
         "dimensions": args.dimensions,
         "episodes": len(episodes),
+        "evaluationMode": "all" if args.all_decisions else "contested_only",
         "evaluated": evaluated,
+        "skippedForced": skipped_forced,
         "topK": args.top_k,
         "modelLoadSeconds": round(load_s, 3),
         "embeddingSeconds": round(embed_s, 3),
-        "queriesPerSecond": round((len(episodes) * 2) / embed_s, 3) if embed_s > 0 else None,
+        "embeddingsPerSecond": round((len(episodes) * 2) / embed_s, 3) if embed_s > 0 else None,
         "semanticTop1SameAction": rate(top1_same_action),
         "recencyTop1SameAction": rate(recency_same_action),
         "semanticUsefulAtK": rate(useful_at_k),
-        "mrrSameAction": round(reciprocal_rank_sum / evaluated, 4) if evaluated else 0.0,
+        "mrrSameAction": round(reciprocal_rank_sum / evaluated, 4),
         "executionAuthority": "none",
         "rows": rows,
     }
