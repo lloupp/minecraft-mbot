@@ -28,8 +28,8 @@ Use logs reais já produzidos por Julia em shadow/authority:
 - eventos `julia_authority_cycle`;
 - evidência `julia_shadow_decision` que contenha `result`.
 
-O corpus inclui o estado **antes** da ação no texto de consulta. Resultado e ação escolhida aparecem somente no documento
-histórico, evitando vazar o rótulo da consulta atual.
+O corpus inclui o estado **antes** da ação e o conjunto de candidatos no texto de consulta. Resultado e ação escolhida
+aparecem somente no documento histórico, evitando vazar a escolha final da consulta atual.
 
 ## 1. Exportar um corpus
 
@@ -65,7 +65,11 @@ A configuração inicial usa:
 - `Document` para experiências históricas;
 - vetores truncados para **256 dimensões**;
 - cosine similarity;
-- somente episódios anteriores ao episódio avaliado.
+- somente episódios anteriores ao episódio avaliado;
+- **somente decisões com 2+ candidatos na pontuação principal**.
+
+Episódios com um único candidato continuam disponíveis como memória histórica, mas não contam na métrica principal.
+Isso evita que decisões forçadas inflem artificialmente o resultado. Para diagnóstico, `--all-decisions` inclui tudo.
 
 ## Métricas
 
@@ -81,7 +85,7 @@ Não ligar a recuperação ao Julia ao vivo ainda.
 
 Avançar para **shadow online** somente se:
 
-1. houver número razoável de episódios reais e variados;
+1. houver número razoável de episódios reais e variados com 2+ candidatos;
 2. `semanticTop1SameAction` superar recência de forma material;
 3. `semanticUsefulAtK` mostrar recuperação útil em ameaça, fome, preparação e exploração;
 4. não houver vazamento de ação/resultado para a query;
