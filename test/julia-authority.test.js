@@ -40,6 +40,17 @@ test('autoridade desligada por padrão: sem a flag (ou sem endpoint) enabled() �
   }
 })
 
+test('controle: mesmo registro, escolha determinística, nenhuma consulta (endpoint não é exigido)', async () => {
+  let calls = 0
+  const { auth, rows } = authority(async () => { calls++; return reply({ choice: 'continue_objective' })() }, { control: true, endpoint: null })
+  assert.equal(auth.enabled(), true)
+  const decision = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  assert.equal(calls, 0)
+  assert.equal(decision.choice, 'prepare_combat')
+  assert.equal(decision.source, 'deterministic')
+  assert.equal(rows.find((r) => r.type === 'julia_authority_decision').data.validation, 'control')
+})
+
 test('decisão válida da Julia vira a escolha executada (mesmo diferente da determinística)', async () => {
   let body = null
   const { auth, rows } = authority(async (_url, init) => { body = JSON.parse(init.body); return reply({ choice: 'continue_objective', confidence: 0.7 })() })
