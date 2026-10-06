@@ -28,6 +28,7 @@ test('cycleToEpisode keeps outcome in document but not in query (no label leakag
   })
   assert.equal(e.action, 'escape_danger')
   assert.equal(e.success, true)
+  assert.deepEqual(e.candidates, ['fight_threat', 'escape_danger'])
   assert.doesNotMatch(e.query, /chosen_action/)
   assert.match(e.document, /chosen_action=escape_danger/)
   assert.match(e.document, /ok=yes/)
@@ -37,10 +38,11 @@ test('parser ignores partial lines and buildEpisodes accepts authority and shado
   const lines = [
     JSON.stringify({ type: 'julia_authority_cycle', decisionId: 'b', time: '2026-10-06T10:01:00Z', state: { nearby: {} }, candidates: ['x'], choice: 'x', result: { ok: true } }),
     '{bad',
-    JSON.stringify({ type: 'julia_shadow_decision', decisionId: 'a', time: '2026-10-06T10:00:00Z', state: { nearby: {} }, candidateIds: ['y'], realIntent: 'y', result: { ok: false } })
+    JSON.stringify({ type: 'julia_shadow_decision', decisionId: 'a', time: '2026-10-06T10:00:00Z', state: { nearby: {} }, candidateIds: ['y', 'z'], realIntent: 'y', result: { ok: false } })
   ].join('\n')
   const episodes = buildEpisodes(parseJsonl(lines))
   assert.equal(episodes.length, 2)
   assert.equal(episodes[0].id, 'a')
+  assert.deepEqual(episodes[0].candidates, ['y', 'z'])
   assert.equal(episodes[1].id, 'b')
 })
