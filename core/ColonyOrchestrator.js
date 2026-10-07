@@ -1,7 +1,7 @@
 const husbandry = require('../lib/husbandry')
 
 const INTERRUPTION_BACKOFF_MS = 5000
-const INTERRUPTION_CODES = new Set(['CANCELLED'])
+const INTERRUPTION_CODES = new Set(['CANCELLED', 'PLAYER_LOOP_PREEMPTED'])
 const isInterruption = (result) => result?.cancelled === true || INTERRUPTION_CODES.has(result?.code)
 
 class ColonyOrchestrator {

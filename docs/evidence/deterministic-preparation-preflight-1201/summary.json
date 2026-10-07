@@ -1,0 +1,314 @@
+{
+  "passed": 77,
+  "total": 77,
+  "checks": [
+    {
+      "check": "baseline: continuous recorder",
+      "ok": true
+    },
+    {
+      "check": "baseline: no overlap of instrumented physical operations",
+      "ok": true
+    },
+    {
+      "check": "baseline/valid: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "baseline/valid: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline: valid preparation completes",
+      "ok": true
+    },
+    {
+      "check": "baseline: minimal real gathering",
+      "ok": true
+    },
+    {
+      "check": "baseline/no_table: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "baseline/no_table: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/distant_table: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "baseline/distant_table: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/no_tool: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "baseline/no_tool: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/insufficient: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "baseline/insufficient: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/blocked: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "baseline/blocked: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/falling: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "baseline/falling: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/cancelled: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "baseline/cancelled: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification: continuous recorder",
+      "ok": true
+    },
+    {
+      "check": "verification: no overlap of instrumented physical operations",
+      "ok": true
+    },
+    {
+      "check": "verification/blocked: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "verification/blocked: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification/falling: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "verification/falling: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification/valid: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "verification/valid: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification: valid preparation completes",
+      "ok": true
+    },
+    {
+      "check": "verification: minimal real gathering",
+      "ok": true
+    },
+    {
+      "check": "verification/hunger: known fixture failure preserved",
+      "ok": true
+    },
+    {
+      "check": "verification/silk_tool: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "verification/silk_tool: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification/table_after: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "verification/table_after: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification/table_after: decision passed then execution refused",
+      "ok": true
+    },
+    {
+      "check": "verification/table_after: no physical stage after mutation",
+      "ok": true
+    },
+    {
+      "check": "verification/table_after: no invented material progress",
+      "ok": true
+    },
+    {
+      "check": "verification/tool_after: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "verification/tool_after: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification/tool_after: decision passed then execution refused",
+      "ok": true
+    },
+    {
+      "check": "verification/tool_after: no physical stage after mutation",
+      "ok": true
+    },
+    {
+      "check": "verification/tool_after: no invented material progress",
+      "ok": true
+    },
+    {
+      "check": "verification/target_after: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "verification/target_after: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification/target_after: decision passed then execution refused",
+      "ok": true
+    },
+    {
+      "check": "verification/target_after: no physical stage after mutation",
+      "ok": true
+    },
+    {
+      "check": "verification/target_after: no invented material progress",
+      "ok": true
+    },
+    {
+      "check": "verification/threat_after: explicit owned proposal",
+      "ok": true
+    },
+    {
+      "check": "verification/threat_after: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "verification/threat_after: decision passed then execution refused",
+      "ok": true
+    },
+    {
+      "check": "verification/threat_after: no physical stage after mutation",
+      "ok": true
+    },
+    {
+      "check": "verification/threat_after: no invented material progress",
+      "ok": true
+    },
+    {
+      "check": "hunger-control: continuous recorder",
+      "ok": true
+    },
+    {
+      "check": "hunger-control: no overlap of instrumented physical operations",
+      "ok": true
+    },
+    {
+      "check": "hunger-control/hunger: known fixture failure preserved",
+      "ok": true
+    },
+    {
+      "check": "hunger-verification: continuous recorder",
+      "ok": true
+    },
+    {
+      "check": "hunger-verification: no overlap of instrumented physical operations",
+      "ok": true
+    },
+    {
+      "check": "hunger-verification/hunger: refused proposal never executed",
+      "ok": true
+    },
+    {
+      "check": "hunger-verification/hunger: all digs allowlisted",
+      "ok": true
+    },
+    {
+      "check": "baseline/no_table: specific refusal",
+      "ok": true
+    },
+    {
+      "check": "baseline/distant_table: specific refusal",
+      "ok": true
+    },
+    {
+      "check": "baseline/no_tool: specific refusal",
+      "ok": true
+    },
+    {
+      "check": "baseline/insufficient: specific refusal",
+      "ok": true
+    },
+    {
+      "check": "blocked: original false-positive preserved",
+      "ok": true
+    },
+    {
+      "check": "blocked: real diagnostic matches cause",
+      "ok": true
+    },
+    {
+      "check": "blocked: corrected preflight refuses before task creation",
+      "ok": true
+    },
+    {
+      "check": "falling: original false-positive preserved",
+      "ok": true
+    },
+    {
+      "check": "falling: real diagnostic matches cause",
+      "ok": true
+    },
+    {
+      "check": "falling: corrected preflight refuses before task creation",
+      "ok": true
+    },
+    {
+      "check": "threat: safety precedence",
+      "ok": true
+    },
+    {
+      "check": "cancelled: safety precedence",
+      "ok": true
+    },
+    {
+      "check": "silk touch only: no preparation proposal",
+      "ok": true
+    },
+    {
+      "check": "critical hunger: live food and nearby food, find_food precedence",
+      "ok": true
+    },
+    {
+      "check": "final validation commands pass",
+      "ok": true
+    }
+  ]
+}

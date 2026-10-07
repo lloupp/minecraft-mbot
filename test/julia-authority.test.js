@@ -1,0 +1,423 @@
+const test = require('node:test')
+const assert = require('node:assert/strict')
+const { Vec3 } = require('vec3')
+
+const { JuliaAuthority } = require('../lib/julia-authority')
+const { WorkerController } = require('../core/WorkerController')
+const { preparationDispatchTask } = require('../lib/forced-preparation')
+const { candidateIntents } = require('../lib/player-loop')
+
+const two = [
+  { id: 'prepare_combat', description: 'craft a weapon first' },
+  { id: 'continue_objective', description: 'keep exploring unarmed' }
+]
+const calmState = { health: 20, food: 20, time: 'day', threat: null, inventory: {} }
+
+function memoryLog() {
+  const rows = []
+  return { rows, log: (type, data, worker) => rows.push({ type, data, worker }) }
+}
+
+function reply(body, { status = 200 } = {}) {
+  return async () => ({ ok: status === 200, status, json: async () => body })
+}
+
+function authority(fetchImpl, extra = {}) {
+  const eventLog = memoryLog()
+  const auth = new JuliaAuthority({ endpoint: 'http://julia.test/choose', enabled: true, timeoutMs: 200, fetchImpl, eventLog, logger: { log() {} }, ...extra })
+  return { auth, rows: eventLog.rows }
+}
+
+test('autoridade desligada por padrão: sem a flag (ou sem endpoint) enabled() é falso', () => {
+  const previous = process.env.MBOT_JULIA_AUTHORITY
+  delete process.env.MBOT_JULIA_AUTHORITY
+  try {
+    assert.equal(new JuliaAuthority({ endpoint: 'http://x/choose' }).enabled(), false)
+    assert.equal(new JuliaAuthority({ enabled: true, endpoint: null }).enabled(), false)
+    assert.equal(new JuliaAuthority({ enabled: true, endpoint: 'http://x/choose' }).enabled(), true)
+  } finally {
+    if (previous !== undefined) process.env.MBOT_JULIA_AUTHORITY = previous
+  }
+})
+
+test('controle: mesmo registro, escolha determinística, nenhuma consulta (endpoint não é exigido)', async () => {
+  let calls = 0
+  const { auth, rows } = authority(async () => { calls++; return reply({ choice: 'continue_objective' })() }, { control: true, endpoint: null })
+  assert.equal(auth.enabled(), true)
+  const decision = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  assert.equal(calls, 0)
+  assert.equal(decision.choice, 'prepare_combat')
+  assert.equal(decision.source, 'deterministic')
+  assert.equal(rows.find((r) => r.type === 'julia_authority_decision').data.validation, 'control')
+})
+
+test('decisão válida da Julia vira a escolha executada (mesmo diferente da determinística)', async () => {
+  let body = null
+  const { auth, rows } = authority(async (_url, init) => { body = JSON.parse(init.body); return reply({ choice: 'continue_objective', confidence: 0.7 })() })
+  const decision = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  assert.equal(decision.choice, 'continue_objective')
+  assert.equal(decision.source, 'julia')
+  assert.deepEqual(body.candidates.map((c) => c.id), ['prepare_combat', 'continue_objective'])
+  const row = rows.find((r) => r.type === 'julia_authority_decision').data
+  assert.equal(row.deterministicChoice, 'prepare_combat')
+  assert.equal(row.agreesWithDeterministic, false)
+  assert.equal(row.validation, 'ok')
+})
+
+test('candidato único é forçado: a Julia não é consultada', async () => {
+  let calls = 0
+  const { auth } = authority(async () => { calls++; return reply({ choice: 'x' })() })
+  const decision = await auth.decide({ state: calmState, candidates: [two[0]], meta: { worker: 'w' } })
+  assert.equal(calls, 0)
+  assert.equal(decision.source, 'forced')
+  assert.equal(decision.choice, 'prepare_combat')
+})
+
+test('escolha fora dos candidatos é rejeitada e cai na determinística, registrando a tentativa', async () => {
+  const { auth, rows } = authority(reply({ choice: 'dig_straight_down' }))
+  const decision = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  assert.equal(decision.source, 'fallback')
+  assert.equal(decision.fallbackReason, 'invalid_choice')
+  assert.equal(decision.choice, 'prepare_combat')
+  const row = rows.find((r) => r.type === 'julia_authority_decision').data
+  assert.equal(row.juliaChoice, 'dig_straight_down')
+  assert.equal(row.validation, 'rejected')
+  assert.equal(auth.stats.invalid, 1)
+})
+
+test('resposta malformada e HTTP de erro caem na determinística', async () => {
+  for (const [fetchImpl, reason] of [[reply({ nope: 1 }), 'malformed_response'], [reply({}, { status: 500 }), 'http_500']]) {
+    const { auth } = authority(fetchImpl)
+    const decision = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+    assert.equal(decision.source, 'fallback')
+    assert.equal(decision.fallbackReason, reason)
+    assert.equal(decision.choice, 'prepare_combat')
+  }
+})
+
+test('timeout da Julia cai na determinística dentro do prazo', async () => {
+  const hang = (_url, init) => new Promise((_resolve, reject) => {
+    init.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
+  })
+  const { auth } = authority(hang, { timeoutMs: 50 })
+  const started = Date.now()
+  const decision = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  assert.ok(Date.now() - started < 1000)
+  assert.equal(decision.fallbackReason, 'timeout')
+  assert.equal(decision.choice, 'prepare_combat')
+  assert.equal(auth.stats.timeout, 1)
+})
+
+test('sidecar fora do ar cai na determinística; o disjuntor para de consultar depois de N falhas', async () => {
+  let calls = 0
+  const offline = async () => { calls++; throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNREFUSED' } }) }
+  const { auth, rows } = authority(offline, { breakerThreshold: 2, breakerCooldownMs: 60000 })
+  const first = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  assert.equal(first.fallbackReason, 'offline:ECONNREFUSED')
+  await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  const third = await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  assert.equal(calls, 2)
+  assert.equal(third.fallbackReason, 'breaker_open')
+  assert.equal(third.choice, 'prepare_combat')
+  assert.equal(rows.filter((r) => r.type === 'julia_authority_decision' && r.data.source === 'fallback').length, 3)
+})
+
+test('cancelamento durante a consulta aborta a requisição e não devolve escolha', async () => {
+  let cancelled = false
+  let aborted = false
+  const hang = (_url, init) => new Promise((_resolve, reject) => {
+    init.signal.addEventListener('abort', () => { aborted = true; reject(Object.assign(new Error('aborted'), { name: 'AbortError' })) })
+  })
+  const { auth, rows } = authority(hang, { timeoutMs: 5000 })
+  setTimeout(() => { cancelled = true }, 30)
+  const decision = await auth.decide({ state: calmState, candidates: two, isCancelled: () => cancelled, meta: { worker: 'w' } })
+  assert.equal(aborted, true)
+  assert.equal(decision.cancelled, true)
+  assert.equal(decision.choice, null)
+  assert.ok(rows.some((r) => r.type === 'julia_authority_cancelled'))
+  assert.equal(auth.stats.fallback, 0)
+})
+
+test('guardrail de segurança: escolha que o player loop marca como violação cai na determinística', async () => {
+  const threatened = { ...calmState, threat: { type: 'zombie', distance: 6 }, inventory: {} }
+  const options = [{ id: 'escape_danger', description: 'flee' }, { id: 'fight_threat', description: 'fight' }]
+  const { auth } = authority(reply({ choice: 'fight_threat' }))   // desarmado: luta é violação
+  const decision = await auth.decide({ state: threatened, candidates: options, meta: { worker: 'w' } })
+  assert.equal(decision.source, 'fallback')
+  assert.equal(decision.fallbackReason, 'safety_violation')
+  assert.equal(decision.choice, 'escape_danger')
+})
+
+test('settle fecha o ciclo com ação, resultado e novo estado; decisão não fechada não some', async () => {
+  const { auth, rows } = authority(reply({ choice: 'continue_objective' }))
+  await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  auth.settle('w', { action: 'explore', result: { ok: true, x: 10, z: 20 }, nextState: { ...calmState, food: 19 } })
+  const cycle = rows.find((r) => r.type === 'julia_authority_cycle').data
+  assert.equal(cycle.choice, 'continue_objective')
+  assert.equal(cycle.action, 'explore')
+  assert.deepEqual(cycle.result.exploredTo, { x: 10, z: 20 })
+  assert.equal(cycle.nextState.food, 19)
+
+  await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })
+  await auth.decide({ state: calmState, candidates: two, meta: { worker: 'w' } })   // a anterior nunca foi fechada
+  const notSettled = rows.filter((r) => r.type === 'julia_authority_cycle').at(-1).data
+  assert.equal(notSettled.result.code, 'NOT_SETTLED')
+})
+
+test('executor: a intenção autorizada só vale enquanto ainda for candidata no estado atual', () => {
+  const night = {
+    health: 20, food: 20, time: 'night', threat: null, atBase: false, baseKnown: true,
+    inventory: { cobblestone: 2, stick: 1 }, craftable: ['stone_sword'], nearby: { craftingTable: true },
+    objective: { type: 'explore' }
+  }
+  const ids = candidateIntents(night).map((c) => c.id)
+  assert.ok(ids.includes('return_base') && ids.includes('prepare_combat'), `candidatos: ${ids}`)
+  const objective = { type: 'explorar' }
+  assert.equal(preparationDispatchTask({ enabled: true, state: night, objective }), null)   // determinística: return_base
+  const task = preparationDispatchTask({ enabled: true, state: night, objective, authorizedIntent: 'prepare_combat' })
+  assert.equal(task.deterministicIntent, 'prepare_combat')
+  assert.equal(task.authorizedIntent, 'prepare_combat')
+  // Intenção que não está entre os candidatos não cria ação: volta à determinística.
+  assert.equal(preparationDispatchTask({ enabled: true, state: night, objective, authorizedIntent: 'gather_materials' }), null)
+})
+
+function loopWorker(authority) {
+  const worker = Object.create(WorkerController.prototype)
+  worker.name = 'explorer-test'
+  worker.taskVersion = 1
+  worker.homeProvider = () => new Vec3(0, 64, 0)
+  worker.logger = { log() {} }
+  worker._preparationDrain = null
+  worker.juliaAuthority = authority
+  worker.bot = {
+    health: 20, food: 20, time: { timeOfDay: 1000 }, entity: { position: new Vec3(5, 64, 0) }, entities: {},
+    heldItem: null, nearestEntity: () => null, inventory: { items: () => [{ name: 'stone_sword', count: 1 }], slots: [] },
+    registry: { blocksArray: [], blocksByName: {}, items: {} },
+    findBlocks: () => [], blockAt: (position) => ({ name: 'air', position }), canDigBlock: () => true, canSeeBlock: () => true,
+    pathfinder: { bestHarvestTool: () => null }
+  }
+  worker.production = { storage: { configured: () => false }, cachedCraftingTable: () => null }
+  return worker
+}
+
+function withFlags(fn) {
+  const saved = { e: process.env.MBOT_EXPLORE_PREPARATION, d: process.env.MBOT_DETERMINISTIC_PREPARATION }
+  process.env.MBOT_EXPLORE_PREPARATION = '1'
+  process.env.MBOT_DETERMINISTIC_PREPARATION = '1'
+  return Promise.resolve().then(fn).finally(() => {
+    for (const [key, env] of [['e', 'MBOT_EXPLORE_PREPARATION'], ['d', 'MBOT_DETERMINISTIC_PREPARATION']]) {
+      if (saved[key] === undefined) delete process.env[env]
+      else process.env[env] = saved[key]
+    }
+  })
+}
+
+test('player loop: com autoridade, a escolha da Julia tem consequência física e o ciclo é registrado', () => withFlags(async () => {
+  // Espada no inventário, não equipada: candidatos [equip_best_weapon, continue_objective]; determinística = equipar.
+  const { auth, rows } = authority(reply({ choice: 'continue_objective' }))
+  const worker = loopWorker(auth)
+  let explored = 0
+  worker.runDeterministicPreparation = async () => assert.fail('a escolha determinística (equipar) não deve rodar')
+  worker.explore = async () => { explored++; return { ok: true, x: 40, z: 0 } }
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(explored, 1)
+  assert.equal(result.ok, true)
+  const decision = rows.find((r) => r.type === 'julia_authority_decision').data
+  assert.deepEqual(decision.candidates, ['equip_best_weapon', 'continue_objective'])
+  assert.equal(decision.deterministicChoice, 'equip_best_weapon')
+  const cycle = rows.find((r) => r.type === 'julia_authority_cycle').data
+  assert.equal(cycle.source, 'julia')
+  assert.equal(cycle.action, 'explore')
+  assert.ok(cycle.nextState)
+}))
+
+test('player loop: Julia fora do ar → executa a determinística (equipar) pelo executor e registra o fallback', () => withFlags(async () => {
+  const { auth, rows } = authority(async () => { throw new TypeError('fetch failed') })
+  const worker = loopWorker(auth)
+  let prepared = 0
+  worker.runDeterministicPreparation = async (task) => {
+    prepared++
+    assert.equal(task.authorizedIntent, undefined)          // fallback não carrega autorização da Julia
+    worker.bot.heldItem = { name: 'stone_sword' }
+    return { ok: true }
+  }
+  worker.explore = async () => ({ ok: true, x: 1, z: 1 })
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(prepared, 1)
+  const cycles = rows.filter((r) => r.type === 'julia_authority_cycle').map((r) => r.data)
+  assert.equal(cycles[0].source, 'fallback')
+  assert.equal(cycles[0].action, 'preparation:equip_best_weapon')
+}))
+
+test('player loop: cancelamento durante a consulta à Julia não executa nada', () => withFlags(async () => {
+  let cancelled = false
+  const hang = (_url, init) => new Promise((_resolve, reject) => {
+    init.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
+  })
+  const { auth } = authority(hang, { timeoutMs: 5000 })
+  const worker = loopWorker(auth)
+  worker.runDeterministicPreparation = async () => assert.fail('nothing physical after cancellation')
+  worker.explore = async () => assert.fail('nothing physical after cancellation')
+  setTimeout(() => { cancelled = true }, 30)
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => cancelled)
+  assert.equal(result.code, 'CANCELLED')
+}))
+
+test('player loop sem autoridade: comportamento determinístico idêntico (nenhuma consulta)', () => withFlags(async () => {
+  for (const authority of [null, new JuliaAuthority({ endpoint: 'http://x/choose', enabled: false, fetchImpl: async () => assert.fail('no call') })]) {
+    const worker = loopWorker(authority)
+    let prepared = 0
+    worker.runDeterministicPreparation = async () => { prepared++; worker.bot.heldItem = { name: 'stone_sword' }; return { ok: true } }
+    worker.explore = async () => ({ ok: true, x: 1, z: 1 })
+    await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(prepared, 1)
+  }
+}))
+
+test('player loop: escolha da Julia sob ameaça (lutar x fugir) vai para os executores existentes', () => withFlags(async () => {
+  const combat = require('../lib/combat')
+  const original = combat.fight
+  for (const pick of ['fight_threat', 'escape_danger']) {
+    const { auth, rows } = authority(reply({ choice: pick }))
+    const worker = loopWorker(auth)
+    const zombie = { name: 'zombie', type: 'hostile', position: new Vec3(9, 64, 0), health: 20 }
+    worker.bot.heldItem = { name: 'stone_sword' }                       // armado: candidatos [fight_threat, escape_danger]
+    worker.bot.nearestEntity = (match) => (match(zombie) ? zombie : null)
+    worker.bot.entities = { 1: zombie }
+    worker.bot.pathfinder.setGoal = () => {}
+    const done = []
+    combat.fight = async () => { done.push('fight'); return 'morto' }
+    worker.flee = async () => { done.push('flee') }
+    try {
+      const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+      assert.equal(result.threatHandled, pick)
+      assert.deepEqual(done, [pick === 'fight_threat' ? 'fight' : 'flee'])
+      const decision = rows.find((r) => r.type === 'julia_authority_decision').data
+      assert.deepEqual(decision.candidates, ['fight_threat', 'escape_danger'])
+      assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, `threat:${pick}:${pick === 'fight_threat' ? 'morto' : 'fugi'}`)
+    } finally { combat.fight = original }
+  }
+}))
+
+test('player loop: com fome, a escolha find_food da Julia caça com o executor de comida existente e come', () => withFlags(async () => {
+  const food = require('../lib/food')
+  const original = food.gatherFood
+  const { auth, rows } = authority(reply({ choice: 'find_food' }))
+  const worker = loopWorker(auth)
+  worker.bot.inventory.items = () => []
+  worker.bot.food = 6
+  worker.bot.entity.position = new Vec3(20, 64, 0)        // fora da base: return_base continua opção
+  // rebanho de 3 (o executor poupa os 2 últimos de cada espécie com fome moderada)
+  const herd = [30, 31, 32].map((x, i) => ({ id: i + 1, name: 'cow', type: 'passive', position: new Vec3(x, 64, 0) }))
+  worker.bot.entities = Object.fromEntries(herd.map((c) => [c.id, c]))
+  worker.bot.nearestEntity = (match) => herd.find(match) || null
+  worker.builtPens = () => []
+  let hunted = 0, ate = 0
+  food.gatherFood = async () => { hunted++; return 'cacei um(a) cow' }
+  worker.eat = async () => { ate++; return 'beef' }
+  worker.returnHome = async () => assert.fail('a escolha da Julia foi find_food')
+  try {
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(result.ok, true)
+    assert.equal(hunted, 1)
+    assert.equal(ate, 1)
+    const decision = rows.find((r) => r.type === 'julia_authority_decision').data
+    assert.deepEqual(decision.candidates, ['find_food', 'return_base'])
+    assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'find_food:got+ate')
+  } finally { food.gatherFood = original }
+}))
+
+test('player loop: sleep_or_shelter executa a noite (lib/night) e equip sob ameaça equipa direto', () => withFlags(async () => {
+  const night = require('../lib/night')
+  const original = night.spendNight
+  try {
+    // noite, na base, desarmado e sem recursos: candidatos de noite; Julia escolhe abrigo
+    const { auth } = authority(async (_url, init) => {
+      const ids = JSON.parse(init.body).candidates.map((c) => c.id)
+      return reply({ choice: ids.includes('sleep_or_shelter') ? 'sleep_or_shelter' : ids[0] })()
+    })
+    const worker = loopWorker(auth)
+    worker.bot.time = { timeOfDay: 18000 }
+    worker.bot.entity.position = new Vec3(2, 64, 0)
+    worker.bot.inventory.items = () => [{ name: 'cobblestone', count: 2 }, { name: 'stick', count: 1 }]
+    worker.production.cachedCraftingTable = () => ({ position: new Vec3(1, 64, 1) })
+    worker.bot.blockAt = (p) => (p.x === 1 && p.y === 64 && p.z === 1 ? { name: 'crafting_table', position: p, boundingBox: 'block' }
+      : p.y <= 63 ? { name: 'dirt', position: p, boundingBox: 'block' } : { name: 'air', position: p, boundingBox: 'empty' })
+    let nights = 0
+    night.spendNight = async () => { nights++; return 'abrigo' }
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(nights, 1, JSON.stringify(result))
+    assert.equal(result.night, 'abrigo')
+  } finally { night.spendNight = original }
+
+  const { auth } = authority(reply({ choice: 'equip_best_weapon' }))
+  const worker = loopWorker(auth)
+  const zombie = { name: 'zombie', type: 'hostile', position: new Vec3(13, 64, 0), health: 20 }
+  worker.bot.nearestEntity = (match) => (match(zombie) ? zombie : null)
+  worker.bot.entities = { 1: zombie }
+  worker.runDeterministicPreparation = async () => assert.fail('sob ameaça a etapa de preparação não roda')
+  worker.bot.equip = async (item) => { worker.bot.heldItem = item }
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(result.ok, true)
+  assert.equal(result.equipped, 'stone_sword')
+}))
+
+test('caça: animal além do alcance de luta (24) é abordado antes de lutar', async () => {
+  const food = require('../lib/food')
+  const { Vec3: V } = require('vec3')
+  const cows = [1, 2, 3].map((id) => ({ id, name: 'cow', type: 'passive', isValid: true, position: new V(36 + id, 64, 0) }))
+  const goals = []
+  const bot = {
+    food: 8, entity: { position: new V(0, 64, 0) }, entities: Object.fromEntries(cows.map((c) => [c.id, c])),
+    registry: { blocksByName: {} }, findBlock: () => null,
+    nearestEntity: (match) => cows.filter(match)[0] || null,
+    pathfinder: { goto: async (goal) => { goals.push(goal); cows[0].isValid = false }, setGoal: () => {} }
+  }
+  assert.equal(await food.gatherFood(bot, () => false), null)    // o alvo sumiu durante a aproximação: sem luta
+  assert.equal(goals.length, 1)
+  assert.ok(Math.abs(goals[0].x - 37) < 1 && Math.sqrt(goals[0].rangeSq) <= 3)
+})
+
+test('dataset: decisões com escolha real viram exemplos com a entrada vista, a escolha e o desfecho (inclui morte)', async () => {
+  const { auth, rows } = authority(reply({ choice: 'continue_objective' }))
+  await auth.decide({ state: { ...calmState, inventory: { stick: 1 } }, candidates: two, meta: { worker: 'w' } })
+  auth.settle('w', { action: 'explore', result: { ok: true }, nextState: { health: 12, food: 18, inventory: { stick: 1, oak_log: 2 } } })
+  await auth.decide({ state: calmState, candidates: [two[0]], meta: { worker: 'w' } })      // forçada: não entra
+  auth.settle('w', { action: 'x', result: { ok: true } })
+  const { examples } = require('../scripts/julia-authority-dataset')
+  const settledAt = Date.parse(rows.find((r) => r.type === 'julia_authority_cycle').data.settledAt) / 1000
+  const out = examples(rows, [settledAt + 60])
+  assert.equal(out.length, 1)
+  assert.deepEqual(out[0].input.candidates.map((c) => c.id), ['prepare_combat', 'continue_objective'])
+  assert.equal(out[0].input.state.health, 20)
+  assert.equal(out[0].choice, 'continue_objective')
+  assert.equal(out[0].outcome.healthDelta, -8)
+  assert.deepEqual(out[0].outcome.inventoryDelta, { oak_log: 2 })
+  assert.equal(out[0].outcome.diedDuringAction, false)
+  assert.equal(out[0].outcome.diedWithinWindow, true)
+})
+
+test('player loop: luta que expira sem alcançar o monstro → afasta-se e ele some da percepção por um minuto', () => withFlags(async () => {
+  const combat = require('../lib/combat')
+  const original = combat.fight
+  const { auth, rows } = authority(reply({ choice: 'fight_threat' }))
+  const worker = loopWorker(auth)
+  const zombie = { id: 42, name: 'zombie', type: 'hostile', position: new Vec3(9, 64, 0), health: 20 }
+  worker.bot.heldItem = { name: 'stone_sword' }
+  worker.bot.nearestEntity = (match) => (match(zombie) ? zombie : null)
+  worker.bot.entities = { 1: zombie }
+  worker.bot.pathfinder.setGoal = () => {}
+  const done = []
+  combat.fight = async () => { done.push('fight'); return 'tempo' }
+  worker.flee = async () => { done.push('flee') }
+  worker.explore = async () => { done.push('explore'); return { ok: true, x: 1, z: 1 } }
+  try {
+    const first = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(first.combat, 'tempo')
+    assert.deepEqual(done, ['fight', 'flee'])
+    await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.deepEqual(done, ['fight', 'flee', 'explore'])               // o mesmo zumbi não é mais ameaça escolhível
+    const decisions = rows.filter((r) => r.type === 'julia_authority_decision').map((r) => r.data)
+    assert.equal(decisions[1].state.threat, null)
+  } finally { combat.fight = original }
+}))

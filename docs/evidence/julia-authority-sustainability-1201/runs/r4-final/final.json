@@ -1,0 +1,133 @@
+{
+ "inicio": "14:24:31",
+ "fim": "16:19:58",
+ "duracao_min": 115.5,
+ "decisoes": 350,
+ "ciclos": 349,
+ "forcadas_candidato_unico": 266,
+ "julia_validas": 84,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "return_base,sleep_or_shelter -> return_base": 33,
+  "find_food,return_base -> return_base": 29,
+  "prepare_combat,continue_objective -> continue_objective": 7,
+  "continue_objective,return_base -> continue_objective": 4,
+  "return_base,prepare_combat -> prepare_combat": 2,
+  "return_base,prepare_combat,sleep_or_shelter -> prepare_combat": 2,
+  "continue_objective,return_base -> return_base": 2,
+  "prepare_combat,continue_objective -> prepare_combat": 1,
+  "find_food,continue_objective -> continue_objective": 1,
+  "equip_best_weapon,escape_danger -> equip_best_weapon": 1,
+  "fight_threat,escape_danger -> fight_threat": 1,
+  "prepare_combat,sleep_or_shelter -> prepare_combat": 1
+ },
+ "julia_divergiu_da_deterministica": 43,
+ "latencia_ms": {
+  "mediana": 376,
+  "p90": 443,
+  "max": 1180
+ },
+ "acoes": {
+  "None": 99,
+  "threat:escape_danger:fugi": 80,
+  "return_base": 68,
+  "explore": 64,
+  "find_food": 24,
+  "preparation:gather_materials": 9,
+  "preparation:prepare_combat": 2,
+  "equip:stone_sword": 1,
+  "explore_after_preparation_refused": 1,
+  "night:failed": 1
+ },
+ "resultados": {
+  "ok": 218,
+  "ERROR": 40,
+  "none": 34,
+  "CANCELLED": 22,
+  "NOT_SETTLED": 20,
+  "TARGET_BLOCKED": 11,
+  "APPROVED_TARGETS_INSUFFICIENT": 1,
+  "STONE_SWORD_NOT_CRAFTABLE": 1,
+  "SHELTER_FAILED": 1,
+  "THREAT": 1
+ },
+ "erros_texto": {
+  "caminho demorou demais": 26,
+  "The goal was changed before it could be compl": 13,
+  "No path to the goal! (nem cavando)": 1
+ },
+ "itens_ganhos": {
+  "cobblestone": 29,
+  "stick": 10,
+  "oak_planks": 9,
+  "wooden_pickaxe": 5,
+  "beef": 5,
+  "string": 4,
+  "leather": 4,
+  "stone_sword": 3,
+  "rotten_flesh": 3,
+  "dirt": 3,
+  "gravel": 3,
+  "sand": 2,
+  "feather": 2,
+  "porkchop": 2,
+  "apple": 1,
+  "oak_log": 1
+ },
+ "repeticoes_>=10_ciclos_identicos": [
+  "15x continue_objective -> None",
+  "10x escape_danger -> None"
+ ],
+ "mortes": 28,
+ "mortes_causas": {
+  "drowned": 4,
+  "was slain by Spider": 1,
+  "was shot by Skeleton": 13,
+  "was slain by Phantom": 6,
+  "was slain by Zombie": 2,
+  "was slain by Drowned": 1,
+  "was blown up by Creeper": 1
+ },
+ "conexoes": {},
+ "acoes_fisicas": {
+  "dig": 18,
+  "equip": 18,
+  "move": 18,
+  "craft": 16,
+  "place": 1
+ },
+ "crafts": {
+  "oak_planks": 7,
+  "stick": 3,
+  "wooden_pickaxe": 3,
+  "stone_sword": 2,
+  "crafting_table": 1
+ },
+ "combates_reflexo": {
+  "morto": 5,
+  "recuei": 14,
+  "fugi": 99,
+  "não": 1,
+  "tempo": 1,
+  "cancelado": 3,
+  "Digging": 1
+ },
+ "worldmemory": {
+  "discover": 190,
+  "explore": 108,
+  "suggest": 89,
+  "explored": 31,
+  "preparation_site": 21,
+  "food": 20,
+  "invalidate": 14,
+  "missing": 1
+ },
+ "infra": [
+  "1791296614 bot_start_fresh",
+  "r4 HEAD f4c69c3"
+ ]
+}

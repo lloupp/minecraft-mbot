@@ -1,0 +1,50 @@
+{
+ "inicio": "12:45:03",
+ "fim": "12:55:46",
+ "duracao_min": 10.7,
+ "decisoes": 51,
+ "ciclos": 50,
+ "forcadas_candidato_unico": 51,
+ "julia_validas": 0,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {},
+ "julia_divergiu_da_deterministica": 0,
+ "acoes": {
+  "none_preempted": 17,
+  "explore": 16,
+  "return_base": 16,
+  "threat:escape_danger:fugi": 1
+ },
+ "resultados": {
+  "ok": 33,
+  "PLAYER_LOOP_PREEMPTED": 17
+ },
+ "erros_texto": {},
+ "itens_ganhos": {},
+ "repeticoes_>=10_ciclos_identicos": [
+  "17x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED"
+ ],
+ "mortes": 1,
+ "mortes_causas": {
+  "was slain by Phantom": 1
+ },
+ "conexoes": {},
+ "acoes_fisicas": {},
+ "crafts": {},
+ "combates_reflexo": {
+  "fugi": 1
+ },
+ "worldmemory": {
+  "discover": 104,
+  "explored": 17,
+  "explore": 16,
+  "missing": 1
+ },
+ "infra": [
+  "1791290644 bot_start_fresh"
+ ]
+}

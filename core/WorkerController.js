@@ -10,8 +10,14 @@ const { groundedPenPlan, pointInsidePen, inspectAnimalPen, SPECIES_OFFSETS } = r
 const { resolveBlockNames } = require('./resources')
 const blueprint = require('../lib/blueprint')
 const { buildBlueprint } = require('../lib/blueprintBuilder')
-const { candidateIntents } = require('../lib/player-loop')
+const { candidateIntents, deterministicPlayerPolicy, bestWeapon } = require('../lib/player-loop')
+const night = require('../lib/night')
+const bedLib = require('../lib/bed')
+const craft = require('../lib/craft')
 const { realStateSnapshot } = require('../lib/real-state')
+const worldObserver = require('../lib/world-observer')
+const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
+const { preparationRadius, executePreparationStep, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, preparationStateSnapshot } = require('../lib/forced-preparation')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -33,11 +39,53 @@ const PATH_THINK_MS = 25000
 // workers calculando caminho ao mesmo tempo), nunca menos de 30 s.
 const MS_PER_BLOCK = 700
 const POINT_ARRIVAL_RADIUS = 2
+const PREPARATION_SITE_TTL_MS = 90000
+const PREPARATION_SITE_MAX_DISTANCE = 16
+const PREPARATION_STAGING_MAX_DISTANCE = 8
+const PREPARATION_STAGING_SAFETY_POLL_MS = 100
+const EXPLORE_FAR_MARGIN = 32
+// À noite, a cama da base conta como abrigo até esta distância (o executor volta à base e dorme).
+const BASE_BED_TRAVEL = 64
+// Trabalhando sem sair de um raio de 2 blocos por tanto tempo (fora de abrigo/cama): registra o contexto e libera o
+// worker. Visto no Minecraft: 24 min parado num ponto do qual um bot de teste sai em 6 s, sem causa identificada.
+const NO_PROGRESS_MS = Number(process.env.MBOT_NO_PROGRESS_MS || 180000)
+const NO_PROGRESS_RADIUS = 2
+const NO_PROGRESS_IDLE_RESET_MS = 30000
+const THREAT_IGNORE_MS = 60000
+const FAILED_HUNT_MS = 120000
+const BASE_UNREACHABLE_MS = 120000
+const DEATH_DROPS_MS = 240000
+const COOKABLE = new Set(['beef', 'porkchop', 'mutton', 'chicken', 'rabbit', 'cod', 'salmon', 'potato'])
+const DEATH_DROPS_RANGE = 96
+// Escape cavando: pedra à mão leva ~7 s por bloco; com 20 s o explorador não saía de uma caverna ao lado da base.
+const DIG_ESCAPE_MS = 60000
+// Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
+const GOTO_REJECTED_MOVES = 40
+// Falhas de movimento que significam "não deu para chegar daqui" (e não cancelamento/troca de dono).
+const UNREACHED_MOVE = /No path to the goal|caminho demorou demais|Took to long to decide path|servidor rejeitou o movimento/
+const PHYSICAL_PREPARATION_REFUSALS = new Set(['TARGET_BLOCKED', 'APPROVED_TARGETS_INSUFFICIENT', 'MINING_PICKAXE_REQUIRED', 'COBBLESTONE_DROP_REQUIRED', 'NEARBY_TABLE_REQUIRED'])
 const NAVIGATION_POSITION_NOT_CONFIRMED = 'NAVIGATION_POSITION_NOT_CONFIRMED'
 function travelTimeoutMs(from, to) {
   if (!from || !to) return 30000
   const d = Math.hypot(from.x - to.x, from.y - to.y, from.z - to.z)
   return Math.max(30000, Math.round(d * MS_PER_BLOCK))
+}
+
+function summarizeGatherRecovery(evidence = []) {
+  const failedWithAlternate = evidence.findIndex((attempt) =>
+    attempt?.code &&
+    attempt.code !== gather.COLLECTION_FAILURE.CANCELLED &&
+    attempt.alternateTargetCandidateObserved === true
+  )
+  if (failedWithAlternate < 0) {
+    return { alternateTargetObserved: false, alternateTargetRecoveryConfirmed: false }
+  }
+  return {
+    alternateTargetObserved: true,
+    alternateTargetRecoveryConfirmed: evidence
+      .slice(failedWithAlternate + 1)
+      .some((attempt) => attempt?.itemConfirmed === true)
+  }
 }
 
 function shadowObjectiveKey(task) {
@@ -71,7 +119,7 @@ function protectPenBlocks(moves, registry) {
 }
 
 class WorkerController {
-  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null }) {
+  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null, juliaAuthority = null }) {
     this.bot = bot
     this.name = name
     this.role = role
@@ -83,6 +131,11 @@ class WorkerController {
     // Shadow mode do Laya (opcional): só observa em paralelo, nunca decide
     // nada aqui. Ver a chamada em run() e lib/laya-shadow.js.
     this.shadow = shadow
+    // Memória espacial compartilhada (conhecimento, nunca executor): o mundo real continua sendo a verdade.
+    this.worldMemory = worldMemory
+    // Autoridade da Julia (opt-in, MBOT_JULIA_AUTHORITY=1): escolhe entre os candidatos do player loop; a execução
+    // continua no executor determinístico. Desligada, a escolha é a determinística de sempre.
+    this.juliaAuthority = juliaAuthority
     this._shadowFailureStreak = 0
     this._shadowFailureKey = null
     this._shadowFailureEntry = null
@@ -90,6 +143,7 @@ class WorkerController {
     this.state = 'conectando'
     this.currentTask = null
     this.taskVersion = 0
+    this._preparationResumeCandidate = null
     this.exploreStep = 0
     this.workMoves = null
     this.penMoves = null
@@ -103,6 +157,12 @@ class WorkerController {
     this.lastHealth = null
     this.lastAttacker = null
     this.survivalTimer = null
+    this._baseBed = null           // posição da cama da base (vista ou colocada)
+    this._failedHunts = new Map()  // animal -> até quando não oferecer de novo (a caça não o alcançou)
+    this._sheltered = false        // dentro do abrigo cavado (o vigia de progresso não conta)
+    this._progressAnchor = null
+    this._loopIntent = null
+    this._ignoredThreats = new Map() // id -> até quando (luta que expirou sem alcançar o monstro)
 
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
@@ -157,6 +217,8 @@ class WorkerController {
     })
 
     bot.on('death', () => {
+      // Onde caíram os itens (somem em 5 min): base para a opção recover_items depois de renascer.
+      if (this.bot.entity?.position) this._deathDrops = { position: this.bot.entity.position.clone(), at: Date.now() }
       this.logger.log(`[colônia] ${this.name} morreu.`)
       this.cancel()
       this.lastHealth = null
@@ -173,6 +235,37 @@ class WorkerController {
       return
     }
     if (this.bot.food <= HUNGRY && !this.bot.targetDigBlock) this.eat()
+    this.progressTick()
+  }
+
+  // Vigia genérico de falta de progresso: não decide nada sobre o jogo, só registra o que o worker fazia e o libera
+  // (cancel → ocioso; quem dá tarefas assume de novo, com estado novo).
+  progressTick(now = Date.now()) {
+    const position = this.bot.entity?.position
+    if (!position || this._sheltered || this.bot.isSleeping) {
+      this._progressAnchor = null
+      return false
+    }
+    // Ociosidade curta entre tarefas não zera a contagem: visto no Minecraft (linha de base), 384 ciclos curtos de
+    // find_food recusado no mesmo lugar por 38 min, cada um terminando em 'ocioso' por alguns segundos.
+    if (this.state !== 'trabalhando') {
+      this._idleSince ??= now
+      if (now - this._idleSince > NO_PROGRESS_IDLE_RESET_MS) this._progressAnchor = null
+      return false
+    }
+    this._idleSince = null
+    if (!this._progressAnchor || position.distanceTo(this._progressAnchor.position) > NO_PROGRESS_RADIUS) {
+      this._progressAnchor = { position: position.clone(), at: now }
+      return false
+    }
+    if (now - this._progressAnchor.at < NO_PROGRESS_MS) return false
+    const goal = this.bot.pathfinder?.goal
+    this.logger.log?.(`[colônia] ${this.name} sem progresso ${Math.round((now - this._progressAnchor.at) / 60000)} min em ${position.floored()}: ` +
+      `tarefa=${this.currentTask?.type || '-'} intenção=${this._loopIntent || '-'} caminho=${goal ? goal.constructor?.name : 'nenhum'} ` +
+      `movendo=${Boolean(this.bot.pathfinder?.isMoving?.())} cavando=${Boolean(this.bot.targetDigBlock)} vida=${this.bot.health} fome=${this.bot.food}`)
+    this._progressAnchor = null
+    this.cancel()
+    return true
   }
 
   // Bloco sólido e cavável na altura dos olhos: o bot está sufocando.
@@ -226,6 +319,17 @@ class WorkerController {
       : bot.nearestEntity((e) => e.type === 'hostile' && e.position.distanceTo(bot.entity.position) <= FLEE_DISTANCE)
     if (!threat) return null
 
+    const interruptedPreparation = this.currentTask?.type === 'preparar_combate_deterministico'
+      ? {
+          ...this.currentTask,
+          objective: this.currentTask.objective ? { ...this.currentTask.objective } : null,
+          allowedTargets: Array.isArray(this.currentTask.allowedTargets)
+            ? this.currentTask.allowedTargets.map((target) => ({ ...target }))
+            : []
+        }
+      : null
+    const preparationDrain = this._preparationDrain
+    this.rememberPreparationSiteWhenUnarmed()
     this.cancel()
     this.defending = true
     this.state = 'defendendo'
@@ -233,6 +337,8 @@ class WorkerController {
     const isCancelled = () => version !== this.taskVersion
     let result = 'fugi'
     try {
+      if (preparationDrain) await preparationDrain.catch(() => {})
+      if (isCancelled()) return 'cancelado'
       if (combat.decide(bot, threat) === 'lutar') {
         result = await combat.fight(bot, threat, isCancelled)
         if (result === 'recuei') await this.flee(threat, isCancelled)
@@ -246,8 +352,84 @@ class WorkerController {
       if (!isCancelled()) {
         this.state = 'ocioso'
         bot.pathfinder?.setGoal(null)
+        this._preparationResumeCandidate = interruptedPreparation
+          ? this.buildPreparationResumeTask(interruptedPreparation)
+          : null
       }
     }
+  }
+
+  // Defesa com o explorador desarmado e recursos ao alcance: lembra o local para uma volta única depois.
+  rememberPreparationSiteWhenUnarmed() {
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') return
+    const site = this._preparationSite
+    if (site && Date.now() - site.at <= PREPARATION_SITE_TTL_MS) return
+    try {
+      const state = preparationStateSnapshot(this.bot, { type: 'explorar' }, {
+        homeProvider: this.homeProvider,
+        allowedTargets: this.nearbyPreparationAllowlist()
+      })
+      if (!state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+        this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+      }
+    } catch { /* melhor esforço: nunca atrasa a defesa */ }
+  }
+
+  buildPreparationResumeTask(interruptedTask) {
+    if (!interruptedTask?.objective || typeof interruptedTask.objective !== 'object') return null
+    const state = preparationStateSnapshot(this.bot, interruptedTask.objective, {
+      homeProvider: this.homeProvider,
+      allowedTargets: Array.isArray(interruptedTask.allowedTargets) ? interruptedTask.allowedTargets : []
+    })
+    return preparationDispatchTask({
+      enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
+      state,
+      objective: interruptedTask.objective,
+      allowedTargets: Array.isArray(interruptedTask.allowedTargets) ? interruptedTask.allowedTargets : [],
+      timeoutMs: interruptedTask.timeoutMs
+    })
+  }
+
+  pendingPreparationResume() {
+    if (!this._preparationResumeCandidate) return null
+    return {
+      ...this._preparationResumeCandidate,
+      objective: this._preparationResumeCandidate.objective ? { ...this._preparationResumeCandidate.objective } : null,
+      allowedTargets: Array.isArray(this._preparationResumeCandidate.allowedTargets)
+        ? this._preparationResumeCandidate.allowedTargets.map((target) => ({ ...target }))
+        : []
+    }
+  }
+
+  // Chão firme mais próximo fora d'água (até 16 blocos): bloco sólido com 2 de ar livre (sem líquido) em cima.
+  dryLand(radius = 16) {
+    const here = this.bot.entity.position.floored()
+    const free = (b) => b && b.boundingBox === 'empty' && !['water', 'lava', 'bubble_column'].includes(b.name)
+    for (let r = 1; r <= radius; r++) {
+      for (let dx = -r; dx <= r; dx++) {
+        for (let dz = -r; dz <= r; dz++) {
+          if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue
+          for (let dy = 4; dy >= -3; dy--) {
+            const p = here.offset(dx, dy, dz)
+            const floor = this.bot.blockAt(p.offset(0, -1, 0))
+            if (floor?.boundingBox === 'block' && free(this.bot.blockAt(p)) && free(this.bot.blockAt(p.offset(0, 1, 0)))) return p
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  async escapeWater(isCancelled) {
+    const land = this.dryLand()
+    this.bot.setControlState?.('jump', true)
+    try {
+      if (land && !isCancelled()) await this.goTo(new goals.GoalBlock(land.x, land.y, land.z), 15000).catch(() => {})
+      else await sleep(2000)
+    } finally {
+      this.bot.setControlState?.('jump', false)
+    }
+    return !this.bot.entity?.isInWater
   }
 
   async flee(threat, isCancelled) {
@@ -302,11 +484,17 @@ class WorkerController {
 
   async run(task) {
     await this.waitReady()
+    const preparationDrain = this._preparationDrain
     this.cancel()
+    this._preparationResumeCandidate = null
     const version = this.taskVersion
     const isCancelled = () => version !== this.taskVersion
     this.currentTask = { ...task }
     this.state = 'trabalhando'
+    // A submitted craft cannot be rolled back. Invalidate ownership immediately,
+    // but let that preparation settle before the new owner starts physical work.
+    if (preparationDrain) await preparationDrain.catch(() => {})
+    if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true }
 
     // A tarefa em si continua exatamente como antes, só que agora dentro de
     // uma função para termos uma promise (`taskPromise`) que podemos passar
@@ -345,7 +533,7 @@ class WorkerController {
           result = await this.captureAnimals(task.species, task.count || 1, isCancelled)
           break
         case 'explorar':
-          result = await this.explore(task.radius || 64, isCancelled, task.center || null)
+          result = await this.runExplorePlayerLoop(task, isCancelled)
           break
         case 'ir_local':
           result = await this.goToPoint(task.position, isCancelled)
@@ -380,6 +568,9 @@ class WorkerController {
         case 'voltar':
           result = await this.returnHome(isCancelled)
           break
+        case 'preparar_combate_deterministico':
+          result = await this.runDeterministicPreparation(task, isCancelled)
+          break
         default:
           throw new Error(`tarefa desconhecida: ${task.type}`)
       }
@@ -393,8 +584,34 @@ class WorkerController {
       }
     })()
 
-    this._observeShadow(task, isCancelled, taskPromise)
+    if (task.type === 'preparar_combate_deterministico') {
+      this._preparationDrain = taskPromise
+      const clearDrain = () => { if (this._preparationDrain === taskPromise) this._preparationDrain = null }
+      taskPromise.then(clearDrain, clearDrain)
+    }
+    this._observeShadow(task.type === 'preparar_combate_deterministico' ? (task.objective || task) : task, isCancelled, taskPromise)
     return taskPromise
+  }
+
+  async runDeterministicPreparation(task, isCancelled) {
+    const objective = task?.objective
+    if (!objective || typeof objective !== 'object' || !objective.type) {
+      return { ok: false, code: 'OBJECTIVE_REQUIRED', juliaExecutionAuthority: 'none' }
+    }
+
+    const ownerVersion = this.taskVersion
+    return executePreparationStep({
+      enabled: process.env.MBOT_DETERMINISTIC_PREPARATION === '1',
+      bot: this.bot,
+      task: objective,
+      production: this.production,
+      allowedTargets: Array.isArray(task.allowedTargets) ? task.allowedTargets : [],
+      homeProvider: this.homeProvider,
+      isCancelled,
+      timeoutMs: Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 20000,
+      authorizedIntent: task.authorizedIntent || null,
+      onEvent: event => this.logger.log?.(`[deterministic-preparation] ${JSON.stringify({ worker: this.name, taskVersion: ownerVersion, currentVersion: this.taskVersion, ...event })}`)
+    })
   }
 
   // Shadow mode do Laya: só observa, nunca decide. Nunca lança e nunca é
@@ -510,16 +727,34 @@ class WorkerController {
 
   async goTo(goal, timeoutMs = 20000) {
     let timer
+    let onForcedMove = null
     const timeout = new Promise((_, reject) => {
       timer = setTimeout(() => {
         this.bot.pathfinder.setGoal(null)
         reject(new Error('caminho demorou demais'))
       }, timeoutMs)
+      // Num degrau em diagonal a física do cliente pode pôr a caixa do bot dentro do bloco: o servidor devolve a
+      // posição a cada tick e o pathfinder repete o mesmo passo até o timeout. Sem progresso, desiste cedo.
+      let streak = 0
+      let anchor = null
+      let last = 0
+      onForcedMove = () => {
+        const position = this.bot.entity?.position
+        const now = Date.now()
+        if (!position) return
+        if (!anchor || now - last > 500 || position.distanceTo(anchor) > 0.5) { anchor = position.clone(); streak = 0 }
+        last = now
+        if (++streak < GOTO_REJECTED_MOVES) return
+        this.bot.pathfinder.setGoal(null)
+        reject(new Error('servidor rejeitou o movimento'))
+      }
+      this.bot.on?.('forcedMove', onForcedMove)
     })
     try {
       await Promise.race([this.bot.pathfinder.goto(goal), timeout])
     } finally {
       clearTimeout(timer)
+      this.bot.removeListener?.('forcedMove', onForcedMove)
     }
   }
 
@@ -537,9 +772,25 @@ class WorkerController {
 
     // gather pula blocos inalcançáveis em vez de insistir sempre no mesmo.
     const evidence = []
-    const gathered = await gather.mineBlocks(this.bot, (name) => wanted.has(name), count, isCancelled, {
-      onAttempt: (attempt) => { evidence.push(attempt); if (evidence.length > 20) evidence.shift() }
+    const kind = [...wanted].map(worldObserver.resourceKindForBlock).find(Boolean) || null
+    const dim = worldObserver.dimensionOf(this.bot)
+    const mine = (n) => gather.mineBlocks(this.bot, (name) => wanted.has(name), n, isCancelled, {
+      onAttempt: (attempt) => {
+        evidence.push(attempt); if (evidence.length > 20) evidence.shift()
+        // Fonte confirmada no mundo (item no inventário) => registra a região do recurso.
+        if (attempt.itemConfirmed && kind && attempt.targetPosition && this.worldMemory) {
+          this.worldMemory.discover(kind, dim, attempt.targetPosition, { by: this.name })
+        }
+      }
     })
+    if (this.worldMemory) this.observeWorld()
+    let gathered = await mine(count)
+    // Nada à vista: a memória só sugere ONDE olhar; depois é o mesmo findBlocks/dig/confirmação de sempre.
+    if (gathered < count && !isCancelled() && kind && this.memoryGuideOn() &&
+        evidence.findLast((attempt) => attempt.code)?.code === gather.COLLECTION_FAILURE.RESOURCE_NOT_FOUND) {
+      if (await this.rememberedResourceDetour(kind, isCancelled)) gathered += await mine(count - gathered)
+    }
+    if (this.worldMemory && !isCancelled()) this.observeWorld() // recurso esgotado => região invalidada
 
     const deposited = !isCancelled() && this.storage?.configured()
       ? await this.storage.depositCargo(this.bot).catch((err) => { this.logger.log(`[estoque] ${this.name} não depositou: ${err.message}`); return {} })
@@ -547,7 +798,8 @@ class WorkerController {
     const ok = !isCancelled() && gathered >= count
     const code = isCancelled() ? gather.COLLECTION_FAILURE.CANCELLED
       : ok ? undefined : evidence.findLast((attempt) => attempt.code)?.code || gather.COLLECTION_FAILURE.RESOURCE_NOT_FOUND
-    return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, evidence }
+    const recovery = summarizeGatherRecovery(evidence)
+    return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, recovery, evidence }
   }
 
   // Currais construídos (com portão) em volta da base.
@@ -1147,7 +1399,591 @@ class WorkerController {
     }
   }
 
-  async explore(radius, isCancelled, center = null) {
+  nearbyPreparationAllowlist(maxDistance = preparationRadius(), maxTargets = 32) {
+    if (typeof this.bot.findBlocks !== 'function') return []
+    const blocks = this.bot.registry?.blocksArray || []
+    const idsFor = (predicate) => blocks.filter((block) => predicate(block.name)).map((block) => block.id)
+    const isStone = (name) => name === 'stone' || name === 'cobblestone'
+    const isLog = (name) => name.endsWith('_log')
+
+    // findBlocks devolve os mais próximos primeiro: em terreno natural eles são pedras enterradas ou um
+    // afloramento grande que esgotaria a cota e deixaria as árvores de fora. Duas varreduras limitadas,
+    // uma por recurso, mantendo só candidatos expostos e no máximo metade da cota para cada.
+    const seen = new Set()
+    const scan = (predicate, scanCount, cap) => {
+      const matching = idsFor(predicate)
+      if (!matching.length) return []
+      const found = []
+      for (const position of this.bot.findBlocks({ matching, maxDistance, count: scanCount }) || []) {
+        if (!position || found.length >= cap) break
+        const key = position.toString()
+        if (seen.has(key)) continue
+        const block = this.bot.blockAt?.(position)
+        if (!block || !predicate(block.name)) continue
+        if (!gather.isExposed(this.bot, position) || gather.hasFallingAbove(this.bot, position)) continue
+        seen.add(key)
+        found.push({ x: position.x, y: position.y, z: position.z, name: block.name })
+      }
+      return found
+    }
+    const half = Math.floor(maxTargets / 2)
+    return [...scan(isLog, maxTargets * 4, half), ...scan(isStone, maxTargets * 8, maxTargets - half)]
+  }
+
+  // Depois de uma ameaça interromper a preparação, a defesa pode deslocar o bot para fora da janela
+  // local. Uma única volta ao local validado (nunca busca nova); o resto é reavaliado pelo snapshot real.
+  async returnToPreparationSite(task, isCancelled) {
+    const site = this._preparationSite
+    if (!site || isCancelled()) return
+    if (Date.now() - site.at > PREPARATION_SITE_TTL_MS) { this._preparationSite = null; return }
+    const state = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [], isCancelled })
+    if (state.threat) return // ameaça ainda presente: mantém o local até o TTL
+    this._preparationSite = null
+    if (state.equippedWeapon) return
+    const distance = this.bot.entity.position.distanceTo(site.position)
+    if (distance <= 0.5 || distance > PREPARATION_SITE_MAX_DISTANCE) return
+    try {
+      await this.goTo(new goals.GoalBlock(Math.floor(site.position.x), Math.floor(site.position.y), Math.floor(site.position.z)), 15000)
+    } catch { /* sem caminho: segue com o snapshot real da posição atual */ }
+  }
+
+  async tryLocalPreparationStaging(isCancelled) {
+    if (isCancelled() || !this.production?.findCraftingTable || !this.bot?.entity?.position) return false
+
+    const table = this.production.findCraftingTable(this.bot, PREPARATION_STAGING_MAX_DISTANCE)
+    if (!table?.position) return false
+
+    const liveTable = this.bot.blockAt?.(table.position)
+    if (liveTable?.name !== 'crafting_table') return false
+
+    const distance = this.bot.entity.position.distanceTo(table.position)
+    if (distance > PREPARATION_STAGING_MAX_DISTANCE) return false
+
+    // The cache is only a hint; the physical executor/preflight still revalidates
+    // the block and distance before every craft.
+    this.production.rememberCraftingTable?.(this.bot, liveTable)
+
+    // If we are already adjacent, another movement would add no useful physical
+    // information. Let the normal fail-closed fallback handle the refusal.
+    if (distance <= 1.5) return false
+
+    let stagingThreat = null
+    let defenseStarted = false
+    const detectThreat = () => {
+      if (stagingThreat || isCancelled() || !this.bot?.entity?.position) return
+      const threat = this.bot.nearestEntity?.((entity) =>
+        entity?.type === 'hostile' &&
+        entity.position?.distanceTo(this.bot.entity.position) <= FLEE_DISTANCE
+      )
+      if (!threat) return
+
+      stagingThreat = threat
+      // Cancel the navigation immediately. defend() synchronously invalidates
+      // taskVersion before its first await, so the old explore owner cannot
+      // start another physical action after this point.
+      this.bot.pathfinder?.setGoal(null)
+      if (!defenseStarted && !this.defending) {
+        defenseStarted = true
+        this.defend(threat).catch((err) =>
+          this.logger.log?.(`[colônia] ${this.name} defesa durante staging: ${err.message}`)
+        )
+      }
+    }
+
+    detectThreat()
+    if (stagingThreat || isCancelled()) return false
+
+    const monitor = setInterval(detectThreat, PREPARATION_STAGING_SAFETY_POLL_MS)
+    try {
+      await this.goTo(
+        new goals.GoalNear(
+          Math.floor(table.position.x),
+          Math.floor(table.position.y),
+          Math.floor(table.position.z),
+          1
+        ),
+        10000
+      )
+    } catch {
+      return false
+    } finally {
+      clearInterval(monitor)
+    }
+
+    detectThreat()
+    if (stagingThreat || isCancelled()) return false
+    const after = this.bot.blockAt?.(table.position)
+    if (after?.name !== 'crafting_table') return false
+    return this.bot.entity.position.distanceTo(table.position) <= 2
+  }
+
+  async runExplorePlayerLoop(task, isCancelled) {
+    if (!this.juliaAuthority?.enabled?.()) return this._runExplorePlayerLoop(task, isCancelled)
+    let result = null
+    try {
+      result = await this._runExplorePlayerLoop(task, isCancelled)
+      return result
+    } catch (error) {
+      result = { ok: false, code: 'ERROR', error: error?.message || String(error) }
+      throw error
+    } finally {
+      this._settleJuliaDecision(task, result)
+    }
+  }
+
+  // Escolha do player loop: Julia (se autorizada) entre os candidatos dados, senão a política determinística.
+  async _playerLoopChoice(state, candidates, isCancelled) {
+    if (!this.juliaAuthority?.enabled?.()) return { choice: deterministicPlayerPolicy(state, candidates), source: 'deterministic' }
+    return this.juliaAuthority.decide({ state, candidates, isCancelled, meta: { worker: this.name, taskVersion: this.taskVersion } })
+  }
+
+  _settleJuliaDecision(task, result, action = null) {
+    if (!this.juliaAuthority?.enabled?.()) return
+    let nextState = null
+    try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
+    const executed = action || (result?.intent === 'cook_food' ? `cook:${result.cooked ?? 0}` : result?.intent === 'recover_items' ? `recover:${result.recovered ?? 0}` : result?.escaped ? `escape:${result.escaped}` : result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
+      : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
+        : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
+    this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
+  }
+
+  async _runExplorePlayerLoop(task, isCancelled) {
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') {
+      return this.explore(task.radius || 64, isCancelled, task.center || null)
+    }
+
+    const preparationSteps = []
+    const maxPreparationSteps = 3
+    let stagingAttempted = false
+    let memoryTripAttempted = false
+    // Muito além do raio de exploração (ex.: respawn no spawn do mundo): os alvos são relativos ao
+    // centro, então primeiro volta a ele com o retorno existente em vez de falhar caminhando 300+ blocos.
+    const center = task.center || this.homeProvider?.()
+    const farLimit = (task.radius || 64) + EXPLORE_FAR_MARGIN
+    if (center && this.bot.entity?.position && Math.hypot(this.bot.entity.position.x - center.x, this.bot.entity.position.z - center.z) > farLimit) {
+      const returned = await this.returnHome(isCancelled, { verify: true })
+      if (!returned.ok) return { ok: false, code: returned.code || 'CANCELLED', cancelled: !returned.code, preparationSteps }
+    }
+    await this.returnToPreparationSite(task, isCancelled)
+
+    for (let step = 0; step < maxPreparationSteps;) {
+      if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+
+      const allowedTargets = this.nearbyPreparationAllowlist()
+      const state = preparationStateSnapshot(this.bot, task, {
+        homeProvider: this.homeProvider,
+        allowedTargets,
+        isCancelled,
+        deep: true,
+        ignoreThreat: (e) => this.threatIgnored(e),
+        spareAnimal: (e) => this.huntFailed(e)
+      })
+      this.rememberedFoodHint(state)
+      this.bedFacts(state)
+      const candidates = candidateIntents(state)
+      const decision = await this._playerLoopChoice(state, candidates, isCancelled)
+      if (decision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+      const choice = decision.choice
+      this._loopIntent = choice
+      const authorizedIntent = decision.source === 'julia' ? choice : null
+
+      if (choice === 'continue_objective') {
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+        return {
+          ...explored,
+          playerLoopPreparation: true,
+          preparationSteps
+        }
+      }
+
+      // Noite desarmado (ou outra necessidade de voltar): o retorno à base já existe (tarefa `voltar`);
+      // sem ele o explorador ficaria parado fora da base. Um único retorno, sob o mesmo owner.
+      if (choice === 'return_base' && this.homeProvider?.()) {
+        const returned = await this.returnHome(isCancelled, { verify: true })
+        if (returned.code === 'NOT_ARRIVED') this._baseUnreachableUntil = Date.now() + BASE_UNREACHABLE_MS
+        return returned.ok
+          ? { ok: true, returnedToBase: true, intent: choice, playerLoopPreparation: true, preparationSteps }
+          : { ok: false, code: returned.code || 'CANCELLED', cancelled: !returned.code, intent: choice, preparationSteps }
+      }
+
+      // Afogando (sem ameaça): sair da água para o chão firme mais próximo. O player loop já forçava escape_danger com
+      // drowning, mas o runtime nunca informava drowning e não havia executor (visto no Minecraft: afogou repetindo
+      // make_bed parado na água).
+      if (choice === 'escape_danger' && !state.threat && state.drowning) {
+        const out = await this.escapeWater(isCancelled)
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        return { ok: out, code: out ? null : 'STILL_IN_WATER', intent: choice, escaped: 'water', playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Ameaça: fugir ou lutar vai para os executores determinísticos que já existem (flee / combat.fight).
+      // Sem isto o loop só devolvia PLAYER_LOOP_PREEMPTED e, sem dano para acionar o reflexo, ficava parado ao lado
+      // da ameaça (visto no Minecraft: 103 ciclos idênticos perto de uma aranha).
+      if ((choice === 'escape_danger' || choice === 'fight_threat') && state.threat) {
+        const threat = this.bot.nearestEntity?.((entity) => entity?.type === 'hostile' && entity.name === state.threat.type &&
+          !this.threatIgnored(entity) && entity.position?.distanceTo(this.bot.entity.position) <= FLEE_DISTANCE)
+        if (threat) {
+          if (!state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+            this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+          }
+          let outcome = 'fugi'
+          if (choice === 'fight_threat') {
+            outcome = await combat.fight(this.bot, threat, isCancelled)
+            // Luta expirou sem alcançar o monstro (na água, num buraco, sem caminho): ignora-o por um minuto na
+            // percepção e se afasta. Visto no Minecraft: 26× fight_threat → 'tempo' no mesmo lugar por 25 min.
+            if (outcome === 'tempo') this.ignoreThreat(threat)
+            if ((outcome === 'recuei' || outcome === 'tempo') && !isCancelled()) await this.flee(threat, isCancelled)
+          } else {
+            await this.flee(threat, isCancelled)
+          }
+          this.bot.pathfinder?.setGoal(null)
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+          return { ok: true, intent: choice, threatHandled: choice, combat: outcome, playerLoopPreparation: true, preparationSteps }
+        }
+      }
+
+      // Arma carregada sob ameaça: o player loop só oferece equipar com a ameaça a ≥5 blocos. O executor de preparação
+      // recusa qualquer etapa com ameaça (SAFETY_PRECEDENCE) e a escolha válida não tinha efeito (r3: 10×). Equipar é uma
+      // única ação: feita aqui, confirmada na mão; a etapa de preparação continua recusando o resto sob ameaça.
+      if (choice === 'equip_best_weapon' && state.threat) {
+        const name = bestWeapon(state).name
+        const item = name && this.bot.inventory.items().find((i) => i.name === name)
+        if (item && !isCancelled()) await this.bot.equip(item, 'hand').catch(() => {})
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        const equipped = this.bot.heldItem?.name === name
+        return { ok: equipped, code: equipped ? null : 'EQUIP_NOT_CONFIRMED', intent: choice, equipped: equipped ? name : null, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Noite: abrigo/cama usa o executor que já existe (lib/night.js: dorme numa cama a ≤32 ou cava um abrigo de 3 blocos,
+      // tampa e espera o dia). Antes não havia executor: ficar parado na base a noite inteira (r3: 102×) e phantoms (6 mortes).
+      if (choice === 'sleep_or_shelter') {
+        // Cama da base fora do alcance do executor (32): volta à base primeiro (o mesmo retorno de return_base).
+        if (state.shelterKind === 'base_bed' && !night.findBed(this.bot)) {
+          const returned = await this.returnHome(isCancelled, { verify: true })
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+          if (!returned.ok) this.logger.log?.(`[colônia] ${this.name} noite: não cheguei à cama da base (${returned.code})`)
+        }
+        const how = await night.spendNight(this.bot, isCancelled, { onShelter: (inside) => { this._sheltered = inside } })
+          .catch((error) => { this.logger.log?.(`[colônia] ${this.name} noite: ${error.message}`); return null })
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        return { ok: Boolean(how), code: how ? null : 'SHELTER_FAILED', intent: choice, night: how, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Cozinhar: o smeltItem que já existe (faz/acha a fornalha, põe combustível e espera). Depois come se tiver fome.
+      if (choice === 'cook_food') {
+        let cooked = 0
+        for (const item of this.bot.inventory.items().filter((i) => COOKABLE.has(i.name))) {
+          if (isCancelled()) break
+          cooked += await craft.smeltItem(this.bot, item.name, item.count, isCancelled)
+            .catch((error) => { this.logger.log?.(`[colônia] ${this.name} cozinhar: ${error.message}`); return 0 })
+        }
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        const ate = this.bot.food <= HUNGRY ? await this.eat() : null
+        return { ok: cooked > 0, code: cooked > 0 ? null : 'COOK_FAILED', intent: choice, cooked, ate: Boolean(ate), playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Itens da morte: vai até o ponto e recolhe o que ainda estiver no chão (o coletor de drops que já existe).
+      if (choice === 'recover_items' && this._deathDrops) {
+        const drops = this._deathDrops
+        const before = this.bot.inventory.items().reduce((n, i) => n + i.count, 0)
+        await this.goTo(new goals.GoalNear(drops.position.x, drops.position.y, drops.position.z, 2), travelTimeoutMs(this.bot.entity?.position, drops.position)).catch(() => {})
+        if (!isCancelled()) await food.collectDrops(this.bot, drops.position, isCancelled, { radius: 8, timeoutMs: 20000 }).catch(() => {})
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        this._deathDrops = null
+        const gained = this.bot.inventory.items().reduce((n, i) => n + i.count, 0) - before
+        return { ok: gained > 0, intent: choice, recovered: gained, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Cama na base: lã (ovelha ou linha), fabricar, voltar à base, colocar e usar (ponto de renascimento / dormir).
+      if (choice === 'make_bed') {
+        const outcome = await this.makeBaseBed(isCancelled, state.nearby?.sheepRemembered || null)
+          .catch((error) => ({ ok: false, step: 'error', error: error?.message || String(error) }))
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        if (outcome.error) this.logger.log?.(`[colônia] ${this.name} cama (${outcome.step}): ${outcome.error}`)
+        return { ok: outcome.ok, code: outcome.ok ? null : 'BED_FAILED', intent: choice, bed: outcome.step, error: outcome.error || null, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Fome: procurar comida usa o executor de comida que já existe (caça/frutas/plantação ao alcance) e come.
+      if (choice === 'find_food') {
+        const pens = this.builtPens()
+        const spare = (entity) => pens.some((plan) => pointInsidePen(entity.position, plan)) || this.huntFailed(entity)
+        const hunt = () => food.gatherFood(this.bot, isCancelled, { spare })
+          .catch((error) => { this.logger.log?.(`[colônia] ${this.name} comida: ${error.message}`); return null })
+        // O alvo que o executor vai escolher (o mesmo findHuntableAnimal): sem comida no fim, fica fora por 2 min.
+        // Visto no Minecraft: preso numa caverna, 118 find_food no mesmo animal inalcançável, fome 0 por 41 min.
+        let target = null
+        try { target = food.findHuntableAnimal(this.bot, { spare }) } catch { target = null }
+        let gathered = await hunt()
+        if (!gathered && target && !isCancelled()) (this._failedHunts ||= new Map()).set(target.id, Date.now() + FAILED_HUNT_MS)
+        const remembered = state.nearby?.foodRemembered
+        if (!gathered && remembered && !isCancelled()) gathered = await this.huntRememberedFood(remembered, hunt, isCancelled)
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        const ate = await this.eat()
+        return { ok: Boolean(gathered), intent: choice, foodGathered: gathered || null, ate: Boolean(ate), playerLoopPreparation: true, preparationSteps }
+      }
+
+      if (!['gather_materials', 'prepare_combat', 'equip_best_weapon'].includes(choice)) {
+        // Ameaça antes da preparação: lembra o local (desarmado + recursos ao alcance) para uma volta única depois.
+        if (state.threat && !state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
+          this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
+        }
+        return {
+          ok: false,
+          code: 'PLAYER_LOOP_PREEMPTED',
+          intent: choice,
+          candidates: candidates.map((candidate) => candidate.id),
+          preparationSteps
+        }
+      }
+
+      if (process.env.MBOT_DETERMINISTIC_PREPARATION !== '1') {
+        return {
+          ok: false,
+          code: 'PREPARATION_EXECUTOR_DISABLED',
+          intent: choice,
+          preparationSteps
+        }
+      }
+
+      // O preflight só aceita mesa já em cache; registra uma mesa real a ≤4 blocos (sem busca ampla).
+      if (!this.production.cachedCraftingTable?.(this.bot)) {
+        const nearbyTable = this.production.findCraftingTable?.(this.bot, 4)
+        if (nearbyTable) this.production.rememberCraftingTable(this.bot, nearbyTable)
+      }
+
+      const preflight = preparationIntegrationPreflight({
+        bot: this.bot,
+        production: this.production,
+        state,
+        allowedTargets,
+        authorizedIntent
+      })
+      if (!preflight.ok) {
+        if (preflight.code === 'SAFETY_PRECEDENCE') {
+          return { ok: false, code: preflight.code, intent: choice, preparationSteps }
+        }
+
+        // One bounded staging move is allowed only for spatial refusals. This is
+        // not a resource search: it approaches one existing crafting table at
+        // <= 8 blocks, then rebuilds the allowlist/snapshot and re-runs preflight.
+        if (!stagingAttempted &&
+            ['NEARBY_TABLE_REQUIRED', 'APPROVED_TARGETS_INSUFFICIENT'].includes(preflight.code)) {
+          stagingAttempted = true
+          if (await this.tryLocalPreparationStaging(isCancelled)) continue
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        }
+
+        // Local esgotado: a memória pode conhecer um ponto com mesa+madeira+pedra. Uma viagem por tarefa;
+        // depois o loop reavalia tudo do zero (snapshot real, allowlist, preflight físico).
+        if (!memoryTripAttempted && this.memoryGuideOn() &&
+            ['NEARBY_TABLE_REQUIRED', 'APPROVED_TARGETS_INSUFFICIENT'].includes(preflight.code)) {
+          memoryTripAttempted = true
+          if (await this.tryRememberedPreparationSite(isCancelled)) continue
+          if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        }
+
+        // Sem condições físicas para preparar aqui: não é erro da tarefa.
+        // Segue o caminho clássico em vez de deixar o explorador parado.
+        const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+        return {
+          ...explored,
+          playerLoopPreparation: true,
+          preparationSkipped: { code: preflight.code || 'PREPARATION_PREFLIGHT_REFUSED', intent: choice },
+          preparationSteps
+        }
+      }
+
+      const preparationTask = preparationIntegrationTask({
+        enabled: true,
+        bot: this.bot,
+        production: this.production,
+        state,
+        objective: task,
+        allowedTargets,
+        authorizedIntent,
+        // A caminhada de aproximação (até 8 s) do modo raio >4 faz parte da etapa: sem ela, 2 de 8 rodadas
+        // estouravam 20 s com o gather quase pronto (8 s de caminhada + dig + pickup + 2 pedras).
+        timeoutMs: 20000 + (preparationRadius() > 4 ? 8000 : 0)
+      })
+      if (!preparationTask) {
+        return {
+          ok: false,
+          code: 'PREPARATION_TASK_NOT_CREATED',
+          intent: choice,
+          preparationSteps
+        }
+      }
+
+      const ownerVersion = this.taskVersion
+      const siteBefore = this.bot.entity.position.clone()
+      const preparationPromise = this.runDeterministicPreparation(preparationTask, isCancelled)
+      this._preparationDrain = preparationPromise
+      try {
+        const result = await preparationPromise
+        preparationSteps.push({
+          intent: choice,
+          ok: result?.ok === true,
+          code: result?.code || null,
+          ownerVersion
+        })
+        if (!result?.ok) {
+          if (result?.code === 'THREAT') this._preparationSite = { position: siteBefore, at: Date.now() }
+          // Recusa física do executor (alvo coberto por folhas, falta de alvos/picareta/mesa): nada deu errado
+          // na tarefa; segue a exploração clássica em vez de virar falha com backoff exponencial.
+          if (PHYSICAL_PREPARATION_REFUSALS.has(result?.code)) {
+            const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+            return {
+              ...explored,
+              playerLoopPreparation: true,
+              preparationSkipped: { code: result.code, intent: choice, afterStep: true },
+              preparationSteps
+            }
+          }
+          return {
+            ...result,
+            playerLoopPreparation: true,
+            preparationSteps
+          }
+        }
+        this._settleJuliaDecision(task, result, `preparation:${choice}`)
+        step++
+      } finally {
+        if (this._preparationDrain === preparationPromise) this._preparationDrain = null
+      }
+    }
+
+    const finalTargets = this.nearbyPreparationAllowlist()
+    const finalState = preparationStateSnapshot(this.bot, task, {
+      homeProvider: this.homeProvider,
+      allowedTargets: finalTargets,
+      isCancelled,
+      deep: true,
+      ignoreThreat: (e) => this.threatIgnored(e),
+      spareAnimal: (e) => this.huntFailed(e)
+    })
+    this.rememberedFoodHint(finalState)
+    this.bedFacts(finalState)
+    const finalCandidates = candidateIntents(finalState)
+    const finalDecision = await this._playerLoopChoice(finalState, finalCandidates, isCancelled)
+    if (finalDecision.cancelled || isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+    const finalChoice = finalDecision.choice
+    if (finalChoice === 'continue_objective') {
+      const explored = await this.explore(task.radius || 64, isCancelled, task.center || null, { groundAware: true })
+      return { ...explored, playerLoopPreparation: true, preparationSteps }
+    }
+
+    return {
+      ok: false,
+      code: 'PREPARATION_STEP_LIMIT',
+      intent: finalChoice,
+      candidates: finalCandidates.map((candidate) => candidate.id),
+      preparationSteps
+    }
+  }
+
+  // Superfície caminhável em (x, z) perto de nearY a partir dos chunks já carregados. Água/lava na superfície
+  // (oceano, lago) ou nenhum chão => inválido; copas de árvore são atravessadas até o chão. unknown: chunk
+  // não carregado (mantém o alvo original).
+  surfaceAt(x, z, nearY) {
+    const top = Math.floor(nearY) + 24
+    for (let y = top; y >= Math.floor(nearY) - 32; y--) {
+      const block = this.bot.blockAt?.(new Vec3(x, y, z))
+      if (!block) return { unknown: true }
+      if (block.name === 'water' || block.name === 'lava' || block.name === 'bubble_column') return { ok: false, reason: block.name }
+      if (block.boundingBox === 'block' && !block.name.endsWith('_leaves')) return { ok: true, y: y + 1 }
+    }
+    return { ok: false, reason: 'no_ground' }
+  }
+
+  // ---------- memória espacial (conhecimento; nada aqui autoriza ação) ----------
+  memoryGuideOn() {
+    return Boolean(this.worldMemory) && process.env.MBOT_WORLD_MEMORY_GUIDE === '1'
+  }
+
+  observeWorld() {
+    if (!this.worldMemory) return null
+    try {
+      return worldObserver.observeSurroundings(this.bot, this.worldMemory, { by: this.name })
+    } catch (err) {
+      this.logger.log?.(`[world-memory] ${this.name}: observação falhou: ${err.message}`)
+      return null
+    }
+  }
+
+  // Vai até uma lembrança e CONFERE no mundo real. Só devolve present=true se o mundo confirmou.
+  async approachRemembered(place, isCancelled, { radius = 3 } = {}) {
+    const memory = this.worldMemory
+    const from = this.bot.entity?.position
+    if (!memory || !from) return { ok: false, present: false, code: 'NO_MEMORY' }
+    try {
+      await this.goTo(new goals.GoalNear(place.x, place.y, place.z, radius), travelTimeoutMs(from, place))
+    } catch {
+      if (isCancelled()) return { ok: false, present: false, cancelled: true }
+      memory.noteApproachFailure(place.key)
+      return { ok: false, present: false, code: 'PATH_FAILED' }
+    }
+    if (isCancelled()) return { ok: false, present: false, cancelled: true }
+    const conclusive = worldObserver.verifyPlace(this.bot, memory, place, { by: this.name })
+    this.observeWorld()
+    if (!conclusive) { memory.noteApproachFailure(place.key); return { ok: true, present: false, code: 'UNVERIFIED' } }
+    return { ok: true, present: place.status === MEMORY_STATUS.CONFIRMED }
+  }
+
+  // Lembrança de mesa+madeira+pedra: navega até a mesa conhecida; depois o fluxo normal (snapshot real,
+  // preflight físico, executor) decide tudo. Uma única viagem por tarefa.
+  async tryRememberedPreparationSite(isCancelled) {
+    if (!this.memoryGuideOn() || !this.bot.entity?.position) return false
+    const dim = worldObserver.dimensionOf(this.bot)
+    const site = this.worldMemory.suggestPreparationSite(dim, this.bot.entity.position, { radius: preparationRadius() + 4 })
+    if (!site) return false
+    const result = await this.approachRemembered(site.table, isCancelled, { radius: 2 })
+    this.logger.log?.(`[world-memory] ${this.name} preparation_site table=(${site.table.x},${site.table.y},${site.table.z}) present=${result.present} code=${result.code || 'ok'}`)
+    if (!result.present) return false
+    // A memória guarda pontos simples {x,y,z}; blockAt do mineflayer exige Vec3 (sem isso: 'pos.floored is not a function').
+    const live = this.bot.blockAt?.(new Vec3(site.table.x, site.table.y, site.table.z))
+    if (live?.name === 'crafting_table') this.production?.rememberCraftingTable?.(this.bot, live)
+    return true
+  }
+
+  // Recurso não está à vista: usa a memória só para decidir ONDE olhar; a coleta segue pelo mesmo
+  // caminho real (findBlocks + cavar + confirmação de inventário). Até 2 hipóteses por tarefa.
+  async rememberedResourceDetour(kind, isCancelled) {
+    const memory = this.worldMemory
+    const dim = worldObserver.dimensionOf(this.bot)
+    const tried = new Set()
+    for (let i = 0; i < 2 && !isCancelled(); i++) {
+      const [pick] = memory.suggest(kind, dim, this.bot.entity.position, { limit: 1, exclude: tried })
+      if (!pick) return false
+      tried.add(pick.place.key)
+      const result = await this.approachRemembered(pick.place, isCancelled, { radius: 4 })
+      this.logger.log?.(`[world-memory] ${this.name} resource_detour ${kind} (${pick.place.x},${pick.place.y},${pick.place.z}) ${pick.status} present=${result.present} code=${result.code || 'ok'}`)
+      if (result.cancelled) return false
+      if (result.present) return true
+    }
+    return false
+  }
+
+  // Destino de exploração: com a flag, a memória escolhe entre os pontos do anel clássico o menos visitado.
+  // Memória vazia (ou flag desligada) mantém exatamente o padrão geométrico.
+  exploreCandidates(home, radius, y) {
+    const directions = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+    const out = []
+    const seen = new Set()
+    const rings = Math.min(8, Math.ceil(radius / 16))
+    for (let ring = 1; ring <= rings; ring++) {
+      const distance = Math.min(radius, 16 * ring)
+      directions.forEach((d, i) => {
+        const x = Math.floor(home.x + d[0] * distance)
+        const z = Math.floor(home.z + d[1] * distance)
+        const key = `${x},${z}`
+        if (seen.has(key)) return
+        seen.add(key)
+        out.push({ x, z, y, distance, order: (ring - 1) * 8 + i })
+      })
+    }
+    return out
+  }
+
+  async explore(radius, isCancelled, center = null, { groundAware = false } = {}) {
     const home = center || this.homeProvider?.()
     if (!home) throw new Error('base/centro de exploração ainda não definido')
 
@@ -1155,15 +1991,74 @@ class WorkerController {
       [1, 0], [1, 1], [0, 1], [-1, 1],
       [-1, 0], [-1, -1], [0, -1], [1, -1]
     ]
-    const direction = directions[this.exploreStep % directions.length]
-    const ring = 1 + Math.floor(this.exploreStep / directions.length)
-    this.exploreStep++
-    const distance = Math.min(radius, 16 * ring)
-    const x = Math.floor(home.x + direction[0] * distance)
-    const z = Math.floor(home.z + direction[1] * distance)
-    const y = Number.isFinite(Number(home.y))
-      ? Math.floor(Number(home.y))
-      : Math.floor(this.bot.entity.position.y)
+    const pick = () => {
+      const direction = directions[this.exploreStep % directions.length]
+      const ring = 1 + Math.floor(this.exploreStep / directions.length)
+      this.exploreStep++
+      const distance = Math.min(radius, 16 * ring)
+      return {
+        distance,
+        x: Math.floor(home.x + direction[0] * distance),
+        z: Math.floor(home.z + direction[1] * distance),
+        y: Number.isFinite(Number(home.y)) ? Math.floor(Number(home.y)) : Math.floor(this.bot.entity.position.y)
+      }
+    }
+    const memory = this.worldMemory
+    const dim = worldObserver.dimensionOf(this.bot)
+    const homeY = Number.isFinite(Number(home.y)) ? Math.floor(Number(home.y)) : Math.floor(this.bot.entity.position.y)
+    let candidates = null
+    let guided = false
+    // Escolha guiada pela memória; sem flag ou com memória vazia mantém o padrão geométrico clássico.
+    const choose = () => {
+      if (memory && this.memoryGuideOn()) {
+        candidates ||= this.exploreCandidates(home, radius, homeY)
+        const best = candidates.length ? memory.chooseExploreTarget(dim, candidates, this.bot.entity.position) : null
+        if (best) {
+          candidates = candidates.filter((c) => c !== best.candidate)
+          this.exploreStep++
+          guided = true
+          return best.candidate
+        }
+      }
+      guided = false
+      return pick()
+    }
+    let chosen = choose()
+    if (groundAware) {
+      // Alvos em anel com y fixo caem no ar sobre o oceano ou dentro de rocha em terreno natural; cada tentativa
+      // custava ~30 s de pathfinder. Procura a superfície real e passa à próxima direção (sem se mover).
+      // Chão desconhecido (chunk ainda não carregado) não ganha de cara: visto no Minecraft, esses alvos mantinham o y da
+      // base e caíam no oceano — perna nadando até o timeout (12 de 12 pernas falhas com chão água/sem chão) e
+      // afogamentos. Procura uma direção com chão conhecido; sem nenhuma, usa a primeira desconhecida (como antes).
+      let firstUnknown = null
+      let found = false
+      for (let tries = 0; tries < 8; tries++) {
+        const ground = this.surfaceAt(chosen.x, chosen.z, chosen.y)
+        if (ground.ok) { chosen.y = ground.y; found = true; break }
+        if (ground.unknown) firstUnknown ||= chosen
+        else if (memory && (ground.reason === 'water' || ground.reason === 'lava' || ground.reason === 'bubble_column')) {
+          memory.markHazard(ground.reason === 'lava' ? 'lava' : 'water', dim, { x: chosen.x, y: chosen.y, z: chosen.z }, { by: this.name })
+        }
+        chosen = choose()
+      }
+      if (!found && firstUnknown) chosen = firstUnknown
+    }
+    const { distance, x, y, z } = chosen
+    memory?.recordExploreDestination(dim, { x, z }, { guided })
+
+    // Cobertura enquanto caminha (em memória; só persiste quando um chunk novo aparece).
+    const walkSampler = memory
+      ? setInterval(() => { if (this.bot.entity?.position) memory.visit(dim, this.bot.entity.position) }, 2500)
+      : null
+    walkSampler?.unref?.()
+    try {
+      return await this.exploreTo({ x, y, z, distance }, isCancelled, { memory, dim, digEscape: groundAware })
+    } finally {
+      if (walkSampler) clearInterval(walkSampler)
+    }
+  }
+
+  async exploreTo({ x, y, z, distance }, isCancelled, { memory = null, dim = 'overworld', digEscape = false } = {}) {
 
     const target = { x, y, z, radius: distance }
     if (process.env.MBOT_STATEMACHINE === '1') {
@@ -1174,14 +2069,257 @@ class WorkerController {
         logger: this.logger
       })
       if (!result.fallback) {
+        if (!isCancelled() && result.ok !== false) memory?.visit(dim, { x, z })
+        if (!isCancelled()) this.observeWorld()
         return { ...result, x, y, z, radius: distance }
       }
       this.logger.log?.('[statemachine] plugin indisponível; usando exploração clássica')
     }
 
-    await this.goTo(new goals.GoalNear(x, y, z, 3), 30000)
+    try {
+      const goal = new goals.GoalNear(x, y, z, 3)
+      try {
+        await this.goTo(goal, 30000)
+        // Sucesso falso do pathfinder (caminho parcial vazio): o player loop confere a chegada.
+        if (digEscape && !isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (pathfinder parou sem chegar)')
+      } catch (err) {
+        // Explorador do player loop num buraco natural (sem cavar e sem blocos para subir): toda perna dá
+        // "No path" e ele só sai morrendo. Uma única nova tentativa da mesma perna podendo cavar (curral protegido).
+        if (!digEscape || isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) throw err
+        await this.goToWithDigging(goal, DIG_ESCAPE_MS)
+        if (!isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (nem cavando)')
+      }
+    } catch (err) {
+      // Rota que falha repetidamente vira evidência local (afasta destinos futuros), nunca ordem.
+      // Player loop: troca de dono no meio da perna (defesa/nova ordem) é cancelamento, não falha de navegação.
+      if (digEscape && isCancelled()) return { ok: false, cancelled: true }
+      if (memory && !isCancelled()) memory.markHazard('route_failed', dim, { x, y, z }, { by: this.name })
+      if (!isCancelled()) {
+        const from = this.bot.entity?.position
+        const ground = this.surfaceAt(x, z, y)
+        this.logger.log?.(`[colônia] ${this.name} perna falhou alvo=(${x},${y},${z}) dist=${from ? Math.round(from.distanceTo(new Vec3(x, y, z))) : '?'} chao=${ground.unknown ? 'desconhecido' : ground.ok ? ground.y : ground.reason} erro=${err?.message}`)
+      }
+      throw err
+    }
     if (isCancelled()) return { ok: false, cancelled: true }
+    // GoalNear(raio 3) para antes do alvo (pode ficar no chunk vizinho): chegar conta o chunk do alvo como visitado.
+    memory?.visit(dim, { x, z })
+    this.observeWorld()
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
+  }
+
+  // Dá para cozinhar agora: ≥2 carnes cruas, combustível na mochila e fornalha a ≤24 (ou 8 pedregulhos para fazer uma).
+  canCook() {
+    try {
+      const items = this.bot.inventory?.items?.() || []
+      const raw = items.filter((i) => COOKABLE.has(i.name)).reduce((n, i) => n + i.count, 0)
+      if (raw < 2) return false
+      const fuel = items.some((i) => i.name === 'coal' || i.name === 'charcoal' || i.name.endsWith('_planks') || i.name.endsWith('_log'))
+      if (!fuel) return false
+      const cobble = items.filter((i) => i.name === 'cobblestone').reduce((n, i) => n + i.count, 0)
+      const furnaceId = this.bot.registry?.blocksByName?.furnace?.id
+      return cobble >= 8 || Boolean(furnaceId != null && this.bot.findBlock?.({ matching: furnaceId, maxDistance: 24 }))
+    } catch { return false }
+  }
+
+  hostileNear(range = 16) {
+    const position = this.bot.entity?.position
+    return Boolean(position && this.bot.nearestEntity?.((e) => e?.type === 'hostile' && e.position?.distanceTo(position) <= range))
+  }
+
+  huntFailed(entity) {
+    return this._failedHunts?.get(entity?.id) > Date.now()
+  }
+
+  ignoreThreat(entity, ms = THREAT_IGNORE_MS) {
+    if (entity?.id != null) (this._ignoredThreats ||= new Map()).set(entity.id, Date.now() + ms)
+  }
+
+  threatIgnored(entity) {
+    const until = this._ignoredThreats?.get(entity?.id)
+    if (!until) return false
+    if (Date.now() < until) return true
+    this._ignoredThreats.delete(entity.id)
+    return false
+  }
+
+  // Percepção da cama da base (só fatos do mundo): existe? há material? ovelha alcançável à vista? À noite, a cama da
+  // base a até BASE_BED_TRAVEL conta como abrigo executável.
+  bedFacts(state) {
+    const home = this.homeProvider?.()
+    if (!state || !home || !this.bot.entity?.position) return
+    const drops = this._deathDrops
+    if (drops && Date.now() - drops.at < DEATH_DROPS_MS && this.bot.entity.position.distanceTo(drops.position) <= DEATH_DROPS_RANGE) {
+      state.deathDrops = { distance: Math.round(this.bot.entity.position.distanceTo(drops.position)), ageS: Math.round((Date.now() - drops.at) / 1000) }
+    }
+    // Fatos de executabilidade: base inalcançável há pouco (NOT_ARRIVED) e preparação recusada sob ameaça (guardrail).
+    if (this._baseUnreachableUntil > Date.now()) state.baseUnreachable = true
+    state.preparationBlockedByThreat = true
+    let bed = null
+    try { bed = bedLib.findBedNear(this.bot, home) } catch { bed = null }
+    if (bed) this._baseBed = bed.position.clone()
+    else if (this._baseBed && this.bot.blockAt?.(this._baseBed)) this._baseBed = null // chunk carregado e a cama sumiu
+    state.baseHasBed = Boolean(this._baseBed)
+    // Sem baú configurado a base não guarda comida; com baú, não se sabe sem olhar (fica sem afirmar nada).
+    state.baseHasFood = this.production?.storage?.configured?.() ? null : false
+    try { state.bedMaterials = bedLib.hasBedMaterials(this.bot) } catch { state.bedMaterials = false }
+    try { state.woolProgress = Math.min(bedLib.BED_WOOL, bedLib.woolEquivalent(this.bot)) } catch { state.woolProgress = 0 }
+    state.canCook = this.canCook()
+    const sheep = this.nearestSheep()
+    state.nearby = state.nearby || {}
+    state.nearby.sheep = Boolean(sheep)
+    state.nearby.sheepDistance = sheep ? Math.round(sheep.position.distanceTo(this.bot.entity.position)) : null
+    // Sem ovelha útil à vista: um rebanho lembrado da cor certa (até 160) também é caminho para a cama. Medido no mundo
+    // novo: as 3 ovelhas brancas mais próximas ficam entre 48 e 128 blocos da base, fora da vista.
+    if (!sheep && !state.baseHasBed && !state.bedMaterials) {
+      const remembered = this.rememberedSheep()
+      if (remembered) {
+        state.nearby.sheep = true
+        state.nearby.sheepDistance = Math.round(remembered.distance)
+        state.nearby.sheepRemembered = remembered.place
+      }
+    }
+    if (state.time === 'night' && state.baseHasBed && state.shelterKind !== 'bed' && Number(state.baseDistance) <= BASE_BED_TRAVEL) {
+      state.shelterKind = 'base_bed'
+      state.shelterNearby = true
+    }
+  }
+
+  nearestSheep() {
+    const position = this.bot.entity?.position
+    if (!position || typeof this.bot.nearestEntity !== 'function') return null
+    // Só ovelha que ajuda a fechar 3 lãs da mesma cor (tosquiada não dá lã). Visto no Minecraft: 61 caças de lã no soak e
+    // nenhuma cama, com lãs de cores misturadas (2 brancas + 1 cinza).
+    // Sem lã nenhuma: branca primeiro (a cor mais comum; a linha também vira lã branca). Visto no Minecraft: começou pela
+    // cinza-clara mais próxima, e há só 2 dessa cor por perto.
+    const wanted = bedLib.wantedWool(this.bot)
+    const usable = (color) => (e) => {
+      if (e?.name !== 'sheep' || this.huntFailed(e) || !(e.position?.distanceTo(position) <= 48)) return false
+      const wool = bedLib.sheepWool(e)
+      return wool !== null && (!color || wool === 'unknown' || wool === color)
+    }
+    return this.bot.nearestEntity(usable(wanted || 'white_wool')) || (wanted ? null : this.bot.nearestEntity(usable(null))) || null
+  }
+
+  rememberedSheep() {
+    if (!this.worldMemory || !this.memoryGuideOn() || !this.bot.entity?.position) return null
+    const wanted = bedLib.wantedWool(this.bot)
+    const dim = worldObserver.dimensionOf(this.bot)
+    const nearest = (kinds) => {
+      let best = null
+      for (const kind of kinds) {
+        const [pick] = this.worldMemory.suggest(kind, dim, this.bot.entity.position, { limit: 1, maxDistance: 160 })
+        if (pick && (!best || pick.distance < best.distance)) best = { distance: pick.distance, place: { ...pick.place, kind } }
+      }
+      return best
+    }
+    if (wanted) return nearest([`sheep:${wanted}`])
+    return nearest(['sheep:white_wool']) || nearest(bedLib.WOOL_COLORS.map((c) => `sheep:${c}_wool`))
+  }
+
+  async makeBaseBed(isCancelled, remembered = null) {
+    if (!bedLib.hasBedMaterials(this.bot)) {
+      let sheep = this.nearestSheep()
+      if (!sheep && remembered) {
+        // Vai ao rebanho lembrado; lá, só confia no que vê. Sem ovelha útil, a lembrança é invalidada.
+        const goal = new goals.GoalNear(remembered.x, remembered.y, remembered.z, 6)
+        await this.goTo(goal, travelTimeoutMs(this.bot.entity?.position, remembered)).catch(() => {})
+        if (isCancelled()) return { ok: false, step: 'cancelled' }
+        sheep = this.nearestSheep()
+        if (!sheep) {
+          this.worldMemory?.invalidate(remembered.key, 'no_sheep')
+          return { ok: false, step: 'remembered_empty' }
+        }
+      }
+      if (!sheep) return { ok: false, step: 'no_sheep' }
+      // Numa ida só: segue caçando as ovelhas úteis à vista até fechar a lã. Visto no Minecraft: a lã chegou a 2 da mesma
+      // cor 3 vezes e se perdeu na morte seguinte (uma ovelha por ciclo, com noites e combates no meio).
+      for (let hunts = 0; sheep && hunts < 4 && !bedLib.hasBedMaterials(this.bot); hunts++) {
+        const before = bedLib.woolEquivalent(this.bot)
+        await food.hunt(this.bot, sheep, isCancelled).catch(() => false)
+        if (isCancelled()) return { ok: false, step: 'cancelled' }
+        // Ovelha anda: a mesma pode ficar alcançável depois (visto no Minecraft: uma falha a excluía para sempre).
+        if (bedLib.woolEquivalent(this.bot) <= before) { this._failedHunts.set(sheep.id, Date.now() + FAILED_HUNT_MS); break }
+        if (night.nightFalling(this.bot) || this.hostileNear()) break
+        sheep = this.nearestSheep()
+      }
+      if (!bedLib.hasBedMaterials(this.bot)) return { ok: bedLib.woolEquivalent(this.bot) > 0, step: 'wool' }
+      if (night.nightFalling(this.bot) || this.hostileNear()) return { ok: true, step: 'wool_complete' }
+    }
+    // Fabrica já na base: a mesa precisa de chão livre e seco. Visto no Minecraft: tentou colocar a mesa perto da água
+    // ('não achei lugar para colocar crafting_table') 4 vezes e afogou.
+    const returned = await this.returnHome(isCancelled, { verify: true })
+    if (isCancelled()) return { ok: false, step: 'cancelled' }
+    if (!returned.ok) return { ok: false, step: 'return', error: returned.code || null }
+    const item = await bedLib.craftBed(this.bot, isCancelled)
+    if (isCancelled()) return { ok: false, step: 'cancelled' }
+    if (!item) return { ok: false, step: 'craft' }
+    const bed = await bedLib.placeBed(this.bot, isCancelled)
+    if (!bed) return { ok: false, step: 'place' }
+    this._baseBed = bed.position.clone()
+    this.logger.log?.(`[colônia] ${this.name} cama colocada na base em ${bed.position}`)
+    const used = await bedLib.useBed(this.bot, bed, isCancelled)
+    return { ok: true, step: `placed:${used}` }
+  }
+
+  // Com fome, sem comida e sem nada caçável a 48 blocos: um rebanho lembrado (WorldMemory, até 160) conta como comida
+  // alcançável. Só percepção; a ida e a caça são confirmadas no mundo e a lembrança é invalidada se não houver animal.
+  rememberedFoodHint(state) {
+    if (!this.memoryGuideOn() || state?.nearby?.food || Number(state?.food) > 8 || !this.bot.entity?.position) return null
+    if (Object.keys(state.inventory || {}).some((name) => this.bot.registry?.foodsByName?.[name])) return null
+    const dim = worldObserver.dimensionOf(this.bot)
+    const [pick] = this.worldMemory.suggest('food', dim, this.bot.entity.position, { limit: 1, maxDistance: 160 })
+    if (!pick) return null
+    const { x, y, z, key } = pick.place
+    state.nearby.food = true
+    state.nearby.foodDistance = Math.round(pick.distance)
+    state.nearby.foodRemembered = { x, y, z, key }
+    return state.nearby.foodRemembered
+  }
+
+  async huntRememberedFood(place, hunt, isCancelled) {
+    const goal = new goals.GoalNear(place.x, place.y, place.z, 6)
+    try {
+      await this.goTo(goal, travelTimeoutMs(this.bot.entity?.position, place))
+    } catch (err) {
+      if (isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) return null
+      await this.goToWithDigging(goal, DIG_ESCAPE_MS).catch(() => {})
+    }
+    if (isCancelled()) return null
+    const gathered = await hunt()
+    // Só conta animal que o executor caçaria (poupa os últimos de cada espécie). Visto no Minecraft: rebanho lembrado com
+    // 2 galinhas poupadas nunca era invalidado ('caça=nada animais=true') e o explorador voltava lá 57 vezes.
+    let animalsHere = false
+    try {
+      const here = this.bot.entity.position
+      animalsHere = Boolean(food.findHuntableAnimal(this.bot, { spare: (e) => !(e.position?.distanceTo(here) <= 24) }))
+    } catch { animalsHere = false }
+    if (!gathered && !animalsHere) this.worldMemory?.invalidate(place.key, 'no_food_animals')
+    this.logger.log?.(`[world-memory] ${this.name} food (${place.x},${place.y},${place.z}) caça=${gathered ? 'ok' : 'nada'} animais=${animalsHere}`)
+    return gathered
+  }
+
+  arrivedAt(goal) {
+    const position = this.bot.entity?.position
+    if (!position || typeof goal?.isEnd !== 'function') return true
+    return goal.isEnd(position.floored()) || goal.isEnd(position.floored().offset(0, 1, 0))
+  }
+
+  async goToWithDigging(goal, timeoutMs) {
+    const escape = new Movements(this.bot)
+    escape.canDig = true
+    escape.allow1by1towers = true
+    // Visto no Minecraft: o primeiro nó do caminho era um pulo de parkour que o bot não acerta; o pathfinder
+    // reseta por "stuck" e replaneja o mesmo pulo até o timeout. Na tentativa de escape não há parkour.
+    escape.allowParkour = false
+    protectPenBlocks(escape, this.bot.registry)
+    this.logger.log?.(`[colônia] ${this.name} sem caminho sem cavar; tentando uma vez cavando`)
+    this.bot.pathfinder.setMovements(escape)
+    try {
+      await this.goTo(goal, timeoutMs)
+    } finally {
+      if (this.workMoves) this.bot.pathfinder.setMovements(this.workMoves)
+    }
   }
 
   async goToPoint(position, isCancelled) {
@@ -1201,6 +2339,7 @@ class WorkerController {
       const distance = actual ? actual.distanceTo(center) : Infinity
       finalDistance = Number.isFinite(distance) ? distance : null
       if (distance <= POINT_ARRIVAL_RADIUS) {
+        this.observeWorld()
         return {
           ok: true,
           verified: true,
@@ -1261,11 +2400,29 @@ class WorkerController {
     return { ok: true }
   }
 
-  async returnHome(isCancelled) {
+  async returnHome(isCancelled, { verify = false } = {}) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
     const timeoutMs = travelTimeoutMs(this.bot.entity?.position, home)
-    await this.goTo(new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), timeoutMs)
+    const goal = new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3)
+    try {
+      await this.goTo(goal, timeoutMs)
+    } catch (err) {
+      // Player loop: troca de dono no meio do retorno é cancelamento (como na perna de exploração), não erro.
+      if (verify && isCancelled()) return { ok: false }
+      if (!verify || !UNREACHED_MOVE.test(err?.message || '')) throw err
+    }
+    // Player loop: o goto do mineflayer-pathfinder resolve como sucesso quando o caminho parcial é vazio (sem
+    // progresso possível). Visto no Minecraft: 41 return_base "ok" seguidos sem o bot sair do lugar. Confere a chegada,
+    // tenta uma vez podendo cavar e, se ainda não chegou, diz isso.
+    if (verify && !isCancelled() && !this.arrivedAt(goal)) {
+      await this.goToWithDigging(goal, DIG_ESCAPE_MS).catch(() => {})
+      if (!isCancelled() && !this.arrivedAt(goal)) return { ok: false, code: 'NOT_ARRIVED' }
+    }
+    if (!isCancelled() && this.worldMemory && this.bot.entity?.position?.distanceTo(home) <= 6) {
+      this.worldMemory.confirmLandmark('base')
+      this.observeWorld()
+    }
     return { ok: !isCancelled() }
   }
 
@@ -1747,4 +2904,4 @@ class WorkerController {
   }
 }
 
-module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey }
+module.exports = { WorkerController, protectPenBlocks, shadowObjectiveKey, summarizeGatherRecovery }

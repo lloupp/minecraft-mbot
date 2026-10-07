@@ -1,0 +1,15 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+     2701  docs/evidence/julia-gather-context-1201/ctx_groups.sh
+     2790  docs/evidence/julia-gather-context-1201/gsweep-main-summary.json
+    14109  docs/evidence/julia-gather-context-1201/gsweep-main.json
+     2809  docs/evidence/julia-gather-context-1201/gsweep-supplement-stone-iron-summary.json
+    16508  docs/evidence/julia-gather-context-1201/gsweep-supplement-stone-iron.json
+     3338  docs/evidence/julia-gather-context-1201/gsweep2.js
+     3332  docs/evidence/julia-gather-context-1201/gsweep2b.js
+     2536  docs/evidence/julia-gather-context-1201/probe.js
+    31479  docs/evidence/julia-gather-context-1201/runtime/julia-payloads.jsonl
+    47650  docs/evidence/julia-gather-context-1201/runtime/julia-shadow.jsonl
+    20847  docs/evidence/julia-gather-context-1201/runtime/probe-dispatch.jsonl
+    16508  docs/evidence/julia-gather-context-1201/runtime/rows.json
+     1989  docs/evidence/julia-gather-context-1201/runtime_rows.py
+     1782  docs/evidence/julia-gather-context-1201/tee_proxy.py

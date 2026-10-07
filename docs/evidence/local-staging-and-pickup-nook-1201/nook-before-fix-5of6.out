@@ -1,0 +1,23 @@
+round 0 dug; bot [ 273.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 270, 200, -300 ] r 0.5 from [ 273.5, 200, -300.5 ] to [ 271.5, 200, -299.45 ] 2756 ms
+ RESULT true ms 3306 bot [ 271.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":47.49}]
+round 1 dug; bot [ 279.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 276, 200, -300 ] r 0.5 from [ 279.5, 200, -300.5 ] to [ 277.5, 200, -299.45 ] 2756 ms
+ second pass
+  goto OK [ 276, 200, -300 ] r 0.5 from [ 277.5, 200, -299.45 ] to [ 277.5, 200, -299.45 ] 53 ms
+  goto OK [ 276, 200, -300 ] r 0.5 from [ 277.5, 200, -299.45 ] to [ 277.5, 200, -299.45 ] 52 ms
+  goto OK [ 276, 200, -300 ] r 0.5 from [ 277.5, 200, -299.45 ] to [ 277.5, 200, -299.45 ] 50 ms
+ RESULT false ms 4361 bot [ 277.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":43.02},{"p":[276.01,200,-299.72],"d":1.51}]
+round 2 dug; bot [ 285.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 276, 200, -300 ] r 0.5 from [ 285.5, 200, -300.5 ] to [ 277.5, 200, -299.5 ] 3002 ms
+ RESULT true ms 3301 bot [ 277.5, 200, -299.5 ] drops left [{"p":[308.22,200,-329.57],"d":42.99},{"p":[276.01,200,-299.72],"d":1.5}]
+round 3 dug; bot [ 291.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 288, 200, -300 ] r 0.5 from [ 291.5, 200, -300.5 ] to [ 289.5, 200, -299.45 ] 2751 ms
+ RESULT true ms 3301 bot [ 289.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":35.46},{"p":[276.01,200,-299.72],"d":13.49}]
+round 4 dug; bot [ 297.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 294, 200, -300 ] r 0.5 from [ 297.5, 200, -300.5 ] to [ 295.5, 200, -299.45 ] 2756 ms
+ RESULT true ms 3305 bot [ 295.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":32.69},{"p":[276.01,200,-299.72],"d":19.49}]
+round 5 dug; bot [ 303.5, 200, -300.5 ]
+  goto ERR The goal was changed before it could be completed! [ 300, 200, -300 ] r 0.5 from [ 303.5, 200, -300.5 ] to [ 301.5, 200, -299.45 ] 2757 ms
+ RESULT true ms 3307 bot [ 301.5, 200, -299.45 ] drops left [{"p":[308.22,200,-329.57],"d":30.85},{"p":[276.01,200,-299.72],"d":25.49}]
+SUMMARY 5/6

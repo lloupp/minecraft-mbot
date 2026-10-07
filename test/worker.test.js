@@ -545,3 +545,116 @@ test('cancelamento durante pickup preserva item confirmado sem concluir nem depo
   assert.equal(result.gathered, 1)
   assert.equal(result.evidence[0].itemConfirmed, true)
 })
+
+test('goTo desiste cedo quando o servidor rejeita o movimento a cada tick sem progresso', async () => {
+  const bot = fakeBot()
+  bot.pathfinder.goto = () => new Promise(() => {})   // o pathfinder nunca conclui (repete o mesmo passo)
+  const worker = readyWorker(bot)
+  const started = Date.now()
+  const pending = worker.goTo({ x: 30, y: 64, z: 0 }, 30000)
+  for (let i = 0; i < 40; i++) bot.emit('forcedMove')   // posição devolvida no mesmo ponto
+  await assert.rejects(pending, /servidor rejeitou o movimento/)
+  assert.ok(Date.now() - started < 1000)
+  assert.equal(bot.pathfinder.goal, null)
+  assert.equal(bot.listenerCount('forcedMove'), 0)
+})
+
+test('goTo não desiste por correções isoladas ou com progresso (ex.: teleporte normal)', async () => {
+  const bot = fakeBot()
+  let finish
+  bot.pathfinder.goto = () => new Promise((resolve) => { finish = resolve })
+  const worker = readyWorker(bot)
+  const pending = worker.goTo({ x: 30, y: 64, z: 0 }, 30000)
+  for (let i = 0; i < 60; i++) { bot.entity.position = new Vec3(i, 64, 0); bot.emit('forcedMove') }   // avança 1 bloco por correção
+  finish()
+  await pending
+  assert.equal(bot.listenerCount('forcedMove'), 0)
+})
+
+test('exploreTo do player loop tenta uma vez cavando quando não há caminho sem cavar; exploração clássica não', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  const noPath = async () => { throw new Error('No path to the goal!') }
+  let escapes = 0
+  worker.goToWithDigging = async (goal) => { escapes++; bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
+  worker.goTo = noPath
+  const ok = await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true })
+  assert.equal(ok.ok, true)
+  assert.equal(escapes, 1)
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false), /No path/)
+  assert.equal(escapes, 1)
+  worker.goTo = async () => { throw new Error('The goal was changed before it could be completed!') }   // troca de dono: não cava
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true }), /goal was changed/)
+  worker.goTo = noPath                                                   // cancelado: não cava (vira cancelamento)
+  assert.deepEqual(await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), { ok: false, cancelled: true })
+  assert.equal(escapes, 1)
+})
+
+test('player loop: sucesso falso do pathfinder (resolve sem chegar) vira tentativa cavando; returnHome diz NOT_ARRIVED', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  worker.homeProvider = () => new Vec3(100, 64, 0)
+  worker.goTo = async () => {}                                   // resolve sem mover (caminho parcial vazio)
+  let escapes = 0
+  worker.goToWithDigging = async () => { escapes++ }             // nem cavando sai do lugar
+  await assert.rejects(worker.exploreTo({ x: 40, y: 64, z: 0, distance: 32 }, () => false, { digEscape: true }), /nem cavando/)
+  assert.equal(escapes, 1)
+  const home = await worker.returnHome(() => false, { verify: true })
+  assert.deepEqual(home, { ok: false, code: 'NOT_ARRIVED' })
+  assert.equal(escapes, 2)
+  // sem verificação (tarefa voltar / clássico): comportamento anterior
+  assert.equal((await worker.returnHome(() => false)).ok, true)
+  // cavando chega: sucesso
+  worker.goToWithDigging = async (goal) => { escapes++; bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
+  assert.equal((await worker.returnHome(() => false, { verify: true })).ok, true)
+})
+
+test('player loop: timeout/pulo impossível também dispara a tentativa de escape (explore e returnHome)', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  worker.homeProvider = () => new Vec3(30, 64, 0)
+  worker.goTo = async () => { throw new Error('caminho demorou demais') }
+  let escapes = 0
+  worker.goToWithDigging = async (goal) => { escapes++; bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
+  assert.equal((await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => false, { digEscape: true })).ok, true)
+  assert.equal((await worker.returnHome(() => false, { verify: true })).ok, true)
+  assert.equal(escapes, 2)
+  await assert.rejects(worker.returnHome(() => false), /demorou/)       // tarefa voltar: comportamento anterior
+})
+
+test('player loop: perna interrompida por troca de dono vira cancelamento, não erro; clássico continua lançando', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.observeWorld = () => null
+  worker.goTo = async () => { throw new Error('The goal was changed before it could be completed!') }
+  assert.deepEqual(await worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true, { digEscape: true }), { ok: false, cancelled: true })
+  await assert.rejects(worker.exploreTo({ x: 20, y: 64, z: 0, distance: 16 }, () => true), /goal was changed/)
+})
+
+test('exploração do player loop prefere direção com chão conhecido; desconhecido só se não houver outra', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.homeProvider = () => new Vec3(0, 64, 0)
+  worker.exploreStep = 0
+  const targets = []
+  worker.exploreTo = async (t) => { targets.push([t.x, t.z]); return { ok: true } }
+  worker.surfaceAt = (x) => (x > 0 ? { unknown: true } : { ok: true, y: 70 })     // leste desconhecido, oeste conhecido
+  await worker.explore(32, () => false, null, { groundAware: true })
+  assert.ok(targets[0][0] <= 0, `escolheu ${targets[0]}`)
+  worker.exploreStep = 0
+  worker.surfaceAt = () => ({ unknown: true })
+  await worker.explore(32, () => false, null, { groundAware: true })
+  assert.deepEqual(targets[1], [16, 0])                                             // tudo desconhecido: primeira direção
+})
+
+test('player loop: retorno à base interrompido por troca de dono é cancelamento, não erro', async () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  worker.homeProvider = () => new Vec3(40, 64, 0)
+  worker.goTo = async () => { throw new Error('The goal was changed before it could be completed!') }
+  assert.deepEqual(await worker.returnHome(() => true, { verify: true }), { ok: false })
+  await assert.rejects(worker.returnHome(() => true), /goal was changed/)
+})

@@ -245,3 +245,19 @@ test('report separates endpoint attempts, confirmed model calls, and invalid-cho
   assert.equal(invalidSummary.fallbacks, 1)
   assert.equal(invalidSummary.technical_fallbacks, 0)
 })
+
+test('com fome e sem comida, já na base: return_base não é oferecido (segue o objetivo para achar comida)', () => {
+  const { candidateIntents } = require('../lib/player-loop')
+  const base = { health: 20, food: 6, inventory: {}, objective: { type: 'explore' }, baseKnown: true, nearby: {}, threat: null }
+  assert.deepEqual(candidateIntents({ ...base, atBase: false }).map(c => c.id), ['return_base'])
+  assert.ok(!candidateIntents({ ...base, atBase: true }).some(c => c.id === 'return_base'))
+  assert.deepEqual(candidateIntents({ ...base, atBase: true, nearby: { food: true } }).map(c => c.id), ['find_food'])
+})
+
+test('sleep_or_shelter: shelterNearby explícito do runtime manda; sem o campo (Gauntlet) a base vale como abrigo', () => {
+  const { candidateIntents } = require('../lib/player-loop')
+  const night = { health: 20, food: 20, time: 'night', inventory: {}, objective: { type: 'explore' }, atBase: true, baseKnown: true, nearby: {}, threat: null }
+  assert.ok(candidateIntents(night).some(c => c.id === 'sleep_or_shelter'))
+  assert.ok(!candidateIntents({ ...night, shelterNearby: false }).some(c => c.id === 'sleep_or_shelter'))
+  assert.ok(candidateIntents({ ...night, atBase: false, shelterNearby: true }).some(c => c.id === 'sleep_or_shelter'))
+})

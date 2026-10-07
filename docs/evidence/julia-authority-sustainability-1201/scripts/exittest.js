@@ -1,0 +1,10 @@
+const mineflayer = require('/home/user/wt-exp/node_modules/mineflayer'); const { pathfinder, Movements, goals } = require('/home/user/wt-exp/node_modules/mineflayer-pathfinder')
+const fs=require('fs'); const C=(c)=>fs.appendFileSync(process.env.SO+'/mcserver/in.fifo',c+'\n'); const sleep=ms=>new Promise(r=>setTimeout(r,ms))
+const bot = mineflayer.createBot({ host:'127.0.0.1', port:25566, username:'nightbot', version:'1.20.1', auth:'offline' }); bot.loadPlugin(pathfinder)
+bot.once('spawn', async () => { C('clear nightbot'); C('fill 100 68 -181 100 70 -181 air'); C('setblock 100 67 -181 dirt'); C('tp nightbot 100.5 68 -180.5'); C('give nightbot dirt 3'); await sleep(4000)
+  const mv=new Movements(bot); mv.canDig=false; mv.allow1by1towers=true; bot.pathfinder.setMovements(mv)
+  const upd=[]; bot.on('path_update',r=>{ if(upd.length<6) upd.push(r.status+':'+r.path.length+':'+r.path.slice(0,4).map(n=>n.y+(n.toPlace.length?'P':'')).join('/'))}); bot.on('path_reset',x=>upd.push('reset:'+x))
+  let r; try { await Promise.race([bot.pathfinder.goto(new goals.GoalBlock(101,71,-181)), sleep(20000).then(()=>{throw new Error('t20')})]); r='OK' } catch(e){ r=e.message.slice(0,40) }
+  console.log('exit',r,'pos',bot.entity.position.toString(),'inv',bot.inventory.items().map(i=>i.name+':'+i.count).join(','),'|',upd.join(' ; '))
+  bot.quit(); process.exit(0) })
+setTimeout(()=>process.exit(1),40000)
