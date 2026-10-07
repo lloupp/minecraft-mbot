@@ -208,3 +208,27 @@ test('vigia de progresso: ciclos curtos com ociosidade breve no mesmo lugar aind
   worker.state = 'trabalhando'; worker.progressTick(241000)
   assert.equal(worker.progressTick(400000), false)
 })
+
+test('cama: lã a partir de linha é fabricada uma unidade por vez (várias repetições na grade 2x2 perdem linha)', async () => {
+  const craft = require('../lib/craft')
+  const original = craft.craftItem
+  const items = [{ name: 'string', count: 12 }, { name: 'oak_planks', count: 3 }]
+  const bot = { inventory: { items: () => items.filter((i) => i.count > 0) } }
+  const calls = []
+  craft.craftItem = async (_bot, name, count) => {
+    calls.push([name, count])
+    if (name === 'white_wool') {
+      items.find((i) => i.name === 'string').count -= 4
+      const w = items.find((i) => i.name === 'white_wool')
+      if (w) w.count++; else items.push({ name: 'white_wool', count: 1 })
+    }
+    if (name === 'white_bed') items.push({ name: 'white_bed', count: 1 })
+  }
+  delete require.cache[require.resolve('../lib/bed')]
+  const fresh = require('../lib/bed')
+  try {
+    const item = await fresh.craftBed(bot, () => false)
+    assert.equal(item.name, 'white_bed')
+    assert.deepEqual(calls, [['white_wool', 1], ['white_wool', 2], ['white_wool', 3], ['white_bed', 1]])
+  } finally { craft.craftItem = original; delete require.cache[require.resolve('../lib/bed')] }
+})
