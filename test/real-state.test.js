@@ -222,3 +222,25 @@ test('snapshot comum (monitor do executor, a cada 250 ms) não faz as buscas car
   assert.ok(scans > cheap)
   assert.ok(cheap < 200, `snapshot comum fez ${cheap} consultas`)
 })
+
+test('decisão com fome: animal poupado ou planta verde perto não conta como comida (o executor recusaria)', () => {
+  const chicken = (id, x) => ({ id, name: 'chicken', type: 'passive', position: new Vec3(x, 64, 0) })
+  const pair = { a: chicken(1, 6), b: chicken(2, 7) }
+  const bot = (entities, food, plant = null) => {
+    const b = fakeBot({ entities, food })
+    b.registry = { blocksByName: {} }
+    b.blockAt = (p) => (p.x === 2 && p.y === 64 && p.z === 0 ? { name: 'wheat' } : { name: 'air' })
+    b.findBlock = ({ matching }) => (plant && matching(plant) ? plant : null)
+    b.nearestEntity = (match) => Object.values(entities).filter(match).sort((p, q) => p.position.x - q.position.x)[0] || null
+    return b
+  }
+  const deep = { homeProvider: () => null, deep: true }
+  assert.equal(realStateSnapshot(bot(pair, 8), { type: 'explorar' }, deep).nearby.food, false)
+  assert.equal(realStateSnapshot(bot(pair, 3), { type: 'explorar' }, deep).nearby.food, true)       // fome extrema: caça
+  const green = { name: 'carrots', position: new Vec3(3, 64, 0), getProperties: () => ({ age: 3 }) }
+  const ripe = { name: 'carrots', position: new Vec3(3, 64, 0), getProperties: () => ({ age: 7 }) }
+  assert.equal(realStateSnapshot(bot({}, 8, green), { type: 'explorar' }, deep).nearby.food, false)
+  const withRipe = realStateSnapshot(bot({}, 8, ripe), { type: 'explorar' }, deep).nearby
+  assert.equal(withRipe.food, true)
+  assert.equal(withRipe.foodDistance, 3)
+})
