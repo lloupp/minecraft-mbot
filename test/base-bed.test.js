@@ -46,7 +46,7 @@ test('make_bed: só com os campos do runtime, base sem cama e caminho real (mate
 test('descrição de return_base diz o que a base oferece (fato do runtime, sem mudar a escolha)', () => {
   const night = calmDay({ time: 'night', equippedWeapon: null, inventory: {}, baseHasBed: false })
   const back = candidateIntents(night).find((c) => c.id === 'return_base')
-  assert.match(back.description, /no bed and no built shelter/)
+  assert.match(back.description, /no bed or shelter/)
   const withBed = candidateIntents({ ...night, baseHasBed: true }).find((c) => c.id === 'return_base')
   assert.match(withBed.description, /The base has a bed\./)
 })
@@ -231,4 +231,18 @@ test('cama: lã a partir de linha é fabricada uma unidade por vez (várias repe
     assert.equal(item.name, 'white_bed')
     assert.deepEqual(calls, [['white_wool', 1], ['white_wool', 2], ['white_wool', 3], ['white_bed', 1]])
   } finally { craft.craftItem = original; delete require.cache[require.resolve('../lib/bed')] }
+})
+
+test('descrições cabem no contrato da Julia-1 (48 tokens por opção; ~230 caracteres como aproximação; medido com o tokenizador: máx. 44)', () => {
+  const base = calmDay({ baseDistance: 123.4 })
+  const states = [
+    { ...base, time: 'night', equippedWeapon: null, inventory: {}, baseHasBed: false, shelterNearby: true, shelterKind: 'dig', bedMaterials: true },
+    { ...base, time: 'night', equippedWeapon: null, inventory: {}, baseHasBed: true, shelterNearby: true, shelterKind: 'base_bed' },
+    { ...base, time: 'night', shelterNearby: true, shelterKind: 'bed', baseHasBed: false, bedMaterials: true },
+    { ...base, baseHasBed: false, bedMaterials: false, nearby: { sheep: true, sheepDistance: 140 } },
+    { ...base, food: 6, edibleFood: 0, nearby: { food: true, foodDistance: 133.3 }, baseHasBed: false }
+  ]
+  for (const state of states) {
+    for (const c of candidateIntents(state)) assert.ok(c.description.length <= 230, `${c.id}: ${c.description.length} caracteres`)
+  }
 })
