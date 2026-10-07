@@ -13,6 +13,7 @@ const { buildBlueprint } = require('../lib/blueprintBuilder')
 const { candidateIntents, deterministicPlayerPolicy, bestWeapon } = require('../lib/player-loop')
 const night = require('../lib/night')
 const bedLib = require('../lib/bed')
+const craft = require('../lib/craft')
 const { realStateSnapshot } = require('../lib/real-state')
 const worldObserver = require('../lib/world-observer')
 const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
@@ -54,6 +55,7 @@ const THREAT_IGNORE_MS = 60000
 const FAILED_HUNT_MS = 120000
 const BASE_UNREACHABLE_MS = 120000
 const DEATH_DROPS_MS = 240000
+const COOKABLE = new Set(['beef', 'porkchop', 'mutton', 'chicken', 'rabbit', 'cod', 'salmon', 'potato'])
 const DEATH_DROPS_RANGE = 96
 // Escape cavando: pedra à mão leva ~7 s por bloco; com 20 s o explorador não saía de uma caverna ao lado da base.
 const DIG_ESCAPE_MS = 60000
@@ -1539,7 +1541,7 @@ class WorkerController {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
     try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
-    const executed = action || (result?.intent === 'recover_items' ? `recover:${result.recovered ?? 0}` : result?.escaped ? `escape:${result.escaped}` : result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
+    const executed = action || (result?.intent === 'cook_food' ? `cook:${result.cooked ?? 0}` : result?.intent === 'recover_items' ? `recover:${result.recovered ?? 0}` : result?.escaped ? `escape:${result.escaped}` : result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
       : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
         : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
@@ -1664,6 +1666,19 @@ class WorkerController {
           .catch((error) => { this.logger.log?.(`[colônia] ${this.name} noite: ${error.message}`); return null })
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
         return { ok: Boolean(how), code: how ? null : 'SHELTER_FAILED', intent: choice, night: how, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Cozinhar: o smeltItem que já existe (faz/acha a fornalha, põe combustível e espera). Depois come se tiver fome.
+      if (choice === 'cook_food') {
+        let cooked = 0
+        for (const item of this.bot.inventory.items().filter((i) => COOKABLE.has(i.name))) {
+          if (isCancelled()) break
+          cooked += await craft.smeltItem(this.bot, item.name, item.count, isCancelled)
+            .catch((error) => { this.logger.log?.(`[colônia] ${this.name} cozinhar: ${error.message}`); return 0 })
+        }
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        const ate = this.bot.food <= HUNGRY ? await this.eat() : null
+        return { ok: cooked > 0, code: cooked > 0 ? null : 'COOK_FAILED', intent: choice, cooked, ate: Boolean(ate), playerLoopPreparation: true, preparationSteps }
       }
 
       // Itens da morte: vai até o ponto e recolhe o que ainda estiver no chão (o coletor de drops que já existe).
@@ -2093,6 +2108,20 @@ class WorkerController {
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
   }
 
+  // Dá para cozinhar agora: ≥2 carnes cruas, combustível na mochila e fornalha a ≤24 (ou 8 pedregulhos para fazer uma).
+  canCook() {
+    try {
+      const items = this.bot.inventory?.items?.() || []
+      const raw = items.filter((i) => COOKABLE.has(i.name)).reduce((n, i) => n + i.count, 0)
+      if (raw < 2) return false
+      const fuel = items.some((i) => i.name === 'coal' || i.name === 'charcoal' || i.name.endsWith('_planks') || i.name.endsWith('_log'))
+      if (!fuel) return false
+      const cobble = items.filter((i) => i.name === 'cobblestone').reduce((n, i) => n + i.count, 0)
+      const furnaceId = this.bot.registry?.blocksByName?.furnace?.id
+      return cobble >= 8 || Boolean(furnaceId != null && this.bot.findBlock?.({ matching: furnaceId, maxDistance: 24 }))
+    } catch { return false }
+  }
+
   hostileNear(range = 16) {
     const position = this.bot.entity?.position
     return Boolean(position && this.bot.nearestEntity?.((e) => e?.type === 'hostile' && e.position?.distanceTo(position) <= range))
@@ -2134,6 +2163,8 @@ class WorkerController {
     // Sem baú configurado a base não guarda comida; com baú, não se sabe sem olhar (fica sem afirmar nada).
     state.baseHasFood = this.production?.storage?.configured?.() ? null : false
     try { state.bedMaterials = bedLib.hasBedMaterials(this.bot) } catch { state.bedMaterials = false }
+    try { state.woolProgress = Math.min(bedLib.BED_WOOL, bedLib.woolEquivalent(this.bot)) } catch { state.woolProgress = 0 }
+    state.canCook = this.canCook()
     const sheep = this.nearestSheep()
     state.nearby = state.nearby || {}
     state.nearby.sheep = Boolean(sheep)

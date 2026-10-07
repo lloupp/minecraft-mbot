@@ -423,3 +423,37 @@ test('cama numa ida: com ovelhas úteis à vista, caça até fechar a lã e já 
     assert.deepEqual(steps, ['home', 'craft', 'place', 'use'])
   } finally { Object.assign(food, { hunt: original.hunt }); Object.assign(bed, { craftBed: original.craftBed, placeBed: original.placeBed, useBed: original.useBed }) }
 }))
+
+test('cook_food: oferecido com carne crua, combustível e fornalha possível; o executor cozinha e come', () => withFlags(async () => {
+  assert.deepEqual(ids(calmDay({ canCook: true })), ['cook_food', 'continue_objective'])
+  assert.deepEqual(ids(calmDay({ canCook: false })), ['continue_objective'])
+  const craft = require('../lib/craft')
+  const original = craft.smeltItem
+  const { worker, rows } = bedWorker('cook_food')
+  const items = [{ name: 'stone_sword', count: 1 }, { name: 'chicken', count: 2 }, { name: 'beef', count: 1 }, { name: 'oak_log', count: 2 }, { name: 'cobblestone', count: 8 }]
+  worker.bot.inventory.items = () => items
+  worker.bot.food = 10
+  const smelted = []
+  craft.smeltItem = async (_bot, name, count) => { smelted.push([name, count]); return count }
+  let ate = 0
+  worker.eat = async () => { ate++; return 'cooked_chicken' }
+  try {
+    const state = { time: 'day', nearby: {}, baseDistance: 5 }
+    worker.bedFacts(state)
+    assert.equal(state.canCook, true)
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.deepEqual(smelted, [['chicken', 2], ['beef', 1]])
+    assert.equal(result.cooked, 3)
+    assert.equal(ate, 1)
+    assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'cook:3')
+    items.splice(1, 2)
+    const without = { time: 'day', nearby: {}, baseDistance: 5 }
+    worker.bedFacts(without)
+    assert.equal(without.canCook, false)                      // sem carne crua
+  } finally { craft.smeltItem = original }
+}))
+
+test('make_bed descreve o progresso da lã (fato que o inventário bruto não mostra)', () => {
+  const d = candidateIntents(calmDay({ baseHasBed: false, bedMaterials: false, woolProgress: 2, nearby: { sheep: true, sheepDistance: 88 } }))[0].description
+  assert.match(d, /Wool 2\/3\. Sheep about 88 blocks away\./)
+})

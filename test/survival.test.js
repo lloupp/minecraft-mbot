@@ -307,3 +307,21 @@ test('abrigo: acha terra em morro mais alto que o bot (spawn junto à água)', (
   bot.entity = { position: new Vec3(0, 64, 0) }
   assert.equal(String(night.findShelterSpot(bot)), String(new Vec3(11, 67, -4)))
 })
+
+test('sair do abrigo: tampa de pedregulho é cavada com a picareta (com a mão não dá bloco)', async () => {
+  const lid = new Vec3(0, 70, 0), surface = new Vec3(0, 71, 0)
+  let lidPresent = true
+  const items = [{ name: 'cobblestone', count: 2 }, { name: 'wooden_pickaxe', count: 1 }]
+  let held = null
+  const bot = {
+    entity: { position: new Vec3(0.5, 68, 0.5) },
+    inventory: { items: () => items },
+    blockAt: (p) => (p.equals(lid) ? { name: lidPresent ? 'cobblestone' : 'air', boundingBox: lidPresent ? 'block' : 'empty', position: p }
+      : p.y <= 70 ? { name: 'stone', boundingBox: 'block', position: p } : { name: 'air', boundingBox: 'empty', position: p }),
+    equip: async (item) => { held = item.name },
+    dig: async () => { lidPresent = false; if (held === 'wooden_pickaxe') items[0].count++ },
+    pathfinder: { bestHarvestTool: () => items[1], goto: async () => { if (items[0].count >= 3) bot.entity.position = new Vec3(1.5, 71, 0.5) }, setGoal: () => {} }
+  }
+  assert.equal(await night.leaveShelter(bot, lid, surface), true)
+  assert.equal(held, 'wooden_pickaxe')
+})
