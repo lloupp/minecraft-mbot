@@ -1,0 +1,1192 @@
+{
+ "base/control": {
+  "n": 3,
+  "duracao_min": {
+   "media": 60.0,
+   "dp": 0.0,
+   "valores": [
+    60.0,
+    60.0,
+    60.0
+   ]
+  },
+  "mortes": {
+   "media": 8.3,
+   "dp": 7.5,
+   "valores": [
+    17,
+    4,
+    4
+   ]
+  },
+  "mortes_por_hora": {
+   "media": 8.3,
+   "dp": 7.5,
+   "valores": [
+    17.0,
+    4.0,
+    4.0
+   ]
+  },
+  "mortes_de_noite": {
+   "media": 7.7,
+   "dp": 7.2,
+   "valores": [
+    16,
+    3,
+    4
+   ]
+  },
+  "noites_completas": {
+   "media": 3,
+   "dp": 0.0,
+   "valores": [
+    3,
+    3,
+    3
+   ]
+  },
+  "noites_sem_morte": {
+   "media": 0.7,
+   "dp": 1.2,
+   "valores": [
+    0,
+    0,
+    2
+   ]
+  },
+  "maior_vida_min": {
+   "media": 24.6,
+   "dp": 15.0,
+   "valores": [
+    15.2,
+    16.8,
+    41.9
+   ]
+  },
+  "vida_mediana_min": {
+   "media": 5.8,
+   "dp": 5.7,
+   "valores": [
+    1.0,
+    12.1,
+    4.3
+   ]
+  },
+  "primeira_morte_min": {
+   "media": 13.9,
+   "dp": 1.2,
+   "valores": [
+    14.0,
+    15.0,
+    12.7
+   ]
+  },
+  "comida_obtida": {
+   "media": 7.7,
+   "dp": 1.2,
+   "valores": [
+    7,
+    9,
+    7
+   ]
+  },
+  "comeu_ciclos": {
+   "media": 0.7,
+   "dp": 0.6,
+   "valores": [
+    1,
+    1,
+    0
+   ]
+  },
+  "decisoes": {
+   "media": 303.7,
+   "dp": 146.1,
+   "valores": [
+    275,
+    174,
+    462
+   ]
+  },
+  "pernas_falhas": {
+   "media": 7,
+   "dp": 5.0,
+   "valores": [
+    7,
+    12,
+    2
+   ]
+  },
+  "caminho_demorou": {
+   "media": 12.7,
+   "dp": 9.0,
+   "valores": [
+    12,
+    22,
+    4
+   ]
+  },
+  "maior_parada_min": {
+   "media": 17.0,
+   "dp": 18.8,
+   "valores": [
+    3.9,
+    8.5,
+    38.5
+   ]
+  },
+  "julia_escolhas": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "fallback_n": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "causas": {
+   "was shot by Skeleton": 15,
+   "was slain by Zombie": 6,
+   "was blown up by Creeper": 1,
+   "drowned": 1,
+   "fell from a high place": 2
+  },
+  "noite_resultados": {
+   "night:abrigo": 1,
+   "night:failed": 2
+  },
+  "escolhas": {
+   "find_food,return_base -> find_food": 546,
+   "return_base,sleep_or_shelter -> return_base": 13,
+   "continue_objective,return_base -> continue_objective": 11,
+   "prepare_combat,sleep_or_shelter -> prepare_combat": 10,
+   "equip_best_weapon,continue_objective -> equip_best_weapon": 21,
+   "return_base,prepare_combat,sleep_or_shelter -> return_base": 10,
+   "equip_best_weapon,escape_danger -> equip_best_weapon": 6,
+   "fight_threat,escape_danger -> fight_threat": 11,
+   "prepare_combat,continue_objective -> prepare_combat": 9,
+   "find_food,continue_objective -> find_food": 35,
+   "return_base,prepare_combat -> return_base": 1
+  },
+  "acoes": {
+   "find_food": 580,
+   "explore": 110,
+   "threat": 48,
+   "None": 70,
+   "return_base": 42,
+   "preparation:gather_materials": 23,
+   "preparation:equip_best_weapon": 21,
+   "equip:stone_sword": 6,
+   "preparation:prepare_combat": 8,
+   "night:failed": 2,
+   "night:abrigo": 1
+  },
+  "infra": []
+ },
+ "base/julia": {
+  "n": 3,
+  "duracao_min": {
+   "media": 60.0,
+   "dp": 0.0,
+   "valores": [
+    60.0,
+    60.0,
+    60.0
+   ]
+  },
+  "mortes": {
+   "media": 13,
+   "dp": 4.0,
+   "valores": [
+    13,
+    9,
+    17
+   ]
+  },
+  "mortes_por_hora": {
+   "media": 13.0,
+   "dp": 4.0,
+   "valores": [
+    13.0,
+    9.0,
+    17.0
+   ]
+  },
+  "mortes_de_noite": {
+   "media": 9,
+   "dp": 6.0,
+   "valores": [
+    9,
+    3,
+    15
+   ]
+  },
+  "noites_completas": {
+   "media": 3,
+   "dp": 0.0,
+   "valores": [
+    3,
+    3,
+    3
+   ]
+  },
+  "noites_sem_morte": {
+   "media": 0.3,
+   "dp": 0.6,
+   "valores": [
+    0,
+    1,
+    0
+   ]
+  },
+  "maior_vida_min": {
+   "media": 14.5,
+   "dp": 1.5,
+   "valores": [
+    14.2,
+    13.2,
+    16.1
+   ]
+  },
+  "vida_mediana_min": {
+   "media": 4.2,
+   "dp": 3.6,
+   "valores": [
+    2.8,
+    8.3,
+    1.6
+   ]
+  },
+  "primeira_morte_min": {
+   "media": 13.5,
+   "dp": 0.6,
+   "valores": [
+    14.2,
+    13.2,
+    13.2
+   ]
+  },
+  "comida_obtida": {
+   "media": 5,
+   "dp": 0.0,
+   "valores": [
+    5,
+    5,
+    5
+   ]
+  },
+  "comeu_ciclos": {
+   "media": 2,
+   "dp": 0.0,
+   "valores": [
+    2,
+    2,
+    2
+   ]
+  },
+  "decisoes": {
+   "media": 166.3,
+   "dp": 27.3,
+   "valores": [
+    189,
+    136,
+    174
+   ]
+  },
+  "pernas_falhas": {
+   "media": 4,
+   "dp": 1.0,
+   "valores": [
+    5,
+    4,
+    3
+   ]
+  },
+  "caminho_demorou": {
+   "media": 7.3,
+   "dp": 1.2,
+   "valores": [
+    8,
+    8,
+    6
+   ]
+  },
+  "maior_parada_min": {
+   "media": 4.3,
+   "dp": 4.0,
+   "valores": [
+    0.6,
+    8.6,
+    3.8
+   ]
+  },
+  "julia_escolhas": {
+   "media": 46.3,
+   "dp": 11.7,
+   "valores": [
+    59,
+    36,
+    44
+   ]
+  },
+  "fallback_n": {
+   "media": 0.3,
+   "dp": 0.6,
+   "valores": [
+    0,
+    1,
+    0
+   ]
+  },
+  "causas": {
+   "was shot by Skeleton": 15,
+   "was blown up by Creeper": 5,
+   "was slain by Zombie": 8,
+   "drowned": 2,
+   "was slain by Drowned": 4,
+   "was slain by Spider": 2,
+   "was doomed to fall by Spider": 1,
+   "was slain by Zombie Villager": 1,
+   "fell from a high place": 1
+  },
+  "noite_resultados": {
+   "night:abrigo": 2,
+   "night:failed": 1
+  },
+  "escolhas": {
+   "find_food,return_base -> return_base": 64,
+   "return_base,sleep_or_shelter -> return_base": 20,
+   "prepare_combat,continue_objective -> continue_objective": 30,
+   "prepare_combat,continue_objective -> prepare_combat": 14,
+   "equip_best_weapon,continue_objective -> continue_objective": 4,
+   "equip_best_weapon,escape_danger -> equip_best_weapon": 2,
+   "fight_threat,escape_danger -> fight_threat": 1,
+   "equip_best_weapon,continue_objective -> equip_best_weapon": 1,
+   "find_food,continue_objective -> find_food": 1,
+   "find_food,continue_objective -> continue_objective": 1,
+   "continue_objective,return_base -> continue_objective": 1,
+   "return_base,sleep_or_shelter -> sleep_or_shelter": 1
+  },
+  "acoes": {
+   "explore": 138,
+   "return_base": 92,
+   "threat": 85,
+   "None": 77,
+   "find_food": 59,
+   "preparation:gather_materials": 35,
+   "preparation:prepare_combat": 5,
+   "equip:stone_sword": 2,
+   "preparation:equip_best_weapon": 1,
+   "night:abrigo": 2,
+   "night:failed": 1
+  },
+  "infra": []
+ },
+ "new/control": {
+  "n": 3,
+  "duracao_min": {
+   "media": 60.0,
+   "dp": 0.0,
+   "valores": [
+    60.0,
+    60.0,
+    60.0
+   ]
+  },
+  "mortes": {
+   "media": 9.3,
+   "dp": 4.5,
+   "valores": [
+    5,
+    14,
+    9
+   ]
+  },
+  "mortes_por_hora": {
+   "media": 9.3,
+   "dp": 4.5,
+   "valores": [
+    5.0,
+    14.0,
+    9.0
+   ]
+  },
+  "mortes_de_noite": {
+   "media": 6.3,
+   "dp": 3.5,
+   "valores": [
+    3,
+    10,
+    6
+   ]
+  },
+  "noites_completas": {
+   "media": 3,
+   "dp": 0.0,
+   "valores": [
+    3,
+    3,
+    3
+   ]
+  },
+  "noites_sem_morte": {
+   "media": 1,
+   "dp": 1.0,
+   "valores": [
+    2,
+    0,
+    1
+   ]
+  },
+  "maior_vida_min": {
+   "media": 27.8,
+   "dp": 7.1,
+   "valores": [
+    33.5,
+    19.9,
+    30.1
+   ]
+  },
+  "vida_mediana_min": {
+   "media": 3.7,
+   "dp": 1.3,
+   "valores": [
+    5.2,
+    2.6,
+    3.3
+   ]
+  },
+  "primeira_morte_min": {
+   "media": 13.7,
+   "dp": 17.2,
+   "valores": [
+    33.5,
+    4.3,
+    3.3
+   ]
+  },
+  "comida_obtida": {
+   "media": 10.3,
+   "dp": 5.1,
+   "valores": [
+    9,
+    6,
+    16
+   ]
+  },
+  "comeu_ciclos": {
+   "media": 0.7,
+   "dp": 1.2,
+   "valores": [
+    2,
+    0,
+    0
+   ]
+  },
+  "decisoes": {
+   "media": 249,
+   "dp": 51.0,
+   "valores": [
+    287,
+    269,
+    191
+   ]
+  },
+  "pernas_falhas": {
+   "media": 5.7,
+   "dp": 1.5,
+   "valores": [
+    7,
+    4,
+    6
+   ]
+  },
+  "caminho_demorou": {
+   "media": 9.7,
+   "dp": 4.7,
+   "valores": [
+    8,
+    6,
+    15
+   ]
+  },
+  "maior_parada_min": {
+   "media": 5.1,
+   "dp": 1.6,
+   "valores": [
+    6.5,
+    3.4,
+    5.3
+   ]
+  },
+  "julia_escolhas": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "fallback_n": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "causas": {
+   "was slain by Zombie": 9,
+   "was shot by Skeleton": 8,
+   "was blown up by Creeper": 3,
+   "drowned": 4,
+   "was slain by Spider": 1,
+   "was slain by Drowned": 2,
+   "burned to death": 1
+  },
+  "noite_resultados": {
+   "night:failed": 5,
+   "night:abrigo": 1
+  },
+  "escolhas": {
+   "find_food,return_base -> find_food": 319,
+   "equip_best_weapon,continue_objective -> equip_best_weapon": 17,
+   "prepare_combat,continue_objective -> prepare_combat": 10,
+   "find_food,continue_objective -> find_food": 9,
+   "fight_threat,escape_danger -> fight_threat": 9,
+   "make_bed,continue_objective -> make_bed": 15,
+   "return_base,prepare_combat,sleep_or_shelter -> return_base": 14,
+   "return_base,sleep_or_shelter -> return_base": 12,
+   "prepare_combat,sleep_or_shelter -> prepare_combat": 7,
+   "equip_best_weapon,escape_danger -> equip_best_weapon": 6,
+   "sleep_or_shelter,continue_objective -> sleep_or_shelter": 7,
+   "make_bed,continue_objective,return_base -> make_bed": 1,
+   "continue_objective,return_base -> continue_objective": 2
+  },
+  "acoes": {
+   "find_food": 362,
+   "explore": 126,
+   "None": 75,
+   "return_base": 51,
+   "preparation:gather_materials": 24,
+   "threat": 47,
+   "preparation:equip_best_weapon": 17,
+   "preparation:prepare_combat": 10,
+   "bed:wool": 16,
+   "equip:stone_sword": 6,
+   "night:failed": 5,
+   "none_preempted": 4
+  },
+  "infra": []
+ },
+ "new/julia": {
+  "n": 3,
+  "duracao_min": {
+   "media": 60.0,
+   "dp": 0.0,
+   "valores": [
+    60.0,
+    60.0,
+    60.0
+   ]
+  },
+  "mortes": {
+   "media": 5.7,
+   "dp": 3.2,
+   "valores": [
+    2,
+    8,
+    7
+   ]
+  },
+  "mortes_por_hora": {
+   "media": 5.7,
+   "dp": 3.2,
+   "valores": [
+    2.0,
+    8.0,
+    7.0
+   ]
+  },
+  "mortes_de_noite": {
+   "media": 5,
+   "dp": 3.5,
+   "valores": [
+    1,
+    7,
+    7
+   ]
+  },
+  "noites_completas": {
+   "media": 3,
+   "dp": 0.0,
+   "valores": [
+    3,
+    3,
+    3
+   ]
+  },
+  "noites_sem_morte": {
+   "media": 1.3,
+   "dp": 0.6,
+   "valores": [
+    2,
+    1,
+    1
+   ]
+  },
+  "maior_vida_min": {
+   "media": 30.9,
+   "dp": 8.4,
+   "valores": [
+    34.2,
+    37.1,
+    21.4
+   ]
+  },
+  "vida_mediana_min": {
+   "media": 6.5,
+   "dp": 6.4,
+   "valores": [
+    13.9,
+    2.4,
+    3.2
+   ]
+  },
+  "primeira_morte_min": {
+   "media": 12.8,
+   "dp": 2.0,
+   "valores": [
+    13.9,
+    10.5,
+    14.1
+   ]
+  },
+  "comida_obtida": {
+   "media": 11,
+   "dp": 2.0,
+   "valores": [
+    13,
+    9,
+    11
+   ]
+  },
+  "comeu_ciclos": {
+   "media": 3.7,
+   "dp": 1.2,
+   "valores": [
+    5,
+    3,
+    3
+   ]
+  },
+  "decisoes": {
+   "media": 150,
+   "dp": 23.6,
+   "valores": [
+    124,
+    170,
+    156
+   ]
+  },
+  "pernas_falhas": {
+   "media": 4,
+   "dp": 1.7,
+   "valores": [
+    3,
+    3,
+    6
+   ]
+  },
+  "caminho_demorou": {
+   "media": 7.3,
+   "dp": 4.2,
+   "valores": [
+    6,
+    4,
+    12
+   ]
+  },
+  "maior_parada_min": {
+   "media": 8.4,
+   "dp": 1.0,
+   "valores": [
+    9.0,
+    8.9,
+    7.3
+   ]
+  },
+  "julia_escolhas": {
+   "media": 59,
+   "dp": 12.1,
+   "valores": [
+    52,
+    52,
+    73
+   ]
+  },
+  "fallback_n": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "causas": {
+   "was slain by Zombie": 3,
+   "drowned": 2,
+   "was shot by Skeleton": 5,
+   "was slain by Spider": 2,
+   "was blown up by Creeper": 1,
+   "was slain by Drowned": 2,
+   "was killed by Witch": 1,
+   "was doomed to fall by Drowned": 1
+  },
+  "noite_resultados": {
+   "night:abrigo": 4,
+   "night:failed": 7
+  },
+  "escolhas": {
+   "find_food,return_base -> return_base": 54,
+   "prepare_combat,continue_objective -> continue_objective": 57,
+   "prepare_combat,continue_objective -> prepare_combat": 20,
+   "make_bed,continue_objective -> make_bed": 6,
+   "find_food,continue_objective -> continue_objective": 6,
+   "return_base,sleep_or_shelter -> return_base": 8,
+   "continue_objective,return_base -> continue_objective": 6,
+   "return_base,sleep_or_shelter -> sleep_or_shelter": 6,
+   "equip_best_weapon,continue_objective -> continue_objective": 11,
+   "equip_best_weapon,continue_objective -> equip_best_weapon": 1,
+   "make_bed,continue_objective,return_base -> make_bed": 1,
+   "sleep_or_shelter,continue_objective -> sleep_or_shelter": 1
+  },
+  "acoes": {
+   "explore": 117,
+   "return_base": 73,
+   "find_food": 62,
+   "None": 97,
+   "threat": 45,
+   "preparation:gather_materials": 31,
+   "bed:wool": 7,
+   "night:failed": 7,
+   "night:abrigo": 4,
+   "preparation:prepare_combat": 4,
+   "preparation:equip_best_weapon": 1
+  },
+  "infra": []
+ },
+ "final/control": {
+  "n": 3,
+  "duracao_min": {
+   "media": 60.0,
+   "dp": 0.0,
+   "valores": [
+    60.0,
+    60.0,
+    60.0
+   ]
+  },
+  "mortes": {
+   "media": 13,
+   "dp": 1.0,
+   "valores": [
+    13,
+    12,
+    14
+   ]
+  },
+  "mortes_por_hora": {
+   "media": 13.0,
+   "dp": 1.0,
+   "valores": [
+    13.0,
+    12.0,
+    14.0
+   ]
+  },
+  "mortes_de_noite": {
+   "media": 9.7,
+   "dp": 1.5,
+   "valores": [
+    8,
+    10,
+    11
+   ]
+  },
+  "noites_completas": {
+   "media": 3,
+   "dp": 0.0,
+   "valores": [
+    3,
+    3,
+    3
+   ]
+  },
+  "noites_sem_morte": {
+   "media": 0.7,
+   "dp": 0.6,
+   "valores": [
+    1,
+    1,
+    0
+   ]
+  },
+  "maior_vida_min": {
+   "media": 21.2,
+   "dp": 10.5,
+   "valores": [
+    13.5,
+    33.2,
+    16.9
+   ]
+  },
+  "vida_mediana_min": {
+   "media": 1.9,
+   "dp": 1.1,
+   "valores": [
+    3.1,
+    0.9,
+    1.8
+   ]
+  },
+  "primeira_morte_min": {
+   "media": 15.0,
+   "dp": 2.0,
+   "valores": [
+    12.9,
+    15.3,
+    16.9
+   ]
+  },
+  "comida_obtida": {
+   "media": 9.7,
+   "dp": 1.2,
+   "valores": [
+    9,
+    9,
+    11
+   ]
+  },
+  "comeu_ciclos": {
+   "media": 0.7,
+   "dp": 1.2,
+   "valores": [
+    0,
+    0,
+    2
+   ]
+  },
+  "decisoes": {
+   "media": 175,
+   "dp": 21.1,
+   "valores": [
+    153,
+    195,
+    177
+   ]
+  },
+  "pernas_falhas": {
+   "media": 8.3,
+   "dp": 2.5,
+   "valores": [
+    8,
+    6,
+    11
+   ]
+  },
+  "caminho_demorou": {
+   "media": 15.3,
+   "dp": 7.0,
+   "valores": [
+    16,
+    8,
+    22
+   ]
+  },
+  "maior_parada_min": {
+   "media": 14.9,
+   "dp": 8.8,
+   "valores": [
+    8.7,
+    25.0,
+    11.1
+   ]
+  },
+  "julia_escolhas": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "fallback_n": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "causas": {
+   "was shot by Skeleton": 16,
+   "was blown up by Creeper": 6,
+   "was slain by Zombie": 8,
+   "was slain by Drowned": 5,
+   "fell from a high place": 1,
+   "drowned": 2,
+   "was slain by Spider": 1
+  },
+  "noite_resultados": {
+   "night:failed": 1,
+   "night:abrigo": 1
+  },
+  "escolhas": {
+   "find_food,return_base -> find_food": 89,
+   "equip_best_weapon,continue_objective -> equip_best_weapon": 25,
+   "make_bed,continue_objective -> make_bed": 21,
+   "prepare_combat,continue_objective -> prepare_combat": 11,
+   "return_base,sleep_or_shelter -> return_base": 14,
+   "fight_threat,escape_danger -> fight_threat": 41,
+   "find_food,continue_objective -> find_food": 1,
+   "equip_best_weapon,escape_danger -> equip_best_weapon": 3,
+   "continue_objective,return_base -> continue_objective": 6,
+   "sleep_or_shelter,continue_objective -> sleep_or_shelter": 1,
+   "return_base,prepare_combat,sleep_or_shelter -> return_base": 15,
+   "prepare_combat,sleep_or_shelter -> prepare_combat": 9,
+   "return_base,prepare_combat -> return_base": 1
+  },
+  "acoes": {
+   "explore": 112,
+   "None": 117,
+   "find_food": 90,
+   "threat": 81,
+   "preparation:gather_materials": 25,
+   "preparation:equip_best_weapon": 25,
+   "bed:wool": 20,
+   "return_base": 38,
+   "preparation:prepare_combat": 8,
+   "bed:failed": 1,
+   "night:failed": 1,
+   "explore_after_preparation_refused": 1,
+   "equip:stone_sword": 2
+  },
+  "infra": []
+ },
+ "final/julia": {
+  "n": 3,
+  "duracao_min": {
+   "media": 60.0,
+   "dp": 0.0,
+   "valores": [
+    60.0,
+    60.0,
+    60.0
+   ]
+  },
+  "mortes": {
+   "media": 7,
+   "dp": 1.0,
+   "valores": [
+    6,
+    8,
+    7
+   ]
+  },
+  "mortes_por_hora": {
+   "media": 7.0,
+   "dp": 1.0,
+   "valores": [
+    6.0,
+    8.0,
+    7.0
+   ]
+  },
+  "mortes_de_noite": {
+   "media": 4.7,
+   "dp": 2.1,
+   "valores": [
+    3,
+    7,
+    4
+   ]
+  },
+  "noites_completas": {
+   "media": 3,
+   "dp": 0.0,
+   "valores": [
+    3,
+    3,
+    3
+   ]
+  },
+  "noites_sem_morte": {
+   "media": 0.7,
+   "dp": 0.6,
+   "valores": [
+    1,
+    0,
+    1
+   ]
+  },
+  "maior_vida_min": {
+   "media": 17.7,
+   "dp": 2.9,
+   "valores": [
+    15.5,
+    21.0,
+    16.7
+   ]
+  },
+  "vida_mediana_min": {
+   "media": 6.6,
+   "dp": 3.4,
+   "valores": [
+    9.9,
+    3.2,
+    6.7
+   ]
+  },
+  "primeira_morte_min": {
+   "media": 15.1,
+   "dp": 1.8,
+   "valores": [
+    15.5,
+    13.1,
+    16.6
+   ]
+  },
+  "comida_obtida": {
+   "media": 12.3,
+   "dp": 3.2,
+   "valores": [
+    10,
+    11,
+    16
+   ]
+  },
+  "comeu_ciclos": {
+   "media": 3.7,
+   "dp": 0.6,
+   "valores": [
+    4,
+    3,
+    4
+   ]
+  },
+  "decisoes": {
+   "media": 155.3,
+   "dp": 11.0,
+   "valores": [
+    143,
+    164,
+    159
+   ]
+  },
+  "pernas_falhas": {
+   "media": 6.3,
+   "dp": 1.2,
+   "valores": [
+    7,
+    7,
+    5
+   ]
+  },
+  "caminho_demorou": {
+   "media": 12,
+   "dp": 2.0,
+   "valores": [
+    12,
+    14,
+    10
+   ]
+  },
+  "maior_parada_min": {
+   "media": 7.9,
+   "dp": 2.1,
+   "valores": [
+    8.9,
+    5.5,
+    9.2
+   ]
+  },
+  "julia_escolhas": {
+   "media": 57.7,
+   "dp": 10.7,
+   "valores": [
+    46,
+    67,
+    60
+   ]
+  },
+  "fallback_n": {
+   "media": 0,
+   "dp": 0.0,
+   "valores": [
+    0,
+    0,
+    0
+   ]
+  },
+  "causas": {
+   "was shot by Skeleton": 3,
+   "was blown up by Creeper": 2,
+   "fell from a high place": 2,
+   "was impaled by Drowned": 3,
+   "was slain by Spider": 1,
+   "was slain by Zombie": 4,
+   "was slain by Drowned": 4,
+   "drowned": 2
+  },
+  "noite_resultados": {
+   "night:failed": 6,
+   "night:abrigo": 4
+  },
+  "escolhas": {
+   "find_food,return_base -> return_base": 61,
+   "return_base,sleep_or_shelter -> return_base": 7,
+   "prepare_combat,continue_objective -> continue_objective": 24,
+   "make_bed,continue_objective -> make_bed": 18,
+   "prepare_combat,continue_objective -> prepare_combat": 8,
+   "return_base,prepare_combat -> prepare_combat": 4,
+   "sleep_or_shelter,continue_objective -> sleep_or_shelter": 7,
+   "return_base,prepare_combat,sleep_or_shelter -> prepare_combat": 7,
+   "equip_best_weapon,escape_danger -> equip_best_weapon": 5,
+   "fight_threat,escape_danger -> escape_danger": 8,
+   "equip_best_weapon,continue_objective -> continue_objective": 19,
+   "return_base,sleep_or_shelter -> sleep_or_shelter": 4,
+   "fight_threat,escape_danger -> fight_threat": 1
+  },
+  "acoes": {
+   "explore": 114,
+   "return_base": 78,
+   "None": 65,
+   "find_food": 67,
+   "threat": 66,
+   "preparation:gather_materials": 35,
+   "bed:wool": 18,
+   "night:abrigo": 4,
+   "preparation:prepare_combat": 5,
+   "night:failed": 6,
+   "equip:stone_sword": 5,
+   "none_preempted": 2
+  },
+  "infra": []
+ }
+}
