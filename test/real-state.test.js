@@ -244,3 +244,18 @@ test('decisão com fome: animal poupado ou planta verde perto não conta como co
   assert.equal(withRipe.food, true)
   assert.equal(withRipe.foodDistance, 3)
 })
+
+test('afogando só com menos da metade do ar (nadar mergulhando a cabeça não conta)', () => {
+  const at = (oxygenLevel) => { const b = fakeBot(); b.oxygenLevel = oxygenLevel; b.blockAt = () => ({ name: 'air' }); return realStateSnapshot(b, null, { homeProvider: () => null }).drowning }
+  assert.equal(at(20), false)
+  assert.equal(at(15), false)
+  assert.equal(at(9), true)
+  assert.equal(at(undefined), false)
+})
+
+test('anoitecer (12000) já conta como noite para o abrigo; antes disso é dia', () => {
+  const at = (t) => { const b = fakeBot({ timeOfDay: t }); b.blockAt = () => ({ name: 'air' }); return realStateSnapshot(b, null, { homeProvider: () => null }).time }
+  assert.equal(at(11900), 'day')
+  assert.equal(at(12100), 'night')
+  assert.equal(at(23500), 'day')
+})

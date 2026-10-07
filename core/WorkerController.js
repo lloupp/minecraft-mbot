@@ -1659,7 +1659,7 @@ class WorkerController {
 
       // Cama na base: lã (ovelha ou linha), fabricar, voltar à base, colocar e usar (ponto de renascimento / dormir).
       if (choice === 'make_bed') {
-        const outcome = await this.makeBaseBed(isCancelled)
+        const outcome = await this.makeBaseBed(isCancelled, state.nearby?.sheepRemembered || null)
           .catch((error) => ({ ok: false, step: 'error', error: error?.message || String(error) }))
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
         if (outcome.error) this.logger.log?.(`[colônia] ${this.name} cama (${outcome.step}): ${outcome.error}`)
@@ -2094,6 +2094,16 @@ class WorkerController {
     state.nearby = state.nearby || {}
     state.nearby.sheep = Boolean(sheep)
     state.nearby.sheepDistance = sheep ? Math.round(sheep.position.distanceTo(this.bot.entity.position)) : null
+    // Sem ovelha útil à vista: um rebanho lembrado da cor certa (até 160) também é caminho para a cama. Medido no mundo
+    // novo: as 3 ovelhas brancas mais próximas ficam entre 48 e 128 blocos da base, fora da vista.
+    if (!sheep && !state.baseHasBed && !state.bedMaterials) {
+      const remembered = this.rememberedSheep()
+      if (remembered) {
+        state.nearby.sheep = true
+        state.nearby.sheepDistance = Math.round(remembered.distance)
+        state.nearby.sheepRemembered = remembered.place
+      }
+    }
     if (state.time === 'night' && state.baseHasBed && state.shelterKind !== 'bed' && Number(state.baseDistance) <= BASE_BED_TRAVEL) {
       state.shelterKind = 'base_bed'
       state.shelterNearby = true
@@ -2113,9 +2123,33 @@ class WorkerController {
     }) || null
   }
 
-  async makeBaseBed(isCancelled) {
+  rememberedSheep() {
+    if (!this.worldMemory || !this.memoryGuideOn() || !this.bot.entity?.position) return null
+    const wanted = bedLib.wantedWool(this.bot)
+    const dim = worldObserver.dimensionOf(this.bot)
+    const kinds = wanted ? [`sheep:${wanted}`] : bedLib.WOOL_COLORS.map((c) => `sheep:${c}_wool`)
+    let best = null
+    for (const kind of kinds) {
+      const [pick] = this.worldMemory.suggest(kind, dim, this.bot.entity.position, { limit: 1, maxDistance: 160 })
+      if (pick && (!best || pick.distance < best.distance)) best = { distance: pick.distance, place: { ...pick.place, kind } }
+    }
+    return best
+  }
+
+  async makeBaseBed(isCancelled, remembered = null) {
     if (!bedLib.hasBedMaterials(this.bot)) {
-      const sheep = this.nearestSheep()
+      let sheep = this.nearestSheep()
+      if (!sheep && remembered) {
+        // Vai ao rebanho lembrado; lá, só confia no que vê. Sem ovelha útil, a lembrança é invalidada.
+        const goal = new goals.GoalNear(remembered.x, remembered.y, remembered.z, 6)
+        await this.goTo(goal, travelTimeoutMs(this.bot.entity?.position, remembered)).catch(() => {})
+        if (isCancelled()) return { ok: false, step: 'cancelled' }
+        sheep = this.nearestSheep()
+        if (!sheep) {
+          this.worldMemory?.invalidate(remembered.key, 'no_sheep')
+          return { ok: false, step: 'remembered_empty' }
+        }
+      }
       if (!sheep) return { ok: false, step: 'no_sheep' }
       const before = bedLib.woolEquivalent(this.bot)
       await food.hunt(this.bot, sheep, isCancelled).catch(() => false)

@@ -275,7 +275,7 @@ test('return_base com fome diz que a base não guarda comida (fato do runtime; s
 
 test('afogando: o runtime informa drowning, o loop força escape_danger e o executor sai da água', () => withFlags(async () => {
   const { worker, rows } = bedWorker('continue_objective')
-  worker.bot.oxygenLevel = 10
+  worker.bot.oxygenLevel = 8
   worker.bot.entity.isInWater = true
   worker.bot.blockAt = (p) => {
     if (p.x >= 23 && p.y === 63) return { name: 'dirt', boundingBox: 'block', position: p }      // margem a 3 blocos
@@ -295,3 +295,13 @@ test('afogando: o runtime informa drowning, o loop força escape_danger e o exec
   assert.deepEqual(decision.candidates, ['escape_danger'])
   assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'escape:water')
 }))
+
+test('sob ameaça à noite, com abrigo executável e o monstro a ≥8, abrigar-se vira opção (fugir continua primeiro)', () => {
+  const night = calmDay({ time: 'night', equippedWeapon: null, inventory: {}, shelterNearby: true, shelterKind: 'dig' })
+  assert.deepEqual(ids({ ...night, threat: { type: 'zombie', distance: 10 } }), ['escape_danger', 'sleep_or_shelter'])
+  assert.deepEqual(ids({ ...night, threat: { type: 'zombie', distance: 5 } }), ['escape_danger'])
+  assert.deepEqual(ids({ ...night, time: 'day', threat: { type: 'zombie', distance: 10 } }), ['escape_danger'])
+  assert.deepEqual(ids({ ...night, shelterNearby: undefined, threat: { type: 'zombie', distance: 10 } }), ['escape_danger'])
+  assert.deepEqual(ids({ ...night, equippedWeapon: 'stone_sword', inventory: { stone_sword: 1 }, threat: { type: 'zombie', distance: 10 } }),
+    ['fight_threat', 'escape_danger', 'sleep_or_shelter'])
+})

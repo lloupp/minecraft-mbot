@@ -243,3 +243,27 @@ test('comida lembrada: chegando lá só com os últimos animais (poupados pelo e
   const place = hungry.nearby.foodRemembered
   assert.equal(memory.find('food', 'overworld', new Vec3(place.x, place.y, place.z)).status, STATUS.INVALIDATED)
 })
+
+test('cama: ovelhas vistas viram lembrança por cor; sem ovelha à vista, o rebanho lembrado da cor certa é caminho (e vazio é invalidado)', async () => {
+  const { worker, memory } = setup()
+  const worldObserver = require('../lib/world-observer')
+  worker.bot.inventory = { items: () => [{ name: 'white_wool', count: 2 }] }
+  worker._failedHunts = new Map()
+  worker.bot.entities = {
+    1: { id: 1, name: 'sheep', metadata: [], position: new Vec3(100, 64, 5) },          // branca (campo ausente)
+    2: { id: 2, name: 'sheep', metadata: { 17: 7 }, position: new Vec3(60, 64, 0) }     // cinza, mais perto
+  }
+  worldObserver.observeSurroundings(worker.bot, memory, { by: 'w1' })
+  worker.bot.entities = {}
+  worker.bot.nearestEntity = (match) => Object.values(worker.bot.entities).find(match) || null
+  worker.production = { storage: { configured: () => false } }
+  const state = { time: 'day', nearby: {}, baseDistance: 0 }
+  worker.bedFacts(state)
+  assert.equal(state.nearby.sheep, true)
+  assert.ok(Math.abs(state.nearby.sheepRemembered.x - 100) <= 1, JSON.stringify(state.nearby))   // a branca, não a cinza
+  // Chegou lá e não há ovelha: a lembrança é invalidada.
+  const out = await worker.makeBaseBed(() => false, state.nearby.sheepRemembered)
+  assert.equal(out.step, 'remembered_empty')
+  const place = state.nearby.sheepRemembered
+  assert.equal(memory.find(place.kind, 'overworld', new Vec3(place.x, place.y, place.z)).status, STATUS.INVALIDATED)
+})
