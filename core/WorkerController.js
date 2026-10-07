@@ -53,6 +53,8 @@ const NO_PROGRESS_IDLE_RESET_MS = 30000
 const THREAT_IGNORE_MS = 60000
 const FAILED_HUNT_MS = 120000
 const BASE_UNREACHABLE_MS = 120000
+const DEATH_DROPS_MS = 240000
+const DEATH_DROPS_RANGE = 96
 // Escape cavando: pedra à mão leva ~7 s por bloco; com 20 s o explorador não saía de uma caverna ao lado da base.
 const DIG_ESCAPE_MS = 60000
 // Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
@@ -213,6 +215,8 @@ class WorkerController {
     })
 
     bot.on('death', () => {
+      // Onde caíram os itens (somem em 5 min): base para a opção recover_items depois de renascer.
+      if (this.bot.entity?.position) this._deathDrops = { position: this.bot.entity.position.clone(), at: Date.now() }
       this.logger.log(`[colônia] ${this.name} morreu.`)
       this.cancel()
       this.lastHealth = null
@@ -1535,7 +1539,7 @@ class WorkerController {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
     try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
-    const executed = action || (result?.escaped ? `escape:${result.escaped}` : result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
+    const executed = action || (result?.intent === 'recover_items' ? `recover:${result.recovered ?? 0}` : result?.escaped ? `escape:${result.escaped}` : result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
       : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
         : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
@@ -1660,6 +1664,18 @@ class WorkerController {
           .catch((error) => { this.logger.log?.(`[colônia] ${this.name} noite: ${error.message}`); return null })
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
         return { ok: Boolean(how), code: how ? null : 'SHELTER_FAILED', intent: choice, night: how, playerLoopPreparation: true, preparationSteps }
+      }
+
+      // Itens da morte: vai até o ponto e recolhe o que ainda estiver no chão (o coletor de drops que já existe).
+      if (choice === 'recover_items' && this._deathDrops) {
+        const drops = this._deathDrops
+        const before = this.bot.inventory.items().reduce((n, i) => n + i.count, 0)
+        await this.goTo(new goals.GoalNear(drops.position.x, drops.position.y, drops.position.z, 2), travelTimeoutMs(this.bot.entity?.position, drops.position)).catch(() => {})
+        if (!isCancelled()) await food.collectDrops(this.bot, drops.position, isCancelled, { radius: 8, timeoutMs: 20000 }).catch(() => {})
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        this._deathDrops = null
+        const gained = this.bot.inventory.items().reduce((n, i) => n + i.count, 0) - before
+        return { ok: gained > 0, intent: choice, recovered: gained, playerLoopPreparation: true, preparationSteps }
       }
 
       // Cama na base: lã (ovelha ou linha), fabricar, voltar à base, colocar e usar (ponto de renascimento / dormir).
@@ -2077,6 +2093,11 @@ class WorkerController {
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
   }
 
+  hostileNear(range = 16) {
+    const position = this.bot.entity?.position
+    return Boolean(position && this.bot.nearestEntity?.((e) => e?.type === 'hostile' && e.position?.distanceTo(position) <= range))
+  }
+
   huntFailed(entity) {
     return this._failedHunts?.get(entity?.id) > Date.now()
   }
@@ -2098,6 +2119,10 @@ class WorkerController {
   bedFacts(state) {
     const home = this.homeProvider?.()
     if (!state || !home || !this.bot.entity?.position) return
+    const drops = this._deathDrops
+    if (drops && Date.now() - drops.at < DEATH_DROPS_MS && this.bot.entity.position.distanceTo(drops.position) <= DEATH_DROPS_RANGE) {
+      state.deathDrops = { distance: Math.round(this.bot.entity.position.distanceTo(drops.position)), ageS: Math.round((Date.now() - drops.at) / 1000) }
+    }
     // Fatos de executabilidade: base inalcançável há pouco (NOT_ARRIVED) e preparação recusada sob ameaça (guardrail).
     if (this._baseUnreachableUntil > Date.now()) state.baseUnreachable = true
     state.preparationBlockedByThreat = true
@@ -2176,12 +2201,19 @@ class WorkerController {
         }
       }
       if (!sheep) return { ok: false, step: 'no_sheep' }
-      const before = bedLib.woolEquivalent(this.bot)
-      await food.hunt(this.bot, sheep, isCancelled).catch(() => false)
-      const gained = bedLib.woolEquivalent(this.bot) > before
-      // Ovelha anda: a mesma pode ficar alcançável depois (visto no Minecraft: uma falha a excluía para sempre).
-      if (!gained) this._failedHunts.set(sheep.id, Date.now() + FAILED_HUNT_MS)
-      return { ok: gained, step: 'wool' }
+      // Numa ida só: segue caçando as ovelhas úteis à vista até fechar a lã. Visto no Minecraft: a lã chegou a 2 da mesma
+      // cor 3 vezes e se perdeu na morte seguinte (uma ovelha por ciclo, com noites e combates no meio).
+      for (let hunts = 0; sheep && hunts < 4 && !bedLib.hasBedMaterials(this.bot); hunts++) {
+        const before = bedLib.woolEquivalent(this.bot)
+        await food.hunt(this.bot, sheep, isCancelled).catch(() => false)
+        if (isCancelled()) return { ok: false, step: 'cancelled' }
+        // Ovelha anda: a mesma pode ficar alcançável depois (visto no Minecraft: uma falha a excluía para sempre).
+        if (bedLib.woolEquivalent(this.bot) <= before) { this._failedHunts.set(sheep.id, Date.now() + FAILED_HUNT_MS); break }
+        if (night.nightFalling(this.bot) || this.hostileNear()) break
+        sheep = this.nearestSheep()
+      }
+      if (!bedLib.hasBedMaterials(this.bot)) return { ok: bedLib.woolEquivalent(this.bot) > 0, step: 'wool' }
+      if (night.nightFalling(this.bot) || this.hostileNear()) return { ok: true, step: 'wool_complete' }
     }
     // Fabrica já na base: a mesa precisa de chão livre e seco. Visto no Minecraft: tentou colocar a mesa perto da água
     // ('não achei lugar para colocar crafting_table') 4 vezes e afogou.

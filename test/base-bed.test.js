@@ -367,3 +367,59 @@ test('cama sem lã: ovelha branca primeiro, mesmo mais longe; sem branca, qualqu
   all.pop()
   assert.equal(worker.nearestSheep().id, 1)
 })
+
+test('fome de noite com abrigo executável: abrigar-se entra como opção (procurar comida continua primeiro)', () => {
+  const hungryNight = calmDay({ time: 'night', food: 6, edibleFood: 0, nearby: { food: true, foodDistance: 20 }, shelterNearby: true, shelterKind: 'dig' })
+  assert.deepEqual(ids(hungryNight), ['find_food', 'return_base', 'sleep_or_shelter'])
+  assert.deepEqual(ids({ ...hungryNight, time: 'day' }), ['find_food', 'return_base'])
+  assert.deepEqual(ids({ ...hungryNight, shelterNearby: undefined }), ['find_food', 'return_base'])
+})
+
+test('recover_items: oferecido com itens da morte recentes e sem ameaça; o executor vai lá e recolhe', () => withFlags(async () => {
+  assert.deepEqual(ids(calmDay({ deathDrops: { distance: 40, ageS: 30 } })), ['recover_items', 'continue_objective'])
+  assert.deepEqual(ids(calmDay({ deathDrops: { distance: 40, ageS: 30 }, threat: { type: 'zombie', distance: 10 } })), ['fight_threat', 'escape_danger'])
+  const food = require('../lib/food')
+  const original = food.collectDrops
+  const { worker, rows } = bedWorker('recover_items')
+  worker.bot.entity.position = new Vec3(0, 64, 0)
+  const items = [{ name: 'stone_sword', count: 1 }]
+  worker.bot.inventory.items = () => items
+  worker._deathDrops = { position: new Vec3(40, 64, 0), at: Date.now() - 30000 }
+  const went = []
+  worker.goTo = async (goal) => { went.push(goal.x); worker.bot.entity.position = new Vec3(goal.x, goal.y, goal.z) }
+  food.collectDrops = async () => { items.push({ name: 'white_wool', count: 2 }) }
+  try {
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.deepEqual(went, [40])
+    assert.equal(result.recovered, 2)
+    assert.equal(worker._deathDrops, null)
+    assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'recover:2')
+  } finally { food.collectDrops = original }
+}))
+
+test('cama numa ida: com ovelhas úteis à vista, caça até fechar a lã e já fabrica e coloca', () => withFlags(async () => {
+  const food = require('../lib/food')
+  const original = { hunt: food.hunt, craftBed: bed.craftBed, placeBed: bed.placeBed, useBed: bed.useBed }
+  const { worker } = bedWorker('make_bed')
+  const items = []
+  worker.bot.inventory.items = () => items
+  const flock = [1, 2, 3].map((id) => ({ id, name: 'sheep', metadata: [], position: new Vec3(25 + id, 64, 0), isValid: true }))
+  worker.bot.nearestEntity = (match) => flock.find((e) => e.isValid && match(e)) || null
+  food.hunt = async (_bot, sheep) => {
+    sheep.isValid = false
+    const w = items.find((i) => i.name === 'white_wool'); if (w) w.count++; else items.push({ name: 'white_wool', count: 1 })
+    return true
+  }
+  const steps = []
+  bed.craftBed = async () => { steps.push('craft'); items.splice(0, items.length, { name: 'white_bed', count: 1 }); return items[0] }
+  bed.placeBed = async () => { steps.push('place'); return { position: new Vec3(1, 64, 0) } }
+  bed.useBed = async () => { steps.push('use'); return 'ponto' }
+  worker.returnHome = async () => { steps.push('home'); return { ok: true } }
+  worker.explore = async () => ({ ok: true, x: 1, z: 1 })
+  try {
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(result.bed, 'placed:ponto', JSON.stringify(result))
+    assert.ok(flock.every((s) => !s.isValid))
+    assert.deepEqual(steps, ['home', 'craft', 'place', 'use'])
+  } finally { Object.assign(food, { hunt: original.hunt }); Object.assign(bed, { craftBed: original.craftBed, placeBed: original.placeBed, useBed: original.useBed }) }
+}))
