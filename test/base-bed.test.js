@@ -190,3 +190,21 @@ test('vigia de progresso: trabalhando parado além do limite registra o contexto
   worker.bot.entity.position = new Vec3(20, 64, 10)
   assert.equal(worker.progressTick(600000), false)            // andou: âncora nova
 })
+
+test('vigia de progresso: ciclos curtos com ociosidade breve no mesmo lugar ainda contam; ocioso de verdade zera', () => {
+  const worker = Object.create(WorkerController.prototype)
+  Object.assign(worker, { name: 'w', state: 'trabalhando', taskVersion: 1, currentTask: { type: 'explorar' }, _loopIntent: 'find_food',
+    _sheltered: false, _progressAnchor: null, logger: { log() {} } })
+  worker.bot = { entity: { position: new Vec3(0, 64, 0) }, health: 20, food: 6, pathfinder: { goal: null, isMoving: () => false, setGoal() {} } }
+  let t = 0
+  worker.progressTick(t)
+  for (; t < 170000; t += 10000) {
+    worker.state = 'ocioso'; worker.progressTick(t + 2000)      // 2 s ocioso entre tarefas
+    worker.state = 'trabalhando'; assert.equal(worker.progressTick(t + 5000), false)
+  }
+  worker.state = 'trabalhando'
+  assert.equal(worker.progressTick(185000), true)
+  worker.state = 'ocioso'; worker.progressTick(200000); worker.progressTick(240000)   // 40 s ocioso: zera
+  worker.state = 'trabalhando'; worker.progressTick(241000)
+  assert.equal(worker.progressTick(400000), false)
+})

@@ -49,6 +49,7 @@ const BASE_BED_TRAVEL = 64
 // worker. Visto no Minecraft: 24 min parado num ponto do qual um bot de teste sai em 6 s, sem causa identificada.
 const NO_PROGRESS_MS = Number(process.env.MBOT_NO_PROGRESS_MS || 180000)
 const NO_PROGRESS_RADIUS = 2
+const NO_PROGRESS_IDLE_RESET_MS = 30000
 // Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
 const GOTO_REJECTED_MOVES = 40
 // Falhas de movimento que significam "não deu para chegar daqui" (e não cancelamento/troca de dono).
@@ -229,10 +230,18 @@ class WorkerController {
   // (cancel → ocioso; quem dá tarefas assume de novo, com estado novo).
   progressTick(now = Date.now()) {
     const position = this.bot.entity?.position
-    if (!position || this.state !== 'trabalhando' || this._sheltered || this.bot.isSleeping) {
+    if (!position || this._sheltered || this.bot.isSleeping) {
       this._progressAnchor = null
       return false
     }
+    // Ociosidade curta entre tarefas não zera a contagem: visto no Minecraft (linha de base), 384 ciclos curtos de
+    // find_food recusado no mesmo lugar por 38 min, cada um terminando em 'ocioso' por alguns segundos.
+    if (this.state !== 'trabalhando') {
+      this._idleSince ??= now
+      if (now - this._idleSince > NO_PROGRESS_IDLE_RESET_MS) this._progressAnchor = null
+      return false
+    }
+    this._idleSince = null
     if (!this._progressAnchor || position.distanceTo(this._progressAnchor.position) > NO_PROGRESS_RADIUS) {
       this._progressAnchor = { position: position.clone(), at: now }
       return false
