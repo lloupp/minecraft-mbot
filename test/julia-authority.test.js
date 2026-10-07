@@ -396,3 +396,28 @@ test('dataset: decisões com escolha real viram exemplos com a entrada vista, a 
   assert.equal(out[0].outcome.diedDuringAction, false)
   assert.equal(out[0].outcome.diedWithinWindow, true)
 })
+
+test('player loop: luta que expira sem alcançar o monstro → afasta-se e ele some da percepção por um minuto', () => withFlags(async () => {
+  const combat = require('../lib/combat')
+  const original = combat.fight
+  const { auth, rows } = authority(reply({ choice: 'fight_threat' }))
+  const worker = loopWorker(auth)
+  const zombie = { id: 42, name: 'zombie', type: 'hostile', position: new Vec3(9, 64, 0), health: 20 }
+  worker.bot.heldItem = { name: 'stone_sword' }
+  worker.bot.nearestEntity = (match) => (match(zombie) ? zombie : null)
+  worker.bot.entities = { 1: zombie }
+  worker.bot.pathfinder.setGoal = () => {}
+  const done = []
+  combat.fight = async () => { done.push('fight'); return 'tempo' }
+  worker.flee = async () => { done.push('flee') }
+  worker.explore = async () => { done.push('explore'); return { ok: true, x: 1, z: 1 } }
+  try {
+    const first = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(first.combat, 'tempo')
+    assert.deepEqual(done, ['fight', 'flee'])
+    await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.deepEqual(done, ['fight', 'flee', 'explore'])               // o mesmo zumbi não é mais ameaça escolhível
+    const decisions = rows.filter((r) => r.type === 'julia_authority_decision').map((r) => r.data)
+    assert.equal(decisions[1].state.threat, null)
+  } finally { combat.fight = original }
+}))

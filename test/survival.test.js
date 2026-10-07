@@ -108,7 +108,9 @@ test('abrigo não escolhe tronco nem folhas como superfície', () => {
     [new Vec3(0, 63, 0).toString()]: 'birch_leaves',
     [new Vec3(0, 62, 0).toString()]: 'birch_log',
     [new Vec3(0, 61, 0).toString()]: 'air',
-    [new Vec3(0, 60, 0).toString()]: 'dirt'
+    [new Vec3(0, 60, 0).toString()]: 'dirt',
+    [new Vec3(0, 59, 0).toString()]: 'dirt',
+    [new Vec3(0, 58, 0).toString()]: 'dirt'
   }
   for (let x = -8; x <= 8; x++) {
     for (let z = -8; z <= 8; z++) treeBlocks[new Vec3(x, 64, z).toString()] = 'air'
@@ -177,7 +179,11 @@ test('abrigo só onde dá para tampar: pedra exige picareta, terra/grama saem co
   assert.ok(night.findShelterSpot(at({}, [['dirt', 3]])))                                 // já tem a tampa
   const grass = {}
   for (let x = -8; x <= 8; x++) for (let z = -8; z <= 8; z++) grass[new Vec3(x, 63, z).toString()] = 'grass_block'
-  assert.ok(night.findShelterSpot(at(grass, [])))                                         // grama dá terra com a mão
+  assert.equal(night.findShelterSpot(at(grass, [])), null)                               // grama sobre pedra: 1 bloco, não sai
+  for (let x = -8; x <= 8; x++) for (let z = -8; z <= 8; z++) for (const y of [61, 62]) grass[new Vec3(x, y, z).toString()] = 'dirt'
+  assert.ok(night.findShelterSpot(at(grass, [])))                                         // grama+terra+terra: tampa e saída com a mão
+  assert.equal(night.findShelterSpot(at({}, [['dirt', 2]])), null)                        // 2 blocos na mão + pedra: não sai
+  assert.ok(night.findShelterSpot(at({}, [['dirt', 3]])))
 })
 
 test('sair do abrigo: espera a tampa cavada entrar no inventário antes de subir empilhando', async () => {
@@ -231,4 +237,73 @@ test('abrigo: sem chegar em cima do buraco (pathfinder resolveu sem mover) não 
   }
   await assert.rejects(night.digShelter(bot, new Vec3(0, 70, 0), () => false), /não cheguei/)
   assert.equal(digs, 0)
+})
+
+test('abrigo: sem picareta e só pedra até 8 blocos, acha terra até 16 (spawn do mundo novo)', () => {
+  const blocks = {}
+  for (let x = -16; x <= 16; x++) for (let z = -16; z <= 16; z++) for (let y = 64; y <= 66; y++) blocks[new Vec3(x, y, z).toString()] = 'air'
+  for (let y = 61; y <= 63; y++) blocks[new Vec3(12, y, 3).toString()] = 'dirt'
+  const bot = fakeBot({ blocks })
+  bot.entity = { position: new Vec3(0, 64, 0) }
+  const spots = night.findShelterSpots(bot)
+  assert.equal(spots.length, 1)
+  assert.equal(spots[0].toString(), new Vec3(12, 63, 3).toString())
+})
+
+test('abrigo: sem chegar ao primeiro lugar, tenta o próximo e passa a noite', async () => {
+  const blocks = {}
+  for (let x = -16; x <= 16; x++) for (let z = -16; z <= 16; z++) for (let y = 64; y <= 70; y++) blocks[new Vec3(x, y, z).toString()] = 'air'
+  for (const x of [3, 9]) for (let y = 61; y <= 63; y++) blocks[new Vec3(x, y, 0).toString()] = 'dirt'
+  const bot = fakeBot({ blocks, time: 1000 })
+  bot.entity = { position: new Vec3(0.5, 64, 0.5), onGround: true }
+  const items = []
+  bot.inventory.items = () => items
+  bot.findBlock = () => null
+  bot.registry.blocksArray = []
+  bot.pathfinder = {
+    bestHarvestTool: () => null, setGoal: () => {},
+    goto: async (goal) => { if (goal.x === 9) bot.entity.position = new Vec3(goal.x + 0.5, goal.y, goal.z + 0.5) } // o primeiro (x=3) não alcança
+  }
+  bot.dig = async (block) => {
+    blocks[block.position.toString()] = 'air'
+    const d = items.find((i) => i.name === 'dirt'); if (d) d.count++; else items.push({ name: 'dirt', count: 1 })
+    if (block.position.x === 9 && block.position.y < bot.entity.position.y) bot.entity.position = new Vec3(9.5, block.position.y, 0.5)
+  }
+  bot.placeBlock = async (_ref, _face) => {}
+  const how = await night.spendNight(bot, () => false)
+  assert.equal(how, 'abrigo')
+})
+
+test('sair do abrigo: sem conseguir subir empilhando, sai cavando uma escada', async () => {
+  const pathfinderLib = require('mineflayer-pathfinder')
+  const original = pathfinderLib.Movements
+  const used = []
+  pathfinderLib.Movements = function () { this.fake = true }
+  try {
+    const lid = new Vec3(0, 70, 0), surface = new Vec3(0, 71, 0)
+    const bot = {
+      entity: { position: new Vec3(0.5, 68, 0.5) },
+      inventory: { items: () => [] },
+      blockAt: (p) => ({ name: p.y <= 70 && !p.equals(lid) ? 'stone' : 'air', boundingBox: p.y <= 70 && !p.equals(lid) ? 'block' : 'empty', position: p }),
+      dig: async () => {},
+      pathfinder: {
+        movements: { work: true },
+        setMovements: (m) => { used.push(m) },
+        setGoal: () => {},
+        goto: async () => { if (used.length && used[used.length - 1].fake && used[used.length - 1].canDig) bot.entity.position = new Vec3(2.5, 71, 0.5) }
+      }
+    }
+    assert.equal(await night.leaveShelter(bot, lid, surface), true)
+    assert.equal(used[0].canDig, true)
+    assert.deepEqual(used[used.length - 1], { work: true })   // movimentos de trabalho restaurados
+  } finally { pathfinderLib.Movements = original }
+})
+
+test('abrigo: acha terra em morro mais alto que o bot (spawn junto à água)', () => {
+  const blocks = {}
+  for (let x = -16; x <= 16; x++) for (let z = -16; z <= 16; z++) for (let y = 64; y <= 75; y++) blocks[new Vec3(x, y, z).toString()] = 'air'
+  for (let x = 10; x <= 12; x++) for (let z = -5; z <= -3; z++) for (let y = 64; y <= 67; y++) blocks[new Vec3(x, y, z).toString()] = 'dirt' // morro 3x3, topo y=67
+  const bot = fakeBot({ blocks })
+  bot.entity = { position: new Vec3(0, 64, 0) }
+  assert.equal(String(night.findShelterSpot(bot)), String(new Vec3(11, 67, -4)))
 })

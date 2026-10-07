@@ -50,6 +50,7 @@ const BASE_BED_TRAVEL = 64
 const NO_PROGRESS_MS = Number(process.env.MBOT_NO_PROGRESS_MS || 180000)
 const NO_PROGRESS_RADIUS = 2
 const NO_PROGRESS_IDLE_RESET_MS = 30000
+const THREAT_IGNORE_MS = 60000
 // Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
 const GOTO_REJECTED_MOVES = 40
 // Falhas de movimento que significam "não deu para chegar daqui" (e não cancelamento/troca de dono).
@@ -153,6 +154,7 @@ class WorkerController {
     this._sheltered = false        // dentro do abrigo cavado (o vigia de progresso não conta)
     this._progressAnchor = null
     this._loopIntent = null
+    this._ignoredThreats = new Map() // id -> até quando (luta que expirou sem alcançar o monstro)
 
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
@@ -387,6 +389,37 @@ class WorkerController {
         ? this._preparationResumeCandidate.allowedTargets.map((target) => ({ ...target }))
         : []
     }
+  }
+
+  // Chão firme mais próximo fora d'água (até 16 blocos): bloco sólido com 2 de ar livre (sem líquido) em cima.
+  dryLand(radius = 16) {
+    const here = this.bot.entity.position.floored()
+    const free = (b) => b && b.boundingBox === 'empty' && !['water', 'lava', 'bubble_column'].includes(b.name)
+    for (let r = 1; r <= radius; r++) {
+      for (let dx = -r; dx <= r; dx++) {
+        for (let dz = -r; dz <= r; dz++) {
+          if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue
+          for (let dy = 4; dy >= -3; dy--) {
+            const p = here.offset(dx, dy, dz)
+            const floor = this.bot.blockAt(p.offset(0, -1, 0))
+            if (floor?.boundingBox === 'block' && free(this.bot.blockAt(p)) && free(this.bot.blockAt(p.offset(0, 1, 0)))) return p
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  async escapeWater(isCancelled) {
+    const land = this.dryLand()
+    this.bot.setControlState?.('jump', true)
+    try {
+      if (land && !isCancelled()) await this.goTo(new goals.GoalBlock(land.x, land.y, land.z), 15000).catch(() => {})
+      else await sleep(2000)
+    } finally {
+      this.bot.setControlState?.('jump', false)
+    }
+    return !this.bot.entity?.isInWater
   }
 
   async flee(threat, isCancelled) {
@@ -1498,7 +1531,7 @@ class WorkerController {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
     try { nextState = preparationStateSnapshot(this.bot, task, { homeProvider: this.homeProvider, allowedTargets: [] }) } catch { nextState = null }
-    const executed = action || (result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
+    const executed = action || (result?.escaped ? `escape:${result.escaped}` : result?.intent === 'sleep_or_shelter' ? `night:${result.night || 'failed'}` : result?.intent === 'equip_best_weapon' && result?.equipped !== undefined ? `equip:${result.equipped || 'failed'}` : result?.intent === 'make_bed' ? `bed:${result.bed || 'failed'}` : result?.intent === 'find_food' ? `find_food:${result.foodGathered ? 'got' : 'none'}${result.ate ? '+ate' : ''}` : result?.threatHandled ? `threat:${result.threatHandled}:${result.combat}` : result?.returnedToBase ? 'return_base'
       : result?.code === 'PLAYER_LOOP_PREEMPTED' ? 'none_preempted'
         : Number.isFinite(result?.x) ? 'explore' : result?.preparationSkipped ? 'explore_after_preparation_refused' : null)
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
@@ -1531,7 +1564,8 @@ class WorkerController {
         homeProvider: this.homeProvider,
         allowedTargets,
         isCancelled,
-        deep: true
+        deep: true,
+        ignoreThreat: (e) => this.threatIgnored(e)
       })
       this.rememberedFoodHint(state)
       this.bedFacts(state)
@@ -1560,12 +1594,21 @@ class WorkerController {
           : { ok: false, code: returned.code || 'CANCELLED', cancelled: !returned.code, intent: choice, preparationSteps }
       }
 
+      // Afogando (sem ameaça): sair da água para o chão firme mais próximo. O player loop já forçava escape_danger com
+      // drowning, mas o runtime nunca informava drowning e não havia executor (visto no Minecraft: afogou repetindo
+      // make_bed parado na água).
+      if (choice === 'escape_danger' && !state.threat && state.drowning) {
+        const out = await this.escapeWater(isCancelled)
+        if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
+        return { ok: out, code: out ? null : 'STILL_IN_WATER', intent: choice, escaped: 'water', playerLoopPreparation: true, preparationSteps }
+      }
+
       // Ameaça: fugir ou lutar vai para os executores determinísticos que já existem (flee / combat.fight).
       // Sem isto o loop só devolvia PLAYER_LOOP_PREEMPTED e, sem dano para acionar o reflexo, ficava parado ao lado
       // da ameaça (visto no Minecraft: 103 ciclos idênticos perto de uma aranha).
       if ((choice === 'escape_danger' || choice === 'fight_threat') && state.threat) {
         const threat = this.bot.nearestEntity?.((entity) => entity?.type === 'hostile' && entity.name === state.threat.type &&
-          entity.position?.distanceTo(this.bot.entity.position) <= FLEE_DISTANCE)
+          !this.threatIgnored(entity) && entity.position?.distanceTo(this.bot.entity.position) <= FLEE_DISTANCE)
         if (threat) {
           if (!state.equippedWeapon && (state.nearby?.wood || state.nearby?.stone)) {
             this._preparationSite = { position: this.bot.entity.position.clone(), at: Date.now() }
@@ -1573,7 +1616,10 @@ class WorkerController {
           let outcome = 'fugi'
           if (choice === 'fight_threat') {
             outcome = await combat.fight(this.bot, threat, isCancelled)
-            if (outcome === 'recuei' && !isCancelled()) await this.flee(threat, isCancelled)
+            // Luta expirou sem alcançar o monstro (na água, num buraco, sem caminho): ignora-o por um minuto na
+            // percepção e se afasta. Visto no Minecraft: 26× fight_threat → 'tempo' no mesmo lugar por 25 min.
+            if (outcome === 'tempo') this.ignoreThreat(threat)
+            if ((outcome === 'recuei' || outcome === 'tempo') && !isCancelled()) await this.flee(threat, isCancelled)
           } else {
             await this.flee(threat, isCancelled)
           }
@@ -1767,7 +1813,8 @@ class WorkerController {
       homeProvider: this.homeProvider,
       allowedTargets: finalTargets,
       isCancelled,
-      deep: true
+      deep: true,
+      ignoreThreat: (e) => this.threatIgnored(e)
     })
     this.rememberedFoodHint(finalState)
     this.bedFacts(finalState)
@@ -2017,6 +2064,18 @@ class WorkerController {
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
   }
 
+  ignoreThreat(entity, ms = THREAT_IGNORE_MS) {
+    if (entity?.id != null) (this._ignoredThreats ||= new Map()).set(entity.id, Date.now() + ms)
+  }
+
+  threatIgnored(entity) {
+    const until = this._ignoredThreats?.get(entity?.id)
+    if (!until) return false
+    if (Date.now() < until) return true
+    this._ignoredThreats.delete(entity.id)
+    return false
+  }
+
   // Percepção da cama da base (só fatos do mundo): existe? há material? ovelha alcançável à vista? À noite, a cama da
   // base a até BASE_BED_TRAVEL conta como abrigo executável.
   bedFacts(state) {
@@ -2027,6 +2086,8 @@ class WorkerController {
     if (bed) this._baseBed = bed.position.clone()
     else if (this._baseBed && this.bot.blockAt?.(this._baseBed)) this._baseBed = null // chunk carregado e a cama sumiu
     state.baseHasBed = Boolean(this._baseBed)
+    // Sem baú configurado a base não guarda comida; com baú, não se sabe sem olhar (fica sem afirmar nada).
+    state.baseHasFood = this.production?.storage?.configured?.() ? null : false
     try { state.bedMaterials = bedLib.hasBedMaterials(this.bot) } catch { state.bedMaterials = false }
     const sheep = this.nearestSheep()
     state.nearby = state.nearby || {}
@@ -2041,7 +2102,14 @@ class WorkerController {
   nearestSheep() {
     const position = this.bot.entity?.position
     if (!position || typeof this.bot.nearestEntity !== 'function') return null
-    return this.bot.nearestEntity((e) => e?.name === 'sheep' && !this._failedHunts.has(e.id) && e.position?.distanceTo(position) <= 48) || null
+    // Só ovelha que ajuda a fechar 3 lãs da mesma cor (tosquiada não dá lã). Visto no Minecraft: 61 caças de lã no soak e
+    // nenhuma cama, com lãs de cores misturadas (2 brancas + 1 cinza).
+    const wanted = bedLib.wantedWool(this.bot)
+    return this.bot.nearestEntity((e) => {
+      if (e?.name !== 'sheep' || this._failedHunts.has(e.id) || !(e.position?.distanceTo(position) <= 48)) return false
+      const wool = bedLib.sheepWool(e)
+      return wool !== null && (!wanted || wool === 'unknown' || wool === wanted)
+    }) || null
   }
 
   async makeBaseBed(isCancelled) {
@@ -2054,12 +2122,14 @@ class WorkerController {
       if (!gained) this._failedHunts.add(sheep.id)
       return { ok: gained, step: 'wool' }
     }
-    const item = await bedLib.craftBed(this.bot, isCancelled)
-    if (isCancelled()) return { ok: false, step: 'cancelled' }
-    if (!item) return { ok: false, step: 'craft' }
+    // Fabrica já na base: a mesa precisa de chão livre e seco. Visto no Minecraft: tentou colocar a mesa perto da água
+    // ('não achei lugar para colocar crafting_table') 4 vezes e afogou.
     const returned = await this.returnHome(isCancelled, { verify: true })
     if (isCancelled()) return { ok: false, step: 'cancelled' }
     if (!returned.ok) return { ok: false, step: 'return', error: returned.code || null }
+    const item = await bedLib.craftBed(this.bot, isCancelled)
+    if (isCancelled()) return { ok: false, step: 'cancelled' }
+    if (!item) return { ok: false, step: 'craft' }
     const bed = await bedLib.placeBed(this.bot, isCancelled)
     if (!bed) return { ok: false, step: 'place' }
     this._baseBed = bed.position.clone()

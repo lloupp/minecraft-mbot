@@ -240,9 +240,54 @@ test('descrições cabem no contrato da Julia-1 (48 tokens por opção; ~230 car
     { ...base, time: 'night', equippedWeapon: null, inventory: {}, baseHasBed: true, shelterNearby: true, shelterKind: 'base_bed' },
     { ...base, time: 'night', shelterNearby: true, shelterKind: 'bed', baseHasBed: false, bedMaterials: true },
     { ...base, baseHasBed: false, bedMaterials: false, nearby: { sheep: true, sheepDistance: 140 } },
-    { ...base, food: 6, edibleFood: 0, nearby: { food: true, foodDistance: 133.3 }, baseHasBed: false }
+    { ...base, food: 6, edibleFood: 0, nearby: { food: true, foodDistance: 133.3 }, baseHasBed: false, baseHasFood: false }
   ]
   for (const state of states) {
     for (const c of candidateIntents(state)) assert.ok(c.description.length <= 230, `${c.id}: ${c.description.length} caracteres`)
   }
 })
+
+test('cama: ovelha certa = cor que fecha a cama; tosquiada não serve', () => {
+  const sheep = (color, sheared = false) => ({ metadata: { 17: color | (sheared ? 0x10 : 0) } })
+  assert.equal(bed.sheepWool(sheep(0)), 'white_wool')
+  assert.equal(bed.sheepWool(sheep(7)), 'gray_wool')
+  assert.equal(bed.sheepWool(sheep(0, true)), null)
+  assert.equal(bed.sheepWool({ metadata: [] }), 'white_wool')   // campo padrão não enviado pelo servidor
+  assert.equal(bed.sheepWool({}), 'unknown')
+  assert.equal(bed.wantedWool(inventoryBot([])), null)
+  assert.equal(bed.wantedWool(inventoryBot([['gray_wool', 2], ['white_wool', 1]])), 'gray_wool')
+  assert.equal(bed.wantedWool(inventoryBot([['gray_wool', 1], ['string', 4]])), 'white_wool')   // empate: branca
+  assert.equal(bed.wantedWool(inventoryBot([['gray_wool', 1], ['white_wool', 1], ['string', 8]])), 'white_wool')
+})
+
+test('return_base com fome diz que a base não guarda comida (fato do runtime; sem o campo, nada muda)', () => {
+  const hungry = calmDay({ food: 6, edibleFood: 0, nearby: { food: true, foodDistance: 20 } })
+  const desc = (extra) => candidateIntents({ ...hungry, ...extra }).find((c) => c.id === 'return_base').description
+  assert.match(desc({ baseHasFood: false }), /The base has no food\./)
+  assert.match(desc({ baseHasFood: false, baseHasBed: false }), /The base has no bed, shelter or food\./)
+  assert.doesNotMatch(desc({ baseHasFood: null }), /food\./)
+  assert.doesNotMatch(desc({}), /The base has no/)
+})
+
+test('afogando: o runtime informa drowning, o loop força escape_danger e o executor sai da água', () => withFlags(async () => {
+  const { worker, rows } = bedWorker('continue_objective')
+  worker.bot.oxygenLevel = 10
+  worker.bot.entity.isInWater = true
+  worker.bot.blockAt = (p) => {
+    if (p.x >= 23 && p.y === 63) return { name: 'dirt', boundingBox: 'block', position: p }      // margem a 3 blocos
+    if (p.y <= 64 && p.x < 23) return { name: 'water', boundingBox: 'empty', position: p }
+    return { name: 'air', boundingBox: 'empty', position: p }
+  }
+  const jumps = []
+  worker.bot.setControlState = (c, v) => jumps.push([c, v])
+  worker.goTo = async (goal) => { worker.bot.entity.position = new Vec3(goal.x + 0.5, goal.y, goal.z + 0.5); worker.bot.entity.isInWater = false; worker.bot.oxygenLevel = 20 }
+  worker.explore = async () => assert.fail('afogando não continua o objetivo')
+  const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(result.escaped, 'water')
+  assert.equal(result.ok, true)
+  assert.equal(worker.bot.entity.position.x >= 23, true)
+  assert.deepEqual(jumps, [['jump', true], ['jump', false]])
+  const decision = rows.find((r) => r.type === 'julia_authority_decision').data
+  assert.deepEqual(decision.candidates, ['escape_danger'])
+  assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'escape:water')
+}))
