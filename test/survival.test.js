@@ -340,3 +340,24 @@ test('abrigo: lugar não alcançado sai da busca por alguns minutos', () => {
   assert.equal(String(night.findShelterSpot(bot)), String(new Vec3(3, 63, 0)))
   night.unreachableSpots.clear()
 })
+
+test('abrigo: equipar que não confirma (inventário dessincronizado) não trava 20 s: ressincroniza e segue', async () => {
+  const ground = new Vec3(0, 70, 0)
+  const dug = new Set()
+  let syncs = 0
+  let equips = 0
+  const bot = {
+    entity: { position: new Vec3(0.5, 71, 0.5), onGround: true },
+    inventory: { items: () => [{ name: 'wooden_pickaxe', count: 1 }, ...(dug.size ? [{ name: 'dirt', count: dug.size }] : [])] },
+    blockAt: (p) => { const solid = p.y < 71 && !dug.has(p.toString()); return { name: solid ? 'dirt' : 'air', boundingBox: solid ? 'block' : 'empty', position: p } },
+    pathfinder: { bestHarvestTool: () => ({ name: 'wooden_pickaxe' }) },
+    equip: async () => { equips++; if (equips === 1) await new Promise(() => {}) },      // a primeira nunca confirma
+    _syncWindow: async () => { syncs++ },
+    dig: async (block) => { dug.add(block.position.toString()); bot.entity.position = new Vec3(0.5, block.position.y, 0.5) },
+    placeBlock: async () => {}
+  }
+  const started = Date.now()
+  assert.equal(String(await night.digShelter(bot, ground, () => false)), String(ground))
+  assert.ok(Date.now() - started < 10000)
+  assert.equal(syncs, 1)
+})

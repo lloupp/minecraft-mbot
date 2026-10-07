@@ -443,3 +443,14 @@ test('player loop: monstro abatido na luta → recolhe o que caiu', () => withFl
     assert.deepEqual(collected, [9])
   } finally { Object.assign(combat, { fight: original.fight }); Object.assign(food, { collectDrops: original.collectDrops }) }
 }))
+
+test('player loop: preparação que falha por inventário divergente ressincroniza o inventário com o servidor', () => withFlags(async () => {
+  const { auth } = authority(reply({ choice: 'equip_best_weapon' }))
+  const worker = loopWorker(auth)
+  let syncs = 0
+  worker.bot._syncWindow = async () => { syncs++ }
+  worker.runDeterministicPreparation = async () => ({ ok: false, code: 'RECIPE_INPUTS_CHANGED' })
+  worker.explore = async () => ({ ok: true, x: 1, z: 1 })
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(syncs, 1)
+}))

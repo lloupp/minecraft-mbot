@@ -55,6 +55,7 @@ const THREAT_IGNORE_MS = 60000
 const FAILED_HUNT_MS = 300000
 const BASE_UNREACHABLE_MS = 120000
 const DEATH_DROPS_MS = 240000
+const INVENTORY_DESYNC = /RECIPE_INPUTS_(CHANGED|NOT_CONFIRMED)|did not fire within timeout/
 const COOKABLE = new Set(['beef', 'porkchop', 'mutton', 'chicken', 'rabbit', 'cod', 'salmon', 'potato'])
 const DEATH_DROPS_RANGE = 96
 // Escape cavando: pedra à mão leva ~7 s por bloco; com 20 s o explorador não saía de uma caverna ao lado da base.
@@ -1831,6 +1832,9 @@ class WorkerController {
         })
         if (!result?.ok) {
           if (result?.code === 'THREAT') this._preparationSite = { position: siteBefore, at: Date.now() }
+          // Fabricação que não bateu com o inventário: o inventário local pode ter dessincronizado (depois disso cada
+          // equip esperava 20 s — visto no Minecraft: 11 abrigos falharam e 10 min parado). Ressincroniza com o servidor.
+          if (INVENTORY_DESYNC.test(result?.code || result?.error || '')) await this.resyncInventory()
           // Recusa física do executor (alvo coberto por folhas, falta de alvos/picareta/mesa): nada deu errado
           // na tarefa; segue a exploração clássica em vez de virar falha com backoff exponencial.
           if (PHYSICAL_PREPARATION_REFUSALS.has(result?.code)) {
@@ -2124,6 +2128,12 @@ class WorkerController {
       const furnaceId = this.bot.registry?.blocksByName?.furnace?.id
       return cobble >= 8 || Boolean(furnaceId != null && this.bot.findBlock?.({ matching: furnaceId, maxDistance: 24 }))
     } catch { return false }
+  }
+
+  async resyncInventory() {
+    if (this.bot.currentWindow) { try { this.bot.closeWindow(this.bot.currentWindow) } catch { /* nada a fechar */ } }
+    if (typeof this.bot._syncWindow !== 'function') return
+    await Promise.race([this.bot._syncWindow(this.bot.inventory).catch(() => {}), sleep(2000)])
   }
 
   hostileNear(range = 16) {
