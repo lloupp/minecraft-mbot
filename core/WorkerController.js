@@ -154,7 +154,7 @@ class WorkerController {
     this.lastAttacker = null
     this.survivalTimer = null
     this._baseBed = null           // posição da cama da base (vista ou colocada)
-    this._failedHunts = new Map()  // ovelha -> até quando não oferecer de novo (a caça não a alcançou)
+    this._failedHunts = new Map()  // animal -> até quando não oferecer de novo (a caça não o alcançou)
     this._sheltered = false        // dentro do abrigo cavado (o vigia de progresso não conta)
     this._progressAnchor = null
     this._loopIntent = null
@@ -1569,7 +1569,8 @@ class WorkerController {
         allowedTargets,
         isCancelled,
         deep: true,
-        ignoreThreat: (e) => this.threatIgnored(e)
+        ignoreThreat: (e) => this.threatIgnored(e),
+        spareAnimal: (e) => this.huntFailed(e)
       })
       this.rememberedFoodHint(state)
       this.bedFacts(state)
@@ -1673,9 +1674,15 @@ class WorkerController {
       // Fome: procurar comida usa o executor de comida que já existe (caça/frutas/plantação ao alcance) e come.
       if (choice === 'find_food') {
         const pens = this.builtPens()
-        const hunt = () => food.gatherFood(this.bot, isCancelled, { spare: (entity) => pens.some((plan) => pointInsidePen(entity.position, plan)) })
+        const spare = (entity) => pens.some((plan) => pointInsidePen(entity.position, plan)) || this.huntFailed(entity)
+        const hunt = () => food.gatherFood(this.bot, isCancelled, { spare })
           .catch((error) => { this.logger.log?.(`[colônia] ${this.name} comida: ${error.message}`); return null })
+        // O alvo que o executor vai escolher (o mesmo findHuntableAnimal): sem comida no fim, fica fora por 2 min.
+        // Visto no Minecraft: preso numa caverna, 118 find_food no mesmo animal inalcançável, fome 0 por 41 min.
+        let target = null
+        try { target = food.findHuntableAnimal(this.bot, { spare }) } catch { target = null }
         let gathered = await hunt()
+        if (!gathered && target && !isCancelled()) (this._failedHunts ||= new Map()).set(target.id, Date.now() + FAILED_HUNT_MS)
         const remembered = state.nearby?.foodRemembered
         if (!gathered && remembered && !isCancelled()) gathered = await this.huntRememberedFood(remembered, hunt, isCancelled)
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
@@ -1819,7 +1826,8 @@ class WorkerController {
       allowedTargets: finalTargets,
       isCancelled,
       deep: true,
-      ignoreThreat: (e) => this.threatIgnored(e)
+      ignoreThreat: (e) => this.threatIgnored(e),
+      spareAnimal: (e) => this.huntFailed(e)
     })
     this.rememberedFoodHint(finalState)
     this.bedFacts(finalState)
@@ -2069,6 +2077,10 @@ class WorkerController {
     return { ok: true, x, y, z, radius: distance, stateMachine: false }
   }
 
+  huntFailed(entity) {
+    return this._failedHunts?.get(entity?.id) > Date.now()
+  }
+
   ignoreThreat(entity, ms = THREAT_IGNORE_MS) {
     if (entity?.id != null) (this._ignoredThreats ||= new Map()).set(entity.id, Date.now() + ms)
   }
@@ -2122,25 +2134,31 @@ class WorkerController {
     if (!position || typeof this.bot.nearestEntity !== 'function') return null
     // Só ovelha que ajuda a fechar 3 lãs da mesma cor (tosquiada não dá lã). Visto no Minecraft: 61 caças de lã no soak e
     // nenhuma cama, com lãs de cores misturadas (2 brancas + 1 cinza).
+    // Sem lã nenhuma: branca primeiro (a cor mais comum; a linha também vira lã branca). Visto no Minecraft: começou pela
+    // cinza-clara mais próxima, e há só 2 dessa cor por perto.
     const wanted = bedLib.wantedWool(this.bot)
-    return this.bot.nearestEntity((e) => {
-      if (e?.name !== 'sheep' || this._failedHunts.get(e.id) > Date.now() || !(e.position?.distanceTo(position) <= 48)) return false
+    const usable = (color) => (e) => {
+      if (e?.name !== 'sheep' || this.huntFailed(e) || !(e.position?.distanceTo(position) <= 48)) return false
       const wool = bedLib.sheepWool(e)
-      return wool !== null && (!wanted || wool === 'unknown' || wool === wanted)
-    }) || null
+      return wool !== null && (!color || wool === 'unknown' || wool === color)
+    }
+    return this.bot.nearestEntity(usable(wanted || 'white_wool')) || (wanted ? null : this.bot.nearestEntity(usable(null))) || null
   }
 
   rememberedSheep() {
     if (!this.worldMemory || !this.memoryGuideOn() || !this.bot.entity?.position) return null
     const wanted = bedLib.wantedWool(this.bot)
     const dim = worldObserver.dimensionOf(this.bot)
-    const kinds = wanted ? [`sheep:${wanted}`] : bedLib.WOOL_COLORS.map((c) => `sheep:${c}_wool`)
-    let best = null
-    for (const kind of kinds) {
-      const [pick] = this.worldMemory.suggest(kind, dim, this.bot.entity.position, { limit: 1, maxDistance: 160 })
-      if (pick && (!best || pick.distance < best.distance)) best = { distance: pick.distance, place: { ...pick.place, kind } }
+    const nearest = (kinds) => {
+      let best = null
+      for (const kind of kinds) {
+        const [pick] = this.worldMemory.suggest(kind, dim, this.bot.entity.position, { limit: 1, maxDistance: 160 })
+        if (pick && (!best || pick.distance < best.distance)) best = { distance: pick.distance, place: { ...pick.place, kind } }
+      }
+      return best
     }
-    return best
+    if (wanted) return nearest([`sheep:${wanted}`])
+    return nearest(['sheep:white_wool']) || nearest(bedLib.WOOL_COLORS.map((c) => `sheep:${c}_wool`))
   }
 
   async makeBaseBed(isCancelled, remembered = null) {

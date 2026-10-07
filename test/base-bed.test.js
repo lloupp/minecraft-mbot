@@ -333,3 +333,37 @@ test('player loop: return_base que não chega marca a base como inalcançável p
   worker.bedFacts(state)
   assert.equal(state.baseUnreachable, true)
 }))
+
+test('player loop: caça de comida que falha tira o animal da percepção por 2 min (find_food some)', () => withFlags(async () => {
+  const food = require('../lib/food')
+  const original = food.gatherFood
+  const { worker, rows } = bedWorker('find_food')
+  worker.bot.food = 6
+  worker.bot.inventory.items = () => []
+  const cows = [30, 31, 32].map((x, i) => ({ id: i + 1, name: 'cow', type: 'passive', position: new Vec3(x, 64, 0) }))
+  worker.bot.entities = Object.fromEntries(cows.map((c) => [c.id, c]))
+  worker.bot.nearestEntity = (match) => cows.find(match) || null
+  worker.builtPens = () => []
+  worker.eat = async () => null
+  worker.returnHome = async () => ({ ok: true })
+  worker.explore = async () => ({ ok: true, x: 1, z: 1 })
+  food.gatherFood = async () => null                        // inalcançável (caverna)
+  try {
+    for (let i = 0; i < 3; i++) await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    const decisions = rows.filter((r) => r.type === 'julia_authority_decision').map((r) => r.data)
+    // 3 vacas: cada falha poupa uma; com só 2 sobrando o executor as poupa, então find_food deixa de aparecer
+    assert.ok(decisions[0].candidates.includes('find_food'))
+    assert.ok(!decisions[decisions.length - 1].candidates.includes('find_food'), JSON.stringify(decisions.map((d) => d.candidates)))
+  } finally { food.gatherFood = original }
+}))
+
+test('cama sem lã: ovelha branca primeiro, mesmo mais longe; sem branca, qualquer cor', () => {
+  const { worker } = bedWorker('make_bed')
+  const gray = { id: 1, name: 'sheep', metadata: { 17: 8 }, position: new Vec3(25, 64, 0) }
+  const white = { id: 2, name: 'sheep', metadata: [], position: new Vec3(50, 64, 0) }
+  const all = [gray, white]
+  worker.bot.nearestEntity = (match) => all.filter(match).sort((a, b) => a.position.x - b.position.x)[0] || null
+  assert.equal(worker.nearestSheep().id, 2)
+  all.pop()
+  assert.equal(worker.nearestSheep().id, 1)
+})
