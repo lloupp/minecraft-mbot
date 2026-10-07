@@ -226,3 +226,20 @@ test('comida: animais vistos viram lembrança "food"; com fome e nada caçável 
   assert.equal(got, null)
   assert.equal(memory.find('food', 'overworld', new Vec3(pick.place.x, pick.place.y, pick.place.z)).status, STATUS.INVALIDATED)
 })
+
+test('comida lembrada: chegando lá só com os últimos animais (poupados pelo executor), a lembrança é invalidada', async () => {
+  const { worker, memory } = setup()
+  const worldObserver = require('../lib/world-observer')
+  const pair = { 1: { id: 1, name: 'chicken', position: new Vec3(90, 64, 5) }, 2: { id: 2, name: 'chicken', position: new Vec3(91, 64, 6) } }
+  worker.bot.entities = pair
+  worldObserver.observeSurroundings(worker.bot, memory, { by: 'w1' })
+  const hungry = { food: 6, inventory: {}, nearby: { food: false } }
+  assert.ok(worker.rememberedFoodHint(hungry))
+  worker.bot.food = 6
+  worker.bot.entity.position = new Vec3(88, 64, 4)
+  worker.bot.nearestEntity = (match) => Object.values(worker.bot.entities).find(match) || null
+  worker.goTo = async () => {}
+  await worker.huntRememberedFood(hungry.nearby.foodRemembered, async () => null, never)
+  const place = hungry.nearby.foodRemembered
+  assert.equal(memory.find('food', 'overworld', new Vec3(place.x, place.y, place.z)).status, STATUS.INVALIDATED)
+})

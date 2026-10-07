@@ -2093,8 +2093,13 @@ class WorkerController {
     }
     if (isCancelled()) return null
     const gathered = await hunt()
-    const animalsHere = Object.values(this.bot.entities || {}).some((e) =>
-      ['cow', 'pig', 'sheep', 'chicken', 'rabbit', 'mooshroom'].includes(e?.name) && e.position?.distanceTo(this.bot.entity.position) <= 24)
+    // Só conta animal que o executor caçaria (poupa os últimos de cada espécie). Visto no Minecraft: rebanho lembrado com
+    // 2 galinhas poupadas nunca era invalidado ('caça=nada animais=true') e o explorador voltava lá 57 vezes.
+    let animalsHere = false
+    try {
+      const here = this.bot.entity.position
+      animalsHere = Boolean(food.findHuntableAnimal(this.bot, { spare: (e) => !(e.position?.distanceTo(here) <= 24) }))
+    } catch { animalsHere = false }
     if (!gathered && !animalsHere) this.worldMemory?.invalidate(place.key, 'no_food_animals')
     this.logger.log?.(`[world-memory] ${this.name} food (${place.x},${place.y},${place.z}) caça=${gathered ? 'ok' : 'nada'} animais=${animalsHere}`)
     return gathered
