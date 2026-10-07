@@ -307,8 +307,10 @@ test('player loop: com fome, a escolha find_food da Julia caça com o executor d
   worker.bot.inventory.items = () => []
   worker.bot.food = 6
   worker.bot.entity.position = new Vec3(20, 64, 0)        // fora da base: return_base continua opção
-  const cow = { name: 'cow', type: 'passive', position: new Vec3(30, 64, 0) }
-  worker.bot.entities = { 1: cow }
+  // rebanho de 3 (o executor poupa os 2 últimos de cada espécie com fome moderada)
+  const herd = [30, 31, 32].map((x, i) => ({ id: i + 1, name: 'cow', type: 'passive', position: new Vec3(x, 64, 0) }))
+  worker.bot.entities = Object.fromEntries(herd.map((c) => [c.id, c]))
+  worker.bot.nearestEntity = (match) => herd.find(match) || null
   worker.builtPens = () => []
   let hunted = 0, ate = 0
   food.gatherFood = async () => { hunted++; return 'cacei um(a) cow' }
