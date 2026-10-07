@@ -421,3 +421,25 @@ test('player loop: luta que expira sem alcançar o monstro → afasta-se e ele s
     assert.equal(decisions[1].state.threat, null)
   } finally { combat.fight = original }
 }))
+
+test('player loop: monstro abatido na luta → recolhe o que caiu', () => withFlags(async () => {
+  const combat = require('../lib/combat')
+  const food = require('../lib/food')
+  const original = { fight: combat.fight, collectDrops: food.collectDrops }
+  const { auth } = authority(reply({ choice: 'fight_threat' }))
+  const worker = loopWorker(auth)
+  const spider = { id: 5, name: 'spider', type: 'hostile', position: new Vec3(9, 64, 0), health: 16 }
+  worker.bot.heldItem = { name: 'stone_sword' }
+  worker.bot.nearestEntity = (match) => (match(spider) ? spider : null)
+  worker.bot.entities = { 1: spider }
+  worker.bot.pathfinder.setGoal = () => {}
+  worker.bot.time = { timeOfDay: 18000 }
+  const collected = []
+  combat.fight = async () => 'morto'
+  food.collectDrops = async (_bot, at) => { collected.push(at.x) }
+  try {
+    const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    assert.equal(result.combat, 'morto')
+    assert.deepEqual(collected, [9])
+  } finally { Object.assign(combat, { fight: original.fight }); Object.assign(food, { collectDrops: original.collectDrops }) }
+}))

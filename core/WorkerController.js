@@ -52,7 +52,7 @@ const NO_PROGRESS_MS = Number(process.env.MBOT_NO_PROGRESS_MS || 180000)
 const NO_PROGRESS_RADIUS = 2
 const NO_PROGRESS_IDLE_RESET_MS = 30000
 const THREAT_IGNORE_MS = 60000
-const FAILED_HUNT_MS = 120000
+const FAILED_HUNT_MS = 300000
 const BASE_UNREACHABLE_MS = 120000
 const DEATH_DROPS_MS = 240000
 const COOKABLE = new Set(['beef', 'porkchop', 'mutton', 'chicken', 'rabbit', 'cod', 'salmon', 'potato'])
@@ -1631,6 +1631,10 @@ class WorkerController {
             // Luta expirou sem alcançar o monstro (na água, num buraco, sem caminho): ignora-o por um minuto na
             // percepção e se afasta. Visto no Minecraft: 26× fight_threat → 'tempo' no mesmo lugar por 25 min.
             if (outcome === 'tempo') this.ignoreThreat(threat)
+            // Monstro abatido: recolhe o que caiu (linha de aranha vira lã branca para a cama; ossos, flechas).
+            if (outcome === 'morto' && !isCancelled() && threat.position) {
+              await food.collectDrops(this.bot, threat.position.clone(), isCancelled, { radius: 6, timeoutMs: 6000 }).catch(() => {})
+            }
             if ((outcome === 'recuei' || outcome === 'tempo') && !isCancelled()) await this.flee(threat, isCancelled)
           } else {
             await this.flee(threat, isCancelled)

@@ -325,3 +325,18 @@ test('sair do abrigo: tampa de pedregulho é cavada com a picareta (com a mão n
   assert.equal(await night.leaveShelter(bot, lid, surface), true)
   assert.equal(held, 'wooden_pickaxe')
 })
+
+test('abrigo: lugar não alcançado sai da busca por alguns minutos', () => {
+  const blocks = {}
+  for (let x = -16; x <= 16; x++) for (let z = -16; z <= 16; z++) for (let y = 64; y <= 66; y++) blocks[new Vec3(x, y, z).toString()] = 'air'
+  for (const x of [3, 9]) for (let y = 61; y <= 63; y++) blocks[new Vec3(x, y, 0).toString()] = 'dirt'
+  const bot = fakeBot({ blocks })
+  bot.entity = { position: new Vec3(0, 64, 0) }
+  night.unreachableSpots.clear()
+  assert.equal(String(night.findShelterSpot(bot)), String(new Vec3(3, 63, 0)))
+  night.unreachableSpots.set('3,63,0', Date.now() + 60000)
+  assert.equal(String(night.findShelterSpot(bot)), String(new Vec3(9, 63, 0)))
+  night.unreachableSpots.set('3,63,0', Date.now() - 1)
+  assert.equal(String(night.findShelterSpot(bot)), String(new Vec3(3, 63, 0)))
+  night.unreachableSpots.clear()
+})
