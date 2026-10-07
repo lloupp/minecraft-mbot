@@ -85,7 +85,7 @@ function bedWorker(choice) {
     fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ choice }) }), eventLog: { log: (type, data) => rows.push({ type, data }) }, logger: { log() {} } })
   const worker = Object.create(WorkerController.prototype)
   Object.assign(worker, { name: 'bed-test', taskVersion: 1, homeProvider: () => new Vec3(0, 64, 0), logger: { log() {} }, _preparationDrain: null,
-    juliaAuthority: auth, _baseBed: null, _failedHunts: new Set(), _sheltered: false })
+    juliaAuthority: auth, _baseBed: null, _failedHunts: new Map(), _sheltered: false })
   worker.bot = {
     health: 20, food: 20, time: { timeOfDay: 1000 }, entity: { position: new Vec3(20, 64, 0) }, entities: {},
     heldItem: { name: 'stone_sword' }, nearestEntity: () => null, inventory: { items: () => [{ name: 'stone_sword', count: 1 }], slots: [] },
@@ -125,7 +125,11 @@ test('player loop: make_bed sem material caça a ovelha à vista; sem lã nova e
     assert.equal(rows.find((r) => r.type === 'julia_authority_cycle').data.action, 'bed:wool')
     const state = { time: 'day', nearby: {}, baseDistance: 20 }
     worker.bedFacts(state)
-    assert.equal(state.nearby.sheep, false)            // a mesma ovelha não volta a ser oferecida
+    assert.equal(state.nearby.sheep, false)            // a mesma ovelha não volta a ser oferecida logo
+    worker._failedHunts.set(7, Date.now() - 1)          // passados 2 min, volta a valer
+    const later = { time: 'day', nearby: {}, baseDistance: 20 }
+    worker.bedFacts(later)
+    assert.equal(later.nearby.sheep, true)
     assert.equal(state.baseHasBed, false)
   } finally { food.hunt = original }
 }))

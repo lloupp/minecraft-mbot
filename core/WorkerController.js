@@ -51,6 +51,7 @@ const NO_PROGRESS_MS = Number(process.env.MBOT_NO_PROGRESS_MS || 180000)
 const NO_PROGRESS_RADIUS = 2
 const NO_PROGRESS_IDLE_RESET_MS = 30000
 const THREAT_IGNORE_MS = 60000
+const FAILED_HUNT_MS = 120000
 // Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
 const GOTO_REJECTED_MOVES = 40
 // Falhas de movimento que significam "não deu para chegar daqui" (e não cancelamento/troca de dono).
@@ -150,7 +151,7 @@ class WorkerController {
     this.lastAttacker = null
     this.survivalTimer = null
     this._baseBed = null           // posição da cama da base (vista ou colocada)
-    this._failedHunts = new Set()  // ovelhas que a caça não alcançou (não volta a oferecer as mesmas)
+    this._failedHunts = new Map()  // ovelha -> até quando não oferecer de novo (a caça não a alcançou)
     this._sheltered = false        // dentro do abrigo cavado (o vigia de progresso não conta)
     this._progressAnchor = null
     this._loopIntent = null
@@ -2106,7 +2107,7 @@ class WorkerController {
     // nenhuma cama, com lãs de cores misturadas (2 brancas + 1 cinza).
     const wanted = bedLib.wantedWool(this.bot)
     return this.bot.nearestEntity((e) => {
-      if (e?.name !== 'sheep' || this._failedHunts.has(e.id) || !(e.position?.distanceTo(position) <= 48)) return false
+      if (e?.name !== 'sheep' || this._failedHunts.get(e.id) > Date.now() || !(e.position?.distanceTo(position) <= 48)) return false
       const wool = bedLib.sheepWool(e)
       return wool !== null && (!wanted || wool === 'unknown' || wool === wanted)
     }) || null
@@ -2119,7 +2120,8 @@ class WorkerController {
       const before = bedLib.woolEquivalent(this.bot)
       await food.hunt(this.bot, sheep, isCancelled).catch(() => false)
       const gained = bedLib.woolEquivalent(this.bot) > before
-      if (!gained) this._failedHunts.add(sheep.id)
+      // Ovelha anda: a mesma pode ficar alcançável depois (visto no Minecraft: uma falha a excluía para sempre).
+      if (!gained) this._failedHunts.set(sheep.id, Date.now() + FAILED_HUNT_MS)
       return { ok: gained, step: 'wool' }
     }
     // Fabrica já na base: a mesa precisa de chão livre e seco. Visto no Minecraft: tentou colocar a mesa perto da água
