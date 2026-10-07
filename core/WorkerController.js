@@ -52,6 +52,9 @@ const NO_PROGRESS_RADIUS = 2
 const NO_PROGRESS_IDLE_RESET_MS = 30000
 const THREAT_IGNORE_MS = 60000
 const FAILED_HUNT_MS = 120000
+const BASE_UNREACHABLE_MS = 120000
+// Escape cavando: pedra à mão leva ~7 s por bloco; com 20 s o explorador não saía de uma caverna ao lado da base.
+const DIG_ESCAPE_MS = 60000
 // Correções de posição seguidas do servidor (forcedMove) sem progresso: ~2 s de ticks rejeitados.
 const GOTO_REJECTED_MOVES = 40
 // Falhas de movimento que significam "não deu para chegar daqui" (e não cancelamento/troca de dono).
@@ -1590,6 +1593,7 @@ class WorkerController {
       // sem ele o explorador ficaria parado fora da base. Um único retorno, sob o mesmo owner.
       if (choice === 'return_base' && this.homeProvider?.()) {
         const returned = await this.returnHome(isCancelled, { verify: true })
+        if (returned.code === 'NOT_ARRIVED') this._baseUnreachableUntil = Date.now() + BASE_UNREACHABLE_MS
         return returned.ok
           ? { ok: true, returnedToBase: true, intent: choice, playerLoopPreparation: true, preparationSteps }
           : { ok: false, code: returned.code || 'CANCELLED', cancelled: !returned.code, intent: choice, preparationSteps }
@@ -2043,7 +2047,7 @@ class WorkerController {
         // Explorador do player loop num buraco natural (sem cavar e sem blocos para subir): toda perna dá
         // "No path" e ele só sai morrendo. Uma única nova tentativa da mesma perna podendo cavar (curral protegido).
         if (!digEscape || isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) throw err
-        await this.goToWithDigging(goal, 20000)
+        await this.goToWithDigging(goal, DIG_ESCAPE_MS)
         if (!isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (nem cavando)')
       }
     } catch (err) {
@@ -2082,6 +2086,9 @@ class WorkerController {
   bedFacts(state) {
     const home = this.homeProvider?.()
     if (!state || !home || !this.bot.entity?.position) return
+    // Fatos de executabilidade: base inalcançável há pouco (NOT_ARRIVED) e preparação recusada sob ameaça (guardrail).
+    if (this._baseUnreachableUntil > Date.now()) state.baseUnreachable = true
+    state.preparationBlockedByThreat = true
     let bed = null
     try { bed = bedLib.findBedNear(this.bot, home) } catch { bed = null }
     if (bed) this._baseBed = bed.position.clone()
@@ -2195,7 +2202,7 @@ class WorkerController {
       await this.goTo(goal, travelTimeoutMs(this.bot.entity?.position, place))
     } catch (err) {
       if (isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) return null
-      await this.goToWithDigging(goal, 20000).catch(() => {})
+      await this.goToWithDigging(goal, DIG_ESCAPE_MS).catch(() => {})
     }
     if (isCancelled()) return null
     const gathered = await hunt()
@@ -2328,7 +2335,7 @@ class WorkerController {
     // progresso possível). Visto no Minecraft: 41 return_base "ok" seguidos sem o bot sair do lugar. Confere a chegada,
     // tenta uma vez podendo cavar e, se ainda não chegou, diz isso.
     if (verify && !isCancelled() && !this.arrivedAt(goal)) {
-      await this.goToWithDigging(goal, 20000).catch(() => {})
+      await this.goToWithDigging(goal, DIG_ESCAPE_MS).catch(() => {})
       if (!isCancelled() && !this.arrivedAt(goal)) return { ok: false, code: 'NOT_ARRIVED' }
     }
     if (!isCancelled() && this.worldMemory && this.bot.entity?.position?.distanceTo(home) <= 6) {

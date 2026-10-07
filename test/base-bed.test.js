@@ -305,3 +305,31 @@ test('sob ameaça à noite, com abrigo executável e o monstro a ≥8, abrigar-s
   assert.deepEqual(ids({ ...night, equippedWeapon: 'stone_sword', inventory: { stone_sword: 1 }, threat: { type: 'zombie', distance: 10 } }),
     ['fight_threat', 'escape_danger', 'sleep_or_shelter'])
 })
+
+test('opções que o runtime diz não executáveis saem: base inalcançável e preparação sob ameaça (sem os campos, igual)', () => {
+  const hungry = calmDay({ food: 6, edibleFood: 0, nearby: { food: true, foodDistance: 20 } })
+  assert.deepEqual(ids(hungry), ['find_food', 'return_base'])
+  assert.deepEqual(ids({ ...hungry, baseUnreachable: true }), ['find_food'])
+  const threatened = calmDay({ equippedWeapon: null, inventory: { cobblestone: 2, stick: 1 }, craftable: ['stone_sword'], threat: { type: 'zombie', distance: 10 } })
+  assert.deepEqual(ids(threatened), ['prepare_combat', 'escape_danger'])
+  assert.deepEqual(ids({ ...threatened, preparationBlockedByThreat: true }), ['escape_danger'])
+  // inventário cheio fora da base: só return_base; com a base inalcançável, continua o objetivo
+  assert.deepEqual(ids(calmDay({ inventoryLoad: 0.95, baseUnreachable: true })), ['continue_objective'])
+})
+
+test('player loop: return_base que não chega marca a base como inalcançável por 2 min', () => withFlags(async () => {
+  const { worker } = bedWorker('return_base')
+  worker.bot.food = 6
+  worker.bot.inventory.items = () => []
+  worker.bot.time = { timeOfDay: 1000 }
+  const cows = [30, 31, 32].map((x, i) => ({ id: i + 1, name: 'cow', type: 'passive', position: new Vec3(x, 64, 0) }))
+  worker.bot.entities = Object.fromEntries(cows.map((c) => [c.id, c]))
+  worker.bot.nearestEntity = (match) => cows.find(match) || null
+  worker.builtPens = () => []
+  worker.returnHome = async () => ({ ok: false, code: 'NOT_ARRIVED' })
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.ok(worker._baseUnreachableUntil > Date.now())
+  const state = { time: 'day', nearby: {}, baseDistance: 20 }
+  worker.bedFacts(state)
+  assert.equal(state.baseUnreachable, true)
+}))
