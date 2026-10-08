@@ -287,7 +287,7 @@ test('player loop: escolha da Julia sob ameaça (lutar x fugir) vai para os exec
     worker.bot.pathfinder.setGoal = () => {}
     const done = []
     combat.fight = async () => { done.push('fight'); return 'morto' }
-    worker.flee = async () => { done.push('flee') }
+    worker.flee = async () => { done.push('flee'); worker.bot.entity.position = new Vec3(-10, 64, 0) }   // a fuga afasta
     try {
       const result = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
       assert.equal(result.threatHandled, pick)
@@ -453,4 +453,21 @@ test('player loop: preparação que falha por inventário divergente ressincroni
   worker.explore = async () => ({ ok: true, x: 1, z: 1 })
   await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
   assert.equal(syncs, 1)
+}))
+
+test('player loop: fuga que não sai do lugar (sem dano) ignora o monstro por um minuto', () => withFlags(async () => {
+  const { auth, rows } = authority(reply({ choice: 'escape_danger' }))
+  const worker = loopWorker(auth)
+  const zombie = { id: 77, name: 'zombie', type: 'hostile', position: new Vec3(9, 64, 0), health: 20 }
+  worker.bot.heldItem = { name: 'stone_sword' }
+  worker.bot.nearestEntity = (match) => (match(zombie) ? zombie : null)
+  worker.bot.entities = { 1: zombie }
+  worker.bot.pathfinder.setGoal = () => {}
+  worker.flee = async () => {}                                 // não se mexe
+  worker.explore = async () => ({ ok: true, x: 1, z: 1 })
+  const first = await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  assert.equal(first.combat, 'preso')
+  await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+  const decisions = rows.filter((r) => r.type === 'julia_authority_decision').map((r) => r.data)
+  assert.equal(decisions[1].state.threat, null)
 }))

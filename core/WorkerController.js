@@ -1638,7 +1638,15 @@ class WorkerController {
             }
             if ((outcome === 'recuei' || outcome === 'tempo') && !isCancelled()) await this.flee(threat, isCancelled)
           } else {
+            const before = this.bot.entity.position.clone()
+            const healthBefore = this.bot.health
             await this.flee(threat, isCancelled)
+            // Fugiu e não saiu do lugar, sem levar dano: o monstro não alcança o bot nem o bot se afasta dele (buraco,
+            // parede). Ignora-o por um minuto. Visto no Minecraft: 10 min de escape_danger parado no mesmo ponto.
+            if (!isCancelled() && this.bot.entity.position.distanceTo(before) < 2 && this.bot.health >= healthBefore) {
+              this.ignoreThreat(threat)
+              outcome = 'preso'
+            }
           }
           this.bot.pathfinder?.setGoal(null)
           if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
