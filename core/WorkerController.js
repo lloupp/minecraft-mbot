@@ -54,6 +54,7 @@ const NO_PROGRESS_IDLE_RESET_MS = 30000
 const THREAT_IGNORE_MS = 60000
 const FAILED_HUNT_MS = 300000
 const BASE_UNREACHABLE_MS = 120000
+const SHELTER_BLOCKED_MS = 120000
 const DEATH_DROPS_MS = 240000
 const INVENTORY_DESYNC = /RECIPE_INPUTS_(CHANGED|NOT_CONFIRMED)|did not fire within timeout/
 const COOKABLE = new Set(['beef', 'porkchop', 'mutton', 'chicken', 'rabbit', 'cod', 'salmon', 'potato'])
@@ -1676,7 +1677,13 @@ class WorkerController {
           if (!returned.ok) this.logger.log?.(`[colônia] ${this.name} noite: não cheguei à cama da base (${returned.code})`)
         }
         const how = await night.spendNight(this.bot, isCancelled, { onShelter: (inside) => { this._sheltered = inside } })
-          .catch((error) => { this.logger.log?.(`[colônia] ${this.name} noite: ${error.message}`); return null })
+          .catch((error) => {
+            this.logger.log?.(`[colônia] ${this.name} noite: ${error.message}`)
+            // Não chegou a nenhum lugar: o bot é que está preso. Abrigo fora das opções por 2 min (o loop faz outra
+            // coisa, como explorar com escape cavando). Visto no Minecraft: 90 'não cheguei ao lugar do abrigo' seguidos.
+            if (/não cheguei|caminho demorou|No path/.test(error.message)) this._shelterBlockedUntil = Date.now() + SHELTER_BLOCKED_MS
+            return null
+          })
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
         return { ok: Boolean(how), code: how ? null : 'SHELTER_FAILED', intent: choice, night: how, playerLoopPreparation: true, preparationSteps }
       }
@@ -2204,6 +2211,10 @@ class WorkerController {
     if (state.time === 'night' && state.baseHasBed && state.shelterKind !== 'bed' && Number(state.baseDistance) <= BASE_BED_TRAVEL) {
       state.shelterKind = 'base_bed'
       state.shelterNearby = true
+    }
+    if (this._shelterBlockedUntil > Date.now() && typeof state.shelterNearby === 'boolean') {
+      state.shelterNearby = false
+      state.shelterKind = null
     }
   }
 

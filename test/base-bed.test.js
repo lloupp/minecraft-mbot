@@ -457,3 +457,21 @@ test('make_bed descreve o progresso da lã (fato que o inventário bruto não mo
   const d = candidateIntents(calmDay({ baseHasBed: false, bedMaterials: false, woolProgress: 2, nearby: { sheep: true, sheepDistance: 88 } }))[0].description
   assert.match(d, /Wool 2\/3\. Sheep about 88 blocks away\./)
 })
+
+test('abrigo que falha por não chegar sai das opções por 2 min (o bot é que está preso)', () => withFlags(async () => {
+  const night = require('../lib/night')
+  const original = night.spendNight
+  const { worker } = bedWorker('sleep_or_shelter')
+  worker.bot.time = { timeOfDay: 18000 }
+  worker._baseBed = new Vec3(1, 64, 0)
+  worker.bot.entity.position = new Vec3(30, 64, 0)
+  worker.bot.blockAt = () => null
+  worker.returnHome = async () => ({ ok: true })
+  night.spendNight = async () => { throw new Error('não cheguei ao lugar do abrigo') }
+  try {
+    await worker.runExplorePlayerLoop({ type: 'explorar', radius: 32 }, () => false)
+    const state = { time: 'night', nearby: {}, baseDistance: 30, shelterNearby: true, shelterKind: 'dig' }
+    worker.bedFacts(state)
+    assert.equal(state.shelterNearby, false)
+  } finally { night.spendNight = original }
+}))
