@@ -56,6 +56,13 @@ for j in range(len(pos)):
     while i<j and math.dist(pos[i][2:],pos[j][2:])>=2: i+=1
     best=max(best,pos[j][0]-pos[i][0])
 out['maior_parada_min']=round(best/60,1)
+# parada de dia (abrigado/dormindo à noite é parado de propósito)
+best=0;i=0;day=[p for p in pos if not isnight(p[1]%24000)]
+for j in range(len(day)):
+    if j and day[j][0]-day[j-1][0]>60: i=j
+    while i<j and math.dist(day[i][2:],day[j][2:])>=2: i+=1
+    best=max(best,day[j][0]-day[i][0])
+out['maior_parada_dia_min']=round(best/60,1)
 # decisões
 rows=[json.loads(l) for l in open(f'{d}/julia-authority.jsonl')] if os.path.exists(f'{d}/julia-authority.jsonl') else []
 dec=[r['data'] if 'data' in r else r for r in rows if r['type']=='julia_authority_decision']

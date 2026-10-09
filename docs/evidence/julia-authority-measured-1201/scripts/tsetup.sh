@@ -2,6 +2,7 @@
 # Prepara um teste dirigido: mundo restaurado, servidor, dono, bot (CODE/ARM), base no spawn e um explorador.
 # uso: tsetup.sh I ARM OUT   (CODE no ambiente). Deixa tudo rodando; encerrar com killinst.sh I.
 . /tmp/run/m/common.sh $1; ARM=$2; OUT=$3; mkdir -p $OUT; cd $D
+[ "$ARM" = julia ] && bash $M/sidecar.sh >/dev/null
 bash $M/killinst.sh $I; sleep 2
 rm -rf world logs server.log $CHAT; cp -a $M/pristine-world world
 echo "$(date +%s) start arm=$ARM inst=$I head=$(git -C ${CODE:-/home/user/wt-meas} rev-parse --short HEAD)" >> $OUT/infra.log

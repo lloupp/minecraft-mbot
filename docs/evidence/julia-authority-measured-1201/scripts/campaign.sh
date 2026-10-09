@@ -7,7 +7,7 @@ if ! curl -s -m 3 localhost:8768/healthz >/dev/null; then
   (cd /home/user/wt-exp && JULIA_MODEL=/tmp/julia-src JULIA_PORT=8768 HF_HUB_OFFLINE=1 setsid nohup /tmp/julia-venv/bin/python scripts/julia-decision-server.py >> /tmp/run/julia.log 2>&1 &)
   for i in $(seq 1 60); do sleep 3; curl -s -m 2 localhost:8768/healthz >/dev/null && break; done
 fi
-curl -s -m 30 -X POST localhost:8768/choose -H 'content-type: application/json' -d '{"state":{"health":20},"candidates":[{"id":"a","description":"x"},{"id":"b","description":"y"}]}' > /dev/null
+bash /tmp/run/m/sidecar.sh >/dev/null
 done_run() { grep -q " end$" $R/$1/infra.log 2>/dev/null; }
 for k in $(seq 1 $N); do
   if [ $((k % 2)) = 1 ]; then AA=julia; BB=control; else AA=control; BB=julia; fi

@@ -135,3 +135,41 @@ não mudam.
 
 **Não comprovado:** sobrevivência sustentável. Ainda morre cerca de 6–7 vezes por hora e raramente atravessa uma noite
 sem morrer. A cama, peça central contra a espiral noturna, funciona isolada, mas não aparece no soak.
+
+## 6. Iteração até os critérios e validação final (pedido seguinte)
+
+**Critérios fixados antes de iterar**, para cada execução de 60 min (mundo novo, sem itens, 3 dias e 3 noites):
+- abrigo noturno ≥80% das tentativas;
+- ≥2 de 3 noites sem morte (noite dormida na cama conta);
+- nenhuma parada de dia >5 min;
+- fome 0 por <3 min seguidos;
+- 0 fallbacks e 0 quedas;
+- cama colocada.
+
+A cama passou a ser critério **do sistema**, por decisão do usuário. A Julia não é forçada a escolhê-la: o controle provou o mecanismo de ponta a ponta, e a recusa da Julia (3 de 17 ofertas na rodada 9) fica registrada como preferência do modelo.
+
+**Rodadas `it1`…`it9`.** Cada rodada teve 2 execuções; a partir de `it6`, em par Julia × controle. Cada falha virou reprodução → causa → correção → teste de regressão (vermelho sem a correção) → teste real no jogo, e cada correção tem seu próprio commit. Principais causas encontradas:
+- **Abrigo:** só havia terra a 8–16 blocos e acima dos pés do spawn; o buraco tinha de render 3 blocos para o bot sair; a tampa de pedra era cavada com a mão; lugares inalcançáveis eram oferecidos de novo; o bot preso tentava indefinidamente.
+- **Noite:** as mortes vinham antes de o abrigo ficar pronto; abrigar-se não era opção sob ameaça nem com fome.
+- **Ciclos parados:** luta que expirava; fuga sem se afastar; base inalcançável; caça repetida do mesmo animal inalcançável; inventário dessincronizado (cada `equip` esperava 20 s).
+- **Afogamento:** o runtime nunca informava `drowning`, e não havia executor para sair da água.
+- **Cama:** ovelhas brancas fora da vista (lembradas por cor), lã perdida a cada morte (caça numa ida só e recuperação de itens), metadado de cor ausente significa ovelha branca.
+- **Comida:** carne crua rende pouco (cozinhar foi adicionado); a fornalha ignorava o combustível que já tinha.
+- **Sidecar frio após reinício:** aquecimento com 12 entradas reais.
+
+**Validações finais** (3 pares cada; `criteria-validation.txt`, `compare.json`):
+
+| | base Julia | `val` Julia (`6b7fb46`) | `val2` Julia (`687430e`) | base controle | `val2` controle |
+|---|---|---|---|---|---|
+| mortes/h | 13, 9, 17 | 1, 2, 2 | 4, 1, 1 | 17, 4, 4 | 6, 4, 2 |
+| mortes de noite | 9, 3, 15 | 0, 2, 0 | 1, 0, 0 | 16, 3, 4 | 1, 1, 1 |
+| noites sem morte (de 3) | 0, 1, 0 | 3, 2, 3 | **3, 3, 3** | 0, 0, 2 | 2, 2, 2 |
+| fallbacks | 0, 1, 0 | 0 | 0 | 0 | 0 |
+| cama | – | 0 | 0 | – | **1** (`val2-control-3`, que passou em todos os critérios); `val-control-1` dormiu 3 noites na cama |
+
+**O que ainda não passa:**
+- **Abrigo ≥80% por execução:** falhou em 3 das 6 execuções de `val2`, com 2 de 4 tentativas. Motivos registrados: 4× "não cheguei ao lugar do abrigo" e 1× não saiu do buraco (estava a 2 blocos da superfície com 1 bloco na mochila; provavelmente gastou blocos como andaime no caminho). Mesmo assim, as noites seguintes terminaram sem morte em todas as execuções da Julia.
+- **Mortes de dia:** continuam (1–4/h na Julia: quedas, drowned na água ao lado da base, lava). Não fazem parte dos critérios.
+- **Controle-3 de `val`:** ficou em fuga com vida 1 e fome 0 por vários minutos. Sem diagnóstico; não foi corrigido.
+
+**Classificação: AUTONOMIA PARCIAL**, agora perto do critério. A cama foi colocada pelo sistema; a Julia atravessou 9 de 9 noites sem morte em `val2`, com zero fallbacks; mas o critério de abrigo ≥80% ainda falha em metade das execuções.
