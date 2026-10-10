@@ -1,0 +1,8 @@
+[noite] abrigo em (0, 71, 0) (bot em (4, 71, 0))
+PASS live terrain mutation: zero digs, ground preserved
+[noite] abrigo em (0, 71, 0) (bot em (0, 71, 0))
+[noite] cavando dirt em (0, 70, 0)
+[noite] cavando dirt em (0, 69, 0)
+[noite] cavando dirt em (0, 68, 0)
+PASS live safe shelter: 3 digs and lid confirmed
+PASS live exit: (1.5, 71.02442408821369, 0.5000000000000087)

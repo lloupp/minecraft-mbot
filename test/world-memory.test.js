@@ -259,3 +259,91 @@ test('route_failed acumula falhas por destino e hazard velho deixa de pesar', ()
   c.advance(25 * HOUR)
   assert.equal(wm.chooseExploreTarget('overworld', cands, { x: 0, z: 0 }).candidate.x, 16)
 })
+
+test('refresh de lugar confirmado persiste âncora, validade e métricas após restart', async () => {
+  const file = tmpFile()
+  const c = clock()
+  const wm = new WorldMemory({ file, now: c.now })
+  const first = wm.discover('wood', 'overworld', { x: 16, y: 70, z: 0 }, { count: 2 })
+  await wm.flush()
+  c.advance(HOUR)
+  wm.discover('wood', 'overworld', { x: 20, y: 71, z: 5 }, { count: 7 })
+  wm.suggest('wood', 'overworld', { x: 0, y: 70, z: 0 })
+  wm.confirm(first.key)
+  await wm.flush()
+  const restored = new WorldMemory({ file, now: c.now }).load()
+  const place = restored.find('wood', 'overworld', { x: 16, y: 70, z: 0 })
+  assert.deepEqual([place.x, place.y, place.z, place.count], [20, 71, 5, 7])
+  assert.equal(place.lastConfirmedAt, c.t)
+  assert.equal(place.confirmations, 3)
+  assert.equal(restored.metrics.verified, 1)
+  assert.equal(restored.metrics.usefulQueries, 1)
+  c.advance(90 * 60 * 1000)
+  assert.equal(restored.effectiveStatus(place), STATUS.CONFIRMED)
+})
+
+test('flush com falha conserva snapshot pendente e permite retry sem novo evento', async () => {
+  const file = tmpFile()
+  fs.mkdirSync(file) // rename cannot replace a directory with the snapshot
+  const wm = new WorldMemory({ file })
+  wm.discover('wood', 'overworld', { x: 16, y: 70, z: 0 })
+  await assert.rejects(wm.flush())
+  assert.deepEqual(fs.readdirSync(path.dirname(file)).filter((f) => f.includes('.tmp-')), [])
+  fs.rmdirSync(file)
+  await wm.flush()
+  const restored = new WorldMemory({ file }).load()
+  assert.equal(restored.places.size, 1)
+  assert.equal(restored.metrics.created, 1)
+})
+
+test('flushSync com falha limpa temporário e permite retry sem novo evento', () => {
+  const file = tmpFile()
+  fs.mkdirSync(file)
+  const wm = new WorldMemory({ file })
+  wm.discover('wood', 'overworld', { x: 16, y: 70, z: 0 })
+  assert.throws(() => wm.flushSync())
+  assert.deepEqual(fs.readdirSync(path.dirname(file)).filter((f) => f.includes('.tmp-')), [])
+  fs.rmdirSync(file)
+  wm.flushSync()
+  assert.equal(new WorldMemory({ file }).load().places.size, 1)
+})
+
+test('flushSync salva snapshot pendente e impede async antigo de sobrescrever estado atual', async (t) => {
+  for (const addNewPlace of [false, true]) {
+    await t.test(addNewPlace ? 'com alterações posteriores' : 'somente snapshot pendente', async () => {
+      const file = tmpFile()
+      const wm = new WorldMemory({ file })
+      const writeFile = fs.promises.writeFile
+      let releaseWrite
+      const gate = new Promise((resolve) => { releaseWrite = resolve })
+      let reportStarted
+      const started = new Promise((resolve) => { reportStarted = resolve })
+      const mock = t.mock.method(fs.promises, 'writeFile', async (...args) => {
+        if (String(args[0]).startsWith(`${file}.tmp-`)) {
+          reportStarted()
+          await gate
+        }
+        return writeFile(...args)
+      })
+      let pending
+      try {
+        wm.discover('wood', 'overworld', { x: 16, y: 70, z: 0 })
+        pending = wm.flush()
+        await started
+        if (addNewPlace) wm.discover('stone', 'overworld', { x: 0, y: 70, z: 16 })
+        wm.flushSync()
+        const snapshot = fs.readFileSync(file, 'utf8')
+        assert.equal(JSON.parse(snapshot).places.length, addNewPlace ? 2 : 1)
+        releaseWrite()
+        await pending
+        assert.equal(fs.readFileSync(file, 'utf8'), snapshot)
+        assert.deepEqual(fs.readdirSync(path.dirname(file)).filter((f) => f.includes('.tmp-')), [])
+        assert.equal(wm._dirty, false)
+      } finally {
+        releaseWrite()
+        if (pending) await pending.catch(() => {})
+        mock.mock.restore()
+      }
+    })
+  }
+})

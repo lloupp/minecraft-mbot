@@ -1,0 +1,23 @@
+✖ refresh de lugar confirmado persiste âncora, validade e métricas após restart (10.501997ms)
+✖ flush com falha conserva snapshot pendente e permite retry sem novo evento (2.653338ms)
+✖ flushSync com falha limpa temporário e permite retry sem novo evento (0.707497ms)
+✖ flushSync salva snapshot pendente e impede async antigo de sobrescrever estado atual (6.095473ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 102.598481
+✖ failing tests:
+test at test/world-memory.test.js:263:1
+✖ refresh de lugar confirmado persiste âncora, validade e métricas após restart (10.501997ms)
+test at test/world-memory.test.js:285:1
+✖ flush com falha conserva snapshot pendente e permite retry sem novo evento (2.653338ms)
+test at test/world-memory.test.js:299:1
+✖ flushSync com falha limpa temporário e permite retry sem novo evento (0.707497ms)
+test at test/world-memory.test.js:313:13
+✖ somente snapshot pendente (3.178485ms)
+test at test/world-memory.test.js:313:13
+✖ com alterações posteriores (2.272474ms)
