@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "design": "player_loop_v2_paired_comparison",
+  "repeats": 5,
+  "sameScenarioOrder": true,
+  "modelExecutionAuthority": false,
+  "endpoints": {
+    "laya": null,
+    "julia": null,
+    "andy": null,
+    "nanoandy": null
+  },
+  "summary": {
+    "rules": {
+      "scenarios": 60,
+      "success_rate": 1,
+      "safety_violations": 0,
+      "loop_rate": 0,
+      "invalid_choices": 0,
+      "fallbacks": 0,
+      "technical_fallbacks": 0,
+      "invalid_choice_fallbacks": 0,
+      "forced_steps": 90,
+      "avg_steps": 2.1666666666666665,
+      "model_calls": 0,
+      "model_requests": 0,
+      "p50_ms": 0,
+      "p95_ms": 0,
+      "peak_rss_mb": null
+    },
+    "laya": {
+      "scenarios": 0,
+      "success_rate": null,
+      "safety_violations": 0,
+      "loop_rate": null,
+      "invalid_choices": 0,
+      "fallbacks": 0,
+      "technical_fallbacks": 0,
+      "invalid_choice_fallbacks": 0,
+      "forced_steps": 0,
+      "avg_steps": null,
+      "model_calls": 0,
+      "model_requests": 0,
+      "p50_ms": null,
+      "p95_ms": null,
+      "peak_rss_mb": null
+    },
+    "julia": {
+      "scenarios": 0,
+      "success_rate": null,
+      "safety_violations": 0,
+      "loop_rate": null,
+      "invalid_choices": 0,
+      "fallbacks": 0,
+      "technical_fallbacks": 0,
+      "invalid_choice_fallbacks": 0,
+      "forced_steps": 0,
+      "avg_steps": null,
+      "model_calls": 0,
+      "model_requests": 0,
+      "p50_ms": null,
+      "p95_ms": null,
+      "peak_rss_mb": null
+    },
+    "andy": {
+      "scenarios": 0,
+      "success_rate": null,
+      "safety_violations": 0,
+      "loop_rate": null,
+      "invalid_choices": 0,
+      "fallbacks": 0,
+      "technical_fallbacks": 0,
+      "invalid_choice_fallbacks": 0,
+      "forced_steps": 0,
+      "avg_steps": null,
+      "model_calls": 0,
+      "model_requests": 0,
+      "p50_ms": null,
+      "p95_ms": null,
+      "peak_rss_mb": null
+    },
+    "nanoandy": {
+      "scenarios": 0,
+      "success_rate": null,
+      "safety_violations": 0,
+      "loop_rate": null,
+      "invalid_choices": 0,
+      "fallbacks": 0,
+      "technical_fallbacks": 0,
+      "invalid_choice_fallbacks": 0,
+      "forced_steps": 0,
+      "avg_steps": null,
+      "model_calls": 0,
+      "model_requests": 0,
+      "p50_ms": null,
+      "p95_ms": null,
+      "peak_rss_mb": null
+    }
+  },
+  "shadow_readiness": {
+    "laya": {
+      "ready": false,
+      "reasons": [
+        "model_not_run"
+      ],
+      "critical_failures": [],
+      "objective_abandonments": 0
+    },
+    "julia": {
+      "ready": false,
+      "reasons": [
+        "model_not_run"
+      ],
+      "critical_failures": [],
+      "objective_abandonments": 0
+    },
+    "andy": {
+      "ready": false,
+      "reasons": [
+        "model_not_run"
+      ],
+      "critical_failures": [],
+      "objective_abandonments": 0
+    },
+    "nanoandy": {
+      "ready": false,
+      "reasons": [
+        "model_not_run"
+      ],
+      "critical_failures": [],
+      "objective_abandonments": 0
+    }
+  },
+  "note": "No winner is selected by agreement with rules; outcomes, safety, invalid choices, fallback and latency are reported separately."
+}
