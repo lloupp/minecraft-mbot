@@ -1,0 +1,24 @@
+Conectando a 127.0.0.1:44845 (versão 1.20.1)...
+Perfil: vanilla1201 | versão 1.20.1 | vanilla/protocolo padrão | patches 26.3 OFF
+[plugins] desligados (MBOT_PLUGINS=0)
+[memória] 0 item(ns) carregado(s)
+[tool-api] http://127.0.0.1:42299/v1/workers
+=== Bot conectado! ===
+Jogador: tool_main
+Posição: X=4.5, Y=71.0, Z=0.5
+Modo: survival | Ping: 0ms
+Dono: absent_smoke_owner
+
+--- Bot ativo! Digite !ajuda no chat ---
+
+[colônia] ajudante_01 [plugins] desligados (MBOT_PLUGINS=0)
+HP: 20/20 | Fome: 20/20
+[estado] workers restaurados: ajudante_01
+[colônia] ajudante_01 conectado como ajudante
+[tool-api] {"worker":"ajudante_01","action":"gather","success":true,"result":{"ok":true,"verified":true,"gathered":1,"requested":1,"resource":"oak_log","exhausted":false,"deposited":{},"recovery":{"alternateTargetObserved":false,"alternateTargetRecoveryConfirmed":false},"evidence":[{"targetBlock":"oak_log","targetPosition":{"x":0,"y":71,"z":0},"candidateCount":6,"alternateTargetCandidateObserved":true,"alternateTargetCandidateCount":5,"expectedItems":["oak_log"],"inventoryBefore":0,"inventoryAfter":1,"delta":1,"itemConfirmed":true,"navigation":"pathfinder","positionBeforeDig":{"x":4.5,"y":71,"z":0.5}}]},"duration_ms":4170,"task_id":"live-gather-1"}
+[tool-api] {"worker":"ajudante_01","action":"move_to","success":true,"result":{"ok":true,"verified":true,"distance":1.1251319430188467,"x":6,"y":71,"z":0,"evidence":{"type":"position_confirmed","position":{"x":5.374868056981153,"y":71,"z":0.5},"dimension":"overworld","target":{"x":6.5,"y":71,"z":0.5},"tolerance":2,"distance":1.1251319430188467}},"duration_ms":934,"task_id":"live-move-1"}
+[tool-api] {"worker":"ajudante_01","action":"gather","success":true,"result":{"ok":true,"verified":true,"gathered":1,"requested":1,"resource":"oak_log","exhausted":false,"deposited":{},"recovery":{"alternateTargetObserved":false,"alternateTargetRecoveryConfirmed":false},"evidence":[{"targetBlock":"oak_log","targetPosition":{"x":0,"y":71,"z":0},"candidateCount":6,"alternateTargetCandidateObserved":true,"alternateTargetCandidateCount":5,"expectedItems":["oak_log"],"inventoryBefore":0,"inventoryAfter":1,"delta":1,"itemConfirmed":true,"navigation":"pathfinder","positionBeforeDig":{"x":4.5,"y":71,"z":0.5}}]},"duration_ms":4170,"task_id":"live-gather-1","replayed":true}
+[tool-api] {"worker":"ajudante_01","action":"move_to","success":false,"rejected":true,"reason":"worker_busy"}
+[tool-api] {"worker":"ajudante_01","action":"gather","success":false,"result":{"ok":false,"verified":false,"code":"CANCELLED","gathered":0,"requested":5,"resource":"oak_log","exhausted":true,"deposited":{},"recovery":{"alternateTargetObserved":false,"alternateTargetRecoveryConfirmed":false},"evidence":[{"targetBlock":"oak_log","targetPosition":{"x":0,"y":72,"z":0},"candidateCount":5,"alternateTargetCandidateObserved":true,"alternateTargetCandidateCount":4,"expectedItems":["oak_log"],"inventoryBefore":1,"inventoryAfter":1,"delta":0,"itemConfirmed":false,"navigation":"pathfinder","positionBeforeDig":{"x":5.374868056981153,"y":71,"z":0.5},"code":"CANCELLED","message":"The goal was changed before it could be completed!"},{"code":"CANCELLED"}]},"reason":"cancelled","duration_ms":396,"task_id":"live-cancel-1"}
+[tool-api] {"worker":"ajudante_01","action":"stop","success":true,"result":{"ok":true},"duration_ms":2,"task_id":"live-stop-1"}
+Conexão encerrada (disconnect.quitting).

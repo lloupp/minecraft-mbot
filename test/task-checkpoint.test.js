@@ -62,3 +62,51 @@ test('checkpoint task id cannot be overwritten', async t => {
   )
   assert.equal(store.get('same-id').worker, 'a')
 })
+
+for (const id of ['__proto__', 'constructor', 'toString']) {
+  test(`prototype-shaped task id ${id} persists as an own record without prototype effects`, async t => {
+    const file = await tempFile(t)
+    const store = new TaskCheckpointStore(file)
+    assert.equal(store.get(id), null)
+    assert.throws(() => store.require(id), /não encontrado/)
+    const originalPrototype = Object.getPrototypeOf(store.state.tasks)
+    store.create({ id, worker: 'a', action: 'gather' })
+    assert.equal(Object.hasOwn(store.state.tasks, id), true)
+    assert.equal(Object.getPrototypeOf(store.state.tasks), originalPrototype)
+    store.start(id)
+    store.finish(id, { success: true })
+    await store.save()
+    const restored = new TaskCheckpointStore(file)
+    await restored.load()
+    assert.equal(restored.get(id).status, 'completed')
+    assert.equal(restored.get(id).id, id)
+    assert.equal(Object.getPrototypeOf(restored.state.tasks), null)
+    assert.equal(Object.hasOwn(restored.state.tasks, id), true)
+    assert.throws(() => restored.create({ id, worker: 'b', action: 'craft' }), error => error.code === 'TASK_ID_EXISTS')
+    assert.equal(Object.prototype.status, undefined)
+  })
+}
+
+test('explicit malformed task ids never silently become generated ids', async t => {
+  const store = new TaskCheckpointStore(await tempFile(t))
+  for (const id of ['', 0, false, {}, [], 'with space', 'a'.repeat(121)]) {
+    assert.throws(() => store.create({ id, worker: 'a', action: 'stop' }), /task id inválido/)
+  }
+  assert.equal(Object.keys(store.snapshot().tasks).length, 0)
+})
+
+test('tool layer rejects malformed task ids before checkpoint lookup or execution', async () => {
+  const { MinecraftToolLayer } = require('../core/MinecraftToolLayer')
+  const layer = new MinecraftToolLayer({
+    workerId: 'a',
+    worker: { bot: { entity: {} }, isIdle: () => true, run() { assert.fail('invalid task id dispatched') } },
+    logger: { log() {} },
+    checkpointStore: { get() { assert.fail('invalid task id read checkpoint') } }
+  })
+  for (const task_id of ['', 0, false, {}, [], 'with space', 'a'.repeat(121)]) {
+    const result = await layer.execute({ task_id, action: 'gather', args: { resource: 'oak_log', quantity: 1 } })
+    assert.equal(result.success, false)
+    assert.equal(result.rejected, true)
+    assert.equal(result.reason, 'invalid_task_id')
+  }
+})

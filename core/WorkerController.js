@@ -195,6 +195,7 @@ class WorkerController {
     bot.once('end', () => {
       clearInterval(this.survivalTimer)
       this.taskVersion++
+      this._toolReservation = null
       this.state = 'desconectado'
       this.currentTask = null
     })
@@ -448,7 +449,22 @@ class WorkerController {
   }
 
   isIdle() {
-    return this.state === 'ocioso'
+    return this.state === 'ocioso' && !this._toolReservation
+  }
+
+  reserveTool() {
+    if (!this.isIdle() || this.currentTask || this.defending || this.eating || this.diggingOut || this._preparationDrain || !this.bot.entity || this.bot.health <= 0) return null
+    const token = { version: this.taskVersion }
+    this._toolReservation = token
+    return token
+  }
+
+  ownsTool(token) {
+    return this._toolReservation === token && token.version === this.taskVersion && this.state === 'ocioso' && !this.currentTask && !this.defending && !this.eating && !this.diggingOut && Boolean(this.bot.entity) && this.bot.health > 0
+  }
+
+  releaseTool(token) {
+    if (this._toolReservation === token) this._toolReservation = null
   }
 
   async waitReady(timeoutMs = 15000) {
@@ -478,14 +494,18 @@ class WorkerController {
 
   cancel() {
     this.taskVersion++
+    this._toolReservation = null
     this.currentTask = null
     if (this.bot.targetDigBlock) this.bot.stopDigging()?.catch?.(() => {})
     this.bot.pathfinder?.setGoal(null)
     if (this.state !== 'desconectado') this.state = this.bot.entity ? 'ocioso' : 'conectando'
   }
 
-  async run(task) {
+  async run(task, { canStart = null } = {}) {
     await this.waitReady()
+    // HTTP tools reserve an idle worker before checkpoint I/O. An owner command,
+    // death, defense or disconnect during readiness must win before any new work.
+    if (canStart && !canStart()) return { ok: false, code: 'CANCELLED', cancelled: true }
     const preparationDrain = this._preparationDrain
     this.cancel()
     this._preparationResumeCandidate = null

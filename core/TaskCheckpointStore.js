@@ -18,7 +18,7 @@ function safeId(value) {
 class TaskCheckpointStore {
   constructor(filePath = process.env.MBOT_TASK_CHECKPOINT_FILE || '.data/task-checkpoints.json') {
     this.filePath = path.resolve(filePath)
-    this.state = { version: 1, tasks: {}, updatedAt: null }
+    this.state = { version: 1, tasks: Object.create(null), updatedAt: null }
     this._write = Promise.resolve()
     this.lastLoadError = null
   }
@@ -26,12 +26,12 @@ class TaskCheckpointStore {
   async load() {
     try {
       const parsed = JSON.parse(await fs.promises.readFile(this.filePath, 'utf8'))
-      if (!parsed || parsed.version !== 1 || typeof parsed.tasks !== 'object' || Array.isArray(parsed.tasks)) {
+      if (!parsed || parsed.version !== 1 || !parsed.tasks || typeof parsed.tasks !== 'object' || Array.isArray(parsed.tasks)) {
         const err = new Error('checkpoint incompatível')
         err.code = 'CHECKPOINT_SCHEMA_UNSUPPORTED'
         throw err
       }
-      this.state = { version: 1, tasks: {}, updatedAt: parsed.updatedAt || null }
+      this.state = { version: 1, tasks: Object.create(null), updatedAt: parsed.updatedAt || null }
       for (const [id, raw] of Object.entries(parsed.tasks)) {
         if (!safeId(id) || !raw || typeof raw !== 'object') continue
         const status = raw.status === 'running' ? 'interrupted' : raw.status
@@ -55,10 +55,10 @@ class TaskCheckpointStore {
   }
 
   create({ id = null, worker, action, args = {}, objective = null, stateHash = null }) {
-    const taskId = id || crypto.randomUUID()
+    const taskId = id == null ? crypto.randomUUID() : id
     if (!safeId(taskId)) throw new Error('task id inválido')
     if (!safeId(worker)) throw new Error('worker inválido')
-    if (this.state.tasks[taskId]) {
+    if (Object.hasOwn(this.state.tasks, taskId)) {
       const err = new Error('task id já existe')
       err.code = 'TASK_ID_EXISTS'
       throw err
@@ -115,12 +115,12 @@ class TaskCheckpointStore {
   }
 
   get(id) {
-    const task = this.state.tasks[id]
+    const task = Object.hasOwn(this.state.tasks, id) ? this.state.tasks[id] : null
     return task ? clone(task) : null
   }
 
   require(id) {
-    const task = this.state.tasks[id]
+    const task = Object.hasOwn(this.state.tasks, id) ? this.state.tasks[id] : null
     if (!task) throw new Error('checkpoint não encontrado')
     return task
   }

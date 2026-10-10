@@ -62,6 +62,8 @@ class MinecraftToolLayer {
     this.lastAction = null
     this.lastResult = null
     this.consecutiveFailures = 0
+    this._active = null
+    this._closed = false
   }
 
   availableActions() {
@@ -86,8 +88,8 @@ class MinecraftToolLayer {
       objective,
       currentTask: this.worker.currentTask ? { ...this.worker.currentTask } : null,
       availableActions: actions,
-      busy: !this.worker.isIdle(),
-      cancellationRequested: false,
+      busy: Boolean(this._active) || !this.worker.isIdle(),
+      cancellationRequested: Boolean(this._active?.cancelled),
       lastAction: this.lastAction,
       lastResult: this.lastResult,
       consecutiveFailures: this.consecutiveFailures
@@ -96,6 +98,7 @@ class MinecraftToolLayer {
 
   validate(decision) {
     if (!decision || typeof decision !== 'object') return 'decision_invalid'
+    if (decision.task_id != null && (typeof decision.task_id !== 'string' || !/^[a-zA-Z0-9._:-]{1,120}$/.test(decision.task_id))) return 'invalid_task_id'
     if (decision.worker && decision.worker !== this.workerId) return 'worker_mismatch'
     if (!TOOLS[decision.action]) return 'unknown_action'
     if (!this.availableActions().includes(decision.action)) return 'action_unavailable'
@@ -106,6 +109,9 @@ class MinecraftToolLayer {
     const reason = this.validate(decision)
     if (reason) return this.record(decision?.action || null, { success: false, rejected: true, reason })
     const action = decision.action
+    if (this._closed && !action.startsWith('get_') && action !== 'stop') {
+      return this.record(action, { success: false, rejected: true, reason: 'tool_layer_closed' })
+    }
     const args = decision.args || {}
 
     if (this.checkpointStore && decision.task_id && !action.startsWith('get_')) {
@@ -134,36 +140,85 @@ class MinecraftToolLayer {
       }
     }
 
-    const before = inventory(this.worker.bot)
+    const mutating = !action.startsWith('get_') && action !== 'stop'
+    let owner = null
+    if (mutating) {
+      // Claim synchronously: checkpoint persistence may yield to a second request
+      // or to the colony scheduler before any physical action is dispatched.
+      if (this._active || !this.worker.isIdle() || this.worker.currentTask ||
+          this.worker.eating || this.worker.defending || this.worker.diggingOut || this.worker._preparationDrain) {
+        return this.record(action, { success: false, rejected: true, reason: 'worker_busy' })
+      }
+      const reservation = this.worker.reserveTool?.() || null
+      if (this.worker.reserveTool && !reservation) {
+        return this.record(action, { success: false, rejected: true, reason: 'worker_busy' })
+      }
+      owner = { action, reservation, version: reservation?.version ?? this.worker.taskVersion, cancelled: false, lifecycle: null }
+      owner.done = new Promise(resolve => { owner.resolveDone = resolve })
+      this._active = owner
+    }
+    // Stop must cancel immediately even when another request is saving its
+    // checkpoint. A stopped pending request retains its lock until it drains.
+    if (action === 'stop') {
+      if (this._active) this._active.cancelled = true
+      this.worker.cancel()
+    }
+    const bot = this.worker.bot
+    const lifecycle = reason => { if (owner) owner.lifecycle = reason }
+    const onEnd = () => lifecycle('worker_disconnected')
+    const onDeath = () => lifecycle('worker_dead')
+    if (owner) {
+      bot?.on?.('end', onEnd)
+      bot?.on?.('death', onDeath)
+    }
+    const ownershipFailure = (ran = false) => {
+      if (!owner) return null
+      if (owner.lifecycle) return owner.lifecycle
+      if (this.worker.bot !== bot || this.worker.state === 'desconectado' || !bot?.entity) return 'worker_disconnected'
+      if (Number(bot.health) <= 0) return 'worker_dead'
+      if (owner.cancelled) return 'cancelled'
+      const expected = owner.version == null ? null : owner.version + (ran && action !== 'eat' ? 1 : 0)
+      if (expected != null && this.worker.taskVersion !== expected) return 'cancelled'
+      return null
+    }
+    const before = inventory(bot)
     const started = Date.now()
     let checkpoint = null
-    if (this.checkpointStore && !action.startsWith('get_')) {
-      checkpoint = this.checkpointStore.create({
-        id: decision.task_id || null,
-        worker: this.workerId,
-        action,
-        args,
-        objective: decision.objective || null,
-        stateHash: this.stateHash(decision.objective)
-      })
-      this.checkpointStore.start(checkpoint.id, { stateHash: checkpoint.stateHash })
-      await this.checkpointStore.save()
-    }
     try {
+      if (this.checkpointStore && !action.startsWith('get_')) {
+        checkpoint = this.checkpointStore.create({
+          id: decision.task_id || null,
+          worker: this.workerId,
+          action,
+          args,
+          objective: decision.objective || null,
+          stateHash: this.stateHash(decision.objective)
+        })
+        this.checkpointStore.start(checkpoint.id, { stateHash: checkpoint.stateHash })
+        await this.checkpointStore.save()
+      }
       let result
-      if (action === 'get_state') result = this.state(decision.objective)
+      let reason = ownershipFailure()
+      if (!reason && owner && !owner.reservation && (!this.worker.isIdle() || this.worker.currentTask || this.worker.eating)) reason = 'worker_busy'
+      if (reason) result = { ok: false }
+      else if (action === 'get_state') result = this.state(decision.objective)
       else if (action === 'get_inventory') result = before
-      else if (action === 'get_position') result = position(this.worker.bot)
+      else if (action === 'get_position') result = position(bot)
       else if (action === 'get_available_actions') result = this.availableActions()
       else if (action === 'get_current_task') result = this.worker.currentTask ? { ...this.worker.currentTask } : null
-      else if (action === 'stop') { this.worker.cancel(); result = { ok: true } }
-      else if (action === 'eat') result = { ok: Boolean(await this.worker.eat()) }
+      else if (action === 'stop') result = { ok: true }
+      else if (action === 'eat') { owner.dispatched = true; result = { ok: Boolean(await this.worker.eat()) } }
       else {
-        const task = this.toTask(action, args)
-        result = await this.worker.run(task)
+        owner.dispatched = true
+        result = await this.worker.run(this.toTask(action, args), { canStart: () => {
+          const allowed = !ownershipFailure() && (!owner.reservation || this.worker.ownsTool(owner.reservation))
+          if (allowed) owner.claimed = true
+          return allowed
+        } })
       }
-      const success = this.verify(action, args, before, result)
-      const payload = { success, result, duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
+      reason = reason || ownershipFailure(true)
+      const success = !reason && this.verify(action, args, before, result)
+      const payload = { success, result, ...(reason ? { reason } : {}), duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
       if (checkpoint) {
         this.checkpointStore.finish(checkpoint.id, payload)
         await this.checkpointStore.save()
@@ -172,11 +227,36 @@ class MinecraftToolLayer {
     } catch (error) {
       const payload = { success: false, error: error.message, duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
       if (checkpoint) {
-        this.checkpointStore.finish(checkpoint.id, payload)
-        await this.checkpointStore.save()
+        try {
+          this.checkpointStore.finish(checkpoint.id, payload)
+          await this.checkpointStore.save()
+        } catch (checkpointError) {
+          payload.checkpoint_error = checkpointError.message
+        }
       }
       return this.record(action, payload)
+    } finally {
+      if (owner) {
+        bot?.removeListener?.('end', onEnd)
+        bot?.removeListener?.('death', onDeath)
+        this.worker.releaseTool?.(owner.reservation)
+        if (this._active === owner) this._active = null
+        owner.resolveDone()
+      }
     }
+  }
+
+  close() {
+    this._closed = true
+    const owner = this._active
+    if (!owner) return Promise.resolve()
+    owner.cancelled = true
+    const expected = owner.version == null ? null : owner.version + ((owner.reservation ? owner.claimed : owner.dispatched) && owner.action !== 'eat' ? 1 : 0)
+    // A colony/defence task may already have preempted us. Shutdown must not
+    // cancel that newer owner while draining this API request.
+    if ((owner.reservation && this.worker.ownsTool?.(owner.reservation)) ||
+        (expected != null && this.worker.taskVersion === expected)) this.worker.cancel()
+    return owner.done
   }
 
   toTask(action, args) {
