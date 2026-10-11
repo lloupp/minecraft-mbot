@@ -354,3 +354,24 @@ test('close preserves external owner acquired while native run waits for readine
   await closed
   assert.equal(worker.currentTask.type, 'explorar')
 })
+
+
+test('native rejection after stop retains cancellation and checkpoint status', async () => {
+  const { worker, layer } = fixture()
+  const { TaskCheckpointStore } = require('../core/TaskCheckpointStore')
+  const store = new TaskCheckpointStore('/unused')
+  store.save = async () => {}
+  layer.checkpointStore = store
+  const gate = deferred(), started = deferred()
+  worker.run = async () => { worker.currentTask = { type: 'fabricar' }; started.resolve(); return gate.promise }
+  const pending = layer.execute({ action: 'craft', task_id: 'native-error-stop', args: { item: 'stick', quantity: 1 } })
+  await started.promise
+  await layer.execute({ action: 'stop' })
+  gate.reject(new Error('windowOpen timed out'))
+  const result = await pending
+  assert.equal(result.success, false)
+  assert.equal(result.reason, 'cancelled')
+  assert.equal(result.error, 'windowOpen timed out')
+  assert.equal(store.get('native-error-stop').status, 'cancelled')
+  assert.equal(worker._toolDrain, null)
+})

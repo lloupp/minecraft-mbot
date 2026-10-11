@@ -1,0 +1,5102 @@
+{
+  "minecraft": "1.20.1",
+  "seed": 42,
+  "durationSeconds": 120,
+  "dir": "/tmp/mbot-natural-pair-eY3XH9",
+  "setup": [
+    {
+      "run": "snapshot",
+      "command": "gamerule spawnRadius 0"
+    },
+    {
+      "run": "snapshot",
+      "command": "time set day"
+    },
+    {
+      "run": "snapshot",
+      "command": "setworldspawn -35 73 0"
+    },
+    {
+      "run": "snapshot",
+      "command": "setblock -35 73 0 chest"
+    },
+    {
+      "run": "control",
+      "command": "gamemode spectator soak_owner"
+    },
+    {
+      "run": "control",
+      "command": "time set night"
+    },
+    {
+      "run": "control",
+      "command": "data get block -35 73 0 Items"
+    },
+    {
+      "run": "api-active",
+      "command": "gamemode spectator soak_owner"
+    }
+  ],
+  "runs": [
+    {
+      "name": "control",
+      "samples": [
+        {
+          "elapsedMs": 0,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 204,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 2209,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 4212,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 6216,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -40,
+                "y": 80,
+                "z": 2
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 8220,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -44,
+                "y": 80,
+                "z": 8
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 10224,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -51,
+                "y": 76,
+                "z": 9
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 12227,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -44,
+                "y": 73,
+                "z": 6
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 14230,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -41,
+                "y": 74,
+                "z": 2
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 16232,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 18240,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 20243,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 22247,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 24250,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 26254,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 28257,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 30262,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 32265,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -42,
+                "y": 80,
+                "z": 4
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 34268,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -49,
+                "y": 80,
+                "z": 9
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 36271,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -50,
+                "y": 73,
+                "z": 7
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 38275,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -43,
+                "y": 74,
+                "z": 4
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 40278,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -37,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 42281,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 44284,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 46287,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 48291,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 50294,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 52297,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 54301,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "sincronizar_estoque",
+                "reason": "atualizar_estoque"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 56305,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 58308,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 60311,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 62614,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 64617,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 66620,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 68622,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 70626,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 72629,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 74632,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 72,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 76634,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 78638,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 80642,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 82646,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 84649,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 86667,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 88671,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 90677,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 92682,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 94685,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 96687,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 98691,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 74,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -36,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 100694,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 102697,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 104700,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 106703,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 71,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 108706,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -34,
+                "y": 72,
+                "z": -1
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 110709,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 74,
+                "z": -1
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dirt": 1
+              },
+              "equipped": "dirt",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 112713,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": -1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 114730,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": 1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 74,
+                "z": -1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 116743,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -34,
+                "y": 73,
+                "z": 2
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dark_oak_log": 1
+              },
+              "equipped": "dark_oak_log",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": -1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 118760,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -34,
+                "y": 73,
+                "z": 2
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dark_oak_log": 1
+              },
+              "equipped": "dark_oak_log",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 72,
+                "z": -1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        },
+        {
+          "elapsedMs": 121063,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -34,
+                "y": 73,
+                "z": 2
+              },
+              "dimension": "overworld",
+              "inventory": {
+                "dark_oak_log": 1
+              },
+              "equipped": "dark_oak_log",
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 73,
+                "z": -1
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": {
+                "type": "coletar_blocos",
+                "resource": "madeira",
+                "count": 12,
+                "reason": "estoque_baixo_madeira"
+              },
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": true,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "assertions": [],
+      "initialSnapshotHash": "3b8c33c9473fbb79613747eaf44dfe5d8207353a738775db202c733ccf6c5e0f",
+      "minimumHealth": 20,
+      "minimumFood": 20,
+      "deaths": 0,
+      "autoResults": 3,
+      "status": "COMPLETED"
+    },
+    {
+      "name": "api-active",
+      "samples": [
+        {
+          "elapsedMs": 0,
+          "workers": [
+            {
+              "worker": "lenhador_01",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            },
+            {
+              "worker": "lenhador_02",
+              "health": 20,
+              "food": 20,
+              "position": {
+                "x": -35,
+                "y": 81,
+                "z": 0
+              },
+              "dimension": "overworld",
+              "inventory": {},
+              "equipped": null,
+              "objective": null,
+              "currentTask": null,
+              "availableActions": [
+                "get_state",
+                "get_inventory",
+                "get_position",
+                "get_available_actions",
+                "get_current_task",
+                "stop",
+                "eat",
+                "move_to",
+                "gather",
+                "craft",
+                "deposit",
+                "withdraw"
+              ],
+              "busy": false,
+              "cancellationRequested": false,
+              "lastAction": null,
+              "lastResult": null,
+              "consecutiveFailures": 0
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "worker": "lenhador_01",
+          "action": "stop",
+          "result": {
+            "worker": "lenhador_01",
+            "action": "stop",
+            "success": true,
+            "result": {
+              "ok": true
+            },
+            "duration_ms": 3,
+            "task_id": "stop-first-worker"
+          }
+        },
+        {
+          "worker": "lenhador_01",
+          "action": "gather",
+          "result": {
+            "worker": "lenhador_01",
+            "action": "gather",
+            "success": false,
+            "error": "Event windowOpen did not fire within timeout of 20000ms",
+            "duration_ms": 20052,
+            "task_id": "soak-lenhador_01"
+          }
+        },
+        {
+          "worker": "lenhador_02",
+          "action": "gather",
+          "result": {
+            "success": false,
+            "error": "fetch failed"
+          }
+        }
+      ],
+      "assertions": [
+        "overlapping mutation rejected"
+      ],
+      "initialSnapshotHash": "3b8c33c9473fbb79613747eaf44dfe5d8207353a738775db202c733ccf6c5e0f"
+    }
+  ],
+  "limitations": [
+    "short soak, not sustained survival proof",
+    "same initial snapshot; mob timing and network timing are not deterministic",
+    "one empty chest and common spawn configured by console; no food, tools or logs injected",
+    "API enabled in both arms for identical telemetry; control does not submit API mutations",
+    "night imposed at half duration; no death or threat is forced"
+  ],
+  "home": {
+    "x": -35,
+    "y": 73,
+    "z": 0
+  },
+  "chest": {
+    "x": -35,
+    "y": 73,
+    "z": 0
+  },
+  "initialLoadedLogBlocks": 500,
+  "snapshotHash": "3b8c33c9473fbb79613747eaf44dfe5d8207353a738775db202c733ccf6c5e0f",
+  "status": "FAIL",
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'cancelled'\n\n    at main (/workspace/scratch/ed2352955755/minecraft-mbot/scripts/tool-api-natural-soak.js:162:50)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+}

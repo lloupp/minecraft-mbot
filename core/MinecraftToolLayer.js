@@ -156,6 +156,7 @@ class MinecraftToolLayer {
       owner = { action, reservation, version: reservation?.version ?? this.worker.taskVersion, cancelled: false, lifecycle: null }
       owner.done = new Promise(resolve => { owner.resolveDone = resolve })
       this._active = owner
+      this.worker._toolDrain = owner
     }
     // Stop must cancel immediately even when another request is saving its
     // checkpoint. A stopped pending request retains its lock until it drains.
@@ -225,7 +226,10 @@ class MinecraftToolLayer {
       }
       return this.record(action, payload)
     } catch (error) {
-      const payload = { success: false, error: error.message, duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
+      // A native operation can reject after stop/death/disconnect. Preserve
+      // cancellation ownership as well as the underlying physical error.
+      const reason = ownershipFailure(Boolean(owner?.claimed || (owner?.dispatched && !owner?.reservation)))
+      const payload = { success: false, error: error.message, ...(reason ? { reason } : {}), duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
       if (checkpoint) {
         try {
           this.checkpointStore.finish(checkpoint.id, payload)
@@ -240,6 +244,7 @@ class MinecraftToolLayer {
         bot?.removeListener?.('end', onEnd)
         bot?.removeListener?.('death', onDeath)
         this.worker.releaseTool?.(owner.reservation)
+        if (this.worker._toolDrain === owner) this.worker._toolDrain = null
         if (this._active === owner) this._active = null
         owner.resolveDone()
       }

@@ -20,6 +20,8 @@ Smoke com **index.js completo**, Minecraft Java 1.20.1 real, survival/peaceful, 
 
 ## Pendências e próxima prioridade
 
+Continuação: [ownership e soak natural pareado](NATURAL_SOAK_20261011.md). Corridas de despacho automático e drain corrigidas; o cenário curto não substitui sobrevivência sustentada.
+
 | Prioridade | Trabalho | Critério de aceite / validação | Dependências / esforço |
 |---|---|---|---|
 | P1 | Soak em terreno natural, incluindo dois workers | Execuções pareadas a partir do mesmo snapshot; registrar todas as falhas, mortes, fome, abrigo, cancelamentos e conflitos; demonstrar limites de ownership entre API/colônia com mundo real | Servidor/mundos isolados, duração suficiente / médio |

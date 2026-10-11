@@ -1,0 +1,377 @@
+{
+  "version": 1,
+  "tasks": {
+    "soak-lenhador_01": {
+      "id": "soak-lenhador_01",
+      "worker": "lenhador_01",
+      "action": "gather",
+      "args": {
+        "resource": "madeira",
+        "quantity": 64
+      },
+      "objective": null,
+      "stateHash": "7f091078b36eaa51",
+      "status": "cancelled",
+      "attempts": 1,
+      "result": {
+        "success": false,
+        "error": "Event windowOpen did not fire within timeout of 20000ms",
+        "reason": "cancelled",
+        "duration_ms": 20060,
+        "task_id": "soak-lenhador_01"
+      },
+      "recoveryRequired": false,
+      "createdAt": "2026-10-11T02:33:00.930Z",
+      "updatedAt": "2026-10-11T02:33:20.990Z"
+    },
+    "soak-lenhador_02": {
+      "id": "soak-lenhador_02",
+      "worker": "lenhador_02",
+      "action": "gather",
+      "args": {
+        "resource": "madeira",
+        "quantity": 64
+      },
+      "objective": null,
+      "stateHash": "31c5c0c8f79c2784",
+      "status": "cancelled",
+      "attempts": 1,
+      "result": {
+        "success": false,
+        "result": {
+          "ok": false,
+          "verified": false,
+          "code": "CANCELLED",
+          "gathered": 8,
+          "requested": 64,
+          "resource": "madeira",
+          "exhausted": true,
+          "deposited": {},
+          "recovery": {
+            "alternateTargetObserved": true,
+            "alternateTargetRecoveryConfirmed": true
+          },
+          "evidence": [
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -34,
+                "y": 74,
+                "z": 0
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 0,
+              "inventoryAfter": 0,
+              "delta": 0,
+              "itemConfirmed": false,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -35.677264975281844,
+                "y": 74,
+                "z": 0.49995675201428263
+              },
+              "code": "ITEM_NOT_CONFIRMED",
+              "message": "pos.floored is not a function"
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -34,
+                "y": 73,
+                "z": 0
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 0,
+              "inventoryAfter": 2,
+              "delta": 2,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -34.59528643900579,
+                "y": 73.875,
+                "z": 0.49995675201409584
+              }
+            },
+            {
+              "targetBlock": "oak_log",
+              "targetPosition": {
+                "x": -36,
+                "y": 74,
+                "z": -3
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "oak_log"
+              ],
+              "inventoryBefore": 0,
+              "inventoryAfter": 1,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -33.37387900231495,
+                "y": 71,
+                "z": -0.45687063863025895
+              }
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -36,
+                "y": 74,
+                "z": -5
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 2,
+              "inventoryAfter": 3,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -35.67416421253939,
+                "y": 74,
+                "z": -3.474252214863032
+              }
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -37,
+                "y": 74,
+                "z": -5
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 3,
+              "inventoryAfter": 4,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -35.67416421253939,
+                "y": 74,
+                "z": -3.474252214863032
+              }
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -37,
+                "y": 75,
+                "z": -5
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 4,
+              "inventoryAfter": 5,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -36.5,
+                "y": 74,
+                "z": -3.4869240897477645
+              }
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -37,
+                "y": 74,
+                "z": -6
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 5,
+              "inventoryAfter": 6,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -36.500000000000114,
+                "y": 74,
+                "z": -4.301902635195144
+              }
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -37,
+                "y": 73,
+                "z": -6
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 6,
+              "inventoryAfter": 7,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -36.5,
+                "y": 73,
+                "z": -6.5556561717257615
+              }
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -36,
+                "y": 74,
+                "z": -6
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 7,
+              "inventoryAfter": 8,
+              "delta": 1,
+              "itemConfirmed": true,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -36.49999999999995,
+                "y": 73,
+                "z": -5.5
+              }
+            },
+            {
+              "targetBlock": "dark_oak_log",
+              "targetPosition": {
+                "x": -37,
+                "y": 75,
+                "z": -6
+              },
+              "candidateCount": 64,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 63,
+              "expectedItems": [
+                "dark_oak_log"
+              ],
+              "inventoryBefore": 8,
+              "inventoryAfter": 8,
+              "delta": 0,
+              "itemConfirmed": false,
+              "navigation": "pathfinder",
+              "positionBeforeDig": {
+                "x": -36.77655744670861,
+                "y": 73,
+                "z": -5.499999999999988
+              },
+              "code": "CANCELLED",
+              "message": "Digging aborted"
+            },
+            {
+              "code": "CANCELLED"
+            }
+          ]
+        },
+        "reason": "cancelled",
+        "duration_ms": 121233,
+        "task_id": "soak-lenhador_02"
+      },
+      "recoveryRequired": false,
+      "createdAt": "2026-10-11T02:33:00.931Z",
+      "updatedAt": "2026-10-11T02:35:02.164Z"
+    },
+    "stop-first-worker": {
+      "id": "stop-first-worker",
+      "worker": "lenhador_01",
+      "action": "stop",
+      "args": {},
+      "objective": null,
+      "stateHash": "0490d15bb94c96d7",
+      "status": "completed",
+      "attempts": 1,
+      "result": {
+        "success": true,
+        "result": {
+          "ok": true
+        },
+        "duration_ms": 1,
+        "task_id": "stop-first-worker"
+      },
+      "recoveryRequired": false,
+      "createdAt": "2026-10-11T02:33:07.339Z",
+      "updatedAt": "2026-10-11T02:33:07.340Z"
+    },
+    "final-stop-lenhador_01": {
+      "id": "final-stop-lenhador_01",
+      "worker": "lenhador_01",
+      "action": "stop",
+      "args": {},
+      "objective": null,
+      "stateHash": "1c73c14f5f273ef4",
+      "status": "completed",
+      "attempts": 1,
+      "result": {
+        "success": true,
+        "result": {
+          "ok": true
+        },
+        "duration_ms": 4,
+        "task_id": "final-stop-lenhador_01"
+      },
+      "recoveryRequired": false,
+      "createdAt": "2026-10-11T02:35:02.156Z",
+      "updatedAt": "2026-10-11T02:35:02.160Z"
+    },
+    "final-stop-lenhador_02": {
+      "id": "final-stop-lenhador_02",
+      "worker": "lenhador_02",
+      "action": "stop",
+      "args": {},
+      "objective": null,
+      "stateHash": "a9192a325478d979",
+      "status": "completed",
+      "attempts": 1,
+      "result": {
+        "success": true,
+        "result": {
+          "ok": true
+        },
+        "duration_ms": 1,
+        "task_id": "final-stop-lenhador_02"
+      },
+      "recoveryRequired": false,
+      "createdAt": "2026-10-11T02:35:02.164Z",
+      "updatedAt": "2026-10-11T02:35:02.165Z"
+    }
+  },
+  "updatedAt": "2026-10-11T02:35:02.473Z"
+}

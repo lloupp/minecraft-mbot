@@ -449,7 +449,7 @@ class WorkerController {
   }
 
   isIdle() {
-    return this.state === 'ocioso' && !this._toolReservation
+    return this.state === 'ocioso' && !this._toolReservation && !this._toolDrain
   }
 
   reserveTool() {
