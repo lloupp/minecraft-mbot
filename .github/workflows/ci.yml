@@ -33,11 +33,11 @@ jobs:
       - run: npm run gauntlet:player-loop > /tmp/player-loop-v2.json
 
   natural-survival-e2e:
-    name: Minecraft 1.20.1 natural survival (2 workers)
+    name: Minecraft 1.20.1 natural survival 20m/arm (2 workers)
     # Run only on this opt-in experimental PR. Never runs on main.
     if: github.event_name == 'pull_request' && github.head_ref == 'test/natural-two-worker-soak-20261011'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: read
     steps:
@@ -57,9 +57,9 @@ jobs:
         env:
           MBOT_TEST_SERVER_JAR: .cache/vanilla-1.20.1.jar
           MBOT_TEST_EULA_ACCEPTED: '1'
-          MBOT_SOAK_SECONDS: '120'
+          MBOT_SOAK_SECONDS: '1200'
           MBOT_SOAK_SEED: '42'
-          MBOT_SOAK_NIGHT_MODE: accelerated
+          MBOT_SOAK_NIGHT_MODE: natural
           MBOT_SOAK_OUTPUT_DIR: e2e-evidence
         run: node scripts/tool-api-natural-soak.js
       - name: Preserve evidence (including failed runs; never upload world or server jar)
