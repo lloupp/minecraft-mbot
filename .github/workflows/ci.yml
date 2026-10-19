@@ -60,6 +60,7 @@ jobs:
           MBOT_SOAK_SECONDS: '1200'
           MBOT_SOAK_SEED: '42'
           MBOT_SOAK_NIGHT_MODE: natural
+          MBOT_SOAK_AUTONOMOUS: '1'
           MBOT_SOAK_OUTPUT_DIR: e2e-evidence
         run: node scripts/tool-api-natural-soak.js
       - name: Preserve evidence (including failed runs; never upload world or server jar)
