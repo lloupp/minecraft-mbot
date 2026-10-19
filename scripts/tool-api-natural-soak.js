@@ -42,7 +42,16 @@ async function main() {
   if (!process.env.MBOT_TEST_SERVER_JAR || process.env.MBOT_TEST_EULA_ACCEPTED !== '1') throw new Error('Set MBOT_TEST_SERVER_JAR and MBOT_TEST_EULA_ACCEPTED=1')
   const duration = Number(process.env.MBOT_SOAK_SECONDS || 120)
   assert(Number.isFinite(duration) && duration >= 90 && duration <= 1800)
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mbot-natural-pair-'))
+  const seed = Number(process.env.MBOT_SOAK_SEED || 42)
+  assert(Number.isSafeInteger(seed), 'MBOT_SOAK_SEED must be an integer')
+  const nightMode = process.env.MBOT_SOAK_NIGHT_MODE || 'accelerated'
+  assert(['accelerated', 'natural'].includes(nightMode), 'MBOT_SOAK_NIGHT_MODE must be accelerated or natural')
+  // On CI the evidence directory is deterministic for artifact upload; fail
+  // rather than deleting a prior experiment if it already exists.
+  const dir = process.env.MBOT_SOAK_OUTPUT_DIR
+    ? path.resolve(process.env.MBOT_SOAK_OUTPUT_DIR)
+    : await fs.mkdtemp(path.join(os.tmpdir(), 'mbot-natural-pair-'))
+  if (process.env.MBOT_SOAK_OUTPUT_DIR) await fs.mkdir(dir, { recursive: false })
   const mcPort = await freePort()
   let apiPort = await freePort()
   while (apiPort === mcPort) apiPort = await freePort()
@@ -50,8 +59,8 @@ async function main() {
   await fs.mkdir(serverDir)
   await fs.copyFile(process.env.MBOT_TEST_SERVER_JAR, path.join(serverDir, 'server.jar'))
   await fs.writeFile(path.join(serverDir, 'eula.txt'), 'eula=true\n')
-  await fs.writeFile(path.join(serverDir, 'server.properties'), `server-ip=127.0.0.1\nserver-port=${mcPort}\nonline-mode=false\nspawn-protection=0\ndifficulty=normal\ngamemode=survival\nlevel-type=minecraft:normal\nlevel-seed=42\nview-distance=5\nsimulation-distance=5\nmax-players=5\n`)
-  const report = { minecraft: '1.20.1', seed: 42, durationSeconds: duration, dir, setup: [], runs: [], limitations: ['short soak, not sustained survival proof', 'same initial snapshot; mob timing and network timing are not deterministic', 'one empty chest and common spawn configured by console; no food, tools or logs injected', 'API enabled in both arms for identical telemetry; control does not submit API mutations', 'night imposed at half duration; no death or threat is forced'] }
+  await fs.writeFile(path.join(serverDir, 'server.properties'), `server-ip=127.0.0.1\nserver-port=${mcPort}\nonline-mode=false\nspawn-protection=0\ndifficulty=normal\ngamemode=survival\nlevel-type=minecraft:normal\nlevel-seed=${seed}\nview-distance=5\nsimulation-distance=5\nmax-players=5\n`)
+  const report = { minecraft: '1.20.1', seed, nightMode, durationSeconds: duration, node: process.version, dir, setup: [], runs: [], limitations: ['paired soak, not sustained survival proof', 'same initial snapshot; mob timing and network timing are not deterministic', 'one empty chest two blocks from spawn; no food, tools or logs injected', 'API enabled in both arms for identical telemetry; control does not submit API mutations', nightMode === 'accelerated' ? 'night imposed at half duration; no death or threat is forced' : 'natural day/night cycle; short durations may not reach night'] }
   let server, serverLog = '', app, appLog = '', observer, observerEnded = true, observerLog = '', activeRun
   async function command(text) { server.stdin.write(text + '\n'); report.setup.push({ run: activeRun?.name || 'snapshot', command: text }); await sleep(300) }
   async function startServer() {
@@ -109,9 +118,20 @@ async function main() {
       if (home) break
     }
     assert(home, 'no safe natural surface near logs')
-    // Use the inspected air cell itself: a neighboring hillside can block a chest lid.
-    const chest={...home}
-    assert.equal(observer.blockAt(new Vec3(chest.x,chest.y+1,chest.z)).name,'air')
+    // Do not occupy the worker's spawn cell with a chest. Require solid
+    // natural ground and two air cells (feet/lid) two blocks away.
+    let chest = null
+    for (const [dx, dz] of [[2,0],[-2,0],[0,2],[0,-2]]) {
+      const candidate = { x: home.x + dx, y: home.y, z: home.z + dz }
+      const below = observer.blockAt(new Vec3(candidate.x, candidate.y - 1, candidate.z))
+      const feet = observer.blockAt(new Vec3(candidate.x, candidate.y, candidate.z))
+      const lid = observer.blockAt(new Vec3(candidate.x, candidate.y + 1, candidate.z))
+      if (below?.boundingBox === 'block' && feet?.name === 'air' && lid?.name === 'air') {
+        chest = candidate
+        break
+      }
+    }
+    assert(chest, 'No safe adjacent chest position with an unobstructed lid')
     await command(`setworldspawn ${home.x} ${home.y} ${home.z}`)
     await command(`setblock ${chest.x} ${chest.y} ${chest.z} chest`)
     report.home=home; report.chest=chest; report.initialLoadedLogBlocks=logs.length
@@ -167,7 +187,7 @@ async function main() {
       let night=false
       while(Date.now()-start<duration*1000) {
         await sample()
-        if(!night && Date.now()-start>=duration*500) { await command('time set night'); night=true }
+        if(nightMode === 'accelerated' && !night && Date.now()-start>=duration*500) { await command('time set night'); night=true }
         if(app.exitCode!=null)throw new Error('runtime exited during soak')
         await sleep(2000)
       }
@@ -179,6 +199,8 @@ async function main() {
       activeRun.minimumFood=Math.min(...activeRun.samples.flatMap(s=>s.workers.map(w=>w.food)))
       activeRun.deaths=(appLog.match(/\[colônia\] lenhador_\d+ morreu\./g)||[]).length
       activeRun.autoResults=(appLog.match(/\[auto\] lenhador_/g)||[]).length
+      activeRun.stockOpenFailures=(appLog.match(/\[estoque\] container_open_failed/g)||[]).length
+      activeRun.positionTypeErrors=(appLog.match(/pos\.floored is not a function/g)||[]).length
       activeRun.status='COMPLETED'
       await stopApp(); await disconnectObserver(); await stopServer(name)
       await fs.writeFile(path.join(dir,`${name}-app.log`),appLog)
