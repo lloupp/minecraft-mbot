@@ -14,7 +14,7 @@ Não é um simulador de entidades, mock do executor nem uma cena fabricada.
 - Java 21 e Node.js 22, `npm ci` e Python 3 (bibliotecas nativas do Python).
 - Mundo `minecraft:normal` criado com seed configurável, sem loot, ferramentas,
   alimentos ou troncos injetados por comando. O harness inspeciona terreno firme,
-  escolhe um spawn seguro, posiciona **um baú vazio a dois blocos do spawn** e
+  escolhe um spawn seguro, posiciona **um baú vazio em local acessível a 2–6 blocos horizontais do spawn** e
   usa duas cópias SHA-256 idênticas do mundo inicial.
 - Ambos os braços executam `index.js` real: um controle com Tool API só para
   telemetria e outro com tarefas API sobre dois workers reais. A automação da
@@ -58,8 +58,10 @@ node scripts/tool-api-natural-soak.js
 
 O job `Minecraft 1.20.1 natural survival (2 workers)` em
 `.github/workflows/ci.yml` é executado **somente** na PR experimental #92.
-É o mesmo harness real com `MBOT_SOAK_SECONDS=120` e
-`MBOT_SOAK_NIGHT_MODE=accelerated`. A cada push da PR, preserva logs,
+É o mesmo harness real com `MBOT_SOAK_SECONDS=1200`,
+`MBOT_SOAK_NIGHT_MODE=natural` e `MBOT_SOAK_AUTONOMOUS=1`.
+O modo é iniciado no spawn sem comando de chat do observador, com ambos
+colônia e companheiro principal autônomos. A cada push da PR, preserva logs,
 telemetria JSONL, checkpoints e relatórios, inclusive se falhar. Não exporta
 o mundo nem o JAR. Consultar o job na aba *Checks* da PR #92.
 
@@ -80,9 +82,9 @@ saúde/fome, tarefas, ações e assertions. `*-app.log` registra
 `[estoque] container_open_failed` com informações do momento do timeout.
 O relatório mede erros `pos.floored` e timeouts observados.
 
-**Interpretação:** 120 segundos por braço + noite forçada é um **smoke físico**,
-não um soak de sobrevivência natural de longa duração. Para medir dia/noite
-natural e fome, execute `MBOT_SOAK_SECONDS=1800` + modo `natural`, em várias
+**Interpretação:** 1200 segundos por braço + ciclo natural é um **soak físico**
+de 20 minutos por braço. Ainda não prova sobrevivência indefinida. Para ampliar,
+execute `MBOT_SOAK_SECONDS=1800` + modo `natural`, em várias
 seeds (ex.: 42, 1337, 20261019) e preserve também todos os fracassos.
 A comparação compartilha estado inicial, mas o timing de mobs e rede não é
 determinístico e não deve ser interpretado como experimento causal de produtividade.
@@ -98,3 +100,45 @@ determinístico e não deve ser interpretado como experimento causal de produtiv
    itens em múltiplas seeds, ciclo natural completo e reconexão.
 
 Nunca mesclar a PR experimental sem evidência suficiente.
+
+## Operação autônoma contínua no Linux Mint
+
+A CI usa mundos descartáveis: **ela não é hospedagem permanente**. Para deixar
+seu próprio bot rodando enquanto o computador permanece ligado, use o
+supervisor `systemd --user`, contra um servidor Minecraft seu.
+
+```bash
+git checkout test/natural-two-worker-soak-20261011
+npm ci
+bash scripts/install-autonomous-service.sh
+nano ~/.config/minecraft-mbot/autonomous.env
+systemctl --user enable --now minecraft-mbot.service
+systemctl --user status minecraft-mbot.service
+journalctl --user -u minecraft-mbot.service -f
+```
+
+O arquivo de ambiente cria `MBOT_COLONY_AUTOSTART=1` e
+`MBOT_COMPANION_AUTOSTART=1`, com Julia/Laya sem autoridade, API externa
+desligada e interfaces de rede desativadas por padrão. Reinício por
+`systemd` ocorre 30 s depois de o processo terminar; se o servidor ainda
+não estiver ligado, o serviço volta a tentar. Não ligue portas a
+`0.0.0.0` nem use `online-mode=false` em servidor acessível pela Internet.
+
+**Condição importante:** para a colônia iniciar por conta própria, configure
+uma base, estoque e workers (o estado persistente já suporta isso). Sem
+eles, o startup recusa a automação e registra explicitamente o motivo, sem
+inventar ou modificar sua base. O companheiro autônomo é independente e
+pode começar a explorar. Nenhum recurso do teste `E2E` é injetado no mundo
+do usuário. Status do serviço só é prova de processo conectado; verifique
+logs/telemetria para confirmar trabalho físico e progresso real.
+
+Para desligar:
+
+```bash
+systemctl --user disable --now minecraft-mbot.service
+```
+
+Serviços de usuário podem parar no logout; `loginctl enable-linger`
+(requer permissões administrativas) habilita permanência após logout.
+O computador ou servidor precisa estar ligado; GitHub Actions não mantém
+um mundo persistente 24/7.
