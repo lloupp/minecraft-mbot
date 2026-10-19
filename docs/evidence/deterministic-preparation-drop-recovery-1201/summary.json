@@ -1,0 +1,71 @@
+{
+  "checks": {
+    "real_reconnect_inventory_0_and_target_air": true,
+    "real_drop_observed_after_reconnect": true,
+    "pickup_inventory_0_to_1": true,
+    "correct_approved_target": true,
+    "replanned_2_to_1": true,
+    "only_1_additional_stone": true,
+    "basic_craft_equip_continue": true,
+    "no_redig_destroyed_target": true,
+    "blocked_pickup_no_credit": true,
+    "ambiguous_no_recovery_or_movement": true,
+    "wrong_no_recovery_or_movement": true,
+    "outside_no_recovery_or_movement": true,
+    "ambiguity_is_two_real_entities": true,
+    "wrong_drop_is_dirt": true,
+    "outside_drop_beyond_2": true,
+    "mixed_only_cobblestone_candidate": true,
+    "out_of_range_table_refused": true,
+    "abrupt_dig_cut_inside_real_dig_window": true,
+    "abrupt_dig_real_world_rebuilt": true,
+    "server_crash_cut_inside_real_dig_window": true,
+    "server_crash_real_world_rebuilt": true,
+    "abrupt_pickup_recovery": true,
+    "abrupt_owners_dead": true,
+    "zero_unauthorized_digs": true,
+    "no_old_session_new_operations": true,
+    "no_old_session_start_or_finish_packet": true,
+    "no_preparation_physical_overlap": true,
+    "authoritative_timelines_complete": true,
+    "no_cobblestone_inventory_injection": true
+  },
+  "passed": 29,
+  "total": 29,
+  "authority": "deterministic_opt_in",
+  "julia_execution_authority": "none",
+  "automatic_dispatch_or_resume": false,
+  "cleanup_abort_packet_attempts": [
+    {
+      "capture": "baseline-abrupt",
+      "seq": 40,
+      "session": 0
+    },
+    {
+      "capture": "verification",
+      "seq": 100,
+      "session": 1
+    },
+    {
+      "capture": "final-buffered-transport",
+      "seq": 41,
+      "session": 0
+    },
+    {
+      "capture": "final-buffered-transport",
+      "seq": 124,
+      "session": 1
+    }
+  ],
+  "preserved_failures": [
+    "baseline-controls/blocked missing recovery steps in refusal result",
+    "baseline-abrupt/server_crash harness rejected ECONNRESET before observing end",
+    "transport-window-verification and final-transport-window append timeline gaps"
+  ],
+  "limitations": [
+    "Mixed case incidentally picked dirt; only cobblestone selected and credited by recovery",
+    "Abort/cancel packet status1 may be attempted on dead transport as cleanup; no new physical application operation or start/finish packet after disconnect in final window proofs",
+    "No provenance persisted across sessions: unique nearby observable cobblestone is a bounded plausibility condition, not identity proof",
+    "Server SIGKILL tested during first dig, with a prior save-all flush; no durability guarantee for unsaved changes"
+  ]
+}

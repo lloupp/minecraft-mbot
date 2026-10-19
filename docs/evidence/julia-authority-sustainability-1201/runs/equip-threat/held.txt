@@ -1,0 +1,3 @@
+[13:45:40] [Server thread/INFO]: explorador_01 has the following entity data: {id: "minecraft:stone_sword", Count: 1b, tag: {Damage: 0}}
+[13:46:09] [Server thread/INFO]: Found no elements matching SelectedItem
+[13:46:38] [Server thread/INFO]: explorador_01 has the following entity data: {id: "minecraft:stone_sword", Count: 1b, tag: {Damage: 0}}

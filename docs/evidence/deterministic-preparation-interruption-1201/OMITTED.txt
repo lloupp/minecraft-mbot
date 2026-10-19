@@ -1,0 +1,4 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    72837  docs/evidence/deterministic-preparation-interruption-1201/baseline-day/timeline.jsonl
+    83571  docs/evidence/deterministic-preparation-interruption-1201/final/results.json
+   132550  docs/evidence/deterministic-preparation-interruption-1201/final/timeline.jsonl

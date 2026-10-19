@@ -1,0 +1,58 @@
+{
+ "inicio": "13:49:20",
+ "fim": "13:53:16",
+ "duracao_min": 3.9,
+ "decisoes": 10,
+ "ciclos": 9,
+ "forcadas_candidato_unico": 10,
+ "julia_validas": 0,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {},
+ "julia_divergiu_da_deterministica": 0,
+ "acoes": {
+  "explore": 5,
+  "None": 4
+ },
+ "resultados": {
+  "ok": 4,
+  "TIMEOUT": 2,
+  "DISCONNECTED": 2,
+  "APPROVED_TARGETS_INSUFFICIENT": 1
+ },
+ "erros_texto": {},
+ "itens_ganhos": {},
+ "repeticoes_>=10_ciclos_identicos": [],
+ "mortes": 1,
+ "mortes_causas": {
+  "was kicked for floating too long!": 1
+ },
+ "conexoes": {
+  "desconexoes": 4,
+  "conexoes": 3
+ },
+ "acoes_fisicas": {
+  "dig": 5,
+  "move": 4
+ },
+ "crafts": {},
+ "combates_reflexo": {
+  "write": 4
+ },
+ "worldmemory": {
+  "discover": 39,
+  "explore": 6,
+  "explored": 5,
+  "loaded": 3,
+  "missing": 1
+ },
+ "infra": [
+  "1791294501 bot_start_fresh",
+  "1791294616 bot_restart",
+  "1791294707 bot_restart",
+  "1791294767 bot_restart"
+ ]
+}

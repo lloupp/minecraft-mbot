@@ -1,0 +1,178 @@
+{
+  "stats": {
+    "observed": 2,
+    "skippedConcurrency": 0,
+    "skippedBreaker": 0,
+    "completed": 2,
+    "failed": 0,
+    "invalidChoice": 0
+  },
+  "shadowHttpCalls": 2,
+  "events": [
+    {
+      "type": "julia_shadow_decision",
+      "data": {
+        "decisionId": 1,
+        "decidedAt": "2026-10-01T00:18:04.931Z",
+        "state": {
+          "health": 20,
+          "food": 20,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 2
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": null,
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 297.6999733895755,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": [
+            "stone_sword"
+          ]
+        },
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "taskLineageId": null,
+        "candidates": [
+          "prepare_combat",
+          "continue_objective"
+        ],
+        "executedChoice": null,
+        "juliaChoice": "prepare_combat",
+        "juliaAttemptedChoice": null,
+        "juliaConfidence": 0.994886816578013,
+        "juliaError": null,
+        "latencyMs": 218,
+        "candidateIds": [
+          "prepare_combat",
+          "continue_objective"
+        ],
+        "rulesChoice": "prepare_combat",
+        "agreesWithRules": true,
+        "realIntent": "continue_objective",
+        "agreesWithReal": false,
+        "safetyCritical": false,
+        "safetyOverride": false,
+        "wouldViolateSafety": false,
+        "wouldAbandonObjective": false,
+        "unjustifiedAbandon": false,
+        "objectiveType": "explore",
+        "resumedObjective": null,
+        "result": {
+          "ok": true,
+          "observationOnly": true
+        },
+        "nextState": null,
+        "interrupted": null,
+        "executionAuthority": "none"
+      }
+    },
+    {
+      "type": "julia_shadow_decision",
+      "data": {
+        "decisionId": 2,
+        "decidedAt": "2026-10-01T00:18:14.385Z",
+        "state": {
+          "health": 20,
+          "food": 20,
+          "inventory": {
+            "oak_planks": 2,
+            "stick": 4,
+            "cobblestone": 2
+          },
+          "inventoryLoad": 0.08333333333333333,
+          "equippedWeapon": null,
+          "equippedTool": null,
+          "threat": null,
+          "time": "day",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 297.500420301728,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": false,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": null,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": [
+            "stone_sword"
+          ]
+        },
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "taskLineageId": null,
+        "candidates": [
+          "prepare_combat",
+          "continue_objective"
+        ],
+        "executedChoice": null,
+        "juliaChoice": "prepare_combat",
+        "juliaAttemptedChoice": null,
+        "juliaConfidence": 0.881163939607605,
+        "juliaError": null,
+        "latencyMs": 215,
+        "candidateIds": [
+          "prepare_combat",
+          "continue_objective"
+        ],
+        "rulesChoice": "prepare_combat",
+        "agreesWithRules": true,
+        "realIntent": "continue_objective",
+        "agreesWithReal": false,
+        "safetyCritical": false,
+        "safetyOverride": false,
+        "wouldViolateSafety": false,
+        "wouldAbandonObjective": false,
+        "unjustifiedAbandon": false,
+        "objectiveType": "explore",
+        "resumedObjective": null,
+        "result": {
+          "ok": true,
+          "observationOnly": true
+        },
+        "nextState": null,
+        "interrupted": null,
+        "executionAuthority": "none"
+      }
+    }
+  ],
+  "executionAuthority": "none"
+}

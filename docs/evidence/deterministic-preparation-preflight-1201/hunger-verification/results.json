@@ -1,0 +1,79 @@
+[
+  {
+    "scenario": "hunger",
+    "elapsed_ms": 9969,
+    "mode": "hunger",
+    "snapshot": {
+      "health": 20,
+      "food": 5,
+      "inventory": {
+        "stick": 1,
+        "stone_pickaxe": 1
+      },
+      "inventoryLoad": 0.05555555555555555,
+      "equippedWeapon": null,
+      "equippedTool": "stone_pickaxe",
+      "threat": null,
+      "time": "day",
+      "atBase": false,
+      "baseKnown": true,
+      "baseDistance": 99.50125627347627,
+      "nearby": {
+        "food": true,
+        "wood": false,
+        "stone": true,
+        "iron": false,
+        "foodDistance": 3,
+        "woodDistance": null,
+        "stoneDistance": 1.5811388300841898,
+        "ironDistance": null
+      },
+      "consecutiveFailures": 0,
+      "alternativeRoute": false,
+      "waitReason": null,
+      "cancellationRequested": false,
+      "objective": {
+        "type": "explore",
+        "completed": false
+      },
+      "craftable": []
+    },
+    "diagnostics": [
+      {
+        "x": 0,
+        "y": 200,
+        "z": 2,
+        "name": "stone",
+        "actual": "stone",
+        "canDig": true,
+        "canSee": true,
+        "exposed": true,
+        "fallingAbove": false
+      },
+      {
+        "x": 2,
+        "y": 200,
+        "z": 0,
+        "name": "stone",
+        "actual": "stone",
+        "canDig": true,
+        "canSee": true,
+        "exposed": true,
+        "fallingAbove": false
+      }
+    ],
+    "preflight": {
+      "ok": false,
+      "code": "NO_PREPARATION_INTENT",
+      "choice": "find_food"
+    },
+    "proposal": null,
+    "execution": null,
+    "final": null,
+    "summary": {
+      "proposed": false,
+      "code": "NO_PREPARATION_INTENT",
+      "executionCode": null
+    }
+  }
+]

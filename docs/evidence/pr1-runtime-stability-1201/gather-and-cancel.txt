@@ -1,0 +1,21 @@
+[colônia] lenhador_01 terminou coletar_blocos: {
+  ok: true,
+  code: undefined,
+  gathered: 8,
+      itemConfirmed: true
+      itemConfirmed: true
+      itemConfirmed: true
+      itemConfirmed: true
+      itemConfirmed: true
+      itemConfirmed: true
+      itemConfirmed: true
+      itemConfirmed: true
+[colônia] lenhador_01 terminou coletar_blocos: {
+  ok: false,
+  code: 'CANCELLED',
+  gathered: 2,
+      itemConfirmed: true
+      itemConfirmed: true
+      itemConfirmed: false,
+      code: 'CANCELLED',
+    { code: 'CANCELLED' }

@@ -1,0 +1,258 @@
+[
+  {
+    "scenario": "reconnect_sword",
+    "elapsed_ms": 4823,
+    "requested": true,
+    "oldSession": 0,
+    "newSession": 1,
+    "settled": {
+      "ok": false,
+      "code": "DISCONNECTED",
+      "interrupted": true,
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "cobblestone": 2,
+          "stick": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword"
+        ]
+      },
+      "intent": "prepare_combat",
+      "steps": [
+        {
+          "task": "craft",
+          "item": "stone_sword",
+          "requested": 1,
+          "before": {
+            "cobblestone": 2,
+            "stick": 1
+          },
+          "after": {
+            "stone_sword": 1
+          },
+          "result": {
+            "item": "stone_sword",
+            "requested": 1,
+            "produced": 1,
+            "runs": 1
+          },
+          "inventoryConfirmed": true,
+          "interruption": "DISCONNECTED"
+        }
+      ],
+      "final": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stone_sword": 1
+        },
+        "inventoryLoad": 0.027777777777777776,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "remainingPlan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 0
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 0
+        },
+        "conversions": [],
+        "reason": "stone sword already carried; only equip/re-evaluation remains"
+      },
+      "juliaExecutionAuthority": "none"
+    },
+    "oldVersion": 3,
+    "oldVersionFinal": 3,
+    "oldTask": null,
+    "inventoryAfterReconnect": {
+      "stone_sword": 1
+    },
+    "liveTargets": [],
+    "plan": {
+      "weapon": "stone_sword",
+      "missing": {
+        "stick": 0,
+        "cobblestone": 0
+      },
+      "collect": {
+        "logs": 0,
+        "cobblestone": 0
+      },
+      "conversions": [],
+      "reason": "stone sword already carried; only equip/re-evaluation remains"
+    },
+    "task": {
+      "type": "preparar_combate_deterministico",
+      "objective": {
+        "type": "explorar"
+      },
+      "allowedTargets": [],
+      "timeoutMs": 14000,
+      "deterministicIntent": "equip_best_weapon"
+    },
+    "manual": {
+      "ok": true,
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stone_sword": 1
+        },
+        "inventoryLoad": 0.027777777777777776,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "intent": "equip_best_weapon",
+      "steps": [
+        {
+          "task": "equip",
+          "item": "stone_sword",
+          "inventoryConfirmed": true
+        }
+      ],
+      "final": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stone_sword": 1
+        },
+        "inventoryLoad": 0.027777777777777776,
+        "equippedWeapon": "stone_sword",
+        "equippedTool": null,
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "nextCandidates": [
+        {
+          "id": "continue_objective",
+          "description": "Continue the current objective because immediate survival and preparation needs are already handled."
+        }
+      ],
+      "executionAuthority": "deterministic_opt_in",
+      "juliaExecutionAuthority": "none"
+    },
+    "resume": {
+      "results": [],
+      "inventory": {
+        "stone_sword": 1
+      },
+      "held": "stone_sword",
+      "candidates": [
+        "continue_objective"
+      ]
+    },
+    "summary": {
+      "mode": "sword",
+      "inventory": {
+        "stone_sword": 1
+      },
+      "remaining": 0,
+      "code": null,
+      "final": "stone_sword",
+      "pendingOld": false
+    }
+  }
+]

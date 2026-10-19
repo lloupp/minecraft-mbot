@@ -13,6 +13,7 @@ const { ping } = require('minecraft-protocol')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const { Vec3 } = require('vec3')
 const food = require('./lib/food')
+const { WorldMemory } = require('./lib/world-memory')
 const perception = require('./lib/perception')
 const { detectProfile, configureClient, describeProfile } = require('./lib/serverProfile')
 const { announceLan, motdText } = require('./lib/lan')
@@ -40,6 +41,7 @@ const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
 const { LayaShadowObserver } = require('./lib/laya-shadow')
 const { JuliaShadowObserver } = require('./lib/julia-shadow')
+const { JuliaAuthority } = require('./lib/julia-authority')
 const { combineShadows } = require('./lib/shadow-fanout')
 const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
 const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
@@ -188,6 +190,30 @@ async function main() {
   waypointManager.restoreLegacyBase(savedState.home, savedState.homeDimension)
   const homeProvider = () => waypointManager.get('base')?.position || null
   const homeDimension = () => waypointManager.get('base')?.dimension || null
+  // Memória espacial do mundo (MBOT_WORLD_MEMORY=1 coleta/persiste; MBOT_WORLD_MEMORY_GUIDE=1 deixa
+  // a memória orientar destinos). base/storage continuam vindo dos providers acima: sem fonte duplicada.
+  const worldMemory = process.env.MBOT_WORLD_MEMORY === '1'
+    ? new WorldMemory({
+      file: process.env.MBOT_WORLD_MEMORY_FILE || '.data/world-memory.json',
+      logger: console,
+      providers: {
+        base: () => {
+          const p = waypointManager.get('base')
+          return p ? { ...p.position, dimension: p.dimension } : null
+        },
+        storage: () => {
+          const p = storage.getPosition()
+          return p ? { ...p, dimension: homeDimension() } : null
+        }
+      }
+    }).load()
+    : null
+  if (worldMemory) {
+    const s = worldMemory.summary()
+    console.log(`[world-memory] ${worldMemory.loadStatus}: ${s.places} lugar(es), ${s.explored} chunk(s) explorado(s); guia=${process.env.MBOT_WORLD_MEMORY_GUIDE === '1' ? 'on' : 'off'}`)
+    process.on('exit', () => { try { worldMemory.flushSync() } catch {} })
+    for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { try { worldMemory.flushSync() } catch {} process.exit(0) })
+  }
   const projectManager = new ProjectManager({
     storage,
     homeProvider
@@ -202,6 +228,13 @@ async function main() {
   // regra, sem autoridade de execução (lib/julia-shadow.js).
   const juliaShadow = new JuliaShadowObserver({ logger: console })
   const shadowObservers = combineShadows(layaShadow, juliaShadow)
+  // Autoridade da Julia-1 (MBOT_JULIA_AUTHORITY=1 + JULIA_PLAYER_LOOP_URL): escolhe entre os candidatos do
+  // player loop do explorador; guardrails e executor determinístico continuam valendo (lib/julia-authority.js).
+  const juliaAuthority = new JuliaAuthority({ logger: console })
+  if (juliaAuthority.enabled()) {
+    console.log(`[julia-authority] LIGADA: ${juliaAuthority.endpoint} (timeout ${juliaAuthority.timeoutMs} ms)`)
+    if (process.env.MBOT_EXPLORE_PREPARATION !== '1') console.log('[julia-authority] aviso: sem MBOT_EXPLORE_PREPARATION=1 o player loop não roda e a Julia não decide nada')
+  }
 
   function createWorker({ name, role }) {
     const worker = createBot(mineflayer, CONFIG, { username: name })
@@ -216,7 +249,9 @@ async function main() {
       ownerProvider: () => ownerEntity(),
       storage,
       production,
-      shadow: shadowObservers
+      shadow: shadowObservers,
+      worldMemory,
+      juliaAuthority
     })
 
     worker.once('spawn', () => {
@@ -1378,6 +1413,14 @@ async function main() {
     } catch (err) {
       bot.chat(`Não consegui iniciar a construção: ${err.message}`)
     }
+  })
+
+  commandRouter.register('mundo', async () => {
+    if (!worldMemory) { bot.chat('Memória do mundo desligada (MBOT_WORLD_MEMORY=1).'); return }
+    const s = worldMemory.summary()
+    const kinds = Object.entries(s.byKind).map(([k, v]) => `${k}:${v.CONFIRMED}/${v.STALE}/${v.INVALIDATED}`).join(' ')
+    console.log(`[world-memory] resumo ${JSON.stringify(s)}`)
+    bot.chat(`Mundo: ${s.places} lugares (${kinds || 'vazio'}), ${s.explored} chunks; criados=${s.metrics.created} confirmados=${s.metrics.confirmed} invalidados=${s.metrics.invalidated} consultas=${s.metrics.queries} úteis=${s.metrics.usefulQueries} stale=${s.metrics.staleQueries} explore=${s.metrics.exploreChoices}/rep${s.metrics.exploreRepeats}`)
   })
 
   commandRouter.register('base', async (context, args) => {

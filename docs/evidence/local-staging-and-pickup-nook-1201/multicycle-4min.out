@@ -1,0 +1,209 @@
+0.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+0.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+0.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 0, "pos": [310.5, 200, -316.5]}
+0.1 {"ev": "table.search", "maxDistance": 4, "bot": [310.5, 200, -316.5], "found": null}
+0.1 {"ev": "staging.start", "w": "explorador_01", "v": 1, "pos": [310.5, 200, -316.5]}
+0.1 {"ev": "table.search", "maxDistance": 8, "bot": [310.5, 200, -316.5], "found": [317, 200, -317]}
+0.1 {"ev": "goTo", "w": "explorador_01", "v": 1, "goal": [317, 200, -317, 1], "from": [310.5, 200, -316.5]}
+1.9 {"ev": "staging.end", "w": "explorador_01", "v": 1, "ok": true, "pos": [316.32, 200, -316.43]}
+5.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+10.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+15.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+16.8 {"ev": "explore.start", "w": "explorador_01", "v": 1, "pos": [314.6, 200, -315.4], "sm": "0"}
+16.8 {"ev": "goTo", "w": "explorador_01", "v": 1, "goal": [330, 200, -317, 3], "from": [314.64, 200, -315.43]}
+19.2 {"ev": "xpl.end", "w": "explorador_01", "v": 1, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 1}, {"intent": "prepare_combat", "ok": true, "code": null
+19.2 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 1, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 1}, {"intent": "prepare_combat", "ok"
+20.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+20.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+20.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 1, "pos": [327.3, 200, -316.5]}
+20.0 {"ev": "explore.start", "w": "explorador_01", "v": 2, "pos": [327.3, 200, -316.5], "sm": "0"}
+20.0 {"ev": "goTo", "w": "explorador_01", "v": 2, "goal": [330, 200, -301, 3], "from": [327.34, 200, -316.5]}
+22.6 {"ev": "xpl.end", "w": "explorador_01", "v": 2, "ok": true, "steps": [], "pos": [330.5, 200, -303.7], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+22.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 2, "ok": true, "steps": [], "pos": [330.5, 200, -303.7]}
+25.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+25.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+25.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 2, "pos": [330.5, 200, -303.7]}
+25.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+27.8 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 3, "ok": true, "pos": [320.5, 200, -313.5]}
+30.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+30.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+30.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 3, "pos": [320.5, 200, -313.5]}
+30.0 {"ev": "explore.start", "w": "explorador_01", "v": 4, "pos": [320.5, 200, -313.5], "sm": "0"}
+30.0 {"ev": "goTo", "w": "explorador_01", "v": 4, "goal": [314, 200, -301, 3], "from": [320.5, 200, -313.5]}
+32.3 {"ev": "xpl.end", "w": "explorador_01", "v": 4, "ok": true, "steps": [], "pos": [316.5, 200, -302.6], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+32.3 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 4, "ok": true, "steps": [], "pos": [316.5, 200, -302.6]}
+35.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+35.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+35.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 4, "pos": [316.5, 200, -302.6]}
+35.0 {"ev": "explore.start", "w": "explorador_01", "v": 5, "pos": [316.5, 200, -302.6], "sm": "0"}
+35.0 {"ev": "goTo", "w": "explorador_01", "v": 5, "goal": [298, 200, -301, 3], "from": [316.5, 200, -302.65]}
+38.0 {"ev": "xpl.end", "w": "explorador_01", "v": 5, "ok": true, "steps": [], "pos": [300.6, 200, -300.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+38.0 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 5, "ok": true, "steps": [], "pos": [300.6, 200, -300.5]}
+40.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+40.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+40.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 5, "pos": [300.6, 200, -300.5]}
+40.0 {"ev": "explore.start", "w": "explorador_01", "v": 6, "pos": [300.6, 200, -300.5], "sm": "0"}
+40.0 {"ev": "goTo", "w": "explorador_01", "v": 6, "goal": [298, 200, -317, 3], "from": [300.62, 200, -300.5]}
+42.6 {"ev": "xpl.end", "w": "explorador_01", "v": 6, "ok": true, "steps": [], "pos": [298.5, 200, -313.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+42.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 6, "ok": true, "steps": [], "pos": [298.5, 200, -313.5]}
+45.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+45.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+45.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 6, "pos": [298.5, 200, -313.5]}
+45.0 {"ev": "explore.start", "w": "explorador_01", "v": 7, "pos": [298.5, 200, -313.5], "sm": "0"}
+45.0 {"ev": "goTo", "w": "explorador_01", "v": 7, "goal": [298, 200, -333, 3], "from": [298.5, 200, -313.5]}
+48.0 {"ev": "xpl.end", "w": "explorador_01", "v": 7, "ok": true, "steps": [], "pos": [298.5, 200, -330.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+48.0 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 7, "ok": true, "steps": [], "pos": [298.5, 200, -330.5]}
+50.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+50.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+50.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 7, "pos": [298.5, 200, -330.5]}
+50.0 {"ev": "explore.start", "w": "explorador_01", "v": 8, "pos": [298.5, 200, -330.5], "sm": "0"}
+50.0 {"ev": "goTo", "w": "explorador_01", "v": 8, "goal": [314, 200, -333, 3], "from": [298.5, 200, -330.5]}
+52.6 {"ev": "xpl.end", "w": "explorador_01", "v": 8, "ok": true, "steps": [], "pos": [311.5, 200, -332.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+52.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 8, "ok": true, "steps": [], "pos": [311.5, 200, -332.5]}
+55.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+55.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+55.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 8, "pos": [311.5, 200, -332.5]}
+55.0 {"ev": "explore.start", "w": "explorador_01", "v": 9, "pos": [311.5, 200, -332.5], "sm": "0"}
+55.0 {"ev": "goTo", "w": "explorador_01", "v": 9, "goal": [330, 200, -333, 3], "from": [311.5, 200, -332.5]}
+57.8 {"ev": "xpl.end", "w": "explorador_01", "v": 9, "ok": true, "steps": [], "pos": [327.5, 200, -332.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+57.9 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 9, "ok": true, "steps": [], "pos": [327.5, 200, -332.5]}
+60.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+60.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+60.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 9, "pos": [327.5, 200, -332.5]}
+60.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+64.1 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 10, "ok": true, "pos": [319.4, 200, -314.6]}
+65.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+65.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+65.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 10, "pos": [319.4, 200, -314.6]}
+65.0 {"ev": "explore.start", "w": "explorador_01", "v": 11, "pos": [319.4, 200, -314.6], "sm": "0"}
+65.0 {"ev": "goTo", "w": "explorador_01", "v": 11, "goal": [346, 200, -317, 3], "from": [319.43, 200, -314.64]}
+69.7 {"ev": "xpl.end", "w": "explorador_01", "v": 11, "ok": true, "steps": [], "pos": [343.5, 200, -316.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+69.7 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 11, "ok": true, "steps": [], "pos": [343.5, 200, -316.5]}
+70.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+70.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+70.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 11, "pos": [343.5, 200, -316.5]}
+70.0 {"ev": "explore.start", "w": "explorador_01", "v": 12, "pos": [343.5, 200, -316.5], "sm": "0"}
+70.0 {"ev": "goTo", "w": "explorador_01", "v": 12, "goal": [346, 200, -285, 3], "from": [343.5, 200, -316.5]}
+75.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+75.4 {"ev": "xpl.end", "w": "explorador_01", "v": 12, "ok": true, "steps": [], "pos": [346.5, 200, -287.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+75.4 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 12, "ok": true, "steps": [], "pos": [346.5, 200, -287.5]}
+80.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+80.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+80.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 12, "pos": [346.5, 200, -287.5]}
+80.0 {"ev": "explore.start", "w": "explorador_01", "v": 13, "pos": [346.5, 200, -287.5], "sm": "0"}
+80.0 {"ev": "goTo", "w": "explorador_01", "v": 13, "goal": [314, 200, -285, 3], "from": [346.5, 200, -287.5]}
+85.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+85.7 {"ev": "xpl.end", "w": "explorador_01", "v": 13, "ok": true, "steps": [], "pos": [316.6, 200, -286.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+85.7 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 13, "ok": true, "steps": [], "pos": [316.6, 200, -286.5]}
+90.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+90.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+90.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 13, "pos": [316.6, 200, -286.5]}
+90.0 {"ev": "explore.start", "w": "explorador_01", "v": 14, "pos": [316.6, 200, -286.5], "sm": "0"}
+90.0 {"ev": "goTo", "w": "explorador_01", "v": 14, "goal": [282, 200, -285, 3], "from": [316.58, 200, -286.5]}
+95.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+95.8 {"ev": "xpl.end", "w": "explorador_01", "v": 14, "ok": true, "steps": [], "pos": [285.6, 200, -284.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+95.8 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 14, "ok": true, "steps": [], "pos": [285.6, 200, -284.5]}
+100.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+100.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+100.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 14, "pos": [285.6, 200, -284.5]}
+100.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+105.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+108.2 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 15, "ok": true, "pos": [317.3, 200, -312.3]}
+110.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+110.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+110.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 15, "pos": [317.3, 200, -312.3]}
+110.0 {"ev": "explore.start", "w": "explorador_01", "v": 16, "pos": [317.3, 200, -312.3], "sm": "0"}
+110.0 {"ev": "goTo", "w": "explorador_01", "v": 16, "goal": [282, 200, -317, 3], "from": [317.31, 200, -312.31]}
+115.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+116.1 {"ev": "xpl.end", "w": "explorador_01", "v": 16, "ok": true, "steps": [], "pos": [285.6, 200, -316.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+116.1 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 16, "ok": true, "steps": [], "pos": [285.6, 200, -316.5]}
+120.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+120.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+120.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 16, "pos": [285.6, 200, -316.5]}
+120.0 {"ev": "explore.start", "w": "explorador_01", "v": 17, "pos": [285.6, 200, -316.5], "sm": "0"}
+120.0 {"ev": "goTo", "w": "explorador_01", "v": 17, "goal": [282, 200, -349, 3], "from": [285.6, 200, -316.5]}
+125.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+125.6 {"ev": "xpl.end", "w": "explorador_01", "v": 17, "ok": true, "steps": [], "pos": [282.5, 200, -346.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+125.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 17, "ok": true, "steps": [], "pos": [282.5, 200, -346.5]}
+130.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+130.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+130.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 17, "pos": [282.5, 200, -346.5]}
+130.0 {"ev": "explore.start", "w": "explorador_01", "v": 18, "pos": [282.5, 200, -346.5], "sm": "0"}
+130.0 {"ev": "goTo", "w": "explorador_01", "v": 18, "goal": [314, 200, -349, 3], "from": [282.5, 200, -346.5]}
+135.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+135.6 {"ev": "xpl.end", "w": "explorador_01", "v": 18, "ok": true, "steps": [], "pos": [311.5, 200, -348.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+135.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 18, "ok": true, "steps": [], "pos": [311.5, 200, -348.5]}
+140.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+140.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+140.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 18, "pos": [311.5, 200, -348.5]}
+140.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+145.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+146.5 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 19, "ok": true, "pos": [318.5, 200, -315.5]}
+150.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+150.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+150.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 19, "pos": [318.5, 200, -315.5]}
+150.1 {"ev": "explore.start", "w": "explorador_01", "v": 20, "pos": [318.5, 200, -315.5], "sm": "0"}
+150.1 {"ev": "goTo", "w": "explorador_01", "v": 20, "goal": [346, 200, -349, 3], "from": [318.5, 200, -315.5]}
+155.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+157.6 {"ev": "xpl.end", "w": "explorador_01", "v": 20, "ok": true, "steps": [], "pos": [345.5, 200, -346.5], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:7,stone_sword:1"}
+157.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 20, "ok": true, "steps": [], "pos": [345.5, 200, -346.5]}
+160.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+160.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+160.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 20, "pos": [345.5, 200, -346.5]}
+160.1 {"ev": "explore.start", "w": "explorador_01", "v": 21, "pos": [345.5, 200, -346.5], "sm": "0"}
+160.1 {"ev": "goTo", "w": "explorador_01", "v": 21, "goal": [362, 200, -317, 3], "from": [345.5, 200, -346.5]}
+165.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+166.5 {"ev": "xpl.end", "w": "explorador_01", "v": 21, "ok": true, "steps": [{"intent": "equip_best_weapon", "ok": true, "code": null, "ownerVersion": 21}], "pos": [362.5, 200, -319.5], "inv": "oak_planks:2
+166.5 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 21, "ok": true, "steps": [{"intent": "equip_best_weapon", "ok": true, "code": null, "ownerVersion": 21}], "pos": [362.5, 200, -319.5]}
+170.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+170.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+170.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 21, "pos": [362.5, 200, -319.5]}
+170.1 {"ev": "explore.start", "w": "explorador_01", "v": 22, "pos": [362.5, 200, -319.5], "sm": "0"}
+170.1 {"ev": "goTo", "w": "explorador_01", "v": 22, "goal": [362, 200, -269, 3], "from": [362.5, 200, -319.5]}
+175.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+178.6 {"ev": "xpl.end", "w": "explorador_01", "v": 22, "ok": true, "steps": [], "pos": [362.5, 200, -271.6], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:7,stone_sword:1"}
+178.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 22, "ok": true, "steps": [], "pos": [362.5, 200, -271.6]}
+180.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+180.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+180.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 22, "pos": [362.5, 200, -271.6]}
+180.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+185.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+190.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+191.0 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 23, "ok": true, "pos": [320.5, 200, -313.5]}
+195.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+195.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+195.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 23, "pos": [320.5, 200, -313.5]}
+195.0 {"ev": "explore.start", "w": "explorador_01", "v": 24, "pos": [320.5, 200, -313.5], "sm": "0"}
+195.0 {"ev": "goTo", "w": "explorador_01", "v": 24, "goal": [314, 200, -269, 3], "from": [320.5, 200, -313.5]}
+200.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+203.0 {"ev": "xpl.end", "w": "explorador_01", "v": 24, "ok": true, "steps": [], "pos": [314.5, 200, -271.6], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:7,stone_sword:1"}
+203.0 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 24, "ok": true, "steps": [], "pos": [314.5, 200, -271.6]}
+205.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+205.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+205.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 24, "pos": [314.5, 200, -271.6]}
+205.0 {"ev": "explore.start", "w": "explorador_01", "v": 25, "pos": [314.5, 200, -271.6], "sm": "0"}
+205.0 {"ev": "goTo", "w": "explorador_01", "v": 25, "goal": [266, 200, -269, 3], "from": [314.5, 200, -271.63]}
+210.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+213.5 {"ev": "xpl.end", "w": "explorador_01", "v": 25, "ok": true, "steps": [], "pos": [269.6, 200, -268.7], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:7,stone_sword:1"}
+213.5 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 25, "ok": true, "steps": [], "pos": [269.6, 200, -268.7]}
+215.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+215.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+215.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 25, "pos": [269.6, 200, -268.7]}
+215.0 {"ev": "explore.start", "w": "explorador_01", "v": 26, "pos": [269.6, 200, -268.7], "sm": "0"}
+215.0 {"ev": "goTo", "w": "explorador_01", "v": 26, "goal": [266, 200, -317, 3], "from": [269.57, 200, -268.67]}
+220.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+223.6 {"ev": "xpl.end", "w": "explorador_01", "v": 26, "ok": true, "steps": [], "pos": [266.5, 200, -313.4], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:7,stone_sword:1"}
+223.6 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 26, "ok": true, "steps": [], "pos": [266.5, 200, -313.4]}
+225.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+225.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+225.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 26, "pos": [266.5, 200, -313.4]}
+225.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+230.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+234.0 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 27, "ok": true, "pos": [316.4, 200, -313.5]}
+235.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+235.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+235.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 27, "pos": [316.4, 200, -313.5]}
+235.1 {"ev": "explore.start", "w": "explorador_01", "v": 28, "pos": [316.4, 200, -313.5], "sm": "0"}
+235.1 {"ev": "goTo", "w": "explorador_01", "v": 28, "goal": [266, 200, -365, 3], "from": [316.39, 200, -313.5]}
+FIN
+FIN

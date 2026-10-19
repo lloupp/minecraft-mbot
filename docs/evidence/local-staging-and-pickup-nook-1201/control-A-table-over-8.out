@@ -1,0 +1,40 @@
+0.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+0.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+0.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 7, "pos": [310.5, 200, -316.5]}
+0.1 {"ev": "table.search", "maxDistance": 4, "bot": [310.5, 200, -316.5], "found": null}
+0.1 {"ev": "staging.start", "w": "explorador_01", "v": 8, "pos": [310.5, 200, -316.5]}
+0.1 {"ev": "table.search", "maxDistance": 8, "bot": [310.5, 200, -316.5], "found": null}
+0.1 {"ev": "staging.end", "w": "explorador_01", "v": 8, "ok": false, "pos": [310.5, 200, -316.5]}
+0.1 {"ev": "explore.start", "w": "explorador_01", "v": 8, "pos": [310.5, 200, -316.5], "sm": "0"}
+0.1 {"ev": "goTo", "w": "explorador_01", "v": 8, "goal": [314, 200, -333, 3], "from": [310.5, 200, -316.5]}
+2.8 {"ev": "xpl.end", "w": "explorador_01", "v": 8, "ok": true, "steps": [], "pos": [313.5, 200, -330.3], "inv": "stone_pickaxe:1,cooked_beef:8"}
+2.8 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 8, "ok": true, "steps": [], "pos": [313.5, 200, -330.3]}
+5.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+5.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+5.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 8, "pos": [313.5, 200, -330.3]}
+5.0 {"ev": "explore.start", "w": "explorador_01", "v": 9, "pos": [313.5, 200, -330.3], "sm": "0"}
+5.0 {"ev": "goTo", "w": "explorador_01", "v": 9, "goal": [330, 200, -333, 3], "from": [313.5, 200, -330.33]}
+7.7 {"ev": "xpl.end", "w": "explorador_01", "v": 9, "ok": true, "steps": [], "pos": [327.5, 200, -332.5], "inv": "stone_pickaxe:1,cooked_beef:8"}
+7.7 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 9, "ok": true, "steps": [], "pos": [327.5, 200, -332.5]}
+10.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+10.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+10.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 9, "pos": [327.5, 200, -332.5]}
+10.0 {"ev": "explore.start", "w": "explorador_01", "v": 10, "pos": [327.5, 200, -332.5], "sm": "0"}
+10.0 {"ev": "goTo", "w": "explorador_01", "v": 10, "goal": [346, 200, -317, 3], "from": [327.5, 200, -332.5]}
+14.2 {"ev": "xpl.end", "w": "explorador_01", "v": 10, "ok": true, "steps": [], "pos": [344.4, 200, -318.7], "inv": "stone_pickaxe:1,cooked_beef:8"}
+14.2 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 10, "ok": true, "steps": [], "pos": [344.4, 200, -318.7]}
+15.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+15.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+15.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 10, "pos": [344.4, 200, -318.7]}
+15.1 {"ev": "explore.start", "w": "explorador_01", "v": 11, "pos": [344.4, 200, -318.7], "sm": "0"}
+15.1 {"ev": "goTo", "w": "explorador_01", "v": 11, "goal": [346, 200, -285, 3], "from": [344.42, 200, -318.69]}
+20.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": true}
+20.8 {"ev": "xpl.end", "w": "explorador_01", "v": 11, "ok": true, "steps": [], "pos": [346.5, 200, -287.6], "inv": "stone_pickaxe:1,cooked_beef:8"}
+20.8 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 11, "ok": true, "steps": [], "pos": [346.5, 200, -287.6]}
+25.0 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": false}
+25.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+25.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 11, "pos": [346.5, 200, -287.6]}
+25.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+30.0 {"ev": "orch.tick", "inflight": ["explorador_01"], "backoff": [], "fails": null, "fresh": false}
+31.7 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 12, "ok": true, "pos": [319.5, 200, -312.5]}
+FIN

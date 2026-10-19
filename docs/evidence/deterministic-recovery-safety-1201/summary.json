@@ -1,0 +1,286 @@
+{
+  "passed": 70,
+  "total": 70,
+  "checks": [
+    {
+      "check": "baseline: continuous recorder",
+      "ok": true
+    },
+    {
+      "check": "baseline: no harness failures",
+      "ok": true
+    },
+    {
+      "check": "baseline: opt-in / Julia shadow",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: reconnect reads inventory and destroyed target",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: old session settled and owner invalidated",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: no old-session action after disconnect",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: only allowlisted digs",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: no repeated destroyed-target dig",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: no overlapping preparation operations",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: intervention after actual goto submission",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: correct interruption",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: no new physical step after safety",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: manual resume succeeds",
+      "ok": true
+    },
+    {
+      "check": "baseline/threat: only one remaining stone collected",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: reconnect reads inventory and destroyed target",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: old session settled and owner invalidated",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: no old-session action after disconnect",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: only allowlisted digs",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: no repeated destroyed-target dig",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: no overlapping preparation operations",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: intervention after actual goto submission",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: correct interruption",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: no new physical step after safety",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: manual resume succeeds",
+      "ok": true
+    },
+    {
+      "check": "baseline/new_order: only one remaining stone collected",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: reconnect reads inventory and destroyed target",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: old session settled and owner invalidated",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: no old-session action after disconnect",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: only allowlisted digs",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: no repeated destroyed-target dig",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: no overlapping preparation operations",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: intervention after actual goto submission",
+      "ok": true
+    },
+    {
+      "check": "baseline/replacement: preserved misattribution failure",
+      "ok": true
+    },
+    {
+      "check": "baseline: real shadow inference without sidecar errors",
+      "ok": true
+    },
+    {
+      "check": "verification: continuous recorder",
+      "ok": true
+    },
+    {
+      "check": "verification: no harness failures",
+      "ok": true
+    },
+    {
+      "check": "verification: opt-in / Julia shadow",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: reconnect reads inventory and destroyed target",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: old session settled and owner invalidated",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: no old-session action after disconnect",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: only allowlisted digs",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: no repeated destroyed-target dig",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: no overlapping preparation operations",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: intervention after actual goto submission",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: specific refusal / no invented pickup",
+      "ok": true
+    },
+    {
+      "check": "verification/replacement: no further action after removal",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: reconnect reads inventory and destroyed target",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: old session settled and owner invalidated",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: no old-session action after disconnect",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: only allowlisted digs",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: no repeated destroyed-target dig",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: no overlapping preparation operations",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: intervention after actual goto submission",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: correct interruption",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: no new physical step after safety",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: manual resume succeeds",
+      "ok": true
+    },
+    {
+      "check": "verification/threat: only one remaining stone collected",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: reconnect reads inventory and destroyed target",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: old session settled and owner invalidated",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: no old-session action after disconnect",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: only allowlisted digs",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: no repeated destroyed-target dig",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: no overlapping preparation operations",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: intervention after actual goto submission",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: correct interruption",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: no new physical step after safety",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: manual resume succeeds",
+      "ok": true
+    },
+    {
+      "check": "verification/new_order: only one remaining stone collected",
+      "ok": true
+    },
+    {
+      "check": "verification: real shadow inference without sidecar errors",
+      "ok": true
+    },
+    {
+      "check": "final validation commands pass",
+      "ok": true
+    }
+  ]
+}

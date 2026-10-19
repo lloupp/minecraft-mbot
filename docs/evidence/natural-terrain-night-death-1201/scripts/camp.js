@@ -1,0 +1,21 @@
+const mineflayer = require('/home/user/minecraft-mbot/node_modules/mineflayer')
+const { Vec3 } = require('/home/user/minecraft-mbot/node_modules/vec3')
+const fs = require('fs'); const SO = process.env.SO
+const C = (c) => fs.appendFileSync(SO + '/mcserver/in.fifo', c + '\n')
+const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+const bot = mineflayer.createBot({ host: '127.0.0.1', port: 25566, username: 'scanbot', version: '1.20.1', auth: 'offline' })
+bot.once('spawn', async () => {
+  C('tp scanbot -14 100 -180'); await sleep(5000)
+  const o = new Vec3(-14.5, 72, -179.5)
+  const ids = n => bot.registry.blocksByName[n]?.id
+  const logs = bot.findBlocks({ matching: ['oak_log','birch_log'].map(ids), maxDistance: 16, count: 200, point: o })
+  const stone = bot.findBlocks({ matching: [ids('stone')], maxDistance: 16, count: 400, point: o })
+  const tbl = bot.findBlocks({ matching: [ids('crafting_table')], maxDistance: 16, count: 5, point: o })
+  const d = (p) => +p.distanceTo(o).toFixed(1)
+  console.log('logs', logs.length, 'nearest', logs.length ? Math.min(...logs.map(d)) : null, 'table', tbl.map(p => p.toString() + ' d' + d(p)))
+  const ex = stone.filter(p => { const a = bot.blockAt(p.offset(0,1,0)); return a && a.name === 'air' })
+  console.log('stone', stone.length, 'exposed', ex.length, 'nearest exposed', ex.length ? Math.min(...ex.map(d)) : null)
+  console.log('tree bases', logs.filter(p => bot.blockAt(p.offset(0,-1,0))?.name === 'grass_block').map(p => p.toString() + ' d' + d(p)).slice(0, 8))
+  bot.quit(); process.exit(0)
+})
+setTimeout(() => process.exit(1), 40000)

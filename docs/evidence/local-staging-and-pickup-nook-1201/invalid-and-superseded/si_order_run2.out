@@ -1,0 +1,35 @@
+ACTION order at 1790989523057
+0.0 {"ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 5354]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+5.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "manual", "v": 8, "pos": [310.5, 200, -316.5]}
+5.0 {"ev": "table.search", "maxDistance": 4, "bot": [310.5, 200, -316.5], "found": null}
+5.0 {"ev": "staging.start", "w": "explorador_01", "v": 9, "pos": [310.5, 200, -316.5]}
+5.0 {"ev": "table.search", "maxDistance": 8, "bot": [310.5, 200, -316.5], "found": [317, 200, -317]}
+5.0 {"ev": "goTo", "w": "explorador_01", "v": 9, "goal": [317, 200, -317, 1], "from": [310.5, 200, -316.5]}
+5.1 {"ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 304]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+6.8 {"ev": "staging.end", "w": "explorador_01", "v": 9, "ok": true, "pos": [316.32, 200, -316.43]}
+10.1 {"ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+15.1 {"ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+20.4 {"ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": true}
+25.4 {"ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+27.0 {"ev": "xpl.end", "w": "explorador_01", "v": 9, "ok": false, "code": "TIMEOUT", "steps": [{"intent": "gather_materials", "ok": false, "code": "TIMEOUT", "ownerVersion": 9}], "pos": [314.5, 200, -315.5
+27.0 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 9, "ok": false, "code": "TIMEOUT", "steps": [{"intent": "gather_materials", "ok": false, "code": "TIMEOUT", "ownerVersion": 9}], "pos":
+30.5 {"ev": "orch.tick", "inflight": [], "backoff": [["explorador_01", 0]], "fails": "[[\"explorador_01\",1]]", "fresh": false}
+30.5 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+30.5 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 9, "pos": [314.5, 200, -315.5]}
+30.5 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+31.5 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 10, "ok": true, "pos": [316.5, 200, -313.5]}
+35.5 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+35.5 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+35.5 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 10, "pos": [316.5, 200, -313.5]}
+36.1 {"ev": "explore.start", "w": "explorador_01", "v": 11, "pos": [316.5, 200, -313.5], "sm": "0"}
+36.1 {"ev": "goTo", "w": "explorador_01", "v": 11, "goal": [314, 200, -333, 3], "from": [316.5, 200, -313.5]}
+39.3 {"ev": "xpl.end", "w": "explorador_01", "v": 11, "ok": true, "steps": [{"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 11}], "pos": [314.5, 200, -330.5], "inv": "oak_log:1,oak_p
+39.3 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 11, "ok": true, "steps": [{"intent": "prepare_combat", "ok": true, "code": null, "ownerVersion": 11}], "pos": [314.5, 200, -330.5]}
+40.5 {"ev": "orch.tick", "inflight": [], "backoff": [], "fails": null, "fresh": true}
+40.5 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+40.5 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 11, "pos": [314.5, 200, -330.5]}
+40.5 {"ev": "explore.start", "w": "explorador_01", "v": 12, "pos": [314.5, 200, -330.5], "sm": "0"}
+40.5 {"ev": "goTo", "w": "explorador_01", "v": 12, "goal": [330, 200, -333, 3], "from": [314.5, 200, -330.5]}
+43.0 {"ev": "xpl.end", "w": "explorador_01", "v": 12, "ok": true, "steps": [], "pos": [327.5, 200, -332.5], "inv": "oak_log:1,oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,stone_sword:1"}
+43.0 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 12, "ok": true, "steps": [], "pos": [327.5, 200, -332.5]}
+FIN

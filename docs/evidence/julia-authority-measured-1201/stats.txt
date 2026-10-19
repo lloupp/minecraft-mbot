@@ -1,0 +1,10 @@
+mortes: Julia antes [13, 9, 17] -> depois [2, 8, 7, 6, 8, 7]  (média 13.0 -> 6.3); p=0.012
+mortes: controle antes [17, 4, 4] -> depois [5, 14, 9, 13, 12, 14] (média 8.3 -> 11.2); p=0.810
+mortes_de_noite: Julia antes [9, 3, 15] -> depois [1, 7, 7, 3, 7, 4]  (média 9.0 -> 4.8); p=0.143
+mortes_de_noite: controle antes [16, 3, 4] -> depois [3, 10, 6, 8, 10, 11] (média 7.7 -> 8.0); p=0.667
+maior_vida_min: Julia antes [14.2, 13.2, 16.1] -> depois [34.2, 37.1, 21.4, 15.5, 21.0, 16.7]  (média 14.5 -> 24.3); p=0.024
+maior_vida_min: controle antes [15.2, 16.8, 41.9] -> depois [33.5, 19.9, 30.1, 13.5, 33.2, 16.9] (média 24.6 -> 24.5); p=0.452
+comida_obtida: Julia antes [5, 5, 5] -> depois [13, 9, 11, 10, 11, 16]  (média 5.0 -> 11.7); p=0.012
+comida_obtida: controle antes [7, 9, 7] -> depois [9, 6, 16, 9, 9, 11] (média 7.7 -> 10.0); p=0.155
+pares código novo (Julia x controle, mesmo horário): Julia morreu menos em 6 de 6: [(2, 5), (8, 14), (7, 9), (6, 13), (8, 12), (7, 14)]; p sinal bilateral=0.03125
+pares linha de base: [(13, 17), (9, 4), (17, 4)]

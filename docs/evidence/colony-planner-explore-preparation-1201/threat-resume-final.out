@@ -1,0 +1,22 @@
+0.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+0.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 7, "pos": [310.5, 200, -316.5]}
+1.9 {"ev": "xpl.end", "w": "explorador_01", "v": 8, "ok": false, "code": "THREAT", "steps": [{"intent": "gather_materials", "ok": false, "code": "THREAT", "ownerVersion": 8}], "pos": [310.5, 200, -316.5],
+1.9 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 8, "ok": false, "code": "THREAT", "steps": [{"intent": "gather_materials", "ok": false, "code": "THREAT", "ownerVersion": 8}], "pos": [
+15.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+15.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 9, "pos": [310.5, 200, -315.5]}
+31.7 {"ev": "explore.start", "w": "explorador_01", "v": 10, "pos": [313.5, 200, -316.5], "sm": "0"}
+34.1 {"ev": "xpl.end", "w": "explorador_01", "v": 10, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 10}, {"intent": "prepare_combat", "ok": true, "code": nu
+34.1 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 10, "ok": true, "steps": [{"intent": "gather_materials", "ok": true, "code": null, "ownerVersion": 10}, {"intent": "prepare_combat", "o
+35.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "sincronizar_estoque", "reason": "atualizar_estoque"}
+35.0 {"ev": "run.start", "w": "explorador_01", "task": "sincronizar_estoque", "src": "orchestrator", "reason": "atualizar_estoque", "v": 10, "pos": [314.5, 200, -329.3]}
+35.0 {"ev": "storage.summary", "w": "explorador_01", "args": []}
+38.4 {"ev": "run.end", "w": "explorador_01", "task": "sincronizar_estoque", "v": 11, "ok": true, "pos": [317.5, 200, -314.7]}
+40.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+40.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 11, "pos": [317.5, 200, -314.7]}
+40.0 {"ev": "explore.start", "w": "explorador_01", "v": 12, "pos": [317.5, 200, -314.7], "sm": "0"}
+43.7 {"ev": "xpl.end", "w": "explorador_01", "v": 12, "ok": true, "steps": [], "pos": [329.6, 200, -330.3], "inv": "oak_planks:2,stick:3,stone_pickaxe:1,cooked_beef:8,rotten_flesh:1,stone_sword:1"}
+43.7 {"ev": "run.end", "w": "explorador_01", "task": "explorar", "v": 12, "ok": true, "steps": [], "pos": [329.6, 200, -330.3]}
+45.0 {"ev": "orch.runAuto", "w": "explorador_01", "task": "explorar", "reason": "estoque_estavel", "radius": 96}
+45.0 {"ev": "run.start", "w": "explorador_01", "task": "explorar", "src": "orchestrator", "reason": "estoque_estavel", "v": 12, "pos": [329.6, 200, -330.3]}
+45.0 {"ev": "explore.start", "w": "explorador_01", "v": 13, "pos": [329.6, 200, -330.3], "sm": "0"}
+FIN

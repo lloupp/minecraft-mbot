@@ -1,0 +1,13 @@
+Teste real do executor de noite (lib/night.spendNight) com bot de teste (scripts/nighttest.js): noite (time 13500),
+inventário vazio, resistência para isolar o executor; o script avança para o dia (time 23500) após 15 s.
+
+1. (245.5,64,-110.5) perto do spawn, antes da regra de tampa obtível  -> spot null: "não achei lugar seguro para cavar um abrigo"
+2. (262.5,72,-122.5) floresta, bot sobre a copa                        -> spot (262,69,-123); goto "Took to long to decide path" (falhou)
+3. (100.5,90,-180.5) campo aberto, antes da espera da tampa             -> cavou grama/terra/terra, tampou (cabeça=dirt durante a noite);
+                                                                          ao amanhecer: "não consegui sair do abrigo" (1 bloco a menos)
+4. (104.5,90,-186.5) campo aberto, antes do retry da tampa              -> "Server refused to place dirt ... still air" (bot ainda caindo)
+5. (108.5,90,-190.5) depois das duas correções                          -> resultado "abrigo" em 20 s; cabeça=dirt durante a noite; saiu
+6. (96.5,90,-176.5)  depois das duas correções                          -> resultado "abrigo" em 20 s; cabeça=dirt durante a noite; saiu
+scripts/exittest.js: no fundo do buraco com 3 terras, o pathfinder sobe empilhando (69P/70P/71P) e sai: 3 blocos são necessários.
+scripts/sheltercost.js (no spawn, sem picareta): raio 8/12/16 -> nenhum lugar tampável; raio 24 -> (216,32,-87), chão de caverna — inútil.
+scripts/cost.js: findFoodSource 1172 ms, findShelterSpot 1.9 ms, findBed 81 ms (por chamada, no mundo real).

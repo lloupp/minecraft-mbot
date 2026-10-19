@@ -1,0 +1,11 @@
+{
+  "optIn": "1",
+  "juliaShadow": true,
+  "juliaExecutionAuthority": "none",
+  "minecraft": "1.20.1",
+  "revision": "2ab55e17e6ead074bb1780c84f90dc8f86ba603f",
+  "selected": [
+    "threat",
+    "hunger"
+  ]
+}

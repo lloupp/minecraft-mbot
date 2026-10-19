@@ -1,0 +1,58 @@
+{
+ "inicio": "12:59:12",
+ "fim": "13:09:50",
+ "duracao_min": 10.6,
+ "decisoes": 38,
+ "ciclos": 37,
+ "forcadas_candidato_unico": 35,
+ "julia_validas": 1,
+ "fallbacks": {
+  "timeout": 2
+ },
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 2,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "find_food,return_base -> return_base": 1
+ },
+ "julia_divergiu_da_deterministica": 1,
+ "latencia_ms": {
+  "mediana": 5001,
+  "p90": 5009,
+  "max": 5009
+ },
+ "acoes": {
+  "explore": 16,
+  "return_base": 16,
+  "find_food": 2,
+  "night:failed": 2,
+  "None": 1
+ },
+ "resultados": {
+  "ok": 32,
+  "none": 2,
+  "SHELTER_FAILED": 2,
+  "NOT_ARRIVED": 1
+ },
+ "erros_texto": {},
+ "itens_ganhos": {},
+ "repeticoes_>=10_ciclos_identicos": [],
+ "mortes": 0,
+ "mortes_causas": {},
+ "conexoes": {},
+ "acoes_fisicas": {},
+ "crafts": {},
+ "combates_reflexo": {
+  "não": 2
+ },
+ "worldmemory": {
+  "discover": 104,
+  "explored": 17,
+  "explore": 16,
+  "missing": 1
+ },
+ "infra": [
+  "1791291494 bot_start_fresh"
+ ]
+}

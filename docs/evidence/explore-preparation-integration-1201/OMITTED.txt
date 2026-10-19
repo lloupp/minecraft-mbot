@@ -1,0 +1,2 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+    83509  docs/evidence/explore-preparation-integration-1201/timeline-all-runs.jsonl

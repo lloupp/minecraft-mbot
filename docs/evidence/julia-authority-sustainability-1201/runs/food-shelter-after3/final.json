@@ -1,0 +1,70 @@
+{
+ "inicio": "13:28:43",
+ "fim": "13:36:17",
+ "duracao_min": 7.6,
+ "decisoes": 30,
+ "ciclos": 30,
+ "forcadas_candidato_unico": 24,
+ "julia_validas": 6,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "return_base,sleep_or_shelter -> return_base": 5,
+  "find_food,return_base -> return_base": 1
+ },
+ "julia_divergiu_da_deterministica": 1,
+ "latencia_ms": {
+  "mediana": 385,
+  "p90": 393,
+  "max": 393
+ },
+ "acoes": {
+  "None": 14,
+  "return_base": 7,
+  "explore": 6,
+  "threat:escape_danger:fugi": 2,
+  "find_food": 1
+ },
+ "resultados": {
+  "ok": 16,
+  "CANCELLED": 12,
+  "ERROR": 2
+ },
+ "erros_texto": {
+  "The goal was changed before it could be compl": 2
+ },
+ "itens_ganhos": {},
+ "repeticoes_>=10_ciclos_identicos": [],
+ "mortes": 11,
+ "mortes_causas": {
+  "was slain by Spider": 2,
+  "was shot by Skeleton": 4,
+  "was slain by Zombie": 3,
+  "was blown up by Creeper": 1,
+  "was kicked for floating too long!": 1
+ },
+ "conexoes": {
+  "desconexoes": 1
+ },
+ "acoes_fisicas": {},
+ "crafts": {},
+ "combates_reflexo": {
+  "fugi": 16,
+  "cancelado": 2,
+  "recuei": 5
+ },
+ "worldmemory": {
+  "discover": 50,
+  "explored": 8,
+  "explore": 7,
+  "missing": 1,
+  "suggest": 1,
+  "food": 1
+ },
+ "infra": [
+  "1791293265 bot_start_fresh"
+ ]
+}

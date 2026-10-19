@@ -1,0 +1,23 @@
+=== start 1 (100.5 70 -150.5)
+2.9 {"ev": "xpl.end", "v": 1, "ok": true, "steps": [], "pos": [113.4, 68, -153.5]}
+=== start 2 (98.5 70 -149.5)
+28.6 {"ev": "run.reject", "err": "Took to long to decide path to goal!"}
+=== start 3 (103.5 70 -153.5)
+2.7 {"ev": "xpl.end", "v": 3, "ok": true, "steps": [], "pos": [101.5, 69, -139.5]}
+=== start 4 (97.5 70 -155.5)
+0.1 {"ev": "table.search", "maxDistance": 4, "bot": [97.5, 70, -155.5], "found": null}
+0.1 {"ev": "staging.start", "v": 4, "pos": [97.5, 70, -155.5]}
+0.1 {"ev": "table.search", "maxDistance": 8, "bot": [97.5, 70, -155.5], "found": [102, 70, -154]}
+1.1 {"ev": "staging.end", "v": 4, "ok": true, "pos": [101.32, 70, -153.53]}
+5.1 {"ev": "xpl.end", "v": 4, "ok": true, "steps": [], "pos": [85.5, 70, -139.4]}
+=== start 5 (102.5 70 -147.5)
+0.0 {"ev": "staging.start", "v": 5, "pos": [102.5, 69, -147.5]}
+0.1 {"ev": "table.search", "maxDistance": 8, "bot": [102.5, 69, -147.5], "found": [102, 70, -154]}
+1.2 {"ev": "staging.end", "v": 5, "ok": true, "pos": [102.5, 70, -152.36]}
+4.2 {"ev": "xpl.end", "v": 5, "ok": true, "steps": [], "pos": [86.5, 70, -153.5]}
+=== start 6 (106.5 70 -150.5)
+0.0 {"ev": "staging.start", "v": 6, "pos": [106.5, 69, -150.5]}
+0.0 {"ev": "table.search", "maxDistance": 8, "bot": [106.5, 69, -150.5], "found": [102, 70, -154]}
+1.4 {"ev": "staging.end", "v": 6, "ok": true, "pos": [102.52, 70, -152.34]}
+5.7 {"ev": "xpl.end", "v": 6, "ok": true, "steps": [], "pos": [85.5, 70, -167.5]}
+FIN

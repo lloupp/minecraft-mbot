@@ -1,0 +1,106 @@
+{
+ "inicio": "21:51:31",
+ "fim": "22:27:53",
+ "duracao_min": 36.4,
+ "decisoes": 268,
+ "ciclos": 268,
+ "forcadas_candidato_unico": 258,
+ "julia_validas": 10,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "continue_objective,return_base -> continue_objective": 7,
+  "fight_threat,escape_danger -> escape_danger": 2,
+  "prepare_combat,continue_objective -> prepare_combat": 1
+ },
+ "julia_divergiu_da_deterministica": 2,
+ "latencia_ms": {
+  "mediana": 343,
+  "p90": 682,
+  "max": 682
+ },
+ "acoes": {
+  "None": 94,
+  "return_base": 79,
+  "none_preempted": 67,
+  "explore": 23,
+  "preparation:gather_materials": 2,
+  "threat:escape_danger:fugi": 2,
+  "preparation:prepare_combat": 1
+ },
+ "resultados": {
+  "ok": 106,
+  "ERROR": 93,
+  "PLAYER_LOOP_PREEMPTED": 67,
+  "TARGET_BLOCKED": 1,
+  "CANCELLED": 1
+ },
+ "erros_texto": {
+  "pos.floored is not a function": 83,
+  "caminho demorou demais": 8,
+  "The goal was changed before it could be compl": 1,
+  "Took to long to decide path to goal!": 1
+ },
+ "itens_ganhos": {
+  "oak_planks": 3,
+  "oak_log": 2,
+  "stick": 2,
+  "cobblestone": 2,
+  "oak_sapling": 1,
+  "wooden_pickaxe": 1,
+  "stone_sword": 1
+ },
+ "repeticoes_>=10_ciclos_identicos": [
+  "83x gather_materials -> ERROR",
+  "63x return_base -> None",
+  "55x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+  "15x return_base -> None",
+  "14x continue_objective -> None",
+  "12x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED"
+ ],
+ "mortes": 2,
+ "mortes_causas": {
+  "drowned": 1,
+  "was shot by Skeleton": 1
+ },
+ "conexoes": {
+  "desconexoes": 2,
+  "conexoes": 2
+ },
+ "acoes_fisicas": {
+  "dig": 8,
+  "craft": 5,
+  "equip": 4,
+  "move": 3
+ },
+ "crafts": {
+  "oak_planks": 2,
+  "stick": 1,
+  "wooden_pickaxe": 1,
+  "stone_sword": 1
+ },
+ "combates_reflexo": {
+  "morto": 1,
+  "fugi": 8,
+  "recuei": 1
+ },
+ "worldmemory": {
+  "discover": 116,
+  "suggest": 83,
+  "preparation_site": 83,
+  "explore": 30,
+  "explored": 23,
+  "loaded": 2,
+  "missing": 1
+ },
+ "infra": [
+  "1791237034 bot_start_r2",
+  "1791239039 code_update_restart",
+  "1791239052 bot_restart",
+  "1791239256 code_update_restart",
+  "1791239263 bot_restart"
+ ]
+}

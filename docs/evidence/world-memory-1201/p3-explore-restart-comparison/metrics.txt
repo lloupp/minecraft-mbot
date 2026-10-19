@@ -1,0 +1,10 @@
+Mundo flat 1.20.1, explorador_01, '!explorar base 64' x6 -> restart real do runtime -> x6. Memória nova em cada modo.
+Linhas fase1/fase2 = métricas persistidas (fase2 acumulado). Última rodada de cada arquivo = código corrigido.
+
+OFF (MBOT_WORLD_MEMORY_GUIDE=0):
+fase1 {'created': 0, 'confirmed': 0, 'invalidated': 0, 'queries': 0, 'verified': 0, 'usefulQueries': 0, 'staleQueries': 0, 'exploredChunks': 6, 'exploreChoices': 6, 'exploreRepeats': 0}
+fase2 {'created': 0, 'confirmed': 0, 'invalidated': 0, 'queries': 0, 'verified': 0, 'usefulQueries': 0, 'staleQueries': 0, 'exploredChunks': 7, 'exploreChoices': 12, 'exploreRepeats': 6} chunks 7
+
+ON (MBOT_WORLD_MEMORY_GUIDE=1):
+fase1 {'created': 0, 'confirmed': 0, 'invalidated': 0, 'queries': 0, 'verified': 0, 'usefulQueries': 0, 'staleQueries': 0, 'exploredChunks': 6, 'exploreChoices': 6, 'exploreRepeats': 0}
+fase2 {'created': 0, 'confirmed': 0, 'invalidated': 0, 'queries': 0, 'verified': 0, 'usefulQueries': 0, 'staleQueries': 0, 'exploredChunks': 14, 'exploreChoices': 12, 'exploreRepeats': 0} chunks 14

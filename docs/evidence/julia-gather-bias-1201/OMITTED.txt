@@ -1,0 +1,13 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+      775  docs/evidence/julia-gather-bias-1201/g45.sh
+     2782  docs/evidence/julia-gather-bias-1201/gather_analysis.py
+     2187  docs/evidence/julia-gather-bias-1201/gather_groups.sh
+    37742  docs/evidence/julia-gather-bias-1201/gsweep.json
+     2348  docs/evidence/julia-gather-bias-1201/gsweep.py
+     2536  docs/evidence/julia-gather-bias-1201/probe.js
+     5124  docs/evidence/julia-gather-bias-1201/runtime/g45-rows.json
+    13146  docs/evidence/julia-gather-bias-1201/runtime/gather-rows.json
+    33271  docs/evidence/julia-gather-bias-1201/runtime/julia-payloads.jsonl
+    53446  docs/evidence/julia-gather-bias-1201/runtime/julia-shadow.jsonl
+    35693  docs/evidence/julia-gather-bias-1201/runtime/probe-dispatch.jsonl
+     1782  docs/evidence/julia-gather-bias-1201/tee_proxy.py

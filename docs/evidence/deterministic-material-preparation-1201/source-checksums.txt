@@ -1,0 +1,4 @@
+3b7b29eea3b0a8dd4c442e2f26fa3b5a55f04ba3a213cd393bda8afc907fea5a  lib/forced-preparation.js
+1575c5dc3290b14a4c7e9842f6ca606224939661b8d5c1f4cb0ae9b59c5dd0e4  lib/gather.js
+008f39bbbe69d7722e44cb1875770d1b9dd057d16a1134c037064200b0f84dcc  lib/player-loop.js
+09c8410699dbc71ce1947865bc49cecbaa800194205b456f227cce9ca26c8b51  core/ProductionManager.js

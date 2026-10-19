@@ -1,0 +1,162 @@
+{
+ "r3": {
+  "duracao_min": 117.8,
+  "decisoes": 516,
+  "julia": 158,
+  "forcadas": 358,
+  "fallbacks": 0,
+  "invalidas": 0,
+  "timeouts_julia": 0,
+  "divergiu": 127,
+  "latencia": {
+   "mediana": 325,
+   "p90": 395,
+   "max": 1476
+  },
+  "mortes": 12,
+  "mortes_por_hora": 6.1,
+  "mortes_causas": {
+   "was slain by Zombie": 3,
+   "was slain by Phantom": 6,
+   "was slain by Spider": 1,
+   "drowned": 1,
+   "fell from a high place": 1
+  },
+  "noites_completas": 6,
+  "noites_sobrevividas_sem_morte": 0,
+  "mortes_de_noite": 10,
+  "comida_obtida": {},
+  "comida_comida": {},
+  "crafts": {
+   "oak_planks": 14,
+   "wooden_pickaxe": 6,
+   "stick": 5,
+   "crafting_table": 5,
+   "stone_sword": 5,
+   "birch_planks": 2
+  },
+  "coleta": {
+   "oak_log": 8,
+   "cobblestone": 47,
+   "dirt": 21,
+   "sand": 2,
+   "gravel": 0,
+   "string": 0,
+   "leather": 0
+  },
+  "acoes_fisicas": {
+   "move": 69,
+   "equip": 67,
+   "dig": 64,
+   "craft": 37,
+   "place": 5
+  },
+  "combate_reflexo": {
+   "cancelado": 2,
+   "recuei": 1,
+   "fugi": 83,
+   "morto": 4,
+   "tempo": 1
+  },
+  "fugas_loop": 28,
+  "falhas_navegacao": 37,
+  "erros": {
+   "caminho demorou demais": 37,
+   "The goal was changed before it could be compl": 10
+  },
+  "repeticoes": [
+   "77x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+   "42x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+   "29x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+   "27x gather_materials -> RECIPE_INPUTS_NOT_CONFIRMED",
+   "25x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+   "19x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+   "14x return_base -> ERROR",
+   "11x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED",
+   "10x sleep_or_shelter -> PLAYER_LOOP_PREEMPTED"
+  ],
+  "reinicios_codigo_infra": 4
+ },
+ "r4": {
+  "duracao_min": 115.5,
+  "decisoes": 350,
+  "julia": 84,
+  "forcadas": 266,
+  "fallbacks": 0,
+  "invalidas": 0,
+  "timeouts_julia": 0,
+  "divergiu": 43,
+  "latencia": {
+   "mediana": 376,
+   "p90": 443,
+   "max": 1180
+  },
+  "mortes": 28,
+  "mortes_por_hora": 14.5,
+  "mortes_causas": {
+   "drowned": 4,
+   "was slain by Spider": 1,
+   "was shot by Skeleton": 13,
+   "was slain by Phantom": 6,
+   "was slain by Zombie": 2,
+   "was slain by Drowned": 1,
+   "was blown up by Creeper": 1
+  },
+  "noites_completas": 5,
+  "noites_sobrevividas_sem_morte": 0,
+  "mortes_de_noite": 23,
+  "comida_obtida": {
+   "beef": 5,
+   "rotten_flesh": 3,
+   "porkchop": 2,
+   "apple": 1
+  },
+  "comida_comida": {
+   "beef": 1
+  },
+  "crafts": {
+   "oak_planks": 7,
+   "stick": 3,
+   "wooden_pickaxe": 3,
+   "stone_sword": 2,
+   "crafting_table": 1
+  },
+  "coleta": {
+   "oak_log": 1,
+   "cobblestone": 29,
+   "dirt": 3,
+   "sand": 2,
+   "gravel": 3,
+   "string": 4,
+   "leather": 4
+  },
+  "acoes_fisicas": {
+   "dig": 18,
+   "equip": 18,
+   "move": 18,
+   "craft": 16,
+   "place": 1
+  },
+  "combate_reflexo": {
+   "morto": 5,
+   "recuei": 14,
+   "fugi": 99,
+   "não": 1,
+   "tempo": 1,
+   "cancelado": 3,
+   "Digging": 1
+  },
+  "fugas_loop": 80,
+  "falhas_navegacao": 27,
+  "erros": {
+   "caminho demorou demais": 26,
+   "The goal was changed before it could be compl": 13,
+   "No path to the goal! (nem cavando)": 1
+  },
+  "repeticoes": [
+   "15x continue_objective -> None",
+   "10x escape_danger -> None"
+  ],
+  "reinicios_codigo_infra": 0
+ }
+}

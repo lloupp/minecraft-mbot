@@ -1,0 +1,16 @@
+{
+  "optIn": "1",
+  "juliaShadow": true,
+  "juliaExecutionAuthority": "none",
+  "minecraft": "1.20.1",
+  "revision": "7286200d7b1bee0e239fc76568af5727b23c8006",
+  "selected": [
+    "policy",
+    "moving",
+    "attack_gather",
+    "attack_craft",
+    "race",
+    "table",
+    "inventory"
+  ]
+}

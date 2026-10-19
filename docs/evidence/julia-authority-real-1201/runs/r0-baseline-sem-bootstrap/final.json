@@ -1,0 +1,52 @@
+{
+ "inicio": "20:13:23",
+ "fim": "20:20:00",
+ "duracao_min": 6.6,
+ "decisoes": 26,
+ "ciclos": 25,
+ "forcadas_candidato_unico": 22,
+ "julia_validas": 4,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 0,
+ "julia_escolhas": {
+  "continue_objective,return_base -> continue_objective": 4
+ },
+ "julia_divergiu_da_deterministica": 0,
+ "latencia_ms": {
+  "mediana": 309,
+  "p90": 3524,
+  "max": 3524
+ },
+ "acoes": {
+  "explore": 20,
+  "None": 5
+ },
+ "resultados": {
+  "ok": 10,
+  "NEARBY_TABLE_REQUIRED": 10,
+  "ERROR": 5
+ },
+ "erros_texto": {},
+ "itens_ganhos": {},
+ "repeticoes_>=10_ciclos_identicos": [],
+ "mortes": 1,
+ "mortes_causas": {
+  "was slain by Zombie": 1
+ },
+ "conexoes": {},
+ "acoes_fisicas": {},
+ "crafts": {},
+ "combates_reflexo": {
+  "recuei": 1
+ },
+ "worldmemory": {
+  "discover": 120,
+  "explore": 26,
+  "explored": 20,
+  "missing": 1
+ },
+ "infra": []
+}

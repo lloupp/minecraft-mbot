@@ -1,0 +1,15 @@
+8:[world-memory] missing: 0 lugar(es), 0 chunk(s) explorado(s); guia=on
+24:[world-memory] discover wood overworld (98,-60,-2) n=4 by=explorador_01
+25:[world-memory] discover wood overworld (100,-60,8) n=5 by=explorador_01
+26:[world-memory] discover wood overworld (92,-60,4) n=8 by=explorador_01
+27:[world-memory] discover wood overworld (86,-60,-6) n=4 by=explorador_01
+28:[colônia] explorador_01 terminou exploração dirigida: { ok: true, x: 108, y: -60, z: 0, radius: 16, stateMachine: false }
+29:--- RESTART 1791046471
+37:[world-memory] loaded: 4 lugar(es), 1 chunk(s) explorado(s); guia=on
+49:[estado] workers restaurados: lenhador_01, explorador_01
+50:[estado] base restaurada: 0.5, -60, 0.5
+55:[world-memory] explored +1 chunk(s) at (2,2) total=2
+56:[world-memory] suggest wood overworld -> (86,-60,-6) CONFIRMED d=84
+57:[world-memory] explored +1 chunk(s) at (82,-6) total=3
+58:[world-memory] lenhador_01 resource_detour wood (86,-60,-6) CONFIRMED present=true code=ok
+59:[colônia] lenhador_01 terminou coletar_blocos: {

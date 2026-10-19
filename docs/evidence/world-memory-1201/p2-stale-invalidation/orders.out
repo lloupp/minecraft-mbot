@@ -1,0 +1,21 @@
+== ORDEM 1
+[world-memory] suggest wood overworld -> (86,-60,-6) CONFIRMED d=84
+[world-memory] invalidate wood overworld (86,-60,-6) reason=exhausted
+[world-memory] lenhador_01 resource_detour wood (86,-60,-6) CONFIRMED present=false code=ok
+[world-memory] suggest wood overworld -> (98,-60,-2) CONFIRMED d=16
+[world-memory] invalidate wood overworld (98,-60,-2) reason=exhausted
+[world-memory] lenhador_01 resource_detour wood (98,-60,-2) CONFIRMED present=false code=ok
+[colônia] lenhador_01 terminou coletar_blocos: {
+  code: 'RESOURCE_NOT_FOUND',
+  evidence: [ { code: 'RESOURCE_NOT_FOUND' } ]
+== ORDEM 2
+[world-memory] suggest wood overworld -> (100,-60,8) CONFIRMED d=98
+[world-memory] invalidate wood overworld (100,-60,8) reason=exhausted
+[world-memory] lenhador_01 resource_detour wood (100,-60,8) CONFIRMED present=false code=ok
+[colônia] lenhador_01 terminou coletar_blocos: {
+  code: 'RESOURCE_NOT_FOUND',
+  evidence: [ { code: 'RESOURCE_NOT_FOUND' } ]
+== ORDEM 3
+[colônia] lenhador_01 terminou coletar_blocos: {
+  code: 'RESOURCE_NOT_FOUND',
+  evidence: [ { code: 'RESOURCE_NOT_FOUND' } ]

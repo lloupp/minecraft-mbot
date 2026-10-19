@@ -1,0 +1,60 @@
+{
+ "inicio": "13:45:13",
+ "fim": "13:46:38",
+ "duracao_min": 1.4,
+ "decisoes": 8,
+ "ciclos": 8,
+ "forcadas_candidato_unico": 3,
+ "julia_validas": 5,
+ "fallbacks": {},
+ "julia_invalidas_ou_rejeitadas": 0,
+ "julia_timeouts": 0,
+ "julia_erros_sidecar": 0,
+ "canceladas_durante_consulta": 1,
+ "julia_escolhas": {
+  "fight_threat,escape_danger -> escape_danger": 4,
+  "equip_best_weapon,escape_danger -> equip_best_weapon": 1
+ },
+ "julia_divergiu_da_deterministica": 4,
+ "latencia_ms": {
+  "mediana": 1478,
+  "p90": 2541,
+  "max": 2541
+ },
+ "acoes": {
+  "threat:escape_danger:fugi": 3,
+  "None": 2,
+  "explore": 1,
+  "equip:stone_sword": 1,
+  "none_preempted": 1
+ },
+ "resultados": {
+  "ok": 5,
+  "ERROR": 2,
+  "PLAYER_LOOP_PREEMPTED": 1
+ },
+ "erros_texto": {
+  "The goal was changed before it could be compl": 2
+ },
+ "itens_ganhos": {
+  "stone_sword": 1,
+  "dirt": 1
+ },
+ "repeticoes_>=10_ciclos_identicos": [],
+ "mortes": 0,
+ "mortes_causas": {},
+ "conexoes": {},
+ "acoes_fisicas": {},
+ "crafts": {},
+ "combates_reflexo": {},
+ "worldmemory": {
+  "discover": 14,
+  "explore": 3,
+  "missing": 1,
+  "explored": 1
+ },
+ "infra": [
+  "1791294255 bot_start_fresh",
+  "1791294340 feeder_restart"
+ ]
+}

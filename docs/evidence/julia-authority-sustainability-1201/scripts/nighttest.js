@@ -1,0 +1,12 @@
+const mineflayer = require('/home/user/wt-exp/node_modules/mineflayer'); const { pathfinder, Movements } = require('/home/user/wt-exp/node_modules/mineflayer-pathfinder')
+const night = require('/home/user/wt-exp/lib/night')
+const fs=require('fs'); const C=(c)=>fs.appendFileSync(process.env.SO+'/mcserver/in.fifo',c+'\n'); const sleep=ms=>new Promise(r=>setTimeout(r,ms))
+const bot = mineflayer.createBot({ host:'127.0.0.1', port:25566, username:'nightbot', version:'1.20.1', auth:'offline' }); bot.loadPlugin(pathfinder)
+bot.once('spawn', async () => { C('clear nightbot'); C('effect give nightbot resistance 200 255 true'); C(`tp nightbot ${process.argv[2]} ${process.argv[3]} ${process.argv[4]}`); C('time set 13500'); await sleep(4000)
+  const mv=new Movements(bot); mv.canDig=false; mv.allow1by1towers=true; bot.pathfinder.setMovements(mv)
+  console.log('spot', String(night.findShelterSpot(bot)), 'inv', bot.inventory.items().map(i=>i.name).join(','))
+  setTimeout(()=>{ console.log('-> pos durante a noite', bot.entity.position.floored().toString(), 'cabeça', bot.blockAt(bot.entity.position.offset(0,2,0).floored())?.name); C('time set 23500') }, 15000)
+  const t0=Date.now(); let r; try { r = await night.spendNight(bot, () => false) } catch(e){ r='ERRO '+e.message }
+  console.log('resultado', r, Math.round((Date.now()-t0)/1000),'s', 'pos', bot.entity.position.floored().toString(), 'inv', bot.inventory.items().map(i=>i.name+':'+i.count).join(','))
+  bot.quit(); process.exit(0) })
+setTimeout(()=>process.exit(1),120000)

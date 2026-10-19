@@ -1,0 +1,1079 @@
+[
+  {
+    "scenario": "new_order",
+    "elapsed_ms": 5995,
+    "interrupted": {
+      "ok": false,
+      "code": "CANCELLED",
+      "interrupted": true,
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "intent": "gather_materials",
+      "plan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 2
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 2
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "steps": [
+        {
+          "task": "gather",
+          "resource": "cobblestone",
+          "requested": 2,
+          "collected": 0,
+          "before": {
+            "stick": 1,
+            "stone_pickaxe": 1
+          },
+          "after": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "attempts": [
+            {
+              "targetBlock": "stone",
+              "targetPosition": {
+                "x": 0,
+                "y": 200,
+                "z": 2
+              },
+              "candidateCount": 2,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 1,
+              "expectedItems": [
+                "cobblestone"
+              ],
+              "inventoryBefore": 0,
+              "inventoryAfter": 1,
+              "delta": 1,
+              "itemConfirmed": false,
+              "navigation": "visible_in_reach",
+              "positionBeforeDig": {
+                "x": 0.5,
+                "y": 200,
+                "z": 0.5
+              },
+              "code": "CANCELLED"
+            },
+            {
+              "code": "CANCELLED"
+            }
+          ],
+          "approvedPositions": [
+            "(0, 200, 2)",
+            "(2, 200, 0)"
+          ],
+          "inventoryConfirmed": false
+        }
+      ],
+      "final": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1,
+          "cobblestone": 1
+        },
+        "inventoryLoad": 0.08333333333333333,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.51309477207066,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": true,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "remainingPlan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 1
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 1
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "juliaExecutionAuthority": "none"
+    },
+    "partial": {
+      "stick": 1,
+      "stone_pickaxe": 1,
+      "cobblestone": 1
+    },
+    "resume": {
+      "results": [
+        {
+          "ok": false,
+          "code": "NO_PREPARATION_INTENT",
+          "initial": {
+            "health": 20,
+            "food": 20,
+            "inventory": {
+              "stick": 1,
+              "stone_pickaxe": 1,
+              "cobblestone": 1
+            },
+            "inventoryLoad": 0.08333333333333333,
+            "equippedWeapon": null,
+            "equippedTool": "stone_pickaxe",
+            "threat": null,
+            "time": "day",
+            "atBase": false,
+            "baseKnown": true,
+            "baseDistance": 99.51315484070446,
+            "nearby": {
+              "food": false,
+              "wood": false,
+              "stone": false,
+              "iron": false,
+              "foodDistance": null,
+              "woodDistance": null,
+              "stoneDistance": null,
+              "ironDistance": null
+            },
+            "consecutiveFailures": 0,
+            "alternativeRoute": false,
+            "waitReason": null,
+            "cancellationRequested": false,
+            "objective": {
+              "type": "explore",
+              "completed": false
+            },
+            "craftable": []
+          },
+          "candidates": [
+            {
+              "id": "continue_objective",
+              "description": "Continue the current objective because immediate survival and preparation needs are already handled."
+            }
+          ]
+        }
+      ],
+      "inventory": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 1
+      },
+      "held": "stone_pickaxe",
+      "candidates": [
+        "continue_objective"
+      ]
+    },
+    "summary": {
+      "code": "CANCELLED",
+      "partial": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 1
+      },
+      "remaining": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 1
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 1
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "final": "stone_pickaxe"
+    }
+  },
+  {
+    "scenario": "threat",
+    "elapsed_ms": 6665,
+    "interrupted": {
+      "ok": false,
+      "code": "THREAT",
+      "interrupted": true,
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "day",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "intent": "gather_materials",
+      "plan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 2
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 2
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "steps": [
+        {
+          "task": "gather",
+          "resource": "cobblestone",
+          "requested": 2,
+          "collected": 0,
+          "before": {
+            "stick": 1,
+            "stone_pickaxe": 1
+          },
+          "after": {
+            "stick": 1,
+            "stone_pickaxe": 1,
+            "cobblestone": 1
+          },
+          "attempts": [
+            {
+              "targetBlock": "stone",
+              "targetPosition": {
+                "x": 0,
+                "y": 200,
+                "z": 2
+              },
+              "candidateCount": 2,
+              "alternateTargetCandidateObserved": true,
+              "alternateTargetCandidateCount": 1,
+              "expectedItems": [
+                "cobblestone"
+              ],
+              "inventoryBefore": 0,
+              "inventoryAfter": 1,
+              "delta": 1,
+              "itemConfirmed": false,
+              "navigation": "visible_in_reach",
+              "positionBeforeDig": {
+                "x": 0.5,
+                "y": 200,
+                "z": 0.5
+              },
+              "code": "CANCELLED"
+            },
+            {
+              "code": "CANCELLED"
+            }
+          ],
+          "approvedPositions": [
+            "(0, 200, 2)",
+            "(2, 200, 0)"
+          ],
+          "inventoryConfirmed": false
+        }
+      ],
+      "final": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1,
+          "cobblestone": 1
+        },
+        "inventoryLoad": 0.08333333333333333,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": {
+          "type": "zombie",
+          "distance": 3,
+          "count": 1
+        },
+        "time": "night",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.52918502084908,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 2.8284271247461903,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "remainingPlan": {
+        "weapon": "stone_sword",
+        "missing": {
+          "stick": 0,
+          "cobblestone": 1
+        },
+        "collect": {
+          "logs": 0,
+          "cobblestone": 1
+        },
+        "conversions": [],
+        "reason": "stone sword requires 2 cobblestone and 1 stick; one log yields 4 planks, 2 planks yield 4 sticks"
+      },
+      "juliaExecutionAuthority": "none"
+    },
+    "partial": {
+      "stick": 1,
+      "stone_pickaxe": 1,
+      "cobblestone": 1
+    },
+    "resume": {
+      "results": [
+        {
+          "ok": false,
+          "code": "NO_PREPARATION_INTENT",
+          "initial": {
+            "health": 20,
+            "food": 20,
+            "inventory": {
+              "stick": 1,
+              "stone_pickaxe": 1,
+              "cobblestone": 1
+            },
+            "inventoryLoad": 0.08333333333333333,
+            "equippedWeapon": null,
+            "equippedTool": "stone_pickaxe",
+            "threat": null,
+            "time": "night",
+            "atBase": false,
+            "baseKnown": true,
+            "baseDistance": 99.52918502084908,
+            "nearby": {
+              "food": false,
+              "wood": false,
+              "stone": true,
+              "iron": false,
+              "foodDistance": null,
+              "woodDistance": null,
+              "stoneDistance": 2.8284271247461903,
+              "ironDistance": null
+            },
+            "consecutiveFailures": 0,
+            "alternativeRoute": false,
+            "waitReason": null,
+            "cancellationRequested": false,
+            "objective": {
+              "type": "explore",
+              "completed": false
+            },
+            "craftable": []
+          },
+          "candidates": [
+            {
+              "id": "return_base",
+              "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+            }
+          ]
+        }
+      ],
+      "inventory": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 1
+      },
+      "held": "stone_pickaxe",
+      "candidates": [
+        "return_base"
+      ]
+    },
+    "summary": {
+      "code": "THREAT",
+      "partial": {
+        "stick": 1,
+        "stone_pickaxe": 1,
+        "cobblestone": 1
+      },
+      "final": "stone_pickaxe"
+    }
+  },
+  {
+    "scenario": "craft_log",
+    "elapsed_ms": 3841,
+    "interrupted": {
+      "ok": false,
+      "code": "NO_PREPARATION_INTENT",
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "cobblestone": 2,
+          "oak_log": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "night",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "candidates": [
+        {
+          "id": "return_base",
+          "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+        }
+      ]
+    },
+    "partial": {
+      "cobblestone": 2,
+      "oak_log": 1
+    },
+    "resume": {
+      "results": [
+        {
+          "ok": false,
+          "code": "NO_PREPARATION_INTENT",
+          "initial": {
+            "health": 20,
+            "food": 20,
+            "inventory": {
+              "cobblestone": 2,
+              "oak_log": 1
+            },
+            "inventoryLoad": 0.05555555555555555,
+            "equippedWeapon": null,
+            "equippedTool": null,
+            "threat": null,
+            "time": "night",
+            "atBase": false,
+            "baseKnown": true,
+            "baseDistance": 99.50125627347627,
+            "nearby": {
+              "food": false,
+              "wood": false,
+              "stone": false,
+              "iron": false,
+              "foodDistance": null,
+              "woodDistance": null,
+              "stoneDistance": null,
+              "ironDistance": null
+            },
+            "consecutiveFailures": 0,
+            "alternativeRoute": false,
+            "waitReason": null,
+            "cancellationRequested": false,
+            "objective": {
+              "type": "explore",
+              "completed": false
+            },
+            "craftable": []
+          },
+          "candidates": [
+            {
+              "id": "return_base",
+              "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+            }
+          ]
+        }
+      ],
+      "inventory": {
+        "cobblestone": 2,
+        "oak_log": 1
+      },
+      "held": "oak_log",
+      "candidates": [
+        "return_base"
+      ]
+    },
+    "summary": {
+      "code": "NO_PREPARATION_INTENT",
+      "partial": {
+        "cobblestone": 2,
+        "oak_log": 1
+      },
+      "final": "oak_log"
+    }
+  },
+  {
+    "scenario": "craft_sword",
+    "elapsed_ms": 3842,
+    "interrupted": {
+      "ok": false,
+      "code": "NO_PREPARATION_INTENT",
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "cobblestone": 2,
+          "stick": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": null,
+        "threat": null,
+        "time": "night",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": false,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": null,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": [
+          "stone_sword"
+        ]
+      },
+      "candidates": [
+        {
+          "id": "return_base",
+          "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+        },
+        {
+          "id": "prepare_combat",
+          "description": "Prepare for combat before continuing: obtain/equip the best weapon possible from current inventory, crafting capability, or base storage."
+        }
+      ]
+    },
+    "partial": {
+      "cobblestone": 2,
+      "stick": 1
+    },
+    "resume": {
+      "results": [
+        {
+          "ok": false,
+          "code": "NO_PREPARATION_INTENT",
+          "initial": {
+            "health": 20,
+            "food": 20,
+            "inventory": {
+              "cobblestone": 2,
+              "stick": 1
+            },
+            "inventoryLoad": 0.05555555555555555,
+            "equippedWeapon": null,
+            "equippedTool": null,
+            "threat": null,
+            "time": "night",
+            "atBase": false,
+            "baseKnown": true,
+            "baseDistance": 99.50125627347627,
+            "nearby": {
+              "food": false,
+              "wood": false,
+              "stone": false,
+              "iron": false,
+              "foodDistance": null,
+              "woodDistance": null,
+              "stoneDistance": null,
+              "ironDistance": null
+            },
+            "consecutiveFailures": 0,
+            "alternativeRoute": false,
+            "waitReason": null,
+            "cancellationRequested": false,
+            "objective": {
+              "type": "explore",
+              "completed": false
+            },
+            "craftable": [
+              "stone_sword"
+            ]
+          },
+          "candidates": [
+            {
+              "id": "return_base",
+              "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+            },
+            {
+              "id": "prepare_combat",
+              "description": "Prepare for combat before continuing: obtain/equip the best weapon possible from current inventory, crafting capability, or base storage."
+            }
+          ]
+        }
+      ],
+      "inventory": {
+        "cobblestone": 2,
+        "stick": 1
+      },
+      "held": "stick",
+      "candidates": [
+        "return_base",
+        "prepare_combat"
+      ]
+    },
+    "summary": {
+      "code": "NO_PREPARATION_INTENT",
+      "partial": {
+        "cobblestone": 2,
+        "stick": 1
+      },
+      "final": "stick"
+    }
+  },
+  {
+    "scenario": "same_worker_concurrency",
+    "elapsed_ms": 13719,
+    "harnessError": "Error: HARNESS_SETUP_TIMEOUT\n    at until (/workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-interruption-1201/run.js:18:112)\n    at async /workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-interruption-1201/run.js:141:68\n    at async perform (/workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-interruption-1201/run.js:94:24)\n    at async main (/workspace/scratch/e3a0ba01b613/minecraft-mbot/docs/evidence/deterministic-preparation-interruption-1201/run.js:140:41)"
+  },
+  {
+    "scenario": "cross_workers",
+    "elapsed_ms": 7404,
+    "results": [
+      {
+        "ok": false,
+        "code": "NO_PREPARATION_INTENT",
+        "initial": {
+          "health": 20,
+          "food": 20,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1
+          },
+          "inventoryLoad": 0.05555555555555555,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": null,
+          "time": "night",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 99.50125627347627,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": true,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": 2,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          {
+            "id": "return_base",
+            "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+          }
+        ]
+      },
+      {
+        "ok": false,
+        "code": "NO_PREPARATION_INTENT",
+        "initial": {
+          "health": 20,
+          "food": 20,
+          "inventory": {
+            "stick": 1,
+            "stone_pickaxe": 1
+          },
+          "inventoryLoad": 0.05555555555555555,
+          "equippedWeapon": null,
+          "equippedTool": "stone_pickaxe",
+          "threat": null,
+          "time": "night",
+          "atBase": false,
+          "baseKnown": true,
+          "baseDistance": 87.50142855976695,
+          "nearby": {
+            "food": false,
+            "wood": false,
+            "stone": true,
+            "iron": false,
+            "foodDistance": null,
+            "woodDistance": null,
+            "stoneDistance": 2,
+            "ironDistance": null
+          },
+          "consecutiveFailures": 0,
+          "alternativeRoute": false,
+          "waitReason": null,
+          "cancellationRequested": false,
+          "objective": {
+            "type": "explore",
+            "completed": false
+          },
+          "craftable": []
+        },
+        "candidates": [
+          {
+            "id": "return_base",
+            "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 87.5 blocks away."
+          }
+        ]
+      }
+    ],
+    "resumes": [
+      {
+        "results": [
+          {
+            "ok": false,
+            "code": "NO_PREPARATION_INTENT",
+            "initial": {
+              "health": 20,
+              "food": 20,
+              "inventory": {
+                "stick": 1,
+                "stone_pickaxe": 1
+              },
+              "inventoryLoad": 0.05555555555555555,
+              "equippedWeapon": null,
+              "equippedTool": "stone_pickaxe",
+              "threat": null,
+              "time": "night",
+              "atBase": false,
+              "baseKnown": true,
+              "baseDistance": 99.50125627347627,
+              "nearby": {
+                "food": false,
+                "wood": false,
+                "stone": true,
+                "iron": false,
+                "foodDistance": null,
+                "woodDistance": null,
+                "stoneDistance": 2,
+                "ironDistance": null
+              },
+              "consecutiveFailures": 0,
+              "alternativeRoute": false,
+              "waitReason": null,
+              "cancellationRequested": false,
+              "objective": {
+                "type": "explore",
+                "completed": false
+              },
+              "craftable": []
+            },
+            "candidates": [
+              {
+                "id": "return_base",
+                "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+              }
+            ]
+          }
+        ],
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1
+        },
+        "held": "stone_pickaxe",
+        "candidates": [
+          "return_base"
+        ]
+      },
+      {
+        "results": [
+          {
+            "ok": false,
+            "code": "NO_PREPARATION_INTENT",
+            "initial": {
+              "health": 20,
+              "food": 20,
+              "inventory": {
+                "stick": 1,
+                "stone_pickaxe": 1
+              },
+              "inventoryLoad": 0.05555555555555555,
+              "equippedWeapon": null,
+              "equippedTool": "stone_pickaxe",
+              "threat": null,
+              "time": "night",
+              "atBase": false,
+              "baseKnown": true,
+              "baseDistance": 87.50142855976695,
+              "nearby": {
+                "food": false,
+                "wood": false,
+                "stone": true,
+                "iron": false,
+                "foodDistance": null,
+                "woodDistance": null,
+                "stoneDistance": 2,
+                "ironDistance": null
+              },
+              "consecutiveFailures": 0,
+              "alternativeRoute": false,
+              "waitReason": null,
+              "cancellationRequested": false,
+              "objective": {
+                "type": "explore",
+                "completed": false
+              },
+              "craftable": []
+            },
+            "candidates": [
+              {
+                "id": "return_base",
+                "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 87.5 blocks away."
+              }
+            ]
+          }
+        ],
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1
+        },
+        "held": "stone_pickaxe",
+        "candidates": [
+          "return_base"
+        ]
+      }
+    ],
+    "summary": {
+      "codes": [
+        "NO_PREPARATION_INTENT",
+        "NO_PREPARATION_INTENT"
+      ],
+      "held": [
+        "stone_pickaxe",
+        "stone_pickaxe"
+      ]
+    }
+  },
+  {
+    "scenario": "obstacle",
+    "elapsed_ms": 3879,
+    "first": {
+      "ok": false,
+      "code": "NO_PREPARATION_INTENT",
+      "initial": {
+        "health": 20,
+        "food": 20,
+        "inventory": {
+          "stick": 1,
+          "stone_pickaxe": 1
+        },
+        "inventoryLoad": 0.05555555555555555,
+        "equippedWeapon": null,
+        "equippedTool": "stone_pickaxe",
+        "threat": null,
+        "time": "night",
+        "atBase": false,
+        "baseKnown": true,
+        "baseDistance": 99.50125627347627,
+        "nearby": {
+          "food": false,
+          "wood": false,
+          "stone": true,
+          "iron": false,
+          "foodDistance": null,
+          "woodDistance": null,
+          "stoneDistance": 2,
+          "ironDistance": null
+        },
+        "consecutiveFailures": 0,
+        "alternativeRoute": false,
+        "waitReason": null,
+        "cancellationRequested": false,
+        "objective": {
+          "type": "explore",
+          "completed": false
+        },
+        "craftable": []
+      },
+      "candidates": [
+        {
+          "id": "return_base",
+          "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+        }
+      ]
+    },
+    "partial": {
+      "stick": 1,
+      "stone_pickaxe": 1
+    },
+    "resume": {
+      "results": [
+        {
+          "ok": false,
+          "code": "NO_PREPARATION_INTENT",
+          "initial": {
+            "health": 20,
+            "food": 20,
+            "inventory": {
+              "stick": 1,
+              "stone_pickaxe": 1
+            },
+            "inventoryLoad": 0.05555555555555555,
+            "equippedWeapon": null,
+            "equippedTool": "stone_pickaxe",
+            "threat": null,
+            "time": "night",
+            "atBase": false,
+            "baseKnown": true,
+            "baseDistance": 99.50125627347627,
+            "nearby": {
+              "food": false,
+              "wood": false,
+              "stone": true,
+              "iron": false,
+              "foodDistance": null,
+              "woodDistance": null,
+              "stoneDistance": 2,
+              "ironDistance": null
+            },
+            "consecutiveFailures": 0,
+            "alternativeRoute": false,
+            "waitReason": null,
+            "cancellationRequested": false,
+            "objective": {
+              "type": "explore",
+              "completed": false
+            },
+            "craftable": []
+          },
+          "candidates": [
+            {
+              "id": "return_base",
+              "description": "Return to the known base to recover, resupply, store items, or prepare before continuing. The known base is approximately 99.5 blocks away."
+            }
+          ]
+        }
+      ],
+      "inventory": {
+        "stick": 1,
+        "stone_pickaxe": 1
+      },
+      "held": "stone_pickaxe",
+      "candidates": [
+        "return_base"
+      ]
+    },
+    "summary": {
+      "code": "NO_PREPARATION_INTENT",
+      "partial": {
+        "stick": 1,
+        "stone_pickaxe": 1
+      },
+      "final": "stone_pickaxe"
+    }
+  }
+]

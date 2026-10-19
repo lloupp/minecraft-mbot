@@ -1,0 +1,26 @@
+{"trial":0,"kind":"explore","start":[240,-110],"from":[242.5,70,-110.5],"ms":2093,"ok":true,"error":null,"target":[256,70,-110],"code":null,"end":[253.3,70,-109.5],"homeDist":15.1}
+{"trial":1,"kind":"explore","start":[240,-110],"from":[240.5,69,-111.5],"ms":4766,"ok":true,"error":null,"target":[224,70,-94],"code":null,"end":[224.4,70,-96.6],"homeDist":21.7}
+{"trial":2,"kind":"explore","start":[264,-110],"from":[265.5,68,-109.5],"ms":11597,"ok":true,"error":null,"target":[224,70,-94],"code":null,"end":[226.6,70,-93.4],"homeDist":22.5}
+{"trial":3,"kind":"explore","start":[264,-110],"from":[263.5,68,-109.5],"ms":7568,"ok":true,"error":null,"target":[224,70,-110],"code":null,"end":[227.6,70,-109.7],"homeDist":14.3}
+{"trial":4,"kind":"return","start":[264,-110],"from":[264.5,70,-110.5],"ms":5692,"ok":true,"error":null,"target":null,"code":null,"end":[242.5,64.8,-109.5],"homeDist":3.1}
+{"trial":5,"kind":"explore","start":[216,-110],"from":[215.5,70,-108.5],"ms":3386,"ok":true,"error":null,"target":[224,70,-94],"code":null,"end":[222.5,70,-95.6],"homeDist":23.7}
+{"trial":6,"kind":"explore","start":[216,-110],"from":[218.5,70,-110.5],"ms":3038,"ok":true,"error":null,"target":[224,68,-126],"code":null,"end":[224.5,69,-123.4],"homeDist":21.3}
+{"trial":7,"kind":"return","start":[216,-110],"from":[217.5,71,-109.5],"ms":4838,"ok":true,"error":null,"target":null,"code":null,"end":[238.6,62.4,-109.6],"homeDist":1.6}
+{"trial":8,"kind":"explore","start":[240,-86],"from":[238.6,62,-109.6],"ms":7644,"ok":true,"error":null,"target":[224,70,-94],"code":null,"end":[226.6,70,-93.4],"homeDist":22.5}
+{"trial":9,"kind":"explore","start":[240,-86],"from":[226.6,70,-93.4],"ms":6388,"ok":true,"error":null,"target":[240,69,-126],"code":null,"end":[238.3,70,-123.3],"homeDist":15.2}
+{"trial":10,"kind":"return","start":[240,-86],"from":[238.3,70,-123.3],"ms":3449,"ok":true,"error":null,"target":null,"code":null,"end":[238.5,62.4,-109.5],"homeDist":1.7}
+{"trial":11,"kind":"explore","start":[240,-134],"from":[242.5,67,-135.5],"ms":7283,"ok":true,"error":null,"target":[224,70,-110],"code":null,"end":[226.5,70,-111.5],"homeDist":15.3}
+{"trial":12,"kind":"explore","start":[240,-134],"from":[241.5,71,-133.5],"ms":3616,"ok":true,"error":null,"target":[256,70,-126],"code":null,"end":[254.5,70,-127.5],"homeDist":23.8}
+{"trial":13,"kind":"return","start":[240,-134],"from":[240.5,71,-133.5],"ms":6096,"ok":true,"error":null,"target":null,"code":null,"end":[238.5,62.4,-109.6],"homeDist":1.7}
+{"trial":14,"kind":"explore","start":[288,-62],"from":[238.5,62,-109.6],"ms":12911,"ok":true,"error":null,"target":[224,68,-126],"code":null,"end":[225.5,69,-123.4],"homeDist":20.6}
+{"trial":15,"kind":"explore","start":[288,-62],"from":[225.5,69,-123.4],"ms":11586,"ok":true,"error":null,"target":[272,67,-110],"code":null,"end":[270.5,66,-108.4],"homeDist":30.7}
+{"trial":16,"kind":"return","start":[288,-62],"from":[270.5,66,-108.4],"ms":8638,"ok":true,"error":null,"target":null,"code":null,"end":[242.6,64.9,-109.5],"homeDist":3.3}
+{"trial":17,"kind":"explore","start":[192,-158],"from":[242.6,64,-109.5],"ms":9756,"ok":true,"error":null,"target":[240,69,-126],"code":null,"end":[241.5,70,-123.5],"homeDist":15.3}
+{"trial":18,"kind":"explore","start":[192,-158],"from":[241.5,70,-123.5],"ms":11155,"ok":true,"error":null,"target":[208,71,-78],"code":null,"end":[209.5,71,-79.5],"homeDist":43.9}
+{"trial":19,"kind":"return","start":[192,-158],"from":[209.5,71,-79.5],"ms":10735,"ok":true,"error":null,"target":null,"code":null,"end":[237.3,63,-109.5],"homeDist":2.7}
+{"trial":20,"kind":"explore","start":[288,-158],"from":[286.5,19,-156.5],"ms":30033,"ok":false,"error":"No path to the goal! (nem cavando)","target":null,"code":null,"end":[256.5,14,-125.5],"homeDist":54}
+{"trial":21,"kind":"explore","start":[288,-158],"from":[287.5,18,-157.5],"ms":90014,"ok":false,"error":"caminho demorou demais","target":null,"code":null,"end":[211.5,15,-81.5],"homeDist":62.7}
+{"trial":22,"kind":"return","start":[288,-158],"from":[290.5,20,-156.5],"ms":113579,"ok":false,"error":null,"target":null,"code":"NOT_ARRIVED","end":[227.5,26,-109.5],"homeDist":39.1}
+{"trial":23,"kind":"explore","start":[192,-62],"from":[191.5,75,-62.5],"ms":27326,"ok":true,"error":null,"target":[272,67,-110],"code":null,"end":[270.5,66,-108.4],"homeDist":30.7}
+{"trial":24,"kind":"explore","start":[192,-62],"from":[191.5,75,-62.5],"ms":7268,"ok":true,"error":null,"target":[208,71,-78],"code":null,"end":[207.6,71,-75.5],"homeDist":48}
+{"trial":25,"kind":"return","start":[192,-62],"from":[193.5,70,-60.5],"ms":16121,"ok":true,"error":null,"target":null,"code":null,"end":[237.3,63,-109.5],"homeDist":2.7}

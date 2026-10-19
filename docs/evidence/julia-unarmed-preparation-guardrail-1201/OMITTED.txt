@@ -1,0 +1,15 @@
+Arquivos brutos omitidos desta branch (preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na branch experiment/julia-laya-andy-player-loop-v2):
+     2782  docs/evidence/julia-unarmed-preparation-guardrail-1201/capture_sidecar.py
+      995  docs/evidence/julia-unarmed-preparation-guardrail-1201/driver.log
+    15987  docs/evidence/julia-unarmed-preparation-guardrail-1201/minecraft-commands.json
+    20415  docs/evidence/julia-unarmed-preparation-guardrail-1201/minecraft.log
+     8912  docs/evidence/julia-unarmed-preparation-guardrail-1201/offline-transitions.json
+     3643  docs/evidence/julia-unarmed-preparation-guardrail-1201/rows.csv
+    38538  docs/evidence/julia-unarmed-preparation-guardrail-1201/rows.json
+    12115  docs/evidence/julia-unarmed-preparation-guardrail-1201/run.js
+      187  docs/evidence/julia-unarmed-preparation-guardrail-1201/runtime-environment.json
+      225  docs/evidence/julia-unarmed-preparation-guardrail-1201/shadow-stats.json
+    15439  docs/evidence/julia-unarmed-preparation-guardrail-1201/sidecar-traces.jsonl
+       22  docs/evidence/julia-unarmed-preparation-guardrail-1201/sidecar.log
+     4276  docs/evidence/julia-unarmed-preparation-guardrail-1201/summarize.py
+     1169  docs/evidence/julia-unarmed-preparation-guardrail-1201/summary.json

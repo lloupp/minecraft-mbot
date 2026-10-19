@@ -1,0 +1,6 @@
+{
+  "lib/forced-preparation.js": "f26f97526e24beb4ce90fc9bab5543b06b79425ce6f2185fe5adeaa1b911b478",
+  "lib/gather.js": "01ea36310eb3106e253fa88b0e6600d6f783a67f3f3c9d379c8d5ea33b7ea498",
+  "core/ProductionManager.js": "09c8410699dbc71ce1947865bc49cecbaa800194205b456f227cce9ca26c8b51",
+  "core/WorkerController.js": "b3da69eb0db0664789757091a6aff9029b98cd351dc1d8bebd979282b55ed856"
+}
