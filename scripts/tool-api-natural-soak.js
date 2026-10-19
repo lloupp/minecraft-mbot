@@ -173,7 +173,7 @@ async function main() {
       app=spawn(process.execPath,[path.join(repo,'index.js')],{cwd:appDir,stdio:['ignore','pipe','pipe'],env:{...process.env,
         MINECRAFT_HOST:'127.0.0.1',MINECRAFT_PORT:String(mcPort),MINECRAFT_VERSION:'1.20.1',MINECRAFT_BOT_NAME:'soak_main',MINECRAFT_OWNER:'soak_owner',
         MBOT_TOOL_API:'1',MBOT_TOOL_API_PORT:String(apiPort),MBOT_TASK_CHECKPOINT_FILE:path.join(appDir,'checkpoints.json'),COLONY_STATE_FILE:stateFile,MEMORY_FILE:path.join(appDir,'memory.json'),COLONY_EVENT_LOG:path.join(appDir,'events.jsonl'),
-        MBOT_COLONY_AUTOSTART:process.env.MBOT_SOAK_AUTONOMOUS === '1' ? '1' : '0', MBOT_COMPANION_AUTOSTART:'0', MBOT_JULIA_AUTHORITY:'0',MBOT_JULIA_SHADOW:'0',MBOT_LAYA_SHADOW:'0',MBOT_WORLD_MEMORY:'0',MBOT_EXPLORE_PREPARATION:'0',MBOT_DETERMINISTIC_PREPARATION:'0',MBOT_PLUGINS:'0',MBOT_VIEWER_PORT:'0',MBOT_INVENTORY_PORT:'0',MBOT_DASHBOARD:'0',STATUS_SERVER:'0',MINECRAFT_LAN_ANNOUNCE:'0'}})
+        MBOT_COLONY_AUTOSTART:process.env.MBOT_SOAK_AUTONOMOUS === '1' ? '1' : '0', MBOT_COMPANION_AUTOSTART:process.env.MBOT_SOAK_AUTONOMOUS === '1' ? '1' : '0', MBOT_JULIA_AUTHORITY:'0',MBOT_JULIA_SHADOW:'0',MBOT_LAYA_SHADOW:'0',MBOT_WORLD_MEMORY:'0',MBOT_EXPLORE_PREPARATION:'0',MBOT_DETERMINISTIC_PREPARATION:'0',MBOT_PLUGINS:'0',MBOT_VIEWER_PORT:'0',MBOT_INVENTORY_PORT:'0',MBOT_DASHBOARD:'0',STATUS_SERVER:'0',MINECRAFT_LAN_ANNOUNCE:'0'}})
       app.stdout.on('data',c=>{appLog+=c});app.stderr.on('data',c=>{appLog+=c})
       await waitFor(async()=> { try { return (await api()).length===2 && (await Promise.all(workers.map(w=>api(w,'state')))).every(s=>s.position&&!s.busy&&s.health>0) } catch { return false } })
       const start=Date.now(), pending=[]
