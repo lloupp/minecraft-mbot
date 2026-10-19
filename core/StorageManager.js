@@ -17,6 +17,56 @@ function isEquipment(name) {
     ['shield', 'bow', 'crossbow', 'elytra', 'shears', 'flint_and_steel'].includes(name)
 }
 
+// Snapshot barato e somente leitura: capturado ANTES de pedir windowOpen e
+// novamente após falha. Sem retry automático: um open tardio não deve causar
+// duas janelas/duas operações de estoque concorrentes.
+function containerInteractionSnapshot(bot, block) {
+  const p = bot?.entity?.position
+  const target = block?.position
+  const point = (v) => v ? { x: v.x, y: v.y, z: v.z } : null
+  const snapshot = {
+    block: block?.name || null,
+    target: point(target),
+    botPosition: point(p),
+    dimension: bot?.game?.dimension || null,
+    currentWindow: Boolean(bot?.currentWindow),
+    sneaking: null,
+    eyeDistance: null,
+    reachDistance: null,
+    visible: null,
+    above: null,
+    neighbors: {}
+  }
+  if (!p || !target) return snapshot
+  try {
+    if (typeof bot.getControlState === 'function') snapshot.sneaking = Boolean(bot.getControlState('sneak'))
+  } catch { /* só diagnóstico */ }
+  const eye = new Vec3(p.x, p.y + (snapshot.sneaking ? 1.27 : 1.62), p.z)
+  const tx = Number(target.x), ty = Number(target.y), tz = Number(target.z)
+  if ([tx, ty, tz].every(Number.isFinite)) {
+    snapshot.eyeDistance = Number(eye.distanceTo(new Vec3(tx + 0.5, ty + 0.5, tz + 0.5)).toFixed(3))
+    const axisGap = (v, min) => Math.max(min - v, 0, v - (min + 1))
+    snapshot.reachDistance = Number(Math.hypot(axisGap(eye.x, tx), axisGap(eye.y, ty), axisGap(eye.z, tz)).toFixed(3))
+    if (typeof bot.blockAt === 'function') {
+      const sample = (dx, dy, dz) => {
+        try {
+          const b = bot.blockAt(new Vec3(tx + dx, ty + dy, tz + dz))
+          return b ? { name: b.name || null, boundingBox: b.boundingBox || null } : null
+        } catch { return null }
+      }
+      snapshot.above = sample(0, 1, 0)
+      snapshot.neighbors = {
+        north: sample(0, 0, -1), south: sample(0, 0, 1),
+        west: sample(-1, 0, 0), east: sample(1, 0, 0)
+      }
+    }
+  }
+  try {
+    if (typeof bot.canSeeBlock === 'function') snapshot.visible = Boolean(bot.canSeeBlock(block))
+  } catch { /* só diagnóstico */ }
+  return snapshot
+}
+
 class StorageManager {
   constructor() {
     this.position = null
@@ -142,7 +192,24 @@ class StorageManager {
 
       let container
       try {
-        container = await bot.openContainer(this.block(bot))
+        const block = this.block(bot)
+        const beforeOpen = containerInteractionSnapshot(bot, block)
+        try {
+          container = await bot.openContainer(block)
+        } catch (error) {
+          // A mensagem original (inclusive windowOpen timeout) continua sendo
+          // propagada: os dados extras permitem separar alcance, obstrução,
+          // sneak e janela já aberta sem atribuir causa não comprovada.
+          const diagnostic = {
+            worker: bot.username || null,
+            error: error?.message || String(error),
+            before: beforeOpen,
+            after: containerInteractionSnapshot(bot, block)
+          }
+          if (error && typeof error === 'object') error.storageDiagnostics = diagnostic
+          console.warn(`[estoque] container_open_failed ${JSON.stringify(diagnostic)}`)
+          throw error
+        }
         return await fn(container)
       } finally {
         try { container?.close() } catch {}
@@ -289,4 +356,4 @@ class StorageManager {
   }
 }
 
-module.exports = { StorageManager, CONTAINER_NAMES, aggregateItems, isEquipment }
+module.exports = { StorageManager, CONTAINER_NAMES, aggregateItems, isEquipment, containerInteractionSnapshot }
