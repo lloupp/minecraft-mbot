@@ -1,0 +1,24 @@
+✖ shelter refuses lava introduced while navigating to a previously safe site (3.002565ms)
+✖ shelter rechecks escape materials after navigation (2007.896918ms)
+✖ shelter rechecks the remaining column after equipping yields to world updates (1.375827ms)
+✖ shelter cancellation during equip prevents a new dig (0.583985ms)
+✖ shelter cancellation while equipping the lid prevents placement (0.972469ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5162.520021
+✖ failing tests:
+test at test/night-live-safety.test.js:29:1
+✖ shelter refuses lava introduced while navigating to a previously safe site (3.002565ms)
+test at test/night-live-safety.test.js:41:1
+✖ shelter rechecks escape materials after navigation (2007.896918ms)
+test at test/night-live-safety.test.js:50:1
+✖ shelter rechecks the remaining column after equipping yields to world updates (1.375827ms)
+test at test/night-live-safety.test.js:57:1
+✖ shelter cancellation during equip prevents a new dig (0.583985ms)
+test at test/night-live-safety.test.js:64:1
+✖ shelter cancellation while equipping the lid prevents placement (0.972469ms)
