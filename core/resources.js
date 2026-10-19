@@ -29,7 +29,7 @@ function normalizeWord(value) {
 function logNames(bot) {
   return (bot.registry?.blocksArray || [])
     .map((block) => block.name)
-    .filter((name) => name.endsWith('_log') || name.endsWith('_stem'))
+    .filter((name) => name.endsWith('_log') || name === 'crimson_stem' || name === 'warped_stem')
 }
 
 function resolveBlockNames(bot, resource, role = null) {
