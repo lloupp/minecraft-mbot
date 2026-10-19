@@ -105,33 +105,52 @@ async function main() {
     await connectObserver()
     const logs = observer.findBlocks({ matching: b => b.name.endsWith('_log'), maxDistance:80, count:500 })
     assert(logs.length >= 12, `seed fixture has only ${logs.length} loaded logs`)
-    let home
+    // Select home AND stock as a single natural-terrain fixture. A dark-forest
+    // hillside may have zero same-height clear cells exactly two blocks away.
+    // Reject that home and inspect another site rather than flattening terrain.
+    const chestNear = (origin) => {
+      for (let radius = 2; radius <= 6; radius++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          for (let dz = -radius; dz <= radius; dz++) {
+            if (Math.max(Math.abs(dx), Math.abs(dz)) !== radius) continue
+            for (const dy of [0, -1, 1, -2, 2]) {
+              const candidate = { x: origin.x + dx, y: origin.y + dy, z: origin.z + dz }
+              const below = observer.blockAt(new Vec3(candidate.x, candidate.y - 1, candidate.z))
+              const feet = observer.blockAt(new Vec3(candidate.x, candidate.y, candidate.z))
+              const lid = observer.blockAt(new Vec3(candidate.x, candidate.y + 1, candidate.z))
+              if (below?.boundingBox !== 'block' || feet?.name !== 'air' || lid?.name !== 'air') continue
+              // Keep a walkable approach cell; a clear lid alone cannot
+              // establish that the worker can open the container.
+              const approach = [[1,0],[-1,0],[0,1],[0,-1]].some(([ax,az]) => {
+                const a = observer.blockAt(new Vec3(candidate.x + ax, candidate.y, candidate.z + az))
+                const h = observer.blockAt(new Vec3(candidate.x + ax, candidate.y + 1, candidate.z + az))
+                const g = observer.blockAt(new Vec3(candidate.x + ax, candidate.y - 1, candidate.z + az))
+                return a?.name === 'air' && h?.name === 'air' && g?.boundingBox === 'block'
+              })
+              if (approach) return candidate
+            }
+          }
+        }
+      }
+      return null
+    }
+    let home = null, chest = null
     for (const log of logs) {
       for (const [dx,dz] of [[2,0],[-2,0],[0,2],[0,-2]]) {
         const p=log.offset(dx,0,dz)
         for (let y=log.y+2; y>=log.y-8; y--) {
           const ground=observer.blockAt(new Vec3(p.x,y-1,p.z)), feet=observer.blockAt(new Vec3(p.x,y,p.z)), head=observer.blockAt(new Vec3(p.x,y+1,p.z))
-          if (ground && ['grass_block','dirt','stone'].includes(ground.name) && feet?.name==='air' && head?.name==='air') { home={x:p.x,y,z:p.z}; break }
+          if (!ground || !['grass_block','dirt','stone'].includes(ground.name) || feet?.name !== 'air' || head?.name !== 'air') continue
+          const candidate = { x: p.x, y, z: p.z }
+          const stock = chestNear(candidate)
+          if (stock) { home = candidate; chest = stock; break }
         }
         if (home) break
       }
       if (home) break
     }
-    assert(home, 'no safe natural surface near logs')
-    // Do not occupy the worker's spawn cell with a chest. Require solid
-    // natural ground and two air cells (feet/lid) two blocks away.
-    let chest = null
-    for (const [dx, dz] of [[2,0],[-2,0],[0,2],[0,-2]]) {
-      const candidate = { x: home.x + dx, y: home.y, z: home.z + dz }
-      const below = observer.blockAt(new Vec3(candidate.x, candidate.y - 1, candidate.z))
-      const feet = observer.blockAt(new Vec3(candidate.x, candidate.y, candidate.z))
-      const lid = observer.blockAt(new Vec3(candidate.x, candidate.y + 1, candidate.z))
-      if (below?.boundingBox === 'block' && feet?.name === 'air' && lid?.name === 'air') {
-        chest = candidate
-        break
-      }
-    }
-    assert(chest, 'No safe adjacent chest position with an unobstructed lid')
+    assert(home && chest, 'no naturally walkable spawn+stock fixture near loaded logs')
+    report.chestDistance = Number(Math.hypot(chest.x - home.x, chest.y - home.y, chest.z - home.z).toFixed(3))
     await command(`setworldspawn ${home.x} ${home.y} ${home.z}`)
     await command(`setblock ${chest.x} ${chest.y} ${chest.z} chest`)
     report.home=home; report.chest=chest; report.initialLoadedLogBlocks=logs.length
