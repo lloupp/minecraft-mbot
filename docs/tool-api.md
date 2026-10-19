@@ -62,3 +62,9 @@ MBOT_TEST_EULA_ACCEPTED=1 node scripts/tool-api-live-smoke.js
 ```
 
 The harness creates a disposable world and runs the actual `index.js` process. It checks default-off, worker attachment, HTTP collection/inventory and movement/position, replay, busy/stop, blocked external origin, shutdown and replay after restart. It supplies controlled terrain through the server console, uses survival/peaceful, and leaves evidence in the printed temporary directory. This is a directed integration test, not a natural survival soak. No existing world or production process is modified.
+
+### Colônia automática e cancelamento com erro físico
+
+O despacho automático reconfere disponibilidade e versão do worker antes e depois de readiness. Após `stop`, o scheduler aguarda a ação API e sua persistência drenarem; o outro worker continua independente. Se a operação nativa lançar erro após cancelamento, resposta/checkpoint conservam `reason=cancelled` junto com o erro original. Ordens explícitas e defesa ainda podem preemptar fisicamente operações de produção/estoque já submetidas.
+
+Teste natural pareado e limites: [registro do ciclo](NATURAL_SOAK_20261011.md), `scripts/tool-api-natural-soak.js`.

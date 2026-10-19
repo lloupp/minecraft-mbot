@@ -1,0 +1,24 @@
+Snapshot a98c35155bd0b6446a50d5069369aee261bfb7672df453486fc05f927f6a125d; home {"x":-35,"y":73,"z":0}; 500 natural logs
+control: 16s lenhador_01 hp=20 food=20 task=sincronizar_estoque; lenhador_02 hp=20 food=20 task=idle
+control: 36s lenhador_01 hp=20 food=20 task=idle; lenhador_02 hp=20 food=20 task=sincronizar_estoque
+control: 56s lenhador_01 hp=20 food=20 task=sincronizar_estoque; lenhador_02 hp=20 food=20 task=idle
+control: 77s lenhador_01 hp=20 food=20 task=idle; lenhador_02 hp=20 food=20 task=idle
+control: 97s lenhador_01 hp=20 food=20 task=idle; lenhador_02 hp=20 food=20 task=sincronizar_estoque
+control: 117s lenhador_01 hp=20 food=20 task=idle; lenhador_02 hp=20 food=20 task=idle
+control: completed 120s; samples 62; min health 20; min food 20; deaths 0; auto results 4
+Evidence: /tmp/mbot-natural-pair-3oA5jA
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- 'cancelled'
+
+    at main (/workspace/scratch/ed2352955755/minecraft-mbot/scripts/tool-api-natural-soak.js:160:50)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: 'cancelled',
+  operator: 'strictEqual',
+  diff: 'simple'
+}

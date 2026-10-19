@@ -1,0 +1,32 @@
+Conectando a 127.0.0.1:40359 (versão 1.20.1)...
+Perfil: vanilla1201 | versão 1.20.1 | vanilla/protocolo padrão | patches 26.3 OFF
+[plugins] desligados (MBOT_PLUGINS=0)
+[memória] 0 item(ns) carregado(s)
+[tool-api] http://127.0.0.1:42883/v1/workers
+=== Bot conectado! ===
+Jogador: soak_main
+Posição: X=-34.5, Y=81.0, Z=0.5
+Modo: survival | Ping: 0ms
+Dono: soak_owner
+
+--- Bot ativo! Digite !ajuda no chat ---
+
+[colônia] lenhador_01 [plugins] desligados (MBOT_PLUGINS=0)
+HP: 20/20 | Fome: 20/20
+[colônia] lenhador_02 [plugins] desligados (MBOT_PLUGINS=0)
+[estado] workers restaurados: lenhador_01, lenhador_02
+[estado] base restaurada: -35, 73, 0
+[estado] estoque central restaurado
+[colônia] lenhador_02 conectado como lenhador
+[colônia] lenhador_01 conectado como lenhador
+[auto] lenhador_01: Event windowOpen did not fire within timeout of 20000ms
+[auto] lenhador_02: Event windowOpen did not fire within timeout of 20000ms
+[auto] lenhador_01 atualizar_estoque: { ok: true, stock: {} }
+[noite] abrigo em (-36, 74, 0) (bot em (-35, 81, 0))
+[memória] 2 minério(s) valioso(s) anotado(s)
+[noite] abrigo em (-36, 73, 0): caminho demorou demais; tentando outro lugar
+[noite] abrigo em (-37, 74, -2) (bot em (-37, 74, -1))
+[noite] cavando grass_block em (-37, 73, -2)
+[noite] cavando dirt em (-37, 72, -2)
+[noite] cavando dirt em (-37, 71, -2)
+Conexão encerrada (disconnect.quitting).

@@ -408,12 +408,16 @@ class ColonyOrchestrator {
 
   runAuto(worker, controller, task) {
     if (this.autoInFlight.has(worker.name)) return
+    const ownerVersion = controller.taskVersion
+    const canStart = () => controller.isIdle?.() !== false && !controller.currentTask && controller.taskVersion === ownerVersion
     this.autoInFlight.set(worker.name, task)
     const animalTask = task.species &&
       ['manejar_populacao', 'capturar_animais', 'construir_curral'].includes(task.type)
     if (animalTask) this.animalInFlight.add(task.species)
     return Promise.resolve()
-      .then(() => controller.run(task))
+      .then(() => canStart()
+        ? controller.run(task, { canStart })
+        : { ok: false, code: 'CANCELLED', cancelled: true })
       .then((result) => {
         if (result?.ok === false && isInterruption(result)) {
           // Nova ordem/cancelamento não é falha da tarefa: espera curta, sem escalar nem encurtar um backoff de falhas reais.

@@ -1,0 +1,24 @@
+Conectando a 127.0.0.1:35259 (versão 1.20.1)...
+Perfil: vanilla1201 | versão 1.20.1 | vanilla/protocolo padrão | patches 26.3 OFF
+[plugins] desligados (MBOT_PLUGINS=0)
+[memória] 0 item(ns) carregado(s)
+[tool-api] http://127.0.0.1:39767/v1/workers
+=== Bot conectado! ===
+Jogador: soak_main
+Posição: X=-34.5, Y=81.0, Z=0.5
+Modo: survival | Ping: 0ms
+Dono: soak_owner
+
+--- Bot ativo! Digite !ajuda no chat ---
+
+[colônia] lenhador_01 [plugins] desligados (MBOT_PLUGINS=0)
+HP: 20/20 | Fome: 20/20
+[colônia] lenhador_02 [plugins] desligados (MBOT_PLUGINS=0)
+[estado] workers restaurados: lenhador_01, lenhador_02
+[estado] base restaurada: -35, 73, 0
+[estado] estoque central restaurado
+[colônia] lenhador_02 conectado como lenhador
+[colônia] lenhador_01 conectado como lenhador
+[tool-api] {"worker":"lenhador_01","action":"move_to","success":false,"rejected":true,"reason":"worker_busy"}
+[tool-api] {"worker":"lenhador_01","action":"stop","success":true,"result":{"ok":true},"duration_ms":2,"task_id":"stop-first-worker"}
+[tool-api] {"worker":"lenhador_01","action":"gather","success":false,"error":"Event windowOpen did not fire within timeout of 20000ms","duration_ms":24011,"task_id":"soak-lenhador_01"}

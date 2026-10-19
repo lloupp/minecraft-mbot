@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "snapshotHash": "b932c09560e2d5a88baff4667d614f04a0f682042057fefe1514d9a6c4211c5c",
+  "runs": [
+    {
+      "name": "control",
+      "durationSeconds": 120,
+      "samples": 62,
+      "minimumHealth": 20,
+      "minimumFood": 20,
+      "deaths": 0,
+      "assertions": [],
+      "terminalInventory": {
+        "lenhador_01": {
+          "dark_oak_log": 1
+        },
+        "lenhador_02": {}
+      },
+      "actions": []
+    },
+    {
+      "name": "api-active",
+      "durationSeconds": 120,
+      "samples": 59,
+      "minimumHealth": 20,
+      "minimumFood": 20,
+      "deaths": 0,
+      "assertions": [
+        "overlapping mutation rejected",
+        "stop cancels first worker without cancelling second"
+      ],
+      "terminalInventory": {
+        "lenhador_01": {
+          "oak_log": 4,
+          "dark_oak_log": 1
+        },
+        "lenhador_02": {
+          "dark_oak_log": 8,
+          "oak_log": 1
+        }
+      },
+      "actions": [
+        {
+          "worker": "lenhador_01",
+          "action": "stop",
+          "success": true,
+          "reason": null,
+          "error": null,
+          "gathered": null
+        },
+        {
+          "worker": "lenhador_01",
+          "action": "gather",
+          "success": false,
+          "reason": "cancelled",
+          "error": "Event windowOpen did not fire within timeout of 20000ms",
+          "gathered": null
+        },
+        {
+          "worker": "lenhador_02",
+          "action": "gather",
+          "success": false,
+          "reason": "cancelled",
+          "error": null,
+          "gathered": 8
+        }
+      ]
+    }
+  ]
+}
