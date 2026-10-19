@@ -54,6 +54,7 @@ const { buildBlueprint, describeReport } = require('./lib/blueprintBuilder')
 const { getEventLog } = require('./lib/event-log')
 const { StatusServer } = require('./lib/status-server')
 const { RunVerifier } = require('./core/RunVerifier')
+const { startToolApiRuntime } = require('./lib/tool-api-runtime')
 const { describeBot, describeWorkers, ConsoleBuffer } = require('./lib/dashboard-snapshot')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
@@ -212,7 +213,6 @@ async function main() {
     const s = worldMemory.summary()
     console.log(`[world-memory] ${worldMemory.loadStatus}: ${s.places} lugar(es), ${s.explored} chunk(s) explorado(s); guia=${process.env.MBOT_WORLD_MEMORY_GUIDE === '1' ? 'on' : 'off'}`)
     process.on('exit', () => { try { worldMemory.flushSync() } catch {} })
-    for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { try { worldMemory.flushSync() } catch {} process.exit(0) })
   }
   const projectManager = new ProjectManager({
     storage,
@@ -236,6 +236,7 @@ async function main() {
     if (process.env.MBOT_EXPLORE_PREPARATION !== '1') console.log('[julia-authority] aviso: sem MBOT_EXPLORE_PREPARATION=1 o player loop não roda e a Julia não decide nada')
   }
 
+  let toolApiRuntime = null
   function createWorker({ name, role }) {
     const worker = createBot(mineflayer, CONFIG, { username: name })
     configureClient(worker, serverProfile)
@@ -253,6 +254,7 @@ async function main() {
       worldMemory,
       juliaAuthority
     })
+    toolApiRuntime?.attach(worker, name)
 
     worker.once('spawn', () => {
       console.log(`[colônia] ${name} conectado como ${role}`)
@@ -268,6 +270,21 @@ async function main() {
     orchestratorName: CONFIG.username,
     maxBots: maxColonyBots
   })
+  try {
+    toolApiRuntime = await startToolApiRuntime({ botManager })
+  } catch (error) {
+    console.log(`[tool-api] desativada: ${error.message}`)
+  }
+  if (toolApiRuntime) {
+    for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
+      quitRequested = true
+      try { worldMemory?.flushSync() } catch {}
+      toolApiRuntime.close().catch(error => console.log(`[tool-api] shutdown: ${error.message}`))
+      bot.quit()
+    })
+  } else if (worldMemory) {
+    for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { try { worldMemory.flushSync() } catch {} process.exit(0) })
+  }
   const colony = new ColonyOrchestrator({
     botManager,
     homeProvider,
@@ -1039,6 +1056,7 @@ async function main() {
   let quitRequested = false
   bot.on('end', async (reason) => {
     colony.stop()
+    try { await toolApiRuntime?.close() } catch (error) { console.log(`[tool-api] shutdown: ${error.message}`) }
     try { await persistState() } catch {}
     try { await memory.save() } catch {}
     memoryCapture?.stop()
