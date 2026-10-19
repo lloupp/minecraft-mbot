@@ -796,7 +796,12 @@ class WorkerController {
     const evidence = []
     const kind = [...wanted].map(worldObserver.resourceKindForBlock).find(Boolean) || null
     const dim = worldObserver.dimensionOf(this.bot)
+    const isWood = [...wanted].every((name) => name.endsWith('_log') || name === 'crimson_stem' || name === 'warped_stem')
     const mine = (n) => gather.mineBlocks(this.bot, (name) => wanted.has(name), n, isCancelled, {
+      // Wood drops may land under foliage/outside the 1.425-block pickup window.
+      // These are guarded moves, not synthetic inventory credits.
+      retryPickup: isWood,
+      clearLeaves: isWood,
       onAttempt: (attempt) => {
         evidence.push(attempt); if (evidence.length > 20) evidence.shift()
         // Fonte confirmada no mundo (item no inventário) => registra a região do recurso.
