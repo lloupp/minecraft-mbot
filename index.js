@@ -397,7 +397,7 @@ async function main() {
   let resolvedOwner = OWNER
   let fightTarget = null     // mob com quem está lutando
   let fightResume = 'seguir' // modo para voltar depois da luta
-  let autonomous = Boolean(savedState.companionAuto)
+  let autonomous = Boolean(savedState.companionAuto) || process.env.MBOT_COMPANION_AUTOSTART === '1'
   let sheltered = false
   let lastNightTry = 0
   let lastGearCheck = 0
@@ -942,7 +942,14 @@ async function main() {
           console.log(`[estado] projeto restaurado, mas faltam workers: ${err.message}`)
         }
       }
-      if (savedState.auto && colony.autoReadiness().ready) colony.setAuto(true)
+      const autoWanted = savedState.auto || process.env.MBOT_COLONY_AUTOSTART === '1'
+      const readiness = colony.autoReadiness()
+      if (autoWanted && readiness.ready) {
+        colony.setAuto(true)
+        console.log('[colônia] modo automático ativado no startup (base/estoque/planejador verificados)')
+      } else if (process.env.MBOT_COLONY_AUTOSTART === '1') {
+        console.log(`[colônia] autostart recusado: faltam ${readiness.missing.join(', ')}`)
+      }
       if (restored.length) console.log(`[estado] workers restaurados: ${restored.join(', ')}`)
       const home = homeProvider()
       if (home) console.log(`[estado] base restaurada: ${home.x}, ${home.y}, ${home.z}`)
