@@ -257,7 +257,7 @@ class WorkerController {
     // Ociosidade curta entre tarefas não zera a contagem: visto no Minecraft (linha de base), 384 ciclos curtos de
     // find_food recusado no mesmo lugar por 38 min, cada um terminando em 'ocioso' por alguns segundos.
     if (this.state !== 'trabalhando') {
-      this._idleSince ??= now
+      if (this._idleSince == null) this._idleSince = now
       if (now - this._idleSince > NO_PROGRESS_IDLE_RESET_MS) this._progressAnchor = null
       return false
     }
@@ -1870,7 +1870,10 @@ class WorkerController {
         let target = null
         try { target = food.findHuntableAnimal(this.bot, { spare }) } catch { target = null }
         let gathered = await hunt()
-        if (!gathered && target && !isCancelled()) (this._failedHunts ||= new Map()).set(target.id, Date.now() + FAILED_HUNT_MS)
+        if (!gathered && target && !isCancelled()) {
+          if (!this._failedHunts) this._failedHunts = new Map()
+          this._failedHunts.set(target.id, Date.now() + FAILED_HUNT_MS)
+        }
         const remembered = state.nearby?.foodRemembered
         if (!gathered && remembered && !isCancelled()) gathered = await this.huntRememberedFood(remembered, hunt, isCancelled)
         if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true, preparationSteps }
@@ -2171,7 +2174,7 @@ class WorkerController {
     // Escolha guiada pela memória; sem flag ou com memória vazia mantém o padrão geométrico clássico.
     const choose = () => {
       if (memory && this.memoryGuideOn()) {
-        candidates ||= this.exploreCandidates(home, radius, homeY)
+        if (!candidates) candidates = this.exploreCandidates(home, radius, homeY)
         const best = candidates.length ? memory.chooseExploreTarget(dim, candidates, this.bot.entity.position) : null
         if (best) {
           candidates = candidates.filter((c) => c !== best.candidate)
@@ -2195,7 +2198,7 @@ class WorkerController {
       for (let tries = 0; tries < 8; tries++) {
         const ground = this.surfaceAt(chosen.x, chosen.z, chosen.y)
         if (ground.ok) { chosen.y = ground.y; found = true; break }
-        if (ground.unknown) firstUnknown ||= chosen
+        if (ground.unknown && !firstUnknown) firstUnknown = chosen
         else if (memory && (ground.reason === 'water' || ground.reason === 'lava' || ground.reason === 'bubble_column')) {
           memory.markHazard(ground.reason === 'lava' ? 'lava' : 'water', dim, { x: chosen.x, y: chosen.y, z: chosen.z }, { by: this.name })
         }
@@ -2298,7 +2301,10 @@ class WorkerController {
   }
 
   ignoreThreat(entity, ms = THREAT_IGNORE_MS) {
-    if (entity?.id != null) (this._ignoredThreats ||= new Map()).set(entity.id, Date.now() + ms)
+    if (entity?.id != null) {
+      if (!this._ignoredThreats) this._ignoredThreats = new Map()
+      this._ignoredThreats.set(entity.id, Date.now() + ms)
+    }
   }
 
   threatIgnored(entity) {
@@ -2530,7 +2536,7 @@ class WorkerController {
         await this.goTo(new goals.GoalNear(target.x, target.y, target.z, attempt === 0 ? 2 : 1), deadline - Date.now())
       } catch (err) {
         if (isCancelled()) return { ok: false, verified: false, cancelled: true, ...target }
-        err.code ||= 'PATH_FAILED'
+        if (!err.code) err.code = 'PATH_FAILED'
         throw err
       }
     }
