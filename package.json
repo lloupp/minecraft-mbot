@@ -13,7 +13,8 @@
     "shadow:report": "node scripts/laya-shadow-report.js",
     "serve:andy": "node scripts/ollama-decision-server.js",
     "julia-shadow:report": "node scripts/julia-shadow-report.js",
-    "serve:julia": "python3 scripts/julia-decision-server.py"
+    "serve:julia": "python3 scripts/julia-decision-server.py",
+    "plugin:probe": "node scripts/plugin-probe.js"
   },
   "keywords": [
     "minecraft",
