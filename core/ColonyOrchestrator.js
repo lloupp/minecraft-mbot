@@ -16,7 +16,8 @@ class ColonyOrchestrator {
     intervalMs = 5000,
     stockMaxAgeMs = 30000,
     logger = console,
-    onPriorityFinished = () => {}
+    onPriorityFinished = () => {},
+    onPriorityChanged = () => {}
   }) {
     this.botManager = botManager
     this.homeProvider = homeProvider
@@ -39,7 +40,8 @@ class ColonyOrchestrator {
     this.animalInFlight = new Set()
     this.animalFailures = new Map()
     this.priority = new PriorityCollection({
-      controllers: () => this.controllers(), logger, onFinished: onPriorityFinished
+      controllers: () => this.controllers(), logger, onFinished: onPriorityFinished,
+      onChange: onPriorityChanged
     })
   }
 
@@ -72,6 +74,16 @@ class ColonyOrchestrator {
   priorityStatus() {
     return this.priority.status()
   }
+
+  queueTask(resource, count = 64, front = false) { return this.priority.enqueue(resource, count, front) }
+  queueStatus() { return this.priority.queueState() }
+  queueRemove(id) { return this.priority.remove(id) }
+  queueMove(id, index) { return this.priority.move(id, index) }
+  queuePause() { return this.priority.pause() }
+  queueResume() { return this.priority.resume() }
+  queueClear() { return this.priority.clearPending() }
+  queueExport() { return this.priority.exportState() }
+  queueRestore(state) { return this.priority.restore(state) }
 
   autoReadiness() {
     const missing = []
