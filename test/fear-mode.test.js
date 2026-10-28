@@ -37,3 +37,18 @@ test('a variável é lida de process.env quando não é passada', () => {
     else process.env.MBOT_FEARLESS = previous
   }
 })
+
+test('criativo e espectador contam como invulneráveis; sobrevivência não', () => {
+  assert.equal(fear.invulnerable({ game: { gameMode: 'creative' } }, {}), true)
+  assert.equal(fear.invulnerable({ game: { gameMode: 'spectator' } }, {}), true)
+  assert.equal(fear.invulnerable({ game: { gameMode: 'survival' } }, {}), false)
+  assert.equal(fear.invulnerable({ game: { gameMode: 'survival' } }, { MBOT_FEARLESS: '1' }), true)
+  assert.equal(fear.invulnerable(null, {}), false)
+})
+
+test('Resistência V do servidor também conta como invencível', () => {
+  const registry = { effectsByName: { Resistance: { id: 11 } } }
+  assert.equal(fear.invulnerable({ registry, game: { gameMode: 'survival' }, entity: { effects: { 11: { amplifier: 4 } } } }, {}), true)
+  assert.equal(fear.invulnerable({ registry, game: { gameMode: 'survival' }, entity: { effects: { 11: { amplifier: 1 } } } }, {}), false)
+  assert.equal(fear.invulnerable({ registry, game: { gameMode: 'survival' }, entity: { effects: {} } }, {}), false)
+})

@@ -110,7 +110,8 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 | `!atacar [mob]` | Ataca o monstro mais próximo (ou o mob indicado, ex.: `!atacar zombie`) |
 | `!comer` | Come a melhor comida do inventário |
 | `!comida` | Sai para buscar comida |
-| `!ver` | Descreve o que vê: bloco sob os pés, recursos e mobs por perto |
+| `!ver` | Descreve o que vê: bloco sob os pés, recursos e mobs por perto, com distância e direção |
+| `!ondeestou` / `!onde` | Diz onde está: coordenadas, bioma, ambiente (ar livre, caverna, construção...), luz, perigos e local salvo mais perto |
 | `!cancelar` | Cancela a tarefa e volta a seguir |
 | `!status` / `!pos` | Mostra vida, fome, itens e posição |
 | `!ajuda` | Lista os comandos |

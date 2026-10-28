@@ -23,6 +23,7 @@ const { Vec3 } = require('vec3')
 const food = require('./lib/food')
 const { WorldMemory } = require('./lib/world-memory')
 const perception = require('./lib/perception')
+const situation = require('./lib/situation')
 const { detectProfile, configureClient, describeProfile } = require('./lib/serverProfile')
 const { announceLan, motdText } = require('./lib/lan')
 const { CommandRouter } = require('./core/CommandRouter')
@@ -39,6 +40,9 @@ const deepmine = require('./lib/deepmine')
 const farm = require('./lib/farm')
 const oreMission = require('./lib/ore-mission')
 const fear = require('./lib/fear-mode')
+const invincible = require('./lib/invincible')
+const pathGuard = require('./lib/path-guard')
+const unstick = require('./lib/unstick')
 const sleepWatch = require('./lib/sleep-watch')
 const resumeTask = require('./lib/resume-task')
 const bedLib = require('./lib/bed')
@@ -169,6 +173,12 @@ async function main() {
 
   // ========== CRIAÇÃO DO BOT ==========
   const bot = createBot(mineflayer, CONFIG)
+  // MBOT_INVINCIBLE=1: o principal dá efeitos infinitos a si e a cada ajudante ao entrar no mundo.
+  const invincibility = invincible.enabled() ? new invincible.Invincibility({ commander: () => bot }) : null
+  if (invincibility) {
+    console.log('[invencível] ligado: efeitos infinitos para o bot e os ajudantes (precisa de /op)')
+    invincibility.watch(bot, CONFIG.username)
+  }
   configureClient(bot, serverProfile)
 
   // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
@@ -279,6 +289,7 @@ async function main() {
     worker.once('spawn', () => {
       console.log(`[colônia] ${name} conectado como ${role}`)
     })
+    invincibility?.watch(worker, name)
     worker.on('kicked', (reason) => console.log(`[colônia] ${name} expulso:`, reason))
     worker.on('error', (err) => console.log(`[colônia] ${name} erro: ${err.message}`))
     return worker
@@ -776,16 +787,16 @@ async function main() {
   function follow() {
     const owner = ownerEntity()
     if (!owner) return
-    bot.pathfinder.setMovements(followMoves)
+    pathGuard.safeSetMovements(bot, followMoves)
     const distance = memory.preferenciaNumero('seguir.distancia', FOLLOW_DISTANCE, 1, 16)
-    bot.pathfinder.setGoal(new goals.GoalFollow(owner, distance), true)
+    pathGuard.safeSetGoal(bot, new goals.GoalFollow(owner, distance), true)
   }
 
   function cancelTask() {
     taskId++
     taskName = null
     if (bot.targetDigBlock) bot.stopDigging()
-    bot.pathfinder.setGoal(null)
+    pathGuard.safeStop(bot)
   }
 
   // Foge do agressor (ou do hostil mais próximo); sem ameaça visível, corre para o dono.
@@ -835,12 +846,16 @@ async function main() {
   let taskResumeMode = 'seguir'
   async function runTask(name, fn, { resume = mode === 'tarefa' ? taskResumeMode : mode === 'ficar' ? 'ficar' : 'seguir' } = {}) {
     taskResumeMode = resume
+    if (!workMoves || !pathGuard.ready(bot)) {
+      bot.chat('Ainda estou entrando no mundo; tente de novo em instantes.')
+      return
+    }
     cancelTask()
     const myTask = taskId
     const isCancelled = () => myTask !== taskId
     mode = 'tarefa'
     taskName = name
-    bot.pathfinder.setMovements(workMoves)
+    pathGuard.safeSetMovements(bot, workMoves)
     try {
       await fn(isCancelled)
     } catch (err) {
@@ -1131,7 +1146,7 @@ async function main() {
       else if (task.kind === 'dar') startHandover(task.name, task.amount)
       else if (task.kind === 'trigo') startWheat(task.target)
       else if (task.kind === 'pao') startBread(task.breads)
-      else if (task.kind === 'minerios') startOreMission(task.target)
+      else if (task.kind === 'minerios') startOreMission(task.target, task.helpers)
     }, 5000).unref?.()
   })
 
@@ -1186,7 +1201,7 @@ async function main() {
     console.log(`Posição: X=${bot.entity.position.x.toFixed(1)}, Y=${bot.entity.position.y.toFixed(1)}, Z=${bot.entity.position.z.toFixed(1)}`)
     console.log(`Modo: ${bot.game?.gameMode ?? 'desconhecido'} | Ping: ${bot.players[bot.username]?.ping ?? 'N/A'}ms`)
     console.log(`Dono: ${ownerName() ?? '(ninguém online)'}`)
-    if (fear.fearless()) console.log('[modo] sem medo: sem fuga, sem briga automática e sem abrigo noturno')
+    if (fear.invulnerable(bot)) console.log(`[modo] ${fear.fearless() ? 'sem medo' : bot.game?.gameMode}: sem fuga, sem briga automática e sem abrigo noturno`)
     console.log('\n--- Bot ativo! Digite !ajuda no chat ---\n')
 
     followMoves = new Movements(bot)
@@ -1256,7 +1271,7 @@ async function main() {
 
     // Durante a luta, o próprio laço de combate decide quando recuar.
     // Sem medo (invulnerável), tomar dano não pode cancelar a tarefa.
-    if (!fear.fearless() && lastHealth !== null && bot.health < lastHealth && bot.health > 0 && taskName !== 'lutar') {
+    if (!fear.invulnerable(bot) && lastHealth !== null && bot.health < lastHealth && bot.health > 0 && taskName !== 'lutar') {
       react(lastAttacker)
       lastAttacker = null
     }
@@ -1292,7 +1307,7 @@ async function main() {
       if (mode === 'ficar') bot.pathfinder.setGoal(null)
     }
     // Defesa: foge de creepers e reage a hostis que chegam perto.
-    if (!fear.fearless() && taskName !== 'lutar' && !sheltered) {
+    if (!fear.invulnerable(bot) && taskName !== 'lutar' && !sheltered) {
       const creeper = bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
         e.position.distanceTo(bot.entity.position) <= CREEPER_RANGE)
       if (creeper) {
@@ -1329,7 +1344,7 @@ async function main() {
     // Tarefa do dono cancelada por combate: volta com espera crescente e limite.
     if (resumePendingTask()) return
 
-    if (!fear.fearless() && night.isNight(bot) && (autonomous || !ownerNearby()) &&
+    if (!fear.invulnerable(bot) && night.isNight(bot) && (autonomous || !ownerNearby()) &&
         Date.now() - lastNightTry > NIGHT_RETRY_MS) {
       spendNight()
       return
@@ -2820,6 +2835,28 @@ async function main() {
     })
   }
 
+  // Sair da água: sobe nadando e busca terra seca ao lado.
+  function startUnstick() {
+    runTask('sair da água', async (isCancelled) => {
+      if (!unstick.inWater(bot)) {
+        bot.chat('Não estou na água.')
+        return
+      }
+      bot.chat('Estou na água; subindo.')
+      const up = await unstick.swimUp(bot, { isCancelled })
+      if (isCancelled()) return
+      const dry = await unstick.stepToDry(bot, {
+        isCancelled,
+        goTo: async (target) => {
+          await food.goTo(bot, new goals.GoalNear(target.x, target.y, target.z, 1), 8000).catch(() => {})
+        }
+      })
+      if (isCancelled()) return
+      console.log(`[sair] ciclos=${up.cycles} terraFirme=${dry.ok}`)
+      bot.chat(dry.ok ? 'Saí da água e estou em terra seca.' : 'Subi, mas ainda tem água em volta.')
+    }, { resume: 'ficar' })
+  }
+
   // Bolos: baú novo na base; se o servidor recusar o contêiner, derruba no chão.
   function startCakeFlow() {
     runTask('guardar bolos', async (isCancelled) => {
@@ -2930,54 +2967,114 @@ async function main() {
   }
 
   // Missão do dono: juntar N de CADA minério, contando pelo item na mochila.
-  function startOreMission(amountArg) {
+  // Missão de minérios em equipe: o principal (se não estiver em criativo) e
+  // mineradores ajudantes descem em degraus, cada um numa família de minério.
+  // Progresso = mochilas da equipe + baú central. `!minerios [qtd] [ajudantes]`.
+  function startOreMission(amountArg, helpersArg) {
     const target = Math.max(1, Math.min(64, Number.parseInt(amountArg, 10) || 64))
-    setResumeTask({ kind: 'minerios', target })
+    const creative = bot.game?.gameMode === 'creative'
+    const parsedHelpers = Number.parseInt(helpersArg, 10)
+    const wantHelpers = Math.max(0, Number.isFinite(parsedHelpers) ? parsedHelpers : (creative ? 3 : 2))
+    setResumeTask({ kind: 'minerios', target, helpers: wantHelpers })
     runTask('missão: minérios', async (isCancelled) => {
       const count = (name) => oreMission.countItem(bot, name)
-      const ensureTool = async (family) => {
-        if (family.tool !== 'iron') return
-        if (bot.inventory.items().some((item) => item.name === 'iron_pickaxe')) return
-        console.log('[minérios] preciso de picareta de ferro; vou fabricar')
-        await craft.craftItem(bot, 'iron_pickaxe', 1, isCancelled)
-          .catch((err) => console.log(`[minérios] picareta de ferro: ${err.message}`))
-      }
-      const result = await oreMission.mineMission(bot, {
-        target,
-        isCancelled,
-        ensureTool,
-        mine: async (family, need, cancel) => {
-          const names = family.blocks.filter((name) => bot.registry.blocksByName[name])
-          if (!names.length) {
-            console.log(`[minérios] ${family.label}: sem bloco no registro`)
-            return 0
-          }
-          console.log(`[minérios] ${family.label}: faltam ${need}`)
-          return deepmine.mineDeep(bot, {
-            names,
-            item: family.item,
-            target: count(family.item) + need,
-            isCancelled: cancel,
-            floor: -58,
-            maxSteps: 200
-          }).then((result) => {
-            console.log(`[minérios] ${family.label}: passos=${result?.steps ?? '?'} itens=${result?.item ?? count(family.item)} motivo=${result?.reason || '-'}`)
-            return result
-          }).catch((err) => {
-            console.log(`[minérios] ${family.label}: falhou (${err.message})`)
-            return { item: count(family.item) }
-          })
-        },
-        onProgress: (family, have) => {
-          const text = `${family.label}: ${have}/${target}`
-          console.log(`[minérios] ${text}`)
-          bot.chat(text)
+      const helperBots = () => colony.controllers('minerador')
+      // Mochilas da equipe + baú; minério bruto e fundido contam juntos (ferro bruto + lingote).
+      const teamCount = (item) => oreMission.itemsFor(item).reduce((total, name) => {
+        let sum = creative ? 0 : count(name)
+        for (const { worker } of helperBots()) {
+          sum += (worker.bot.inventory?.items?.() || []).filter((i) => i.name === name).reduce((acc, i) => acc + i.count, 0)
         }
-      })
+        return total + sum + (storage.configured() ? (storage.cachedSummary()[name] || 0) : 0)
+      }, 0)
+
+      // Pede ajuda: cria os mineradores que faltam (até a capacidade da colônia).
+      const missing = Math.min(wantHelpers - helperBots().length, botManager.capacity())
+      if (missing > 0) {
+        try {
+          const created = await botManager.create('minerador', missing)
+          persistSoon()
+          bot.chat(`Chamei ajuda: ${created.map((w) => w.name).join(', ')}.`)
+        } catch (err) {
+          console.log(`[minérios] não consegui criar ajudantes: ${err.message}`)
+        }
+      }
+      const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+      // Espera os ajudantes entrarem no mundo (até 30 s).
+      for (let i = 0; i < 30 && !isCancelled() && helperBots().some(({ worker }) => !worker.bot.entity); i++) await pause(1000)
+      if (storage.configured()) await storage.summary(bot).catch((err) => console.log(`[minérios] não li o baú: ${err.message}`))
       if (isCancelled()) return
-      const resumo = Object.entries(result.progress).map(([key, value]) => `${key} ${value}/${target}`).join(', ')
+
+      const members = () => {
+        const list = []
+        if (!creative && bot.entity && bot.health > 0) {
+          list.push({
+            name: bot.username,
+            bot,
+            mine: async (family, need, cancel) => {
+              const hasIronPick = () => bot.inventory.items().some((item) => ['iron_pickaxe', 'diamond_pickaxe', 'netherite_pickaxe'].includes(item.name))
+              if (family.tool === 'iron' && !hasIronPick()) {
+                const ingots = () => oreMission.countItem(bot, 'iron_ingot')
+                if (ingots() < 3 && count('raw_iron') > 0) {
+                  await craft.smeltItem(bot, 'raw_iron', Math.min(count('raw_iron'), 3 - ingots()), cancel).catch((err) => console.log(`[minérios] fundir ferro: ${err.message}`))
+                }
+                await craft.craftItem(bot, 'iron_pickaxe', 1, cancel).catch((err) => console.log(`[minérios] picareta de ferro: ${err.message}`))
+                // Sem a picareta certa, cavar não rende item: tenta de novo depois em vez de gastar tentativa.
+                if (!hasIronPick()) return { ok: false, retry: true, reason: 'sem picareta de ferro' }
+              }
+              const names = family.blocks.filter((name) => bot.registry.blocksByName[name])
+              return deepmine.mineDeep(bot, { names, item: family.item, target: count(family.item) + need, isCancelled: cancel, floor: -58, maxSteps: 200 })
+            }
+          })
+        }
+        for (const { worker, controller } of helperBots()) {
+          if (!worker.bot.entity || worker.bot.health <= 0 || controller.state === 'desconectado') continue
+          list.push({
+            name: worker.name,
+            bot: worker.bot,
+            mine: (family, need) => controller.run({
+              type: 'minerar_fundo', blocks: family.blocks, item: family.item, tool: family.tool, count: need
+            })
+          })
+        }
+        return list
+      }
+
+      // Se a missão for cancelada, os ajudantes param de cavar também.
+      const stopHelpers = setInterval(() => {
+        if (!isCancelled()) return
+        clearInterval(stopHelpers)
+        for (const { controller } of helperBots()) if (controller.currentTask?.type === 'minerar_fundo') controller.cancel()
+      }, 1000)
+      bot.chat(`Missão: ${target} de cada minério. Equipe: ${members().map((m) => m.name).join(', ') || 'ninguém'}${creative ? ' (estou em criativo; só coordeno)' : ''}.`)
+      let result
+      try {
+        result = await oreMission.teamMission({
+          target,
+          members,
+          teamCount,
+          isCancelled,
+          // Ouro, redstone, diamante e esmeralda: só quem tem picareta de ferro ou ferro para fazer uma.
+          canMine: (member, family) => {
+            if (family.tool !== 'iron') return true
+            const items = member.bot?.inventory?.items?.() || []
+            const n = (name) => items.filter((i) => i.name === name).reduce((sum, i) => sum + i.count, 0)
+            if (['iron_pickaxe', 'diamond_pickaxe', 'netherite_pickaxe'].some((name) => n(name) > 0)) return true
+            // Para fazer uma: 3 de ferro e 2 gravetos (ou madeira para eles). Sem madeira no subsolo não dá.
+            const sticks = n('stick') >= 2 || items.some((i) => /_(log|planks|stem)$/.test(i.name))
+            return n('raw_iron') + n('iron_ingot') >= 3 && sticks
+          },
+          log: (text) => console.log(`[minérios] ${text}`),
+          onProgress: (family, have) => bot.chat(`${family.label}: ${Math.min(have, target)}/${target}`)
+        })
+      } finally {
+        clearInterval(stopHelpers)
+      }
+      if (isCancelled()) return
+      const resumo = Object.entries(result.progress).map(([key, value]) => `${key} ${value}`).join(', ')
       console.log(`[minérios] resumo: ${resumo}`)
-      bot.chat(result.ok ? 'Missão concluída: 64 de cada minério.' : 'Missão parcial; continuo na próxima vez.')
+      for (const g of result.gaveUp) console.log(`[minérios] desisti de ${g.key}: ${g.reason}`)
+      bot.chat(result.ok ? `Missão concluída: ${target} de cada minério (mochilas + baú).` : `Missão parcial: ${resumo}`.slice(0, 256))
       if (result.ok) setResumeTask(null)
     })
   }
@@ -3180,7 +3277,7 @@ async function main() {
         break
       // Missão: 64 de cada minério (padrão).
       case '!minerios':
-        startOreMission(args[0])
+        startOreMission(args[0], args[1])
         break
       // Trigo: sementes do capim -> arar -> plantar -> esperar -> colher.
       case '!trigo':
@@ -3207,6 +3304,10 @@ async function main() {
       // Bolos: baú novo na base; se o servidor recusar, derruba no chão.
       case '!bolos':
         startCakeFlow()
+        break
+      // Sair da água (nadar até terra seca).
+      case '!sair':
+        startUnstick()
         break
       // Cria o baú de entrega onde o bot está e passa a usá-lo.
       case '!bau':
@@ -3267,8 +3368,15 @@ async function main() {
       }
       case '!ver':
         if (!bot.entity) return
-        for (const line of perception.describe(bot)) bot.chat(line)
+        for (const line of perception.describe(bot)) { console.log(`[ver] ${line}`); bot.chat(line) }
         break
+      case '!ondeestou':
+      case '!onde': {
+        if (!bot.entity) return
+        const where = situation.whereAmI(bot, { worldMemory, waypoints: waypointManager })
+        for (const line of situation.describeSituation(where)) { console.log(`[onde] ${line}`); bot.chat(line) }
+        break
+      }
       case '!atacar': {
         const name = args[0]
         const target = bot.nearestEntity((e) => e !== bot.entity && e.type !== 'player' &&
@@ -3378,7 +3486,7 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !cama, !dormir, !ferro [qtd], !lapis [qtd], !dar <item> [qtd] [mao], !trigo [qtd], !pao [qtd], !guardar [item] [qtd], !bau, !bolos, !minerios [qtd], !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !cama, !dormir, !ferro [qtd], !lapis [qtd], !dar <item> [qtd] [mao], !trigo [qtd], !pao [qtd], !guardar [item] [qtd], !bau, !bolos, !sair, !minerios [qtd], !ver, !ondeestou, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
         bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
         break

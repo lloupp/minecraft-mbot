@@ -14,6 +14,8 @@ const { candidateIntents, deterministicPlayerPolicy, bestWeapon } = require('../
 const night = require('../lib/night')
 const bedLib = require('../lib/bed')
 const craft = require('../lib/craft')
+const deepmine = require('../lib/deepmine')
+const fear = require('../lib/fear-mode')
 const { realStateSnapshot } = require('../lib/real-state')
 const worldObserver = require('../lib/world-observer')
 const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
@@ -215,7 +217,7 @@ class WorkerController {
           // Sufocando (areia/cascalho caiu na cabeça): cava para sair, não é ataque.
           this.digOut().catch((err) => this.logger.log(`[colônia] ${this.name} soterrado: ${err.message}`))
           this.lastAttacker = null
-        } else if (!this.defending) {
+        } else if (!this.defending && !fear.invulnerable(bot)) {
           this.defend(this.lastAttacker).catch((err) => this.logger.log(`[colônia] ${this.name} defesa: ${err.message}`))
           this.lastAttacker = null
         }
@@ -235,7 +237,8 @@ class WorkerController {
   // Sobrevivência entre e durante tarefas: come quando tem fome e foge de creepers.
   survivalTick() {
     if (!this.bot.entity || this.defending) return
-    const creeper = this.bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
+    // Invencível (Resistência V/criativo): creeper não machuca, fugir só atrapalha a tarefa.
+    const creeper = !fear.invulnerable(this.bot) && this.bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
       e.position.distanceTo(this.bot.entity.position) <= CREEPER_RANGE)
     if (creeper) {
       this.defend(creeper).catch(() => {})
@@ -537,6 +540,9 @@ class WorkerController {
       switch (task.type) {
         case 'coletar_blocos':
           result = await this.gatherBlocks(task.resource, task.count || 1, isCancelled)
+          break
+        case 'minerar_fundo':
+          result = await this.mineDeepOre(task, isCancelled)
           break
         case 'fazenda':
           result = await this.farm(task.count || 1, isCancelled)
@@ -2600,6 +2606,86 @@ class WorkerController {
       this.observeWorld()
     }
     return { ok: !isCancelled() }
+  }
+
+  // Minério profundo (missão de minérios): garante a picareta certa e desce em degraus.
+  // O ganho é medido pelo item na mochila; a carga vai para o baú no fim da tarefa.
+  // `retry: true` = interrupção passageira (fuga, vida baixa, ferramenta a caminho).
+  async mineDeepOre(task, isCancelled) {
+    const bot = this.bot
+    const names = (task.blocks || []).filter((name) => bot.registry.blocksByName[name])
+    if (!names.length || !task.item) return { ok: false, code: 'NO_BLOCKS', reason: 'minério fora do registro' }
+    const count = (name) => bot.inventory.items().filter((i) => i.name === name).reduce((sum, i) => sum + i.count, 0)
+    const has = (name) => count(name) > 0
+    const STONE_UP = ['stone_pickaxe', 'iron_pickaxe', 'diamond_pickaxe', 'netherite_pickaxe']
+    const IRON_UP = ['iron_pickaxe', 'diamond_pickaxe', 'netherite_pickaxe']
+    const cancelled = () => ({ ok: false, code: 'CANCELLED', cancelled: true, retry: true, reason: 'interrompido' })
+
+    // Vida baixa: come o que tiver; se continuar baixa, descansa antes de descer.
+    // Sem comida a fome não passa de 18 e a vida não volta: caça/colhe algo primeiro.
+    if (bot.health < 10) {
+      if (!food.hasFood(bot)) {
+        await food.gatherFood(bot, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} comida: ${err.message}`))
+        if (isCancelled()) return cancelled()
+      }
+      await this.eat?.()?.catch?.(() => {})
+      if (bot.health < 10) return { ok: false, code: 'LOW_HEALTH', retry: true, memberIssue: true, reason: `vida ${Math.round(bot.health)}/20` }
+    }
+
+    await this.ensureRoleTool().catch((err) => this.logger.log?.(`[minérios] ${this.name} picareta: ${err.message}`))
+    if (isCancelled()) return cancelled()
+    if (!STONE_UP.some(has)) {
+      // Picareta de pedra: 3 pedregulhos + 2 gravetos; sem madeira, busca troncos.
+      if (!bot.inventory.items().some((i) => /_(log|planks)$/.test(i.name)) && count('stick') < 2) {
+        await this.gatherBlocks('madeira', 2, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} madeira: ${err.message}`))
+        if (isCancelled()) return cancelled()
+      }
+      await craft.craftItem(bot, 'stone_pickaxe', 1, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} picareta de pedra: ${err.message}`))
+      if (isCancelled()) return cancelled()
+    }
+    if (task.tool === 'stone' && !STONE_UP.some(has)) return { ok: false, code: 'NO_TOOL', retry: true, reason: 'sem picareta de pedra' }
+    if (task.tool === 'iron' && !IRON_UP.some(has)) {
+      const made = await this.makeIronPickaxe(isCancelled)
+      if (isCancelled()) return cancelled()
+      if (!made) return { ok: false, code: 'NO_TOOL', retry: true, reason: 'sem picareta de ferro' }
+    }
+
+    const before = count(task.item)
+    const need = Math.max(1, Number(task.count) || 1)
+    this.logger.log?.(`[minérios] ${this.name} descendo para ${task.item} (faltam ${need})`)
+    const res = await deepmine.mineDeep(bot, {
+      names, item: task.item, target: before + need, isCancelled, floor: -58, maxSteps: task.maxSteps || 200
+    }).catch((err) => ({ ok: false, reason: err.message }))
+    const gained = count(task.item) - before
+    this.logger.log?.(`[minérios] ${this.name} ${task.item}: +${gained} (passos ${res?.steps ?? '?'}, ${isCancelled() ? 'interrompido' : res?.reason || 'ok'})`)
+    if (isCancelled() && gained <= 0) return cancelled()
+    return { ok: gained >= need, item: task.item, gained, steps: res?.steps ?? 0, reason: res?.reason || null }
+  }
+
+  // Ferro bruto (mochila ou baú) -> fornalha -> lingotes -> picareta de ferro.
+  async makeIronPickaxe(isCancelled) {
+    const bot = this.bot
+    const count = (name) => bot.inventory.items().filter((i) => i.name === name).reduce((sum, i) => sum + i.count, 0)
+    try {
+      if (count('iron_ingot') < 3 && count('raw_iron') < 3 - count('iron_ingot') && this.storage?.configured()) {
+        await this.storage.withdraw(bot, 'iron_ingot', 3).catch(() => 0)
+        if (count('iron_ingot') < 3) await this.storage.withdraw(bot, 'raw_iron', 3 - count('iron_ingot')).catch(() => 0)
+      }
+      if (count('iron_ingot') < 3) {
+        if (!bot.inventory.items().some((i) => /_(log|planks)$|^coal$|^charcoal$/.test(i.name)) && this.storage?.configured()) {
+          await this.storage.withdrawFirst(bot, ['coal', 'charcoal', 'oak_planks', 'oak_log'], 2).catch(() => 0)
+        }
+        await craft.smeltItem(bot, 'raw_iron', 3 - count('iron_ingot'), isCancelled)
+      }
+      if (isCancelled()) return false
+      if (count('stick') < 2 && !bot.inventory.items().some((i) => /_(log|planks)$/.test(i.name))) {
+        await this.gatherBlocks('madeira', 1, isCancelled).catch(() => {})
+      }
+      await craft.craftItem(bot, 'iron_pickaxe', 1, isCancelled)
+    } catch (err) {
+      this.logger.log?.(`[minérios] ${this.name} picareta de ferro: ${err.message}`)
+    }
+    return count('iron_pickaxe') > 0
   }
 
   async ensureRoleTool() {

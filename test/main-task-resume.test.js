@@ -13,7 +13,9 @@ function harness(initialMode = 'ficar', cargo = []) {
   const context = vm.createContext({
     mode: initialMode, taskId: 0, taskName: null, taskResumeMode: 'seguir', autonomous: false,
     workMoves: {}, followed: 0, goals, console,
+    pathGuard: require('../lib/path-guard'),
     bot: {
+      entity: {},
       inventory: { items: () => cargo }, chat: () => {},
       pathfinder: { setMovements: () => {}, setGoal: (goal) => goals.push(goal) }
     },

@@ -20,7 +20,8 @@ function fakeBot({ at = { x: 10.5, y: 64, z: -5.5 }, blocks = {}, items = [], fi
     registry: { blocksArray: [], blocksByName: {} },
     pathfinder: {
       bestHarvestTool: () => ({ name: 'stone_pickaxe' }),
-      goto: async () => { stats.gotos++ },
+      // Como o pathfinder real: ao chegar, a posição é a do objetivo.
+      goto: async (goal) => { stats.gotos++; if (goal && Number.isFinite(goal.x)) bot.entity.position = { x: goal.x + 0.5, y: goal.y, z: goal.z + 0.5 } },
       setGoal: () => {}
     },
     equip: async (item) => stats.equip.push(item.name),
@@ -39,9 +40,18 @@ const base = { x: 10, y: 64, z: -5 }
   assert.match(plan.reason, /perigo/)
 })
 
-test('recusa degrau já aberto (não cava o vazio)', () => {
-  const bot = fakeBot({ blocks: { '11,63,-6': 'air' } })
-  assert.equal(deepmine.stepPlan(bot, [1, 0]).ok, false)
+test('degrau já aberto com chão firme: só anda, não cava o vazio', () => {
+  const bot = fakeBot({ blocks: { '11,63,-6': 'air', '11,64,-6': 'air' } })
+  const plan = deepmine.stepPlan(bot, [1, 0])
+  assert.equal(plan.ok, true)
+  assert.deepEqual(plan.dig, [])
+})
+
+test('recusa degrau aberto sem chão (seria queda)', () => {
+  const bot = fakeBot({ blocks: { '11,63,-6': 'air', '11,62,-6': 'air' } })
+  const plan = deepmine.stepPlan(bot, [1, 0])
+  assert.equal(plan.ok, false)
+  assert.match(plan.reason, /sem chão/)
 })
 
 test('cava também o bloco da cabeça quando está fechado', () => {
@@ -98,4 +108,27 @@ test('sem minério por perto desce em vez de desistir', async () => {
   assert.equal(result.steps, 2)
   assert.match(result.reason, /limite de degraus/)
   assert.equal(bot.stats.gotos, 2)
+})
+
+test('sem descida segura, anda de lado e tenta de novo', async () => {
+  // Lava sob os 4 degraus de descida a partir de (10,64,-5); de lado, em (11,64,-5), a descida para leste é livre.
+  const blocks = { '11,62,-5': 'lava', '9,62,-5': 'lava', '10,62,-4': 'lava', '10,62,-6': 'lava' }
+  const bot = fakeBot({ at: { x: 10.5, y: 64, z: -4.5 }, blocks })
+  assert.equal(deepmine.firstViableStep(bot, 0).ok, false) // daqui não há descida
+  bot.pathfinder.goto = async (goal) => { bot.entity.position = { x: goal.x + 0.5, y: goal.y, z: goal.z + 0.5 } }
+  const result = await deepmine.digStair(bot, { steps: 1 })
+  assert.equal(result.ok, true)
+  assert.equal(result.steps, 1)
+  assert.notEqual(bot.entity.position.x, 10.5) // saiu do lugar
+})
+
+test('degrau inalcançável: desiste do caminho após o prazo e não fica preso', async () => {
+  const bot = fakeBot()
+  let stopped = 0
+  bot.pathfinder.goto = () => new Promise(() => {}) // nunca chega
+  bot.pathfinder.setGoal = (goal) => { if (goal === null) stopped++ }
+  const result = await deepmine.digStair(bot, { steps: 2, stepTimeoutMs: 5 })
+  assert.equal(result.ok, false)
+  assert.match(result.reason, /chegar ao degrau/)
+  assert.equal(stopped, 4)
 })
