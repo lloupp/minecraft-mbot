@@ -51,7 +51,29 @@
     <section class="panel commands" aria-label="Comandos">
       <div class="panel-head"><h2>Comandos</h2><span class="muted small" id="cmd-status">—</span></div>
       <form class="cmd-form" id="cmd-form" autocomplete="off">
-        <input id="cmd-input" type="text" maxlength="200" placeholder="!status, !ferro 4, !base status, !projeto status…" aria-label="Comando para o bot">
+        <input id="cmd-input" type="text" maxlength="200" list="cmd-suggestions" placeholder="!status, !ferro 4, !base status, !projeto status…" aria-label="Comando para o bot">
+        <datalist id="cmd-suggestions">
+          <option value="!construir casa"></option>
+          <option value="!construir fazenda"></option>
+          <option value="!construir mina"></option>
+          <option value="!construir curral vaca"></option>
+          <option value="!construir curral ovelha"></option>
+          <option value="!construir planta cabana"></option>
+          <option value="!projeto casa"></option>
+          <option value="!projeto fazenda"></option>
+          <option value="!projeto mina"></option>
+          <option value="!projeto vila"></option>
+          <option value="!ferro 4"></option>
+          <option value="!minerar oak_log 5"></option>
+          <option value="!fabricar picareta_ferro 2"></option>
+          <option value="!cozinhar raw_iron"></option>
+          <option value="!local salvar casa"></option>
+          <option value="!ir casa"></option>
+          <option value="!patrulha casa mina"></option>
+          <option value="!explorar mina 64"></option>
+          <option value="!lembrar casa aqui"></option>
+          <option value="!onde casa"></option>
+        </datalist>
         <button id="cmd-send" type="submit">Enviar</button>
       </form>
       <div class="cmd-quick" id="cmd-quick">
@@ -108,7 +130,11 @@
             <button type="button" data-cmd="!bots">!bots</button>
             <button type="button" data-cmd="!ordem">!ordem</button>
             <button type="button" data-cmd="!abastecer">!abastecer</button>
-            <button type="button" data-cmd="!construir">!construir</button>
+            <button type="button" data-fill="!construir casa" title="Preenche o comando; revise e envie">!construir casa</button>
+            <button type="button" data-fill="!construir fazenda" title="Preenche o comando; revise e envie">!construir fazenda</button>
+            <button type="button" data-fill="!construir mina" title="Preenche o comando; revise e envie">!construir mina</button>
+            <button type="button" data-fill="!construir curral vaca" title="Preenche o comando; revise e envie">!construir curral vaca</button>
+            <button type="button" data-fill="!construir planta cabana" title="Preenche o comando; revise e envie">!construir planta cabana</button>
             <button type="button" data-cmd="!plantas">!plantas</button>
             <button type="button" data-cmd="!todos voltar">!todos voltar</button>
             <button type="button" data-cmd="!tarefas">!tarefas</button>
