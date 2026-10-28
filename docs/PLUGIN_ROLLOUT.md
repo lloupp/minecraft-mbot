@@ -41,6 +41,24 @@ npm run plugin:probe
 
 A pré-verificação `plugin:probe` resolve e inspeciona o export de **cada um dos cinco plugins do loader**, um de cada vez, sem iniciar bot nem servidor. Não substitui integração real.
 
+## Evidência de gameplay real — 28/10/2026
+
+Workflow isolado: https://github.com/lloupp/minecraft-mbot/actions/runs/40626240156
+
+O CI executou `scripts/plugin-live-smoke.js` em cinco jobs independentes, cada um iniciando servidor oficial vanilla Java 1.20.1 verificado por SHA-1, um bot e **um** plugin do loader (além do pathfinder obrigatório). Os cinco jobs concluíram em `success`. Logs e relatórios JSON individuais estão nos artifacts do workflow (não incluem mundo nem JAR).
+
+| Plugin | Ação física comprovada | Resultado |
+|---|---|---|
+| `pvp` | alvo cow removido pelo combate corpo a corpo | PASS |
+| `custompvp` | alvo cow removido pelo motor alternativo | PASS |
+| `tool` | diante de stone, selecionou `iron_pickaxe` sobre `wooden_pickaxe` | PASS |
+| `collectblock` | `oak_log` no mundo virou ar e estoque de log 0 → 1 | PASS |
+| `hawkeye` | disparou arco real: flechas 32 → 31 | PASS |
+
+Todos registraram `connect_spawn` e `no_disconnect_or_error`; os limites foram de 22 s para combate e 18 s para disparo. Hawkeye **não** comprova impacto ou precisão, somente lançamento de projétil. Os testes não cobrem Forge, itens modded, cancelamento/reentrada, longos períodos, múltiplos bots simultâneos ou o `index.js` integral. Eles provam apenas comportamento de cada plugin em bot de teste isolado. Portanto, **não** são critério suficiente para promover novo plugin ou considerar a integração completa no orquestrador.
+
+CI normal da mesma revisão: https://github.com/lloupp/minecraft-mbot/actions/runs/40626240117 — aprovado. A PR permanece em rascunho até validar os comportamentos combinados com o player loop.
+
 Em **servidor de teste descartável**, com o mesmo mundo, seed, perfis e tarefas de baseline, execute separadamente (não ao mesmo tempo):
 
 ```bash
@@ -56,4 +74,4 @@ O `pathfinder` continua presente em todos os casos. Avaliar em cada execução: 
 
 Rollback (na próxima inicialização): `MBOT_PLUGINS=0 node index.js`. `MBOT_PLUGINS_SKIP=pvp` continua disponível. Deixar `MBOT_PLUGINS_ONLY` **ausente** mantém o comportamento anterior; definir como vazio desliga todos os opcionais do loader. `SKIP` prevalece sobre `ONLY`.
 
-**Limitação desta PR:** testes unitários e export smoke **não** demonstram funcionalidade no Minecraft real, cancelamento depois de efeitos colaterais nem compatibilidade operacional no servidor. Não executar experiências no servidor de produção. Não promover integrações nem fazer merge até o smoke real passar.
+**Limitação desta PR:** os smokes reais isolados **demonstram apenas as ações da tabela**, sem validar integrações concorrentes, cancelamento após efeitos colaterais, Forge ou gameplay contínuo. Não executar experimentos no servidor de produção. Não promover integrações nem fazer merge até o teste completo do runtime e dos critérios de regressão passar.
