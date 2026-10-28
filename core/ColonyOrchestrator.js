@@ -1,4 +1,5 @@
 const husbandry = require('../lib/husbandry')
+const { PriorityCollection } = require('./PriorityCollection')
 
 const INTERRUPTION_BACKOFF_MS = 5000
 const INTERRUPTION_CODES = new Set(['CANCELLED', 'PLAYER_LOOP_PREEMPTED'])
@@ -14,7 +15,8 @@ class ColonyOrchestrator {
     projectManager = null,
     intervalMs = 5000,
     stockMaxAgeMs = 30000,
-    logger = console
+    logger = console,
+    onPriorityFinished = () => {}
   }) {
     this.botManager = botManager
     this.homeProvider = homeProvider
@@ -36,6 +38,9 @@ class ColonyOrchestrator {
     // sem isso o tick seguinte mandaria outro fazendeiro para o mesmo curral.
     this.animalInFlight = new Set()
     this.animalFailures = new Map()
+    this.priority = new PriorityCollection({
+      controllers: () => this.controllers(), logger, onFinished: onPriorityFinished
+    })
   }
 
   start() {
@@ -54,6 +59,18 @@ class ColonyOrchestrator {
   setAuto(enabled) {
     this.auto = Boolean(enabled)
     return this.auto
+  }
+
+  startPriority(resource, count = 64) {
+    return this.priority.start(resource, count)
+  }
+
+  stopPriority() {
+    return this.priority.stop()
+  }
+
+  priorityStatus() {
+    return this.priority.status()
   }
 
   autoReadiness() {
@@ -460,6 +477,9 @@ class ColonyOrchestrator {
   }
 
   async tick() {
+    // Uma ordem prioritária suspende apenas o planejamento comum; sobrevivência,
+    // defesa e retomada de conexões permanecem com seus próprios donos.
+    if (this.priority.tick()) return
     if (!this.auto) return
 
     const readiness = this.autoReadiness()
