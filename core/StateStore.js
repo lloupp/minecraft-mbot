@@ -41,6 +41,7 @@ class StateStore {
       workers: {},
       project: null,
       animalTargets: {},
+      priorityQueue: { paused: false, tasks: [], nextId: 0 },
       routeMemory: null,
       deathRecords: {},
       updatedAt: null
@@ -66,7 +67,9 @@ class StateStore {
           ? parsed.waypoints
           : {},
         workers: parsed.workers && typeof parsed.workers === 'object' ? parsed.workers : {},
-        animalTargets: animalTargets(parsed.animalTargets)
+        animalTargets: animalTargets(parsed.animalTargets),
+        priorityQueue: parsed.priorityQueue && typeof parsed.priorityQueue === 'object' && !Array.isArray(parsed.priorityQueue)
+          ? parsed.priorityQueue : this.defaults().priorityQueue
       }
     } catch (err) {
       if (err.code === 'ENOENT') return this.defaults()
@@ -92,6 +95,8 @@ class StateStore {
       home: point(state.home),
       storage: point(state.storage),
       animalTargets: animalTargets(state.animalTargets),
+      priorityQueue: state.priorityQueue && typeof state.priorityQueue === 'object' && !Array.isArray(state.priorityQueue)
+        ? state.priorityQueue : this.defaults().priorityQueue,
       routeMemory: state.routeMemory || null,
       deathRecords: state.deathRecords || {},
       updatedAt: new Date().toISOString()

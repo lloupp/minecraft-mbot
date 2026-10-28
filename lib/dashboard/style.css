@@ -151,3 +151,25 @@ select, input[type="search"] { font: inherit; font-size: 13px; padding: 3px 6px;
 .loglines .lv-error { color: var(--fail); }
 .loglines .lv-warn { color: var(--warn); }
 .loglines .lv-event { color: var(--run); }
+
+
+/* Prioridades e fila: controles compactos para desktop e celular. */
+.task-form { display: grid; grid-template-columns: minmax(130px, 1fr) 115px; gap: 8px; align-items: end; }
+.task-form label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.task-form input { min-width: 0; padding: 8px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; }
+.task-form .task-buttons { grid-column: 1 / -1; }
+.task-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.task-buttons button { cursor: pointer; border: 1px solid var(--line); background: var(--code); color: var(--ink); border-radius: 5px; padding: 7px 10px; }
+.task-buttons button:hover:not(:disabled) { border-color: var(--accent); }
+.task-buttons button:disabled { opacity: .45; cursor: not-allowed; }
+.task-current { margin: 10px 0; padding: 10px; border: 1px solid var(--line); border-radius: 6px; overflow-wrap: anywhere; }
+.task-queue { margin: 0; padding: 0; list-style: none; }
+.task-queue li { border-top: 1px solid var(--line); padding: 6px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.task-queue .task-buttons { margin: 0; }
+@media (max-width: 540px) { .task-form { grid-template-columns: 1fr; } .task-form .task-buttons { grid-column: 1; } }
+
+
+.mineral-shortcuts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.mineral-shortcuts button { font-size: 12px; cursor: pointer; border: 1px solid var(--line); color: var(--ink); background: var(--code); border-radius: 999px; padding: 6px 10px; }
+.mineral-shortcuts button:hover:not(:disabled) { border-color: var(--accent); }
+.mineral-shortcuts button:disabled { opacity: .45; cursor: not-allowed; }

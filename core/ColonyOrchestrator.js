@@ -1,4 +1,5 @@
 const husbandry = require('../lib/husbandry')
+const { PriorityCollection } = require('./PriorityCollection')
 
 const INTERRUPTION_BACKOFF_MS = 5000
 const INTERRUPTION_CODES = new Set(['CANCELLED', 'PLAYER_LOOP_PREEMPTED'])
@@ -14,7 +15,9 @@ class ColonyOrchestrator {
     projectManager = null,
     intervalMs = 5000,
     stockMaxAgeMs = 30000,
-    logger = console
+    logger = console,
+    onPriorityFinished = () => {},
+    onPriorityChanged = () => {}
   }) {
     this.botManager = botManager
     this.homeProvider = homeProvider
@@ -36,6 +39,10 @@ class ColonyOrchestrator {
     // sem isso o tick seguinte mandaria outro fazendeiro para o mesmo curral.
     this.animalInFlight = new Set()
     this.animalFailures = new Map()
+    this.priority = new PriorityCollection({
+      controllers: () => this.controllers(), logger, onFinished: onPriorityFinished,
+      onChange: onPriorityChanged
+    })
   }
 
   start() {
@@ -55,6 +62,28 @@ class ColonyOrchestrator {
     this.auto = Boolean(enabled)
     return this.auto
   }
+
+  startPriority(resource, count = 64) {
+    return this.priority.start(resource, count)
+  }
+
+  stopPriority() {
+    return this.priority.stop()
+  }
+
+  priorityStatus() {
+    return this.priority.status()
+  }
+
+  queueTask(resource, count = 64, front = false) { return this.priority.enqueue(resource, count, front) }
+  queueStatus() { return this.priority.queueState() }
+  queueRemove(id) { return this.priority.remove(id) }
+  queueMove(id, index) { return this.priority.move(id, index) }
+  queuePause() { return this.priority.pause() }
+  queueResume() { return this.priority.resume() }
+  queueClear() { return this.priority.clearPending() }
+  queueExport() { return this.priority.exportState() }
+  queueRestore(state) { return this.priority.restore(state) }
 
   autoReadiness() {
     const missing = []
@@ -460,6 +489,9 @@ class ColonyOrchestrator {
   }
 
   async tick() {
+    // Uma ordem prioritária suspende apenas o planejamento comum; sobrevivência,
+    // defesa e retomada de conexões permanecem com seus próprios donos.
+    if (this.priority.tick()) return
     if (!this.auto) return
 
     const readiness = this.autoReadiness()

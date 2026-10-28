@@ -144,6 +144,7 @@ class WorkerController {
     this._shadowLineageSeq = 0
     this.state = 'conectando'
     this.currentTask = null
+    this.activeTaskPromise = null // drain físico para a ordem prioritária não sobrepor ações
     this.taskVersion = 0
     this._preparationResumeCandidate = null
     this.exploreStep = 0
@@ -608,6 +609,12 @@ class WorkerController {
         }
       }
     })()
+
+    this.activeTaskPromise = taskPromise
+    const releaseTask = () => {
+      if (this.activeTaskPromise === taskPromise) this.activeTaskPromise = null
+    }
+    taskPromise.then(releaseTask, releaseTask)
 
     if (task.type === 'preparar_combate_deterministico') {
       this._preparationDrain = taskPromise
