@@ -77,7 +77,7 @@ async function finished(verifier) {
   return verifier.scenarioState().history[0]
 }
 
-function makeServer({ scenarios = [scenario()], snapshot = () => ({ main: describeBot({ username: 'eduardo_bot' }) }), views = () => null } = {}) {
+function makeServer({ scenarios = [scenario()], snapshot = () => ({ main: describeBot({ username: 'eduardo_bot' }) }), views = () => null, taskAction = null } = {}) {
   const eventLog = freshLog()
   const runVerifier = new RunVerifier({ eventLog, scenarios })
   runVerifier.setScenarioContext({ bot: { username: 'eduardo_bot' } })
@@ -87,7 +87,7 @@ function makeServer({ scenarios = [scenario()], snapshot = () => ({ main: descri
     projectManager: { status: () => null },
     eventLog,
     port: 0,
-    dashboard: { runVerifier, snapshot, views }
+    dashboard: { runVerifier, snapshot, views, taskAction }
   })
   server.start()
   return { server, runVerifier, eventLog }
@@ -102,6 +102,49 @@ test('painel desligado por padrão: sem rotas /dashboard e /api', async () => {
   assert.equal((await request(port, { path: '/dashboard' })).status, 404)
   assert.equal((await request(port, { path: '/api/snapshot' })).status, 404)
   assert.equal((await request(port, { path: '/health' })).status, 200)
+  server.stop()
+})
+
+test('dashboard controla fila somente por ações permitidas e origem local', async () => {
+  const calls = []
+  const { server } = makeServer({
+    taskAction: async action => {
+      calls.push(action)
+      return { queued: true }
+    }
+  })
+  const port = await listening(server)
+  const post = (body, headers = {}) => request(port, {
+    method: 'POST', path: '/api/tasks/action',
+    headers: { 'content-type': 'application/json', ...headers },
+    body: JSON.stringify(body)
+  })
+  assert.equal((await post({ action: 'queue_add', resource: 'ferro', count: 32 })).status, 403)
+  assert.equal((await post({ action: 'queue_add' }, { 'x-mbot-dashboard': '1', origin: 'http://evil.example' })).status, 403)
+  assert.equal((await post({ action: 'exec', resource: 'ferro' }, { 'x-mbot-dashboard': '1' })).status, 400)
+  assert.equal(calls.length, 0)
+  const ok = await post({ action: 'queue_add', resource: 'minerais', count: 64 }, { 'x-mbot-dashboard': '1' })
+  assert.equal(ok.status, 200)
+  assert.deepEqual(calls, [{ action: 'queue_add', resource: 'minerais', count: 64, id: undefined, position: undefined }])
+  const cmd = await post({ action: 'queue_pause' }, { 'x-mbot-dashboard': '1' })
+  assert.equal(cmd.status, 200)
+  assert.equal(calls.length, 2)
+  server.stop()
+})
+
+test('dashboard recusa corpo inválido sem executar ações', async () => {
+  let ran = false
+  const { server } = makeServer({ taskAction: () => { ran = true } })
+  const port = await listening(server)
+  const send = (body, headers = {}) => request(port, {
+    method: 'POST', path: '/api/tasks/action',
+    headers: { 'x-mbot-dashboard': '1', 'content-type': 'application/json', ...headers }, body
+  })
+  assert.equal((await send('{broken')).status, 400)
+  assert.equal((await send(JSON.stringify({ action: 'queue_add', resource: 42 }))).status, 400)
+  assert.equal((await send('{}', { 'content-type': 'text/plain' })).status, 415)
+  assert.equal((await send(JSON.stringify({ action: 'queue_add' }) + ' '.repeat(1500))).status, 413)
+  assert.equal(ran, false)
   server.stop()
 })
 
