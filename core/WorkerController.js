@@ -241,7 +241,9 @@ class WorkerController {
       this.defend(creeper).catch(() => {})
       return
     }
-    if (this.bot.food <= HUNGRY && !this.bot.targetDigBlock) this.eat()
+    // Worker ferido com fome 15–17 não regenera; sem preemptar defesa ou escavação.
+    const needsFood = this.bot.food <= HUNGRY || (this.bot.food < 18 && this.bot.health < 20)
+    if (needsFood && !this.bot.targetDigBlock) this.eat()
     this.progressTick()
   }
 
