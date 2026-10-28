@@ -167,3 +167,9 @@ select, input[type="search"] { font: inherit; font-size: 13px; padding: 3px 6px;
 .task-queue li { border-top: 1px solid var(--line); padding: 6px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .task-queue .task-buttons { margin: 0; }
 @media (max-width: 540px) { .task-form { grid-template-columns: 1fr; } .task-form .task-buttons { grid-column: 1; } }
+
+
+.mineral-shortcuts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.mineral-shortcuts button { font-size: 12px; cursor: pointer; border: 1px solid var(--line); color: var(--ink); background: var(--code); border-radius: 999px; padding: 6px 10px; }
+.mineral-shortcuts button:hover:not(:disabled) { border-color: var(--accent); }
+.mineral-shortcuts button:disabled { opacity: .45; cursor: not-allowed; }
