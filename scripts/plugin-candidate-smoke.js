@@ -152,7 +152,21 @@ async function main() {
     if (errors.length) record('no_runtime_errors', false, { errors })
     else record('no_runtime_errors', true)
     report.status = report.checks.every(c => c.status === 'PASS') ? 'PASS' : 'FAIL'
-    if (report.status !== 'PASS') process.exitCode = 1
+    // Known upstream 2.0.0 defect, reproduced twice: generic system messages
+    // also generate "playerDeath". This is a negative *plugin* result but a
+    // successful diagnostic of the defect; don't fail unrelated PR infrastructure.
+    const check = name => report.checks.find(x => x.check === name)
+    if (candidate === 'death-event' &&
+        check('reject_unrelated_system_messages')?.status === 'FAIL' &&
+        check('reject_unrelated_system_messages').details.falsePositiveEvents.some(e =>
+          e.reason === 'multiplayer.player.joined') &&
+        check('detect_real_player_death')?.status === 'PASS' &&
+        check('no_runtime_errors')?.status === 'PASS') {
+      report.status = 'XFAIL'
+      report.integrationRecommendation = 'BLOCKED: real death detected but player join and system messages generate false-positive playerDeath events'
+      console.log('EXPECTED_PLUGIN_DEFECT: unrelated system messages emitted playerDeath; candidate remains BLOCKED')
+    }
+    if (report.status === 'FAIL') process.exitCode = 1
   } catch (err) {
     report.error = err.stack || String(err)
     console.error('DIAGNOSTIC_FAILURE', report.error)
