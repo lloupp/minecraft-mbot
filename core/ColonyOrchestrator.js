@@ -30,6 +30,7 @@ class ColonyOrchestrator {
     this.autoBackoff = new Map()
     this.autoFailures = new Map()
     this.autoInFlight = new Map()
+    this.requestQueue = null
     this.animalBackoff = new Map()
     this.animalTargets = new Map()
     // Espécies com tarefa de manejo em andamento: o backoff só é gravado no fim,
@@ -388,7 +389,7 @@ class ColonyOrchestrator {
   eligibleAutoControllers() {
     const now = Date.now()
     return this.controllers().filter(({ worker, controller }) =>
-      controller.isIdle() && !this.autoInFlight.has(worker.name) && (this.autoBackoff.get(worker.name) || 0) <= now
+      controller.isIdle() && !this.autoInFlight.has(worker.name) && !this.requestQueue?.reserved.has(worker.name) && (this.autoBackoff.get(worker.name) || 0) <= now
     )
   }
 
@@ -460,6 +461,7 @@ class ColonyOrchestrator {
   }
 
   async tick() {
+    if (this.requestQueue) await this.requestQueue.dispatch()
     if (!this.auto) return
 
     const readiness = this.autoReadiness()

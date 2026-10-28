@@ -67,6 +67,7 @@ const { StatusServer } = require('./lib/status-server')
 const { RunVerifier } = require('./core/RunVerifier')
 const { startToolApiRuntime } = require('./lib/tool-api-runtime')
 const { describeBot, describeWorkers, ConsoleBuffer } = require('./lib/dashboard-snapshot')
+const { RequestQueue } = require('./core/RequestQueue')
 
 const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
 const DEFAULT_PORT = 25565
@@ -308,6 +309,20 @@ async function main() {
     projectManager
   })
   colony.restoreAnimalTargets(savedState.animalTargets)
+  const requestQueue = new RequestQueue({
+    persist: async () => persistState(),
+    candidates: () => colony.controllers().map(({ worker, controller }) => {
+      const version = controller.taskVersion
+      const canStart = () => controller.isIdle() && !controller.currentTask &&
+        controller.taskVersion === version && !colony.autoInFlight.has(worker.name)
+      return {
+        name: worker.name, role: worker.role, idle: canStart(),
+        run: task => controller.run(task, { canStart })
+      }
+    })
+  })
+  requestQueue.restore(savedState.requests)
+  colony.requestQueue = requestQueue
 
   // ========== AUDITABILIDADE E RESILIÊNCIA ==========
   const eventLog = getEventLog()
@@ -336,6 +351,7 @@ async function main() {
           profile: { id: serverProfile.id, version: bot.version || serverProfile.version, server: `${CONFIG.host}:${CONFIG.port}` },
           main: describeBot(bot, { role: 'orquestrador', status: bot.entity ? 'conectado' : 'desconectado', mode, task: taskName, owner: ownerName() || null }),
           workers: describeWorkers(botManager),
+          requests: requestQueue.list().slice(-30),
           views: publicViews(webViews),
           logs: consoleBuffer ? consoleBuffer.recent(200) : []
         }),
@@ -388,7 +404,8 @@ async function main() {
       waypoints: waypointManager.exportState(),
       workers: workerRoleCounts(),
       project: projectManager.exportState(),
-      animalTargets: colony.animalTargetsSnapshot()
+      animalTargets: colony.animalTargetsSnapshot(),
+      requests: requestQueue.list()
     })
   }
 
@@ -1791,8 +1808,12 @@ async function main() {
     const resource = args[1]
     const count = Math.max(1, Number.parseInt(args[2], 10) || 1)
     try {
-      const assignments = await colony.assign(role, resource, count)
-      bot.chat(`Ordem enviada a ${assignments.length} bot(s): ${resource} x${count}.`)
+      const normalized = botManager.normalizeRole(role)
+      if (!normalized) throw new Error(`papel desconhecido: ${role}`)
+      if (!colony.controllers(normalized).length) throw new Error(`não há bots com papel ${normalized}`)
+      const task = colony.taskFor(normalized, resource, count)
+      const request = await requestQueue.enqueue(normalized, task)
+      bot.chat(`Pedido ${request.id.slice(0, 8)} na fila: ${resource} x${count}.`)
     } catch (err) {
       bot.chat(`Não consegui distribuir a ordem: ${err.message}`)
     }
@@ -2307,7 +2328,21 @@ async function main() {
     }
   })
 
-  commandRouter.register('tarefas', async () => {
+  commandRouter.register('tarefas', async (_context, args) => {
+    if (args[0] === 'cancelar') {
+      if (!args[1]) { bot.chat('Uso: !tarefas cancelar <id>'); return }
+      try {
+        const request = await requestQueue.cancel(args[1])
+        bot.chat(`Pedido ${request.id.slice(0, 8)} cancelado.`)
+      } catch (err) { bot.chat(`Não consegui cancelar: ${err.message}`) }
+      return
+    }
+    const requests = requestQueue.list().slice(-10)
+    if (requests.length) {
+      for (const request of requests) {
+        bot.chat(`Pedido ${request.id.slice(0, 8)}: ${request.status} ${request.role} ${request.task.resource || request.task.type}${request.worker ? ` (${request.worker})` : ''}`)
+      }
+    }
     const tasks = colony.taskSummary()
     if (!tasks.length) {
       bot.chat('Nenhum bot auxiliar na colônia.')
