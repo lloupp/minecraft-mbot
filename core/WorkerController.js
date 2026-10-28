@@ -1156,6 +1156,7 @@ class WorkerController {
     const cy = Math.floor(home.y)
     const cz = Math.floor(home.z)
     const points = []
+    const missing = []
     const add = (x, z) => {
       for (let dy = 4; dy >= -4; dy--) {
         const here = this.bot.blockAt(new Vec3(x, cy + dy, z))
@@ -1166,6 +1167,7 @@ class WorkerController {
         points.push({ x, y: cy + dy, z })
         return
       }
+      missing.push({ x, z })
     }
     for (let dx = -r; dx <= r; dx++) {
       add(cx + dx, cz - r)
@@ -1174,6 +1176,20 @@ class WorkerController {
     for (let dz = -r + 1; dz <= r - 1; dz++) {
       add(cx - r, cz + dz)
       add(cx + r, cz + dz)
+    }
+    // 17x17 tem 64 células de perímetro. Não construir nem aprovar um
+    // anel com células sem apoio ou alturas desconectadas.
+    if (missing.length || points.length !== 8 * r) {
+      throw new Error(`perímetro da base incompleto: ${points.length}/${8 * r}; faltam ${missing.length} apoios`)
+    }
+    const heights = new Map(points.map((p) => [`${p.x},${p.z}`, p.y]))
+    for (const p of points) {
+      for (const [nx, nz] of [[p.x - 1, p.z], [p.x + 1, p.z], [p.x, p.z - 1], [p.x, p.z + 1]]) {
+        const neighbor = heights.get(`${nx},${nz}`)
+        if (neighbor != null && neighbor !== p.y) {
+          throw new Error('perímetro da base em alturas diferentes: nivelar terreno antes de cercar')
+        }
+      }
     }
     const north = points.filter((p) => p.z === cz - r).sort((a, b) => Math.abs(a.x - cx) - Math.abs(b.x - cx))
     const gate = north[0] || points[0]
@@ -1204,12 +1220,17 @@ class WorkerController {
       if (await this.placeGroundItem(position, kit.fence, isCancelled)) fencesPlaced++
     }
     const gatePlaced = !isCancelled() && await this.placePenGate(plan, kit.gate, isCancelled)
-    const ok = !isCancelled() && gatePlaced && fencesPlaced >= plan.fenceCount
+    // Valida blocos que o servidor realmente devolve, não apenas promessas de placeBlock().
+    const fencesVerified = plan.fences.filter((p) => this.bot.blockAt(new Vec3(p.x, p.y, p.z))?.name === kit.fence).length
+    const gateVerified = this.bot.blockAt(new Vec3(plan.gate.x, plan.gate.y, plan.gate.z))?.name === kit.gate
+    const ok = !isCancelled() && gatePlaced && gateVerified && fencesVerified === plan.fenceCount
     return {
       ok,
       fencesPlaced,
+      fencesVerified,
       fencesExpected: plan.fenceCount,
       gatePlaced: Boolean(gatePlaced),
+      gateVerified: Boolean(gateVerified),
       radius,
       origin: plan.origin,
       size: plan.size
