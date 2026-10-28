@@ -264,10 +264,21 @@ async function main() {
   // API local e opt-in: somente consulta de status; ações de gameplay bloqueadas.
   let controlApi = null
   if (process.env.MBOT_CONTROL_API === '1') {
-    const adapters = createRuntimeAdapters({ mainBot: bot, botManager, mainName: CONFIG.username })
+    const apiToken = process.env.MBOT_API_TOKEN || undefined
+    const apiActions = process.env.MBOT_API_ACTIONS === '1' && Boolean(apiToken)
+    if (process.env.MBOT_API_ACTIONS === '1' && !apiToken) {
+      console.warn('[api] ações solicitadas sem MBOT_API_TOKEN; somente leitura')
+    }
+    const adapters = createRuntimeAdapters({
+      mainBot: bot,
+      botManager,
+      mainName: CONFIG.username,
+      allowActions: apiActions,
+      isAutonomous: () => colony.auto
+    })
     controlApi = createControlApi({
       ...adapters,
-      token: process.env.MBOT_API_TOKEN || undefined,
+      token: apiToken,
       port: envPort(process.env.MBOT_API_PORT) || 8765
     })
     controlApi.listen().then((address) => {
