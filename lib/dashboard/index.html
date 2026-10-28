@@ -73,6 +73,23 @@
           <option value="!explorar mina 64"></option>
           <option value="!lembrar casa aqui"></option>
           <option value="!onde casa"></option>
+          <option value="!ordem mineradores ferro 64"></option>
+          <option value="!abastecer minerador_01 iron_ingot 16"></option>
+          <option value="!bot criar ajudante 1"></option>
+          <option value="!capturar vaca 2"></option>
+          <option value="!reproduzir vaca 1"></option>
+          <option value="!manejo vaca"></option>
+          <option value="!produto ovos"></option>
+          <option value="!tosquiar ovelha"></option>
+          <option value="!lembrar casa aqui"></option>
+          <option value="!esquecer casa"></option>
+          <option value="!item iron_ingot"></option>
+          <option value="!receita iron_pickaxe 1"></option>
+          <option value="!projeto planta cabana"></option>
+          <option value="!base aqui"></option>
+          <option value="!estoque aqui"></option>
+          <option value="!colonia auto off"></option>
+          <option value="!atacar zombie"></option>
         </datalist>
         <button id="cmd-send" type="submit">Enviar</button>
       </form>
@@ -94,11 +111,11 @@
             <button type="button" data-cmd="!metas">!metas</button>
             <button type="button" data-cmd="!local">!local</button>
             <button type="button" data-cmd="!locais">!locais</button>
-            <button type="button" data-cmd="!ir">!ir</button>
-            <button type="button" data-cmd="!viajar">!viajar</button>
+            <button type="button" data-fill="!ir casa" title="Preenche o comando; revise e envie">!ir</button>
+            <button type="button" data-fill="!viajar casa" title="Preenche o comando; revise e envie">!viajar</button>
             <button type="button" data-cmd="!voltar">!voltar</button>
-            <button type="button" data-cmd="!patrulha">!patrulha</button>
-            <button type="button" data-cmd="!explorar">!explorar</button>
+            <button type="button" data-fill="!patrulha casa mina" title="Preenche o comando; revise e envie">!patrulha</button>
+            <button type="button" data-fill="!explorar casa 64" title="Preenche o comando; revise e envie">!explorar</button>
             <button type="button" data-cmd="!cancelar">!cancelar</button>
           </div>
         </details>
@@ -108,37 +125,43 @@
             <button type="button" data-cmd="!comer">!comer</button>
             <button type="button" data-cmd="!comida">!comida</button>
             <button type="button" data-cmd="!ferro 4">!ferro 4</button>
-            <button type="button" data-cmd="!minerar">!minerar</button>
-            <button type="button" data-cmd="!cozinhar">!cozinhar</button>
-            <button type="button" data-cmd="!fabricar">!fabricar</button>
+            <button type="button" data-fill="!minerar oak_log 5" title="Preenche o comando; revise e envie">!minerar</button>
+            <button type="button" data-fill="!cozinhar raw_iron 4" title="Preenche o comando; revise e envie">!cozinhar</button>
+            <button type="button" data-fill="!fabricar torch 16" title="Preenche o comando; revise e envie">!fabricar</button>
             <button type="button" data-cmd="!cama">!cama</button>
             <button type="button" data-cmd="!dormir">!dormir</button>
-            <button type="button" data-cmd="!atacar">!atacar</button>
+            <button type="button" data-fill="!atacar zombie" title="Preenche o comando; revise e envie">!atacar</button>
           </div>
         </details>
         <details>
           <summary>Base, colônia e workers</summary>
           <div class="cmd-group">
             <button type="button" data-cmd="!base status">!base status</button>
+            <button type="button" data-fill="!base aqui" title="Preenche o comando; revise e envie">!base aqui</button>
             <button type="button" data-cmd="!estoque">!estoque</button>
+            <button type="button" data-fill="!estoque aqui" title="Preenche o comando; revise e envie">!estoque aqui</button>
             <button type="button" data-cmd="!projeto status">!projeto status</button>
+            <button type="button" data-fill="!projeto casa" title="Preenche o comando; revise e envie">!projeto casa</button>
+            <button type="button" data-fill="!projeto planta cabana" title="Preenche o comando; revise e envie">!projeto planta</button>
             <button type="button" data-cmd="!projetos">!projetos</button>
             <button type="button" data-cmd="!smoke">!smoke</button>
             <button type="button" data-cmd="!colonia necessidades">!colonia necessidades</button>
             <button type="button" data-cmd="!colonia auto">!colonia auto</button>
-            <button type="button" data-cmd="!bot">!bot</button>
+            <button type="button" data-fill="!colonia auto off" title="Preenche o comando; revise e envie">!colonia auto off</button>
+            <button type="button" data-fill="!bot criar ajudante 1" title="Preenche o comando; revise e envie">!bot criar</button>
             <button type="button" data-cmd="!bots">!bots</button>
-            <button type="button" data-cmd="!ordem">!ordem</button>
-            <button type="button" data-cmd="!abastecer">!abastecer</button>
+            <button type="button" data-fill="!ordem mineradores ferro 64" title="Preenche o comando; revise e envie">!ordem</button>
+            <button type="button" data-fill="!abastecer minerador_01 iron_ingot 16" title="Preenche o comando; revise e envie">!abastecer</button>
             <button type="button" data-fill="!construir casa" title="Preenche o comando; revise e envie">!construir casa</button>
             <button type="button" data-fill="!construir fazenda" title="Preenche o comando; revise e envie">!construir fazenda</button>
             <button type="button" data-fill="!construir mina" title="Preenche o comando; revise e envie">!construir mina</button>
             <button type="button" data-fill="!construir curral vaca" title="Preenche o comando; revise e envie">!construir curral vaca</button>
             <button type="button" data-fill="!construir planta cabana" title="Preenche o comando; revise e envie">!construir planta cabana</button>
-            <button type="button" data-cmd="!plantas">!plantas</button>
+            <button type="button" data-fill="!plantas cabana" title="Preenche o comando; revise e envie">!plantas</button>
             <button type="button" data-cmd="!todos voltar">!todos voltar</button>
             <button type="button" data-cmd="!tarefas">!tarefas</button>
-            <button type="button" data-cmd="!enviar">!enviar</button>
+            <button type="button" data-fill="!enviar minerador_01 mina" title="Preenche o comando; revise e envie">!enviar</button>
+            <button type="button" data-fill="!bot criar ajudante 1" title="Preenche o comando; revise e envie">!bot criar</button>
           </div>
         </details>
         <details>
@@ -146,27 +169,27 @@
           <div class="cmd-group">
             <button type="button" data-cmd="!animais">!animais</button>
             <button type="button" data-cmd="!curral">!curral</button>
-            <button type="button" data-cmd="!capturar">!capturar</button>
-            <button type="button" data-cmd="!reproduzir">!reproduzir</button>
-            <button type="button" data-cmd="!recolheranimais">!recolheranimais</button>
-            <button type="button" data-cmd="!criaranimais">!criaranimais</button>
-            <button type="button" data-cmd="!manejo">!manejo</button>
-            <button type="button" data-cmd="!populacao">!populacao</button>
-            <button type="button" data-cmd="!população">!população</button>
-            <button type="button" data-cmd="!produto">!produto</button>
-            <button type="button" data-cmd="!produtoanimal">!produtoanimal</button>
-            <button type="button" data-cmd="!tosquiar">!tosquiar</button>
-            <button type="button" data-cmd="!tosquia">!tosquia</button>
+            <button type="button" data-fill="!capturar vaca 2" title="Preenche o comando; revise e envie">!capturar</button>
+            <button type="button" data-fill="!reproduzir vaca 1" title="Preenche o comando; revise e envie">!reproduzir</button>
+            <button type="button" data-fill="!recolheranimais vaca 2" title="Preenche o comando; revise e envie">!recolheranimais</button>
+            <button type="button" data-fill="!criaranimais vaca 1" title="Preenche o comando; revise e envie">!criaranimais</button>
+            <button type="button" data-fill="!manejo vaca" title="Preenche o comando; revise e envie">!manejo</button>
+            <button type="button" data-fill="!populacao vaca" title="Preenche o comando; revise e envie">!populacao</button>
+            <button type="button" data-fill="!população vaca" title="Preenche o comando; revise e envie">!população</button>
+            <button type="button" data-fill="!produto ovos" title="Preenche o comando; revise e envie">!produto</button>
+            <button type="button" data-fill="!produtoanimal ovos" title="Preenche o comando; revise e envie">!produtoanimal</button>
+            <button type="button" data-fill="!tosquiar ovelha" title="Preenche o comando; revise e envie">!tosquiar</button>
+            <button type="button" data-fill="!tosquia ovelha" title="Preenche o comando; revise e envie">!tosquia</button>
           </div>
         </details>
         <details>
           <summary>Memória e localização</summary>
           <div class="cmd-group">
-            <button type="button" data-cmd="!lembrar">!lembrar</button>
-            <button type="button" data-cmd="!esquecer">!esquecer</button>
+            <button type="button" data-fill="!lembrar casa aqui" title="Preenche o comando; revise e envie">!lembrar</button>
+            <button type="button" data-fill="!esquecer casa" title="Preenche o comando; revise e envie">!esquecer</button>
             <button type="button" data-cmd="!memoria">!memoria</button>
             <button type="button" data-cmd="!memória">!memória</button>
-            <button type="button" data-cmd="!onde">!onde</button>
+            <button type="button" data-fill="!onde casa" title="Preenche o comando; revise e envie">!onde</button>
             <button type="button" data-cmd="!mundo">!mundo</button>
           </div>
         </details>
@@ -175,9 +198,9 @@
           <div class="cmd-group">
             <button type="button" data-cmd="!verify">!verify</button>
             <button type="button" data-cmd="!events">!events</button>
-            <button type="button" data-cmd="!freeze">!freeze</button>
-            <button type="button" data-cmd="!item">!item</button>
-            <button type="button" data-cmd="!receita">!receita</button>
+            <button type="button" data-fill="!freeze dashboard-check" title="Preenche o comando; revise e envie">!freeze</button>
+            <button type="button" data-fill="!item iron_ingot" title="Preenche o comando; revise e envie">!item</button>
+            <button type="button" data-fill="!receita iron_pickaxe 1" title="Preenche o comando; revise e envie">!receita</button>
             <button type="button" class="cmd-danger" data-cmd="!parar">!parar</button>
           </div>
         </details>
