@@ -31,6 +31,47 @@
       </div>
     </section>
 
+    <section class="panel priority" aria-label="Prioridades e fila de tarefas">
+      <div class="panel-head">
+        <h2>Prioridades e tarefas</h2>
+        <span class="badge" id="queue-status">—</span>
+      </div>
+      <p class="muted small">Mobiliza os auxiliares disponíveis. Defesa, alimentação e ações críticas continuam protegidas.</p>
+      <form id="task-form" class="task-form">
+        <label for="task-resource">Recurso / mineral</label>
+        <input type="text" id="task-resource" list="mineral-options" value="minerais"
+               maxlength="80" required autocomplete="off" placeholder="diamante, ferro, minerais, madeira…" />
+        <datalist id="mineral-options">
+          <option value="minerais" label="Todos os minérios"></option>
+          <option value="carvao"></option><option value="ferro"></option>
+          <option value="cobre"></option><option value="ouro"></option>
+          <option value="redstone"></option><option value="lapis"></option>
+          <option value="diamante"></option><option value="esmeralda"></option>
+          <option value="ametista"></option><option value="quartzo"></option>
+          <option value="ouro_do_nether"></option><option value="detritos_ancestrais"></option>
+          <option value="madeira"></option><option value="comida"></option>
+        </datalist>
+        <label for="task-count">Quantidade</label>
+        <input type="number" id="task-count" value="64" min="1" max="4096" required />
+        <div class="task-buttons">
+          <button type="button" data-task-action="priority_start">Executar agora</button>
+          <button type="submit" data-task-action="queue_add">Adicionar à fila</button>
+          <button type="button" data-task-action="queue_front">Adicionar no início</button>
+        </div>
+      </form>
+      <div id="priority-active" aria-live="polite" class="task-current muted">Nenhuma prioridade ativa.</div>
+      <div class="task-buttons">
+        <button type="button" data-task-action="priority_stop">Cancelar prioridade</button>
+        <button type="button" data-task-action="queue_pause">Pausar fila</button>
+        <button type="button" data-task-action="queue_resume">Retomar fila</button>
+        <button type="button" data-task-action="queue_clear">Limpar pendentes</button>
+      </div>
+      <h3>Tarefas pendentes <span class="muted small" id="queue-count">0</span></h3>
+      <ol id="queue-list" class="task-queue"></ol>
+      <p class="error small" id="task-error" hidden role="alert"></p>
+      <p class="small" id="task-feedback" aria-live="polite"></p>
+    </section>
+
     <section class="panel test" aria-label="Teste atual">
       <div class="panel-head"><h2>Teste atual</h2><span class="badge" id="current-status">—</span></div>
       <div id="current" class="current"><p class="muted">Nenhum cenário em execução.</p></div>
