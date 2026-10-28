@@ -1,0 +1,30 @@
+name: PR 95 targeted diagnostics
+
+on:
+  push:
+    branches: [feat/supervised-bot-base]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - "test/iron-deposit.test.js test/base-fence-safety.test.js test/plugins.test.js"
+          - "test/core.test.js test/worker.test.js test/base-bed.test.js test/request-queue.test.js"
+          - "test/dashboard.test.js test/animalPen.test.js"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Focused suite with bounded execution
+        run: timeout 240s node --test --test-timeout=60000 ${{ matrix.suite }}
