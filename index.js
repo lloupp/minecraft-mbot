@@ -295,7 +295,10 @@ async function main() {
     ownerProvider: () => ownerEntity(),
     storage,
     demandPlanner,
-    projectManager
+    projectManager,
+    onPriorityFinished: (result) => {
+      if (bot.entity) bot.chat('Prioridade ' + result.status + ': ' + result.resource + ' ' + result.gathered + '/' + result.target + '.')
+    }
   })
   colony.restoreAnimalTargets(savedState.animalTargets)
 
@@ -2279,6 +2282,41 @@ async function main() {
         defend(target)
         break
       }
+      case '!prioridade': {
+        const action = args[0]
+        if (!action || action === 'ajuda') {
+          bot.chat('Uso: !prioridade <recurso> [quantidade] (ex.: !prioridade diamante 64); !prioridade status; !prioridade parar')
+          break
+        }
+        if (action === 'status') {
+          const status = colony.priorityStatus()
+          if (!status.active && status.status === 'nenhuma') {
+            bot.chat('Nenhuma prioridade definida.')
+          } else {
+            bot.chat('Prioridade ' + status.status + ': ' + status.resource + ' ' +
+              status.gathered + '/' + status.target + '; trabalhando: ' +
+              (status.working.join(', ') || 'nenhum') + '; bloqueados: ' + status.blocked.length)
+          }
+          break
+        }
+        if (action === 'parar' || action === 'cancelar' || action === 'off') {
+          const status = colony.stopPriority()
+          bot.chat(status.status === 'cancelada' ? 'Prioridade cancelada; tarefas automáticas liberadas.' : 'Nenhuma prioridade ativa.')
+          break
+        }
+        if (args.length > 2) {
+          bot.chat('Uso: !prioridade <recurso> [quantidade]')
+          break
+        }
+        try {
+          const status = colony.startPriority(action, args[1] === undefined ? 64 : args[1])
+          bot.chat('Prioridade máxima: coletar ' + status.target + 'x ' + status.resource +
+            '. Auxiliares serão mobilizados conforme segurança e disponibilidade. Use !prioridade status.')
+        } catch (err) {
+          bot.chat('Prioridade não iniciada: ' + err.message)
+        }
+        break
+      }
       case '!autonomo':
       case '!autônomo':
         clearPatrolState()
@@ -2377,7 +2415,7 @@ async function main() {
       case '!ajuda':
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
         bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !prioridade <recurso> [qtd], !prioridade status|parar, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
         bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
         break
       case '!verify': {
