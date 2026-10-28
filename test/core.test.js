@@ -281,12 +281,37 @@ test('StorageManager agrega estoque e preserva equipamento', () => {
   assert.equal(isEquipment('oak_log'), false)
 })
 
+test('StorageManager cria e registra baú quando ainda não há estoque configurado', async () => {
+  const storage = new StorageManager()
+  const chest = { name: 'chest', position: { x: 4, y: 65, z: -2 } }
+  let creations = 0
+  const result = await storage.ensureConfigured({
+    registry: { blocksByName: { chest: { id: 54 } } },
+    findBlock: () => null
+  }, async () => {
+    creations++
+    return chest.position
+  })
+  assert.deepEqual(result, chest.position)
+  assert.deepEqual(storage.getPosition(), chest.position)
+  assert.equal(creations, 1)
+})
+
 test('StorageManager guarda e recupera posição do estoque', () => {
   const storage = new StorageManager()
   assert.equal(storage.configured(), false)
   storage.setPosition({ x: 10.9, y: 64.2, z: -4.1 })
   assert.deepEqual(storage.getPosition(), { x: 10, y: 64, z: -5 })
   assert.equal(storage.configured(), true)
+})
+
+test('StorageManager reserva ferramentas e comida, mas não tochas, no inventário', () => {
+  const storage = new StorageManager()
+  const bot = { registry: { foodsByName: { bread: {} } } }
+  assert.equal(storage.reserveFor(bot, { name: 'iron_pickaxe', count: 1 }), 1)
+  assert.equal(storage.reserveFor(bot, { name: 'bread', count: 12 }), 8)
+  assert.equal(storage.reserveFor(bot, { name: 'torch', count: 16 }), 0)
+  assert.equal(storage.reserveFor(bot, { name: 'oak_log', count: 64 }), 0)
 })
 
 test('StorageManager anda até o estoque mesmo com o chunk do baú descarregado', async () => {

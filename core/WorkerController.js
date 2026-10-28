@@ -18,6 +18,7 @@ const { realStateSnapshot } = require('../lib/real-state')
 const worldObserver = require('../lib/world-observer')
 const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
 const { preparationRadius, executePreparationStep, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, preparationStateSnapshot } = require('../lib/forced-preparation')
+const { isEquipment } = require('./StorageManager')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -121,13 +122,14 @@ function protectPenBlocks(moves, registry) {
 }
 
 class WorkerController {
-  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null, juliaAuthority = null }) {
+  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null, juliaAuthority = null, onStorageConfigured = null }) {
     this.bot = bot
     this.name = name
     this.role = role
     this.homeProvider = homeProvider
     this.ownerProvider = ownerProvider
     this.storage = storage
+    this.onStorageConfigured = onStorageConfigured
     this.production = production
     this.logger = logger
     // Shadow mode do Laya (opcional): só observa em paralelo, nunca decide
@@ -525,12 +527,12 @@ class WorkerController {
     // ao shadow mode SEM esperar por ela — quem chama `run()` recebe a mesma
     // promise de sempre, no mesmo instante de sempre.
     const taskPromise = (async () => {
+      let result
       try {
         this.useMoves(this.workMoves)
       await this.leaveLeftoverPen(isCancelled)
       if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true }
       if (this.bot.food <= HUNGRY) await this.eat()
-      let result
       switch (task.type) {
         case 'coletar_blocos':
           result = await this.gatherBlocks(task.resource, task.count || 1, isCancelled)
@@ -601,8 +603,25 @@ class WorkerController {
         default:
           throw new Error(`tarefa desconhecida: ${task.type}`)
       }
-        return result
+      return result
       } finally {
+        if (!isCancelled() && this.storage && !['depositar', 'retirar_estoque', 'sincronizar_estoque'].includes(task.type)) {
+          const hasCargo = this.bot.inventory.items().some((item) => {
+            const keep = this.storage.reserveFor?.(this.bot, item) ?? (
+              isEquipment(item.name) ? item.count :
+                this.bot.registry?.foodsByName?.[item.name] ? Math.min(item.count, 8) : 0
+            )
+            return item.count > keep
+          })
+          if (hasCargo) {
+            try {
+              const deposited = await this.depositCargo()
+              if (result && typeof result === 'object') result.autoDeposited = deposited.deposited
+            } catch (err) {
+              this.logger.log?.(`[estoque] ${this.name} não conseguiu guardar a carga: ${err.message}`)
+            }
+          }
+        }
         if (!isCancelled() && this.state !== 'desconectado') {
           this.currentTask = null
           this.state = 'ocioso'
@@ -2599,8 +2618,59 @@ class WorkerController {
     return { ok: withdrawn > 0, item, withdrawn, requested: count }
   }
 
+  async createStorageChest() {
+    const bot = this.bot
+    if (!bot.entity?.position) throw new Error('posição do worker indisponível para criar baú')
+    if (!bot.inventory.items().some((item) => item.name === 'chest')) {
+      if (!this.production) throw new Error('sem baú no inventário e produção indisponível')
+      await this.production.craftInternal(bot, 'chest', 1)
+    }
+    const chestItem = bot.inventory.items().find((item) => item.name === 'chest')
+    if (!chestItem) throw new Error('não consegui fabricar um baú')
+
+    const origin = bot.entity.position.floored()
+    const spots = []
+    for (let radius = 1; radius <= 4; radius++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        for (let dz = -radius; dz <= radius; dz++) {
+          if (Math.max(Math.abs(dx), Math.abs(dz)) !== radius) continue
+          for (const dy of [0, 1, -1]) {
+            const position = origin.offset(dx, dy, dz)
+            const floor = bot.blockAt(position.offset(0, -1, 0))
+            const here = bot.blockAt(position)
+            const above = bot.blockAt(position.offset(0, 1, 0))
+            if (floor?.boundingBox !== 'block' || !here || !above) continue
+            if ((here.name !== 'air' && here.boundingBox !== 'empty') ||
+                (above.name !== 'air' && above.boundingBox !== 'empty')) continue
+            spots.push({ position, floor })
+          }
+        }
+      }
+      if (spots.length) break
+    }
+    if (!spots.length) throw new Error('não achei um lugar livre e seguro para colocar o baú')
+
+    const { position, floor } = spots[0]
+    await this.goTo(new goals.GoalNear(position.x, position.y, position.z, 3), 10000)
+    await bot.equip(chestItem, 'hand')
+    await bot.lookAt(position.offset(0.5, 0.5, 0.5), true)
+    await bot.placeBlock(floor, new Vec3(0, 1, 0))
+    await sleep(300)
+    const placed = bot.blockAt(position)
+    if (placed?.name !== 'chest' && placed?.name !== 'barrel') throw new Error('o baú não apareceu depois de colocado')
+    this.logger.log?.(`[estoque] ${this.name} criou baú local em ${position.x},${position.y},${position.z}`)
+    return placed.position
+  }
+
   async depositCargo() {
-    if (!this.storage?.configured()) throw new Error('estoque central não configurado')
+    if (!this.storage) throw new Error('gerenciador de estoque indisponível')
+    if (typeof this.storage.ensureConfigured === 'function') {
+      const hadStorage = this.storage.configured()
+      await this.storage.ensureConfigured(this.bot, () => this.createStorageChest())
+      if (!hadStorage) this.onStorageConfigured?.(this.storage.getPosition())
+    } else if (!this.storage.configured?.()) {
+      throw new Error('estoque central não configurado')
+    }
     const deposited = await this.storage.depositCargo(this.bot)
     return { ok: true, deposited }
   }

@@ -263,6 +263,7 @@ async function main() {
       ownerProvider: () => ownerEntity(),
       storage,
       production,
+      onStorageConfigured: () => persistSoon(),
       shadow: shadowObservers,
       worldMemory,
       juliaAuthority
@@ -793,6 +794,20 @@ async function main() {
       await fn(isCancelled)
     } catch (err) {
       if (!isCancelled()) bot.chat(`Não consegui ${name}: ${err.message}`)
+    }
+    if (isCancelled()) return
+    const hasCargo = bot.inventory.items().some((item) => item.count > storage.reserveFor(bot, item))
+    if (hasCargo) {
+      try {
+        if (!storage.configured()) await autoStorage(isCancelled)
+        if (!isCancelled() && storage.configured()) {
+          const deposited = await storage.depositCargo(bot)
+          const text = Object.entries(deposited).map(([item, count]) => `${count}x ${item}`).join(', ')
+          if (text) console.log(`[estoque] carga do bot guardada após ${name}: ${text}`)
+        }
+      } catch (err) {
+        console.log(`[estoque] não consegui guardar a carga após ${name}: ${err.message}`)
+      }
     }
     if (isCancelled()) return
     taskName = null

@@ -74,6 +74,7 @@ class StorageManager {
     this._botQueues = new WeakMap()
     this._snapshot = {}
     this.lastUpdatedAt = 0
+    this._ensurePromise = null
   }
 
   configured() {
@@ -132,6 +133,25 @@ class StorageManager {
     if (!block) throw new Error(`nenhum baú/barrel encontrado em ${maxDistance} blocos`)
     this.setPosition(block.position)
     return block
+  }
+
+  async ensureConfigured(bot, createContainer) {
+    if (this.configured()) return this.getPosition()
+    if (this._ensurePromise) return this._ensurePromise
+    this._ensurePromise = (async () => {
+      if (this.configured()) return this.getPosition()
+      const nearby = this.findNearby(bot, 8)
+      if (nearby) return this.setPosition(nearby.position)
+      if (typeof createContainer !== 'function') throw new Error('não há baú próximo e não foi fornecido criador de baú')
+      const position = await createContainer()
+      if (!position) throw new Error('não foi possível criar um baú para o estoque')
+      return this.setPosition(position)
+    })()
+    try {
+      return await this._ensurePromise
+    } finally {
+      this._ensurePromise = null
+    }
   }
 
   block(bot) {
@@ -314,7 +334,6 @@ class StorageManager {
   reserveFor(bot, item) {
     if (isEquipment(item.name)) return item.count
     if (bot.registry?.foodsByName?.[item.name]) return Math.min(item.count, 8)
-    if (item.name === 'torch') return Math.min(item.count, 16)
     return 0
   }
 

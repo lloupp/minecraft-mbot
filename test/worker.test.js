@@ -51,6 +51,29 @@ function readyWorker(bot, extra = {}) {
   return worker
 }
 
+test('WorkerController guarda carga ao terminar tarefa e deixa ferramentas e comida', async () => {
+  const bot = fakeBot()
+  const items = [
+    { name: 'iron_pickaxe', count: 1 },
+    { name: 'bread', count: 12 },
+    { name: 'oak_log', count: 7 }
+  ]
+  bot.inventory.items = () => items
+  bot.registry.foodsByName = { bread: {} }
+  const storage = new StorageManager()
+  storage.setPosition({ x: 0, y: 64, z: 0 })
+  storage.depositCargo = async () => {
+    const deposited = { bread: 4, oak_log: 7 }
+    items.splice(0, items.length, { name: 'iron_pickaxe', count: 1 }, { name: 'bread', count: 8 })
+    return deposited
+  }
+  const worker = readyWorker(bot, { storage })
+
+  const result = await worker.run({ type: 'ir_local', position: { x: 0, y: 64, z: 0 } })
+  assert.deepEqual(result.autoDeposited, { bread: 4, oak_log: 7 })
+  assert.deepEqual(items, [{ name: 'iron_pickaxe', count: 1 }, { name: 'bread', count: 8 }])
+})
+
 test('WorkerController pula bloco inalcançável e minera o próximo', async () => {
   const unreachable = new Vec3(10, 60, 0)
   const reachable = new Vec3(3, 63, 0)
