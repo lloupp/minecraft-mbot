@@ -2,7 +2,7 @@
 
 // Ordem temporária que ganha prioridade sobre o planejamento normal da colônia.
 // A unidade de progresso é uma coleta confirmada pelo executor (não uma estimativa).
-const { normalizeWord, resolveBlockNames } = require('./resources')
+const { normalizeWord, resolveBlockNames, isMineralGroup, mineralResourcesFor } = require('./resources')
 
 const MAX_TARGET = 4096
 const BATCH_SIZE = 12
@@ -36,6 +36,7 @@ class PriorityCollection {
       working: [...order.inFlight.keys()],
       waitingForDrain: [...order.draining],
       blocked: [...order.failed],
+      minerals: Object.fromEntries(order.byMineral),
       startedAt: order.startedAt,
       finishedAt: order.finishedAt || null,
       errors: order.errors.slice(-4)
@@ -52,15 +53,18 @@ class PriorityCollection {
     const workers = this.controllers()
     if (!workers.length) throw new Error('não há auxiliares na colônia')
     const isFood = FOOD_NAMES.has(name)
-    if (!isFood && !workers.some(({ controller }) =>
-      resolveBlockNames(controller.bot || {}, name).length > 0)) {
+    const group = isMineralGroup(name)
+    if (!isFood && !workers.some(({ controller }) => group
+      ? mineralResourcesFor(controller.bot || {}).length > 0
+      : resolveBlockNames(controller.bot || {}, name).length > 0)) {
       throw new Error('recurso desconhecido nos servidores dos auxiliares: ' + name)
     }
 
     if (this.current) this.stop('substituida')
     const order = {
-      id: ++this.sequence, resource: name, type: isFood ? 'fazenda' : 'coletar_blocos',
-      target, gathered: 0, status: 'executando',
+      id: ++this.sequence, resource: name, group, type: isFood ? 'fazenda' : 'coletar_blocos',
+      target, gathered: 0, status: 'executando', nextMineralIndex: 0, byMineral: new Map(),
+      excludedResources: new Map(),
       startedAt: new Date().toISOString(), finishedAt: null,
       inFlight: new Map(), draining: new Set(), failed: new Set(),
       failures: new Map(), retryAt: new Map(), errors: []
@@ -113,7 +117,7 @@ class PriorityCollection {
     return this.status()
   }
 
-  recordResult(order, workerName, requested, result, error) {
+  recordResult(order, workerName, resource, requested, result, error) {
     if (this.current !== order) return
     const collected = Math.max(0, Math.min(requested, Number.isFinite(Number(result?.gathered))
       ? Math.floor(Number(result.gathered)) : 0))
@@ -123,8 +127,22 @@ class PriorityCollection {
       order.errors.push(workerName + ': ' + result.code)
     }
     if (collected > 0) {
+      order.byMineral.set(resource, (order.byMineral.get(resource) || 0) + collected)
       order.failures.delete(workerName)
       order.retryAt.delete(workerName)
+    } else if (result?.cancelled || result?.code === 'CANCELLED' || result?.code === 'PLAYER_LOOP_PREEMPTED') {
+      // Defesa, morte e comandos do usuário sempre ganham do objetivo de coleta.
+      order.retryAt.set(workerName, Date.now() + 5000)
+    } else if (order.group) {
+      // Mineral não encontrado: tentar OUTRO mineral antes de desistir do worker.
+      const excluded = order.excludedResources.get(workerName) || new Set()
+      excluded.add(resource)
+      order.excludedResources.set(workerName, excluded)
+      order.retryAt.set(workerName, Date.now() + 2500)
+      const controller = this.controllers().find(({ worker }) => worker.name === workerName)?.controller
+      if (controller && !mineralResourcesFor(controller.bot).some(name => !excluded.has(name))) {
+        order.failed.add(workerName)
+      }
     } else {
       const failures = (order.failures.get(workerName) || 0) + 1
       order.failures.set(workerName, failures)
@@ -148,16 +166,25 @@ class PriorityCollection {
       if (!controller.bot?.entity || !controller.isIdle?.() || controller.currentTask ||
           controller.defending || controller.eating || controller.diggingOut ||
           controller.bot.isSleeping || controller._preparationDrain || controller._toolDrain) return false
+      if (order.group) {
+        const excluded = order.excludedResources.get(worker.name) || new Set()
+        return mineralResourcesFor(controller.bot).some(name => !excluded.has(name))
+      }
       return order.type === 'fazenda' || resolveBlockNames(controller.bot, order.resource).length > 0
     })
     let unreserved = order.target - order.gathered -
       [...order.inFlight.values()].reduce((sum, amount) => sum + amount, 0)
     for (let i = 0; i < available.length && unreserved > 0; i++) {
       const { worker, controller } = available[i]
+      const alternatives = order.group
+        ? mineralResourcesFor(controller.bot).filter(name => !(order.excludedResources.get(worker.name)?.has(name)))
+        : [order.resource]
+      if (!alternatives.length) { order.failed.add(worker.name); continue }
+      const resource = alternatives[order.nextMineralIndex++ % alternatives.length]
       const amount = Math.min(BATCH_SIZE, Math.ceil(unreserved / (available.length - i)))
       unreserved -= amount
       const task = {
-        type: order.type, resource: order.resource, count: amount,
+        type: order.type, resource, count: amount,
         reason: 'prioridade_usuario', priorityId: order.id
       }
       order.inFlight.set(worker.name, amount)
@@ -165,8 +192,8 @@ class PriorityCollection {
       const canStart = () => this.current === order &&
         controller.isIdle() && !controller.currentTask && controller.taskVersion === ownerVersion
       Promise.resolve().then(() => controller.run(task, { canStart }))
-        .then((result) => this.recordResult(order, worker.name, amount, result, null))
-        .catch((error) => this.recordResult(order, worker.name, amount, null, error))
+        .then((result) => this.recordResult(order, worker.name, resource, amount, result, null))
+        .catch((error) => this.recordResult(order, worker.name, resource, amount, null, error))
         .finally(() => {
           order.inFlight.delete(worker.name)
           if (this.current === order) this.tick()
