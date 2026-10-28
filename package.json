@@ -7,7 +7,7 @@
     "start": "node index.js",
     "sempre": "while true; do node index.js && break; echo 'Reconectando em 15s...'; sleep 15; done",
     "check": "for f in index.js core/*.js lib/*.js; do node --check \"$f\" || exit 1; done",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=4 --test-timeout=120000",
     "gauntlet:decision": "node scripts/decision-gauntlet.js",
     "gauntlet:player-loop": "node scripts/player-loop-gauntlet-v2.js",
     "shadow:report": "node scripts/laya-shadow-report.js",
