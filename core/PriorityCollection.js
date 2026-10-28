@@ -36,7 +36,8 @@ class PriorityCollection {
       paused: this.paused,
       active: this.current ? this.status() : null,
       pending: this.pending.map(({ id, resource, target }) => ({ id, resource, target })),
-      last: this.last ? this.status() : null
+      last: this.last ? { status: this.last.status, resource: this.last.resource,
+        target: this.last.target, gathered: this.last.gathered } : null
     }
   }
 
@@ -260,6 +261,9 @@ class PriorityCollection {
     const order = this.current
     if (!order) {
       if (this.paused || !this.pending.length || !this.controllers().length) return false
+      // Reinicialização: não rejeitar tarefas salvas enquanto os auxiliares
+      // ainda estão conectando ou carregando a registry de blocos.
+      if (!this.controllers().some(({ controller }) => controller.bot?.entity && controller.bot?.registry)) return true
       const next = this.pending[0]
       try {
         this.start(next.resource, next.target, next)
@@ -267,6 +271,12 @@ class PriorityCollection {
         this.notifyChange()
       } catch (err) {
         this.logger.log?.('[fila] não iniciei #' + next.id + ': ' + err.message)
+        // Recurso indisponível: não travar todas as tarefas seguintes da fila.
+        this.pending.shift()
+        this.notifyChange()
+        const snapshot = { active: false, status: 'bloqueada', resource: next.resource,
+          target: next.target, gathered: 0, remaining: next.target, errors: [err.message] }
+        try { this.onFinished(snapshot) } catch {}
       }
       return true
     }
