@@ -11,7 +11,8 @@ const MAX_QUEUE = 100
 const FOOD_NAMES = new Set(['comida', 'alimento', 'alimentos', 'food'])
 const NON_PREEMPTIBLE = new Set([
   'fabricar', 'retirar_estoque', 'depositar', 'sincronizar_estoque',
-  'preparar_combate_deterministico'
+  'construir_casa', 'construir_fazenda', 'construir_mina',
+  'construir_planta', 'construir_curral', 'preparar_combate_deterministico'
 ])
 
 class PriorityCollection {
