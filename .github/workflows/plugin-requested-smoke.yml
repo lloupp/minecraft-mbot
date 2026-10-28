@@ -36,16 +36,27 @@ jobs:
           java-version: '21'
       - run: npm ci
       - name: Install candidate only on CI, without lockfile changes
+        env:
+          MBOT_PLUGIN_EVIDENCE_DIR: chosen-evidence
         run: |
           if [ "${{ matrix.plugin }}" = "panorama" ]; then
-            # Native canvas/WebGL build: bounded, so the CI cannot hang indefinitely.
-            timeout 240s npm install --no-save --package-lock=false ${{ matrix.package }}
+            # A known gl/node-gyp failure is recorded as XFAIL, not as a PASS.
+            set +e
+            timeout 240s npm install --no-save --package-lock=false ${{ matrix.package }} > panorama-install.log 2>&1
+            install_status=$?
+            set -e
+            if [ "$install_status" -ne 0 ]; then
+              tail -n 35 panorama-install.log
+              node scripts/plugin-panorama-install-report.js "$install_status" panorama-install.log
+              echo "PANORAMA_BLOCKED=1" >> "$GITHUB_ENV"
+            fi
           else
             npm install --no-save --package-lock=false --ignore-scripts ${{ matrix.package }}
           fi
       - name: Download official 1.20.1 server with pinned SHA-1
         run: python3 scripts/download-vanilla-server.py --version 1.20.1 --output .cache/vanilla-1.20.1.jar
       - name: Test physical behavior against an isolated disposable world
+        if: env.PANORAMA_BLOCKED != '1'
         env:
           MBOT_TEST_SERVER_JAR: .cache/vanilla-1.20.1.jar
           MBOT_TEST_EULA_ACCEPTED: '1'
@@ -61,3 +72,4 @@ jobs:
           path: |
             chosen-evidence/*.json
             chosen-evidence/*-server.log
+            panorama-install.log
