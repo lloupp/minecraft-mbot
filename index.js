@@ -298,9 +298,28 @@ async function main() {
     projectManager,
     onPriorityFinished: (result) => {
       if (bot.entity) bot.chat('Prioridade ' + result.status + ': ' + result.resource + ' ' + result.gathered + '/' + result.target + '.')
-    }
+    },
+    onPriorityChanged: () => persistSoon()
   })
   colony.restoreAnimalTargets(savedState.animalTargets)
+  colony.queueRestore(savedState.priorityQueue)
+
+  // O dashboard e o chat usam os mesmos métodos; não há falsificação
+  // de identidade por eventos bot.emit('chat') nem comandos arbitrários.
+  function taskAction({ action, resource, count, id, position }) {
+    switch (action) {
+      case 'priority_start': return colony.startPriority(resource, count ?? 64)
+      case 'priority_stop': return colony.stopPriority()
+      case 'queue_add': return colony.queueTask(resource, count ?? 64)
+      case 'queue_front': return colony.queueTask(resource, count ?? 64, true)
+      case 'queue_remove': return colony.queueRemove(id)
+      case 'queue_move': return colony.queueMove(id, position)
+      case 'queue_pause': return colony.queuePause()
+      case 'queue_resume': return colony.queueResume()
+      case 'queue_clear': return colony.queueClear()
+      default: throw new Error('ação inválida')
+    }
+  }
 
   // ========== AUDITABILIDADE E RESILIÊNCIA ==========
   const eventLog = getEventLog()
@@ -330,7 +349,8 @@ async function main() {
           main: describeBot(bot, { role: 'orquestrador', status: bot.entity ? 'conectado' : 'desconectado', mode, task: taskName, owner: ownerName() || null }),
           workers: describeWorkers(botManager),
           views: publicViews(webViews),
-          logs: consoleBuffer ? consoleBuffer.recent(200) : []
+          logs: consoleBuffer ? consoleBuffer.recent(200) : [],
+          priorityQueue: colony.queueStatus()
         })
       }
     })
@@ -373,7 +393,8 @@ async function main() {
       waypoints: waypointManager.exportState(),
       workers: workerRoleCounts(),
       project: projectManager.exportState(),
-      animalTargets: colony.animalTargetsSnapshot()
+      animalTargets: colony.animalTargetsSnapshot(),
+      priorityQueue: colony.queueExport()
     })
   }
 
@@ -1908,6 +1929,43 @@ async function main() {
     }
   })
 
+  commandRouter.register('fila', async (_context, args) => {
+    const action = (args[0] || 'listar').toLowerCase()
+    try {
+      if (action === 'adicionar' || action === 'frente') {
+        if (!args[1]) throw new Error('use !fila adicionar <recurso> [quantidade]')
+        const item = taskAction({ action: action === 'frente' ? 'queue_front' : 'queue_add',
+          resource: args[1], count: args[2] ?? 64 })
+        bot.chat('Tarefa #' + item.id + ' adicionada: ' + item.resource + ' x' + item.target)
+      } else if (action === 'remover') {
+        const item = taskAction({ action: 'queue_remove', id: args[1] })
+        bot.chat('Tarefa #' + item.id + ' removida da fila.')
+      } else if (action === 'subir') {
+        const pending = colony.queueStatus().pending
+        const index = pending.findIndex(item => item.id === Number(args[1]))
+        if (index < 0) throw new Error('ID não está na fila')
+        taskAction({ action: 'queue_move', id: args[1], position: Math.max(0, index - 1) })
+        bot.chat('Tarefa #' + args[1] + ' movida para cima.')
+      } else if (action === 'pausar' || action === 'retomar' || action === 'limpar') {
+        taskAction({ action: ({ pausar: 'queue_pause', retomar: 'queue_resume', limpar: 'queue_clear' })[action] })
+        bot.chat('Fila: ' + action + ' concluído.')
+      } else if (action === 'listar' || action === 'status') {
+        const queue = colony.queueStatus()
+        bot.chat('Fila ' + (queue.paused ? 'pausada' : 'ativa') +
+          ' | trabalhando: ' + (queue.active ? queue.active.resource + ' ' + queue.active.gathered + '/' + queue.active.target : 'nada') +
+          ' | pendentes: ' + queue.pending.length)
+        for (let i = 0; i < Math.min(queue.pending.length, 15); i += 4) {
+          bot.chat(queue.pending.slice(i, i + 4).map(row =>
+            '#' + row.id + ':' + row.resource + ' x' + row.target).join(' | '))
+        }
+      } else {
+        throw new Error('use !fila [listar|adicionar <recurso> <qtd>|frente|remover <id>|subir <id>|pausar|retomar|limpar]')
+      }
+    } catch (err) {
+      bot.chat('Fila: ' + err.message)
+    }
+  })
+
   commandRouter.register('tarefas', async () => {
     const tasks = colony.taskSummary()
     if (!tasks.length) {
@@ -2415,7 +2473,7 @@ async function main() {
       case '!ajuda':
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
         bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
-        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !prioridade <recurso> [qtd], !prioridade status|parar, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
+        bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !prioridade <recurso> [qtd], !prioridade status|parar, !fila adicionar|listar|subir|remover|pausar|retomar|limpar, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
         bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
         break
       case '!verify': {
