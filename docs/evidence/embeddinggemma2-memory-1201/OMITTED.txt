@@ -1,0 +1,7 @@
+Not committed (reproducible, large or derived):
+- .data/corpus.json (~11 MB): regenerate with
+    node scripts/export-embedding-memory-corpus.js --all-evidence > .data/corpus.json
+- .data/embedding-memory/bench-*.npz: embedding cache (768d float32 per unique text)
+- Model weights google/embeddinggemma-2 @ 914f7f89142e33e77833254d9c9b90c3cef7303b (~1.5 GB, HF cache)
+- shadow-without-memory.json / shadow-with-memory.json: not produced. The offline gate did not
+  show a benefit over cheap baselines, so no online shadow integration was built (see README.md).

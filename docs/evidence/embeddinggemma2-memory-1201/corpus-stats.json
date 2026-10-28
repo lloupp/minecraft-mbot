@@ -1,0 +1,100 @@
+{
+  "episodes_total": 2109,
+  "contested_decisions": 294,
+  "forced_decisions": 1815,
+  "successful": 985,
+  "failed": 1124,
+  "contested_successful": 143,
+  "contested_failed": 151,
+  "actions": {
+    "continue_objective": 362,
+    "gather_materials": 228,
+    "prepare_combat": 22,
+    "escape_danger": 495,
+    "return_base": 455,
+    "sleep_or_shelter": 492,
+    "equip_best_weapon": 18,
+    "find_food": 36,
+    "fight_threat": 1
+  },
+  "contested_actions": {
+    "continue_objective": 53,
+    "prepare_combat": 22,
+    "escape_danger": 18,
+    "return_base": 78,
+    "equip_best_weapon": 18,
+    "sleep_or_shelter": 102,
+    "find_food": 2,
+    "fight_threat": 1
+  },
+  "categories": {
+    "PREPARATION": 141,
+    "THREAT": 525,
+    "EXPLORATION": 255,
+    "GATHER": 228,
+    "NAVIGATION": 403,
+    "SHELTER": 431,
+    "FOOD": 126
+  },
+  "contested_categories": {
+    "PREPARATION": 141,
+    "THREAT": 48,
+    "NAVIGATION": 26,
+    "FOOD": 38,
+    "SHELTER": 41
+  },
+  "contested_candidate_sets": {
+    "continue_objective+prepare_combat": 28,
+    "continue_objective+equip_best_weapon": 17,
+    "continue_objective+return_base": 26,
+    "prepare_combat+return_base": 5,
+    "escape_danger+fight_threat": 15,
+    "find_food+return_base": 37,
+    "prepare_combat+sleep_or_shelter": 106,
+    "equip_best_weapon+escape_danger": 16,
+    "return_base+sleep_or_shelter": 41,
+    "continue_objective+find_food": 1,
+    "prepare_combat+return_base+sleep_or_shelter": 2
+  },
+  "result_codes": {
+    "OK_OR_NONE": 1025,
+    "DISCONNECTED": 3,
+    "ERROR": 229,
+    "PLAYER_LOOP_PREEMPTED": 626,
+    "RECIPE_INPUTS_CHANGED": 2,
+    "CANCELLED": 52,
+    "RECIPE_INPUTS_NOT_CONFIRMED": 27,
+    "SAFETY_PRECEDENCE": 10,
+    "TIMEOUT": 4,
+    "NOT_SETTLED": 30,
+    "NOT_ARRIVED": 13,
+    "SHELTER_FAILED": 87,
+    "THREAT": 1
+  },
+  "sources": {
+    "deterministic-preparation-interruption-1201/verification": 2,
+    "deterministic-preparation-defense-handoff-1201/reconnect-sword-verification": 2,
+    "deterministic-preparation-drop-recovery-1201/baseline-basic": 1,
+    "pr3-julia-shadow-smoke-1201": 1,
+    "julia-authority-real-1201/runs/r0-baseline-sem-bootstrap": 25,
+    "julia-authority-real-1201/runs/r1-bootstrap-debug": 594,
+    "julia-authority-real-1201/runs/r2-soak-debug": 268,
+    "julia-authority-real-1201/runs/r3-final": 514,
+    "julia-authority-sustainability-1201/runs/food-before": 50,
+    "julia-authority-sustainability-1201/runs/food-after": 37,
+    "julia-authority-sustainability-1201/runs/food-shelter-after2": 94,
+    "julia-authority-sustainability-1201/runs/food-shelter-after3": 30,
+    "julia-authority-sustainability-1201/runs/equip-threat": 8,
+    "julia-authority-sustainability-1201/runs/nav-regression-crash": 9,
+    "julia-authority-sustainability-1201/runs/nav-after": 39,
+    "julia-authority-sustainability-1201/runs/r4-final": 349,
+    "julia-authority-sustainability-1201/runs/nav-post-r4": 52,
+    "julia-authority-sustainability-1201/runs/respawn-stuck": 34
+  },
+  "flags": {
+    "safety": 10,
+    "cancelled": 701,
+    "blocked": 163,
+    "healthLost": 125
+  }
+}
