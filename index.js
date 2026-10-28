@@ -261,7 +261,7 @@ async function main() {
     orchestratorName: CONFIG.username,
     maxBots: maxColonyBots
   })
-  // API local e opt-in: somente consulta de status; ações de gameplay bloqueadas.
+  // API local e opt-in; comandos de gameplay exigem token e autorização explícita.
   let controlApi = null
   if (process.env.MBOT_CONTROL_API === '1') {
     const apiToken = process.env.MBOT_API_TOKEN || undefined
@@ -282,7 +282,7 @@ async function main() {
       port: envPort(process.env.MBOT_API_PORT) || 8765
     })
     controlApi.listen().then((address) => {
-      console.log(`[api] controle local em 127.0.0.1:${address.port} (somente status)`)
+      console.log(`[api] controle local em 127.0.0.1:${address.port} (${apiActions ? 'ações habilitadas' : 'somente status'})`)
     }).catch((error) => console.error(`[api] falha ao iniciar: ${error.message}`))
   }
   const colony = new ColonyOrchestrator({
