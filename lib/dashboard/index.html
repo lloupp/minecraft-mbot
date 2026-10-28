@@ -48,6 +48,26 @@
       </div>
     </section>
 
+    <section class="panel commands" aria-label="Comandos">
+      <div class="panel-head"><h2>Comandos</h2><span class="muted small" id="cmd-status">—</span></div>
+      <form class="cmd-form" id="cmd-form" autocomplete="off">
+        <input id="cmd-input" type="text" maxlength="200" placeholder="!status, !ferro 4, !base status, !projeto status…" aria-label="Comando para o bot">
+        <button id="cmd-send" type="submit">Enviar</button>
+      </form>
+      <div class="cmd-quick" id="cmd-quick">
+        <button type="button" data-cmd="!status">status</button>
+        <button type="button" data-cmd="!base status">base</button>
+        <button type="button" data-cmd="!estoque">estoque</button>
+        <button type="button" data-cmd="!projeto status">projeto</button>
+        <button type="button" data-cmd="!bots">workers</button>
+        <button type="button" data-cmd="!ferro 4">ferro 4</button>
+        <button type="button" data-cmd="!cama">cama</button>
+        <button type="button" data-cmd="!seguir">seguir</button>
+        <button type="button" data-cmd="!ajuda">ajuda</button>
+      </div>
+      <p class="error small" id="cmd-error" hidden></p>
+    </section>
+
     <section class="panel inventory" aria-label="Inventário">
       <div class="panel-head">
         <h2>Inventário <span class="muted small" id="inv-owner"></span></h2>

@@ -337,7 +337,15 @@ async function main() {
           workers: describeWorkers(botManager),
           views: publicViews(webViews),
           logs: consoleBuffer ? consoleBuffer.recent(200) : []
-        })
+        }),
+        command: async ({ text }) => {
+          const actor = OWNER || ownerName() || 'dashboard'
+          if (!bot.entity) throw new Error('o bot ainda não entrou no mundo')
+          console.log(`[painel] comando de ${actor}: ${text}`)
+          eventLog.log('dashboard_command', { command: text, actor })
+          bot.emit('chat', actor, text)
+          return { ok: true, command: text, actor }
+        }
       }
     })
     : null
