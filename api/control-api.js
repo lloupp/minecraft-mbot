@@ -3,7 +3,7 @@ const http = require('node:http');
 
 function createControlApi({ listBots, execute, token, host = '127.0.0.1', port = 8765 }) {
   if (typeof listBots !== 'function' || typeof execute !== 'function') throw new TypeError('listBots and execute adapters required');
-  const commands = Object.freeze(['status', 'stop', 'follow', 'mine', 'craft', 'eat']);
+  const commands = Object.freeze(['status', 'stop', 'mine', 'craft', 'move']);
   const server = http.createServer(async (req, res) => {
     const reply = (status, body) => {
       res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
