@@ -151,7 +151,7 @@ async function main() {
   const consoleBuffer = dashboardEnabled ? new ConsoleBuffer().capture() : null
   const server = await findServer()
   if (!server) {
-    console.error(`Nenhum servidor Minecraft encontrado em ${HOST}. Abra o mundo para LAN (Esc > "Abrir para LAN") ou defina MINECRAFT_PORT.`)
+    console.error(`Nenhum servidor Minecraft respondeu em ${HOST}${CONNECTION.port ? ':' + CONNECTION.port : ''}. Verifique o endereço, a porta, o firewall e se o servidor permite consultas de status. Configure MINECRAFT_HOST e MINECRAFT_PORT no .env ou no ambiente.`)
     process.exit(1)
   }
 

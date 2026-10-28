@@ -144,6 +144,39 @@ test('WorkerController come quando tem fome', async () => {
   assert.equal(eaten, 1)
 })
 
+test('WorkerController ferido come com fome 17 para permitir regeneração', async () => {
+  const bot = fakeBot()
+  bot.food = 17
+  bot.health = 14
+  bot.registry.foodsByName = { bread: { effectiveQuality: 10 } }
+  bot.inventory = { items: () => [{ name: 'bread' }] }
+  let eaten = 0
+  bot.consume = async () => { eaten++ }
+  const worker = readyWorker(bot)
+  worker.survivalTick()
+  worker.survivalTick()
+  await sleep(0)
+  assert.equal(eaten, 1)
+})
+
+test('regeneração não consome comida ruim nem interrompe escavação ou defesa', async () => {
+  for (const scenario of ['bad_food', 'digging', 'defending', 'healthy']) {
+    const bot = fakeBot()
+    bot.food = 17
+    bot.health = scenario === 'healthy' ? 20 : 14
+    bot.registry.foodsByName = { bread: { effectiveQuality: 10 }, spider_eye: { effectiveQuality: 1 } }
+    bot.inventory = { items: () => [{ name: scenario === 'bad_food' ? 'spider_eye' : 'bread' }] }
+    bot.targetDigBlock = scenario === 'digging' ? {} : null
+    let eaten = 0
+    bot.consume = async () => { eaten++ }
+    const worker = readyWorker(bot)
+    worker.defending = scenario === 'defending'
+    worker.survivalTick()
+    await sleep(0)
+    assert.equal(eaten, 0, scenario)
+  }
+})
+
 // Curral de vacas pronto em volta de home, com portão que abre/fecha e um
 // pathfinder que "teletransporta" o bot para o objetivo.
 function penWorld({ items = [], cows = 2 } = {}) {
