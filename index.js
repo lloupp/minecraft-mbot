@@ -351,7 +351,8 @@ async function main() {
           views: publicViews(webViews),
           logs: consoleBuffer ? consoleBuffer.recent(200) : [],
           priorityQueue: colony.queueStatus()
-        })
+        }),
+        taskAction: (payload) => taskAction(payload)
       }
     })
     : null
