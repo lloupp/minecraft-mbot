@@ -21,6 +21,8 @@ const { CommandRouter } = require('./core/CommandRouter')
 const { MinecraftKnowledge } = require('./core/MinecraftKnowledge')
 const { Planner } = require('./core/Planner')
 const { BotManager } = require('./core/BotManager')
+const { createControlApi } = require('./api/control-api')
+const { createRuntimeAdapters } = require('./api/runtime-adapters')
 const craft = require('./lib/craft')
 const gather = require('./lib/gather')
 const combat = require('./lib/combat')
@@ -259,6 +261,30 @@ async function main() {
     orchestratorName: CONFIG.username,
     maxBots: maxColonyBots
   })
+  // API local e opt-in; comandos de gameplay exigem token e autorização explícita.
+  let controlApi = null
+  if (process.env.MBOT_CONTROL_API === '1') {
+    const apiToken = process.env.MBOT_API_TOKEN || undefined
+    const apiActions = process.env.MBOT_API_ACTIONS === '1' && Boolean(apiToken)
+    if (process.env.MBOT_API_ACTIONS === '1' && !apiToken) {
+      console.warn('[api] ações solicitadas sem MBOT_API_TOKEN; somente leitura')
+    }
+    const adapters = createRuntimeAdapters({
+      mainBot: bot,
+      botManager,
+      mainName: CONFIG.username,
+      allowActions: apiActions,
+      isAutonomous: () => colony.auto
+    })
+    controlApi = createControlApi({
+      ...adapters,
+      token: apiToken,
+      port: envPort(process.env.MBOT_API_PORT) || 8765
+    })
+    controlApi.listen().then((address) => {
+      console.log(`[api] controle local em 127.0.0.1:${address.port} (${apiActions ? 'ações habilitadas' : 'somente status'})`)
+    }).catch((error) => console.error(`[api] falha ao iniciar: ${error.message}`))
+  }
   const colony = new ColonyOrchestrator({
     botManager,
     homeProvider,
@@ -1035,6 +1061,7 @@ async function main() {
     memoryCapture?.stop()
     botManager.stopAll()
     statusServer.stop()
+    if (controlApi?.server.listening) await controlApi.close().catch(() => {})
     dashboardServer?.stop()
     webViews?.viewer?.close?.()
     webViews?.inventory?.close?.()
