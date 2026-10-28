@@ -128,11 +128,11 @@ async function main() {
       if (beforeKill.length) report.integrationRecommendation = 'BLOCKED: false-positive events on unrelated system messages'
     } else if (candidate === 'bloodhound') {
       bot.loadPlugin(require('mineflayer-bloodhound')(mineflayer))
-      assert(bot.bloodhound, 'plugin failed to attach bloodhound')
       bot.on('onCorrelateAttack', (attacker, victim, weapon) => {
         events.push({ attacker:attacker?.username || attacker?.name, victim:victim?.name, attackerId:attacker?.id, victimId:victim?.id, weapon:weapon?.name || null })
       })
       await waitFor(() => bot.entity && bot.registry, 25000, 'observer spawn')
+      assert(bot.bloodhound, 'plugin failed to attach bloodhound after spawn')
       actor = await createActor(port)
       await command('tp candidate_probe 0 63 0')
       await command('tp attacker_probe 5 63 0')
