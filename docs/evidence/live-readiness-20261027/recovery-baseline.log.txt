@@ -1,0 +1,14 @@
+PASS default_off: {"listener":false,"checkpointCreated":false}
+PASS runtime_worker_attached: {"id":"ajudante_01","role":"ajudante","connected":true,"tools":["get_state","get_inventory","get_position","get_available_actions","get_current_task","stop","eat","move_to","gather","craft"]}
+PASS http_gather_real_inventory: {"success":true,"gathered":1,"inventory":{"oak_log":1}}
+PASS http_move_real_position: {"x":5,"y":71,"z":1}
+PASS idempotent_replay: {"unchangedLogs":1}
+PASS external_origin_blocked: {"status":403}
+PASS busy_and_stop_real_task: {"busy":"worker_busy","cancelled":"cancelled"}
+PASS sigterm_closes_listener: {"exitCode":0}
+PASS restart_checkpoint_replay: {"attempts":1,"cancelledStatus":"cancelled"}
+PASS recovery_fixture: {"health":14,"food":17,"injected":["hunger","damage","bread"]}
+Evidence: /workspace/scratch/30c32fb7615a/validation/tmp/mbot-tool-live-KNQxFD
+Error: smoke phase timed out
+    at waitFor (/workspace/scratch/30c32fb7615a/mbot-recovery-baseline/scripts/tool-api-live-smoke.js:22:9)
+    at async main (/workspace/scratch/30c32fb7615a/mbot-recovery-baseline/scripts/tool-api-live-smoke.js:158:9)

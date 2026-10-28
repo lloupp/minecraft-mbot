@@ -2,6 +2,7 @@
 
 // Paired, short natural-terrain runtime soak. No existing world is opened.
 const fs = require('node:fs/promises')
+const { appendFileSync } = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
 const net = require('node:net')
@@ -60,7 +61,11 @@ async function main() {
   await fs.copyFile(process.env.MBOT_TEST_SERVER_JAR, path.join(serverDir, 'server.jar'))
   await fs.writeFile(path.join(serverDir, 'eula.txt'), 'eula=true\n')
   await fs.writeFile(path.join(serverDir, 'server.properties'), `server-ip=127.0.0.1\nserver-port=${mcPort}\nonline-mode=false\nspawn-protection=0\ndifficulty=normal\ngamemode=survival\nlevel-type=minecraft:normal\nlevel-seed=${seed}\nview-distance=5\nsimulation-distance=5\nmax-players=5\n`)
-  const report = { minecraft: '1.20.1', seed, nightMode, durationSeconds: duration, node: process.version, dir, setup: [], runs: [], limitations: ['paired soak, not sustained survival proof', 'same initial snapshot; mob timing and network timing are not deterministic', 'one empty chest two blocks from spawn; no food, tools or logs injected', 'API enabled in both arms for identical telemetry; control does not submit API mutations', nightMode === 'accelerated' ? 'night imposed at half duration; no death or threat is forced' : 'natural day/night cycle; short durations may not reach night'] }
+  const report = { status: 'RUNNING', startedAt: new Date().toISOString(), minecraft: '1.20.1', seed, nightMode, durationSeconds: duration, node: process.version, dir, setup: [], runs: [], limitations: ['paired soak, not sustained survival proof', 'same initial snapshot; mob timing and network timing are not deterministic', 'one empty chest near spawn; no food, tools or logs injected', 'API enabled in both arms for identical telemetry; control does not submit API mutations', nightMode === 'accelerated' ? 'night imposed at half duration; no death or threat is forced' : 'natural day/night cycle; short durations may not reach night'] }
+  report.sourceSha256 = {}
+  for (const file of ['index.js', 'core/WorkerController.js', 'lib/connection-config.js', 'scripts/tool-api-natural-soak.js', 'package-lock.json']) {
+    report.sourceSha256[file] = crypto.createHash('sha256').update(await fs.readFile(path.join(repo, file))).digest('hex')
+  }
   let server, serverLog = '', app, appLog = '', observer, observerEnded = true, observerLog = '', activeRun
   async function command(text) { server.stdin.write(text + '\n'); report.setup.push({ run: activeRun?.name || 'snapshot', command: text }); await sleep(300) }
   async function startServer() {
@@ -174,14 +179,19 @@ async function main() {
         MINECRAFT_HOST:'127.0.0.1',MINECRAFT_PORT:String(mcPort),MINECRAFT_VERSION:'1.20.1',MINECRAFT_BOT_NAME:'soak_main',MINECRAFT_OWNER:'soak_owner',
         MBOT_TOOL_API:'1',MBOT_TOOL_API_PORT:String(apiPort),MBOT_TASK_CHECKPOINT_FILE:path.join(appDir,'checkpoints.json'),COLONY_STATE_FILE:stateFile,MEMORY_FILE:path.join(appDir,'memory.json'),COLONY_EVENT_LOG:path.join(appDir,'events.jsonl'),
         MBOT_COLONY_AUTOSTART:process.env.MBOT_SOAK_AUTONOMOUS === '1' ? '1' : '0', MBOT_COMPANION_AUTOSTART:process.env.MBOT_SOAK_AUTONOMOUS === '1' ? '1' : '0', MBOT_JULIA_AUTHORITY:'0',MBOT_JULIA_SHADOW:'0',MBOT_LAYA_SHADOW:'0',MBOT_WORLD_MEMORY:'0',MBOT_EXPLORE_PREPARATION:'0',MBOT_DETERMINISTIC_PREPARATION:'0',MBOT_PLUGINS:'0',MBOT_VIEWER_PORT:'0',MBOT_INVENTORY_PORT:'0',MBOT_DASHBOARD:'0',STATUS_SERVER:'0',MINECRAFT_LAN_ANNOUNCE:'0'}})
-      app.stdout.on('data',c=>{appLog+=c});app.stderr.on('data',c=>{appLog+=c})
+      const recordApp = c => { appLog += c; appendFileSync(path.join(dir, `${name}-app.log`), c) }
+      app.stdout.on('data',recordApp);app.stderr.on('data',recordApp)
       await waitFor(async()=> { try { return (await api()).length===2 && (await Promise.all(workers.map(w=>api(w,'state')))).every(s=>s.position&&!s.busy&&s.health>0) } catch { return false } })
       const start=Date.now(), pending=[]
+      activeRun.startedAt = new Date(start).toISOString()
       const sample=async()=> {
         const entry={elapsedMs:Date.now()-start,workers:await Promise.all(workers.map(w=>api(w,'state')))}
         activeRun.samples.push(entry)
         await fs.appendFile(path.join(dir,`${name}-samples.jsonl`),JSON.stringify(entry)+'\n')
-        if(activeRun.samples.length % 10 === 0) console.log(`${name}: ${Math.round(entry.elapsedMs/1000)}s ${entry.workers.map(w=>`${w.worker} hp=${w.health} food=${w.food} task=${w.currentTask?.type||'idle'}`).join('; ')}`)
+        if(activeRun.samples.length % 10 === 0) {
+          console.log(`${name}: ${Math.round(entry.elapsedMs/1000)}s ${entry.workers.map(w=>`${w.worker} hp=${w.health} food=${w.food} task=${w.currentTask?.type||'idle'}`).join('; ')}`)
+          await fs.writeFile(path.join(dir, 'report.json'), JSON.stringify(report, null, 2) + '\n')
+        }
       }
       await sample()
       if(name==='api-active') {
@@ -228,6 +238,8 @@ async function main() {
       activeRun.stockOpenFailures=(appLog.match(/\[estoque\] container_open_failed/g)||[]).length
       activeRun.positionTypeErrors=(appLog.match(/pos\.floored is not a function/g)||[]).length
       activeRun.status='COMPLETED'
+      activeRun.finishedAt = new Date().toISOString()
+      activeRun.observedSeconds = (Date.now() - start) / 1000
       await stopApp(); await disconnectObserver(); await stopServer(name)
       await fs.writeFile(path.join(dir,`${name}-app.log`),appLog)
       await fs.writeFile(path.join(dir,`${name}-observer.log`),observerLog)
@@ -238,6 +250,7 @@ async function main() {
   finally {
     if(app){if(app.exitCode==null && app.signalCode==null){const exited=once(app,'exit');app.kill('SIGKILL');await bounded(exited,5000).catch(()=>{})}await fs.writeFile(path.join(dir,`${activeRun?.name||'failed'}-app.log`),appLog)}
     await disconnectObserver().catch(()=>{});await stopServer(activeRun?.name||'failed').catch(()=>{})
+    report.finishedAt = new Date().toISOString()
     await fs.writeFile(path.join(dir,'report.json'),JSON.stringify(report,null,2)+'\n')
     console.log(`Evidence: ${dir}`)
   }

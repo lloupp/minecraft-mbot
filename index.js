@@ -7,6 +7,10 @@
 // 3. Rode este arquivo: node index.js
 //    A porta LAN e a versão do jogo são detectadas automaticamente.
 
+const { loadLocalEnv, connectionSettings } = require('./lib/connection-config')
+loadLocalEnv()
+const CONNECTION = connectionSettings()
+
 const { execFileSync } = require('child_process')
 const mineflayer = require('mineflayer')
 const { ping } = require('minecraft-protocol')
@@ -57,10 +61,10 @@ const { RunVerifier } = require('./core/RunVerifier')
 const { startToolApiRuntime } = require('./lib/tool-api-runtime')
 const { describeBot, describeWorkers, ConsoleBuffer } = require('./lib/dashboard-snapshot')
 
-const HOST = process.env.MINECRAFT_HOST || '127.0.0.1'
+const HOST = CONNECTION.host
 const DEFAULT_PORT = 25565
 // Jogador que o bot segue e obedece. Sem valor, usa o primeiro jogador online.
-const OWNER = process.env.MINECRAFT_OWNER || null
+const OWNER = CONNECTION.owner
 
 const FOLLOW_DISTANCE = 2   // blocos de distância ao seguir o dono
 const FLEE_DISTANCE = 16    // distância que tenta manter do agressor
@@ -108,8 +112,8 @@ function pingServer(port) {
 
 // Encontra o servidor: MINECRAFT_PORT, senão portas Java locais, senão 25565.
 async function findServer() {
-  const envP = envPort(process.env.MINECRAFT_PORT)
-  const candidates = envP ? [envP] : [...javaListeningPorts(), DEFAULT_PORT]
+  const candidates = CONNECTION.port ? [CONNECTION.port]
+    : CONNECTION.local ? [...javaListeningPorts(), DEFAULT_PORT] : [DEFAULT_PORT]
   for (const port of [...new Set(candidates)]) {
     const server = await pingServer(port)
     if (server) return server
@@ -130,7 +134,7 @@ async function main() {
   const consoleBuffer = dashboardEnabled ? new ConsoleBuffer().capture() : null
   const server = await findServer()
   if (!server) {
-    console.error(`Nenhum servidor Minecraft encontrado em ${HOST}. Abra o mundo para LAN (Esc > "Abrir para LAN") ou defina MINECRAFT_PORT.`)
+    console.error(`Nenhum servidor Minecraft respondeu em ${HOST}${CONNECTION.port ? ':' + CONNECTION.port : ''}. Verifique o endereço, a porta, o firewall e se o servidor permite consultas de status. Configure MINECRAFT_HOST e MINECRAFT_PORT no .env ou no ambiente.`)
     process.exit(1)
   }
 
@@ -140,7 +144,7 @@ async function main() {
   const CONFIG = {
     host: HOST,
     port: server.port,
-    username: process.env.MINECRAFT_BOT_NAME || 'eduardo_bot',
+    username: CONNECTION.username,
     password: '',
     version: serverProfile.version || requestedVersion,
     hideErrors: !process.env.DEBUG_PROTOCOL

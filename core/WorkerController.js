@@ -237,7 +237,10 @@ class WorkerController {
       this.defend(creeper).catch(() => {})
       return
     }
-    if (this.bot.food <= HUNGRY && !this.bot.targetDigBlock) this.eat()
+    // Below 18 food the injured worker cannot naturally regenerate. Match the
+    // companion's recovery threshold, keeping eat()'s safe-food/concurrency guards.
+    const needsFood = this.bot.food <= HUNGRY || (this.bot.food < 18 && this.bot.health < 20)
+    if (needsFood && !this.bot.targetDigBlock) this.eat()
     this.progressTick()
   }
 

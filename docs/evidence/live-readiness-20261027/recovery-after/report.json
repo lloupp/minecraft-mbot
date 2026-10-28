@@ -1,0 +1,132 @@
+{
+  "startedAt": "2026-10-28T02:37:27.077Z",
+  "minecraft": "1.20.1",
+  "dir": "/workspace/scratch/30c32fb7615a/validation/tmp/mbot-tool-live-dIgB7f",
+  "mcPort": 35365,
+  "apiPort": 33349,
+  "connectionSource": ".env",
+  "phases": [
+    {
+      "phase": "default_off",
+      "status": "PASS",
+      "evidence": {
+        "listener": false,
+        "checkpointCreated": false
+      }
+    },
+    {
+      "phase": "runtime_worker_attached",
+      "status": "PASS",
+      "evidence": {
+        "id": "ajudante_01",
+        "role": "ajudante",
+        "connected": true,
+        "tools": [
+          "get_state",
+          "get_inventory",
+          "get_position",
+          "get_available_actions",
+          "get_current_task",
+          "stop",
+          "eat",
+          "move_to",
+          "gather",
+          "craft"
+        ]
+      }
+    },
+    {
+      "phase": "http_gather_real_inventory",
+      "status": "PASS",
+      "evidence": {
+        "success": true,
+        "gathered": 1,
+        "inventory": {
+          "oak_log": 1
+        }
+      }
+    },
+    {
+      "phase": "http_move_real_position",
+      "status": "PASS",
+      "evidence": {
+        "x": 5,
+        "y": 71,
+        "z": 0
+      }
+    },
+    {
+      "phase": "idempotent_replay",
+      "status": "PASS",
+      "evidence": {
+        "unchangedLogs": 1
+      }
+    },
+    {
+      "phase": "external_origin_blocked",
+      "status": "PASS",
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "phase": "busy_and_stop_real_task",
+      "status": "PASS",
+      "evidence": {
+        "busy": "worker_busy",
+        "cancelled": "cancelled"
+      }
+    },
+    {
+      "phase": "sigterm_closes_listener",
+      "status": "PASS",
+      "evidence": {
+        "exitCode": 0
+      }
+    },
+    {
+      "phase": "restart_checkpoint_replay",
+      "status": "PASS",
+      "evidence": {
+        "attempts": 1,
+        "cancelledStatus": "cancelled"
+      }
+    },
+    {
+      "phase": "recovery_fixture",
+      "status": "PASS",
+      "evidence": {
+        "health": 14,
+        "food": 17,
+        "injected": [
+          "hunger",
+          "damage",
+          "bread"
+        ]
+      }
+    },
+    {
+      "phase": "injured_worker_eats_and_regenerates",
+      "status": "PASS",
+      "evidence": {
+        "before": {
+          "health": 14,
+          "food": 17
+        },
+        "after": {
+          "health": 15,
+          "food": 20,
+          "bread": 3
+        }
+      }
+    }
+  ],
+  "sourceSha256": {
+    "index.js": "6c805f7aecce70b806ebddfe3cb79b50471f3ff488b48976e013721886a430d9",
+    "core/WorkerController.js": "87155bf6b071009d9aa1a63eb7b9f8d0fe5c006e7e04a6475d89b391fb521f05",
+    "lib/connection-config.js": "2cfbc76b8d896363bae2cdd10f0f2ec447ff353ebb42f7a63c6c139ea14ecdee",
+    "scripts/tool-api-live-smoke.js": "38a6469a7e53e65fc2905d9e46e7cadd30742e91b30459e3fdd6d938792d8829"
+  },
+  "status": "PASS",
+  "finishedAt": "2026-10-28T02:38:22.892Z"
+}
