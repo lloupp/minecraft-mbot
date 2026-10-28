@@ -8,6 +8,7 @@ const net = require('node:net')
 const { spawn } = require('node:child_process')
 const { once } = require('node:events')
 const assert = require('node:assert/strict')
+const crypto = require('node:crypto')
 
 const repo = path.resolve(__dirname, '..')
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -37,7 +38,10 @@ async function main() {
   await fs.copyFile(process.env.MBOT_TEST_SERVER_JAR, path.join(serverDir, 'server.jar'))
   await fs.writeFile(path.join(serverDir, 'eula.txt'), 'eula=true\n')
   await fs.writeFile(path.join(serverDir, 'server.properties'), `server-ip=127.0.0.1\nserver-port=${mcPort}\nonline-mode=false\nspawn-protection=0\ndifficulty=peaceful\ngamemode=survival\nlevel-type=minecraft:flat\nview-distance=3\nsimulation-distance=3\nmax-players=4\n`)
-  const report = { minecraft: '1.20.1', dir, mcPort, apiPort, phases: [] }
+  const report = { startedAt: new Date().toISOString(), minecraft: '1.20.1', dir, mcPort, apiPort, connectionSource: '.env', phases: [], sourceSha256: {} }
+  for (const file of ['index.js', 'core/WorkerController.js', 'lib/connection-config.js', 'scripts/tool-api-live-smoke.js']) {
+    report.sourceSha256[file] = crypto.createHash('sha256').update(await fs.readFile(path.join(repo, file))).digest('hex')
+  }
   const pass = (phase, evidence) => { report.phases.push({ phase, status: 'PASS', evidence }); console.log(`PASS ${phase}: ${JSON.stringify(evidence)}`) }
   const checkpointFile = path.join(appDir, 'checkpoints.json')
   const stateFile = path.join(appDir, 'colony-state.json')
@@ -53,8 +57,14 @@ async function main() {
   }
   async function startApp(enabled) {
     appLog = ''; run++
+    // Exercise the same local configuration path used by npm start / node
+    // index.js, rather than hiding a missing .env loader with shell variables.
+    await fs.writeFile(path.join(appDir, '.env'), `MINECRAFT_HOST=127.0.0.1\nMINECRAFT_PORT=${mcPort}\n`)
+    const inherited = { ...process.env }
+    delete inherited.MINECRAFT_HOST
+    delete inherited.MINECRAFT_PORT
     app = spawn(process.execPath, [path.join(repo, 'index.js')], { cwd: appDir, stdio: ['ignore', 'pipe', 'pipe'], env: {
-      ...process.env, MINECRAFT_HOST: '127.0.0.1', MINECRAFT_PORT: String(mcPort), MINECRAFT_VERSION: '1.20.1', MINECRAFT_BOT_NAME: 'tool_main', MINECRAFT_OWNER: 'absent_smoke_owner',
+      ...inherited, MINECRAFT_VERSION: '1.20.1', MINECRAFT_BOT_NAME: 'tool_main', MINECRAFT_OWNER: 'absent_smoke_owner',
       MBOT_TOOL_API: enabled ? '1' : '0', MBOT_TOOL_API_PORT: String(apiPort), MBOT_TASK_CHECKPOINT_FILE: checkpointFile,
       COLONY_STATE_FILE: stateFile, MEMORY_FILE: path.join(appDir, 'memory.json'), COLONY_EVENT_LOG: path.join(appDir, 'events.jsonl'),
       MBOT_JULIA_AUTHORITY: '0', MBOT_JULIA_SHADOW: '0', MBOT_LAYA_SHADOW: '0', MBOT_WORLD_MEMORY: '0', MBOT_EXPLORE_PREPARATION: '0', MBOT_DETERMINISTIC_PREPARATION: '0', MBOT_PLUGINS: '0', MBOT_VIEWER_PORT: '0', MBOT_INVENTORY_PORT: '0', MBOT_DASHBOARD: '0', STATUS_SERVER: '0', MINECRAFT_LAN_ANNOUNCE: '0'
@@ -130,6 +140,31 @@ async function main() {
     assert.equal(stored.tasks['live-gather-1'].attempts, 1)
     assert.equal(stored.tasks['live-cancel-1'].status, 'cancelled')
     pass('restart_checkpoint_replay', { attempts: stored.tasks['live-gather-1'].attempts, cancelledStatus: stored.tasks['live-cancel-1'].status })
+    if (process.env.MBOT_SMOKE_RECOVERY === '1') {
+      // Controlled regression, distinct from natural survival: console supplies
+      // food and damage, but the worker must eat/regenerate without an API eat.
+      await command('difficulty normal')
+      await command('gamerule doMobSpawning false')
+      await command('effect give ajudante_01 minecraft:hunger 30 20 true')
+      await waitFor(async () => (await api('/v1/workers/ajudante_01/state')).data.food <= 17, 20000)
+      await command('effect clear ajudante_01 minecraft:hunger')
+      await command('damage ajudante_01 6 minecraft:generic')
+      const hurt = (await api('/v1/workers/ajudante_01/state')).data
+      assert(hurt.food > 14 && hurt.food < 18 && hurt.health < 20, 'recovery fixture must exercise the gap above the old hunger threshold')
+      pass('recovery_fixture', { health: hurt.health, food: hurt.food, injected: ['hunger', 'damage', 'bread'] })
+      await command('give ajudante_01 minecraft:bread 4')
+      let recovered
+      try {
+        await waitFor(async () => {
+          recovered = (await api('/v1/workers/ajudante_01/state')).data
+          return recovered.food >= 18 && recovered.health > hurt.health && (recovered.inventory.bread || 0) < 4
+        }, 15000)
+      } catch (error) {
+        report.recoveryFailure = { before: hurt, after: recovered }
+        throw error
+      }
+      pass('injured_worker_eats_and_regenerates', { before: { health: hurt.health, food: hurt.food }, after: { health: recovered.health, food: recovered.food, bread: recovered.inventory.bread || 0 } })
+    }
     await stopApp(true)
     report.status = 'PASS'
   } catch (error) {
@@ -140,6 +175,7 @@ async function main() {
     server.stdin.write('stop\n')
     await Promise.race([once(server, 'exit'), sleep(5000).then(() => server.kill('SIGKILL'))])
     await fs.writeFile(path.join(dir, 'server.log'), serverLog)
+    report.finishedAt = new Date().toISOString()
     await fs.writeFile(path.join(dir, 'report.json'), JSON.stringify(report, null, 2) + '\n')
     console.log(`Evidence: ${dir}`)
   }
