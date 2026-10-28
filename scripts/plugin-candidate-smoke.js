@@ -91,6 +91,7 @@ async function main() {
     bot.on('end', reason => { if (!stopped) errors.push('disconnected: ' + reason) })
     const events = []
     if (candidate === 'tps') {
+      await command('gamerule doDaylightCycle true')
       // Old package is a factory; load AFTER the bot receives time state.
       await waitFor(() => bot.entity && bot.time && Number.isFinite(bot.time.age), 25000, 'time state')
       bot.loadPlugin(require('mineflayer-tps')(mineflayer))
@@ -151,6 +152,7 @@ async function main() {
     if (errors.length) record('no_runtime_errors', false, { errors })
     else record('no_runtime_errors', true)
     report.status = report.checks.every(c => c.status === 'PASS') ? 'PASS' : 'FAIL'
+    if (report.status !== 'PASS') process.exitCode = 1
   } catch (err) {
     report.error = err.stack || String(err)
     console.error('DIAGNOSTIC_FAILURE', report.error)
