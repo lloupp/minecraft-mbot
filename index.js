@@ -40,6 +40,7 @@ const bedLib = require('./lib/bed')
 const husbandry = require('./lib/husbandry')
 const animalProducts = require('./lib/animalProducts')
 const { Autonomy } = require('./lib/autonomy')
+const { ironDepositPlan, canAutomaticIronDeposit } = require('./lib/iron-deposit')
 const { loadPlugins, startWebViews } = require('./lib/plugins')
 const { createBot } = require('./lib/botFactory')
 const { WorkerController } = require('./core/WorkerController')
@@ -424,20 +425,13 @@ async function main() {
 
   // Ferro na mochila vai para o baú central sem esperar uma meta de autonomia.
   // Só ferro (minério/bruto/lingote/bloco/nugget); ferramentas e armadura ficam.
-  const IRON_DEPOSIT_NAMES = new Set(['raw_iron', 'iron_ore', 'deepslate_iron_ore', 'iron_ingot', 'iron_block', 'iron_nugget'])
   let ironDepositBusy = false
   let lastIronDeposit = 0
-  const ironInInventory = () => bot.inventory.items()
-    .filter((item) => IRON_DEPOSIT_NAMES.has(item.name))
-    .reduce((sum, item) => sum + item.count, 0)
+  const ironInInventory = () => Object.values(ironDepositPlan(bot)).reduce((sum, count) => sum + count, 0)
   async function depositIron() {
-    const counts = {}
-    for (const item of bot.inventory.items()) {
-      if (!IRON_DEPOSIT_NAMES.has(item.name)) continue
-      counts[item.name] = (counts[item.name] || 0) + item.count
-    }
-    if (!Object.keys(counts).length) return {}
-    return storage.depositMany(bot, counts)
+    const plan = ironDepositPlan(bot)
+    if (!Object.keys(plan).length) return {}
+    return storage.depositMany(bot, plan)
   }
 
   // Baú de campo: quando o baú central está longe/bloqueado (subsolo), coloca
@@ -505,7 +499,7 @@ async function main() {
     return { deposited, chest: chest.position }
   }
 
-  // Lote dedicado: cava ferro, funde o bruto e deposita todo o ferro no baú.
+  // Lote dedicado: cava ferro, funde o bruto e deposita o excedente (reserva preservada).
   async function mineIronBatch(wanted, isCancelled) {
     if (!storage.configured()) throw new Error('estoque central não configurado')
     console.log(`[ferro] lote de ${wanted} iniciado`)
@@ -528,11 +522,7 @@ async function main() {
       })
     }
     if (isCancelled()) return { mined, smelted, deposited: {} }
-    const counts = {}
-    for (const item of bot.inventory.items()) {
-      if (!IRON_DEPOSIT_NAMES.has(item.name)) continue
-      counts[item.name] = (counts[item.name] || 0) + item.count
-    }
+    const counts = ironDepositPlan(bot)
     if (!Object.keys(counts).length) return { mined, smelted, deposited: {}, chest: null }
     const central = storage.getPosition()
     const far = !central || bot.entity.position.distanceTo(new Vec3(central.x, central.y, central.z)) > 12
@@ -561,6 +551,7 @@ async function main() {
   }
   setInterval(() => {
     if (ironDepositBusy || ironBatchBusy || !bot.entity || !storage.configured() || sheltered || bot.isSleeping) return
+    if (!canAutomaticIronDeposit({ mode, taskName, pausedFollowing, fleeingUntil, eating, checkingGear, isMoving: Boolean(bot.pathfinder?.isMoving?.()) })) return
     if (Date.now() - lastIronDeposit < 120000) return
     if (ironInInventory() < 4) return
     ironDepositBusy = true
