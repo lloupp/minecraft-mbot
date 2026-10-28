@@ -25,15 +25,33 @@ O `eduardo_bot` agora também funciona como **orquestrador da colônia**. Ele po
 
 ## Como usar
 
-### 1. Abra o mundo no modo LAN
-1. Abra o TLauncher e entre no mundo **"Novo mundo"**
-2. No jogo, pressione **Esc** > **"Abrir para LAN"**
-3. Ative "Permitir cheats"
+### 1. Use um servidor ativo ou abra um mundo para LAN
+O bot se conecta a um servidor Minecraft Java já existente. Não é necessário
+dar OP ao bot nem habilitar cheats. Para um mundo individual, use **Esc >
+Abrir para LAN** e anote a porta mostrada pelo jogo.
 
-### 2. Configure o bot (opcional)
-O bot detecta sozinho a porta do mundo LAN (procura portas abertas pelo Java
-e faz um ping de status) e usa a versão anunciada pelo servidor.
-Para forçar valores:
+### 2. Configure a conexão
+Copie `.env.example` para `.env` na pasta do projeto e ajuste:
+
+```dotenv
+MINECRAFT_HOST=192.168.0.74
+MINECRAFT_PORT=25567
+MINECRAFT_OWNER=SeuNickNoJogo
+MINECRAFT_BOT_NAME=eduardo_bot
+MINECRAFT_PROFILE=vanilla1201
+MINECRAFT_LAN_ANNOUNCE=0
+```
+
+O exemplo é para Java **1.20.1**; use o endereço e porta do seu servidor.
+O `.env` é carregado tanto por `npm start` quanto por `node index.js`, usando
+Node.js 22+. Variáveis já definidas no terminal/serviço têm prioridade.
+O arquivo `.env` é local e não deve ser commitado. Uma porta explícita inválida
+interrompe a inicialização com erro; não há tentativa silenciosa em outra porta.
+
+Sem porta configurada, o bot tenta detectar portas Java locais no Linux e
+depois 25565. Para um servidor em outra máquina, configure a porta explicitamente;
+não é feita varredura de portas remotas. O servidor precisa responder ao ping
+de status. Também é possível passar as variáveis pelo terminal (exemplo Bash):
 
 ```bash
 MINECRAFT_PORT=25565 MINECRAFT_VERSION=1.20.1 MINECRAFT_PROFILE=vanilla1201 node index.js
@@ -45,8 +63,18 @@ Se o servidor estiver em outra máquina, configure `MINECRAFT_HOST` e
 ### 3. Rode o bot
 ```bash
 npm install
-node index.js
+npm start
 ```
+
+Confirme a mensagem **Bot conectado** e a presença do bot no jogo. Pelo chat,
+use `!ajuda`, `!seguir` e `!cancelar`. Para validar base/estoque e a colônia,
+veja o procedimento `!smoke` abaixo. O tempo de execução de um processo sozinho
+não comprova spawn ou funcionamento das ações.
+
+O runtime atual usa identidade offline: servidores que exigem autenticação
+Microsoft precisam de integração de login antes do uso. Não desligue a
+autenticação de um servidor público para contornar isso. Mods que exigem um
+cliente modificado também precisam de validação específica.
 
 ## Servidor 24h
 
