@@ -55,15 +55,106 @@
         <button id="cmd-send" type="submit">Enviar</button>
       </form>
       <div class="cmd-quick" id="cmd-quick">
-        <button type="button" data-cmd="!status">status</button>
-        <button type="button" data-cmd="!base status">base</button>
-        <button type="button" data-cmd="!estoque">estoque</button>
-        <button type="button" data-cmd="!projeto status">projeto</button>
-        <button type="button" data-cmd="!bots">workers</button>
-        <button type="button" data-cmd="!ferro 4">ferro 4</button>
-        <button type="button" data-cmd="!cama">cama</button>
-        <button type="button" data-cmd="!seguir">seguir</button>
-        <button type="button" data-cmd="!ajuda">ajuda</button>
+        <details open>
+          <summary>Geral e movimento</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!ajuda">!ajuda</button>
+            <button type="button" data-cmd="!status">!status</button>
+            <button type="button" data-cmd="!status server">!status server</button>
+            <button type="button" data-cmd="!servidor">!servidor</button>
+            <button type="button" data-cmd="!pos">!pos</button>
+            <button type="button" data-cmd="!ver">!ver</button>
+            <button type="button" data-cmd="!seguir">!seguir</button>
+            <button type="button" data-cmd="!ficar">!ficar</button>
+            <button type="button" data-cmd="!autonomo">!autonomo</button>
+            <button type="button" data-cmd="!autônomo">!autônomo</button>
+            <button type="button" data-cmd="!autonomo off">!autonomo off</button>
+            <button type="button" data-cmd="!metas">!metas</button>
+            <button type="button" data-cmd="!local">!local</button>
+            <button type="button" data-cmd="!locais">!locais</button>
+            <button type="button" data-cmd="!ir">!ir</button>
+            <button type="button" data-cmd="!viajar">!viajar</button>
+            <button type="button" data-cmd="!voltar">!voltar</button>
+            <button type="button" data-cmd="!patrulha">!patrulha</button>
+            <button type="button" data-cmd="!explorar">!explorar</button>
+            <button type="button" data-cmd="!cancelar">!cancelar</button>
+          </div>
+        </details>
+        <details>
+          <summary>Sobrevivência e coleta</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!comer">!comer</button>
+            <button type="button" data-cmd="!comida">!comida</button>
+            <button type="button" data-cmd="!ferro 4">!ferro 4</button>
+            <button type="button" data-cmd="!minerar">!minerar</button>
+            <button type="button" data-cmd="!cozinhar">!cozinhar</button>
+            <button type="button" data-cmd="!fabricar">!fabricar</button>
+            <button type="button" data-cmd="!cama">!cama</button>
+            <button type="button" data-cmd="!dormir">!dormir</button>
+            <button type="button" data-cmd="!atacar">!atacar</button>
+          </div>
+        </details>
+        <details>
+          <summary>Base, colônia e workers</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!base status">!base status</button>
+            <button type="button" data-cmd="!estoque">!estoque</button>
+            <button type="button" data-cmd="!projeto status">!projeto status</button>
+            <button type="button" data-cmd="!projetos">!projetos</button>
+            <button type="button" data-cmd="!smoke">!smoke</button>
+            <button type="button" data-cmd="!colonia necessidades">!colonia necessidades</button>
+            <button type="button" data-cmd="!colonia auto">!colonia auto</button>
+            <button type="button" data-cmd="!bot">!bot</button>
+            <button type="button" data-cmd="!bots">!bots</button>
+            <button type="button" data-cmd="!ordem">!ordem</button>
+            <button type="button" data-cmd="!abastecer">!abastecer</button>
+            <button type="button" data-cmd="!construir">!construir</button>
+            <button type="button" data-cmd="!plantas">!plantas</button>
+            <button type="button" data-cmd="!todos voltar">!todos voltar</button>
+            <button type="button" data-cmd="!tarefas">!tarefas</button>
+            <button type="button" data-cmd="!enviar">!enviar</button>
+          </div>
+        </details>
+        <details>
+          <summary>Animais</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!animais">!animais</button>
+            <button type="button" data-cmd="!curral">!curral</button>
+            <button type="button" data-cmd="!capturar">!capturar</button>
+            <button type="button" data-cmd="!reproduzir">!reproduzir</button>
+            <button type="button" data-cmd="!recolheranimais">!recolheranimais</button>
+            <button type="button" data-cmd="!criaranimais">!criaranimais</button>
+            <button type="button" data-cmd="!manejo">!manejo</button>
+            <button type="button" data-cmd="!populacao">!populacao</button>
+            <button type="button" data-cmd="!população">!população</button>
+            <button type="button" data-cmd="!produto">!produto</button>
+            <button type="button" data-cmd="!produtoanimal">!produtoanimal</button>
+            <button type="button" data-cmd="!tosquiar">!tosquiar</button>
+            <button type="button" data-cmd="!tosquia">!tosquia</button>
+          </div>
+        </details>
+        <details>
+          <summary>Memória e localização</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!lembrar">!lembrar</button>
+            <button type="button" data-cmd="!esquecer">!esquecer</button>
+            <button type="button" data-cmd="!memoria">!memoria</button>
+            <button type="button" data-cmd="!memória">!memória</button>
+            <button type="button" data-cmd="!onde">!onde</button>
+            <button type="button" data-cmd="!mundo">!mundo</button>
+          </div>
+        </details>
+        <details>
+          <summary>Auditoria e controle</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!verify">!verify</button>
+            <button type="button" data-cmd="!events">!events</button>
+            <button type="button" data-cmd="!freeze">!freeze</button>
+            <button type="button" data-cmd="!item">!item</button>
+            <button type="button" data-cmd="!receita">!receita</button>
+            <button type="button" class="cmd-danger" data-cmd="!parar">!parar</button>
+          </div>
+        </details>
       </div>
       <p class="error small" id="cmd-error" hidden></p>
     </section>
