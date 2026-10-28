@@ -142,15 +142,17 @@ class DemandPlanner {
       let task = null
 
       if (role === 'minerador') {
-        if (need.fuel > 0) {
-          const count = Math.min(8, need.fuel)
-          task = { type: 'coletar_blocos', resource: 'carvao', count, reason: 'estoque_baixo_combustivel' }
-          m.fuel += count
-        } else if (need.ironTotal > 0) {
+        // Pedido atual: ferro primeiro; carvão só depois que o ferro estiver
+        // coberto (o baú já tem uma reserva pequena para fundir/iluminar).
+        if (need.ironTotal > 0) {
           const count = Math.min(8, need.ironTotal)
           task = { type: 'coletar_blocos', resource: 'ferro', count, reason: 'estoque_baixo_ferro' }
           m.rawIron += count
           m.ironTotal += count
+        } else if (need.fuel > 0) {
+          const count = Math.min(8, need.fuel)
+          task = { type: 'coletar_blocos', resource: 'carvao', count, reason: 'estoque_baixo_combustivel' }
+          m.fuel += count
         } else if (need.building > 0) {
           const count = Math.min(12, need.building)
           task = { type: 'coletar_blocos', resource: 'pedra', count, reason: 'estoque_baixo_construcao' }

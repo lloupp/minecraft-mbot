@@ -1,0 +1,31 @@
+core_value: Os pedidos do dono não são perdidos ou interrompidos por pedidos posteriores.
+summary: >-
+  Registrar pedidos explícitos dos bots de forma persistente e executá-los por ordem
+  de chegada, permitindo paralelismo entre workers adequados disponíveis. Exibir
+  situação, progresso, falhas e cancelamento no chat e na dashboard.
+in_scope:
+  - id: queue-persistence
+    description: Persistir pedidos e seus estados sem duplicar trabalho após reinício.
+  - id: worker-scheduling
+    description: Distribuir por ordem de chegada entre workers capazes e disponíveis sem cancelar trabalho anterior.
+  - id: task-visibility
+    description: Consultar e cancelar pedidos por chat e dashboard.
+  - id: delivery-confirmation
+    description: Distinguir minério coletado de entrega confirmada no estoque central.
+out_of_scope:
+  - item: Comando prioritário global que convoca todos os bots.
+    reason: Solicitado para uma etapa posterior; depende de interrupção e reconciliação seguras.
+  - item: Construção automática de um depósito maior na base.
+    reason: Necessita projeto e gestão de múltiplos baús; etapa posterior.
+constraints:
+  - Não reiniciar ou modificar o servidor Minecraft, nem usar privilégios administrativos.
+  - Manter Julia e Laya sem autoridade de execução.
+  - Preservar tarefas em execução e impedir perda ou duplicação após falhas.
+success_criteria:
+  - Pedidos posteriores aguardam workers ocupados em vez de cancelar tarefas anteriores.
+  - Pedidos independentes podem executar em paralelo sem violar ordem de chegada por worker elegível.
+  - Falha ou reinício não é reportado como sucesso e não causa repetição cega de trabalho físico.
+  - Minério só é considerado entregue mediante confirmação de depósito.
+  - Usuário consulta identificador, estado e erro e pode cancelar pedido.
+references:
+  - specs/IMPACT_TASK_QUEUE.md

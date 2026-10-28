@@ -1,6 +1,27 @@
 const { stockMetrics } = require('./DemandPlanner')
 
 const PROJECT_DEFINITIONS = {
+  base: {
+    label: 'Base',
+    requiredRoles: { construtor: 1, lenhador: 1, minerador: 1, fazendeiro: 1, artesao: 1 },
+    // A obra começa quando há material de construção; comida/ferro continuam
+    // sendo coletados em paralelo, mas não bloqueiam a casa e a cerca.
+    readyTargets: ['wood'],
+    targets: {
+      building: 32,
+      wood: 64,
+      food: 48,
+      fuel: 32,
+      ironTotal: 32,
+      ironIngot: 12,
+      ironPickaxe: 1,
+      ironAxe: 1
+    },
+    actions: [
+      { id: 'base-casa', role: 'construtor', task: { type: 'construir_casa', offset: { x: 3, z: 2 } } },
+      { id: 'base-cerca', role: 'construtor', task: { type: 'construir_cerca_base', radius: 8 } }
+    ]
+  },
   casa: {
     label: 'Casa',
     requiredRoles: { minerador: 1, lenhador: 1, artesao: 1, construtor: 1 },
@@ -365,7 +386,12 @@ class ProjectManager {
 
   actionReady(report) {
     if (!report) return false
-    return Object.values(report.deficits || {}).every((value) => Number(value || 0) === 0)
+    const required = this.definition(this.active?.type)?.readyTargets
+    const deficits = report.deficits || {}
+    if (Array.isArray(required) && required.length) {
+      return required.every((key) => Number(deficits[key] || 0) === 0)
+    }
+    return Object.values(deficits).every((value) => Number(value || 0) === 0)
   }
 
   planActions(workers, report) {

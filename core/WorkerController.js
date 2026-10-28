@@ -18,6 +18,7 @@ const { realStateSnapshot } = require('../lib/real-state')
 const worldObserver = require('../lib/world-observer')
 const { STATUS: MEMORY_STATUS } = require('../lib/world-memory')
 const { preparationRadius, executePreparationStep, preparationDispatchTask, preparationIntegrationPreflight, preparationIntegrationTask, preparationStateSnapshot } = require('../lib/forced-preparation')
+const { isEquipment } = require('./StorageManager')
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -121,13 +122,14 @@ function protectPenBlocks(moves, registry) {
 }
 
 class WorkerController {
-  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null, juliaAuthority = null }) {
+  constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null, juliaAuthority = null, onStorageConfigured = null }) {
     this.bot = bot
     this.name = name
     this.role = role
     this.homeProvider = homeProvider
     this.ownerProvider = ownerProvider
     this.storage = storage
+    this.onStorageConfigured = onStorageConfigured
     this.production = production
     this.logger = logger
     // Shadow mode do Laya (opcional): só observa em paralelo, nunca decide
@@ -170,7 +172,9 @@ class WorkerController {
       this.workMoves = new Movements(bot)
       // Navegação não escava atalhos (nem pedra à mão, nem construções).
       // Coleta e obras continuam cavando explicitamente com bot.dig.
-      this.workMoves.canDig = false
+      // Exceção: o minerador precisa cavar até o minério; sem isso ele via
+      // candidatos de ferro mas o pathfinder falhava (PATH_FAILED).
+      this.workMoves.canDig = this.role === 'minerador'
       // Subir empilhando blocos (terra/pedregulho do próprio inventário) é o único
       // jeito de sair de um poço 1x1 que o worker cavou minerando para baixo.
       this.workMoves.allow1by1towers = true
@@ -237,8 +241,7 @@ class WorkerController {
       this.defend(creeper).catch(() => {})
       return
     }
-    // Below 18 food the injured worker cannot naturally regenerate. Match the
-    // companion's recovery threshold, keeping eat()'s safe-food/concurrency guards.
+    // Worker ferido com fome 15–17 não regenera; sem preemptar defesa ou escavação.
     const needsFood = this.bot.food <= HUNGRY || (this.bot.food < 18 && this.bot.health < 20)
     if (needsFood && !this.bot.targetDigBlock) this.eat()
     this.progressTick()
@@ -526,12 +529,12 @@ class WorkerController {
     // ao shadow mode SEM esperar por ela — quem chama `run()` recebe a mesma
     // promise de sempre, no mesmo instante de sempre.
     const taskPromise = (async () => {
+      let result
       try {
         this.useMoves(this.workMoves)
       await this.leaveLeftoverPen(isCancelled)
       if (isCancelled()) return { ok: false, code: 'CANCELLED', cancelled: true }
       if (this.bot.food <= HUNGRY) await this.eat()
-      let result
       switch (task.type) {
         case 'coletar_blocos':
           result = await this.gatherBlocks(task.resource, task.count || 1, isCancelled)
@@ -569,6 +572,9 @@ class WorkerController {
         case 'construir_casa':
           result = await this.buildHouse(isCancelled, task.offset)
           break
+        case 'construir_cerca_base':
+          result = await this.buildBaseFence(isCancelled, task.radius || 8)
+          break
         case 'construir_fazenda':
           result = await this.buildFarm(isCancelled, task.offset)
           break
@@ -599,8 +605,25 @@ class WorkerController {
         default:
           throw new Error(`tarefa desconhecida: ${task.type}`)
       }
-        return result
+      return result
       } finally {
+        if (!isCancelled() && this.storage && !['depositar', 'retirar_estoque', 'sincronizar_estoque'].includes(task.type)) {
+          const hasCargo = this.bot.inventory.items().some((item) => {
+            const keep = this.storage.reserveFor?.(this.bot, item) ?? (
+              isEquipment(item.name) ? item.count :
+                this.bot.registry?.foodsByName?.[item.name] ? Math.min(item.count, 8) : 0
+            )
+            return item.count > keep
+          })
+          if (hasCargo) {
+            try {
+              const deposited = await this.depositCargo()
+              if (result && typeof result === 'object') result.autoDeposited = deposited.deposited
+            } catch (err) {
+              this.logger.log?.(`[estoque] ${this.name} não conseguiu guardar a carga: ${err.message}`)
+            }
+          }
+        }
         if (!isCancelled() && this.state !== 'desconectado') {
           this.currentTask = null
           this.state = 'ocioso'
@@ -1125,6 +1148,95 @@ class WorkerController {
       }
     }
     return leveled
+  }
+
+  // Cerca da base: usa o mesmo kit de cercas/portão do curral, mas num
+  // perímetro quadrado em volta da base. O portão fica na face norte.
+  baseFencePlan(home, radius = 8) {
+    const r = Math.max(4, Math.min(24, Number(radius) || 8))
+    const cx = Math.floor(home.x)
+    const cy = Math.floor(home.y)
+    const cz = Math.floor(home.z)
+    const points = []
+    const missing = []
+    const add = (x, z) => {
+      for (let dy = 4; dy >= -4; dy--) {
+        const here = this.bot.blockAt(new Vec3(x, cy + dy, z))
+        const below = this.bot.blockAt(new Vec3(x, cy + dy - 1, z))
+        if (!here || !below) continue
+        if (here.boundingBox !== 'empty') continue
+        if (below.boundingBox !== 'block' || /water|lava|bubble_column/.test(below.name)) continue
+        points.push({ x, y: cy + dy, z })
+        return
+      }
+      missing.push({ x, z })
+    }
+    for (let dx = -r; dx <= r; dx++) {
+      add(cx + dx, cz - r)
+      add(cx + dx, cz + r)
+    }
+    for (let dz = -r + 1; dz <= r - 1; dz++) {
+      add(cx - r, cz + dz)
+      add(cx + r, cz + dz)
+    }
+    // 17x17 tem 64 células de perímetro. Não construir nem aprovar um
+    // anel com células sem apoio ou alturas desconectadas.
+    if (missing.length || points.length !== 8 * r) {
+      throw new Error(`perímetro da base incompleto: ${points.length}/${8 * r}; faltam ${missing.length} apoios`)
+    }
+    const heights = new Map(points.map((p) => [`${p.x},${p.z}`, p.y]))
+    for (const p of points) {
+      for (const [nx, nz] of [[p.x - 1, p.z], [p.x + 1, p.z], [p.x, p.z - 1], [p.x, p.z + 1]]) {
+        const neighbor = heights.get(`${nx},${nz}`)
+        if (neighbor != null && neighbor !== p.y) {
+          throw new Error('perímetro da base em alturas diferentes: nivelar terreno antes de cercar')
+        }
+      }
+    }
+    const north = points.filter((p) => p.z === cz - r).sort((a, b) => Math.abs(a.x - cx) - Math.abs(b.x - cx))
+    const gate = north[0] || points[0]
+    if (!gate) throw new Error('não achei chão firme para a cerca da base')
+    const fences = points.filter((p) => !(p.x === gate.x && p.y === gate.y && p.z === gate.z))
+    return {
+      origin: { x: cx - r, y: cy, z: cz - r },
+      size: r * 2 + 1,
+      center: { x: cx, y: cy, z: cz },
+      gate,
+      outside: { x: gate.x, y: gate.y, z: gate.z - 2 },
+      fences,
+      fenceCount: fences.length,
+      gateCount: 1
+    }
+  }
+
+  async buildBaseFence(isCancelled, radius = 8) {
+    const home = this.homeProvider?.()
+    if (!home) throw new Error('base da colônia ainda não definida')
+    const plan = this.baseFencePlan(home, radius)
+    const kit = await this.ensurePenKit(plan)
+    if (!kit) throw new Error('não consegui obter cercas e portão para a base')
+
+    let fencesPlaced = 0
+    for (const position of plan.fences) {
+      if (isCancelled()) break
+      if (await this.placeGroundItem(position, kit.fence, isCancelled)) fencesPlaced++
+    }
+    const gatePlaced = !isCancelled() && await this.placePenGate(plan, kit.gate, isCancelled)
+    // Valida blocos que o servidor realmente devolve, não apenas promessas de placeBlock().
+    const fencesVerified = plan.fences.filter((p) => this.bot.blockAt(new Vec3(p.x, p.y, p.z))?.name === kit.fence).length
+    const gateVerified = this.bot.blockAt(new Vec3(plan.gate.x, plan.gate.y, plan.gate.z))?.name === kit.gate
+    const ok = !isCancelled() && gatePlaced && gateVerified && fencesVerified === plan.fenceCount
+    return {
+      ok,
+      fencesPlaced,
+      fencesVerified,
+      fencesExpected: plan.fenceCount,
+      gatePlaced: Boolean(gatePlaced),
+      gateVerified: Boolean(gateVerified),
+      radius,
+      origin: plan.origin,
+      size: plan.size
+    }
   }
 
   async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
@@ -2529,8 +2641,59 @@ class WorkerController {
     return { ok: withdrawn > 0, item, withdrawn, requested: count }
   }
 
+  async createStorageChest() {
+    const bot = this.bot
+    if (!bot.entity?.position) throw new Error('posição do worker indisponível para criar baú')
+    if (!bot.inventory.items().some((item) => item.name === 'chest')) {
+      if (!this.production) throw new Error('sem baú no inventário e produção indisponível')
+      await this.production.craftInternal(bot, 'chest', 1)
+    }
+    const chestItem = bot.inventory.items().find((item) => item.name === 'chest')
+    if (!chestItem) throw new Error('não consegui fabricar um baú')
+
+    const origin = bot.entity.position.floored()
+    const spots = []
+    for (let radius = 1; radius <= 4; radius++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        for (let dz = -radius; dz <= radius; dz++) {
+          if (Math.max(Math.abs(dx), Math.abs(dz)) !== radius) continue
+          for (const dy of [0, 1, -1]) {
+            const position = origin.offset(dx, dy, dz)
+            const floor = bot.blockAt(position.offset(0, -1, 0))
+            const here = bot.blockAt(position)
+            const above = bot.blockAt(position.offset(0, 1, 0))
+            if (floor?.boundingBox !== 'block' || !here || !above) continue
+            if ((here.name !== 'air' && here.boundingBox !== 'empty') ||
+                (above.name !== 'air' && above.boundingBox !== 'empty')) continue
+            spots.push({ position, floor })
+          }
+        }
+      }
+      if (spots.length) break
+    }
+    if (!spots.length) throw new Error('não achei um lugar livre e seguro para colocar o baú')
+
+    const { position, floor } = spots[0]
+    await this.goTo(new goals.GoalNear(position.x, position.y, position.z, 3), 10000)
+    await bot.equip(chestItem, 'hand')
+    await bot.lookAt(position.offset(0.5, 0.5, 0.5), true)
+    await bot.placeBlock(floor, new Vec3(0, 1, 0))
+    await sleep(300)
+    const placed = bot.blockAt(position)
+    if (placed?.name !== 'chest' && placed?.name !== 'barrel') throw new Error('o baú não apareceu depois de colocado')
+    this.logger.log?.(`[estoque] ${this.name} criou baú local em ${position.x},${position.y},${position.z}`)
+    return placed.position
+  }
+
   async depositCargo() {
-    if (!this.storage?.configured()) throw new Error('estoque central não configurado')
+    if (!this.storage) throw new Error('gerenciador de estoque indisponível')
+    if (typeof this.storage.ensureConfigured === 'function') {
+      const hadStorage = this.storage.configured()
+      await this.storage.ensureConfigured(this.bot, () => this.createStorageChest())
+      if (!hadStorage) this.onStorageConfigured?.(this.storage.getPosition())
+    } else if (!this.storage.configured?.()) {
+      throw new Error('estoque central não configurado')
+    }
     const deposited = await this.storage.depositCargo(this.bot)
     return { ok: true, deposited }
   }
@@ -2849,6 +3012,34 @@ class WorkerController {
       await this.storage.withdrawBuildingMaterial(this.bot, required - available)
       materials = this.buildingMaterials()
       available = materials.reduce((sum, item) => sum + item.count, 0)
+    }
+    // Base inicial: se o estoque ainda não tem pedra suficiente, retira toras
+    // do próprio baú e fabrica tábuas. Coletar madeira no meio de mobs matou o
+    // construtor antes de a casa começar (visto no servidor real).
+    if (available < required && this.storage?.configured()) {
+      let logName = this.bot.inventory.items()
+        .filter((item) => /_(log|stem)$/.test(item.name))
+        .sort((a, b) => b.count - a.count)[0]?.name
+      if (!logName) {
+        const stock = Object.keys(this.storage.cachedSummary() || {})
+          .filter((name) => /_(log|stem)$/.test(name))
+          .sort((a, b) => Number(this.storage.cachedSummary()[b] || 0) - Number(this.storage.cachedSummary()[a] || 0))[0]
+        if (stock) {
+          const needLogs = Math.ceil((required - available) / 4)
+          await this.storage.withdraw(this.bot, stock, needLogs).catch(() => 0)
+          logName = stock
+        }
+      }
+      if (logName) {
+        const planks = logName.replace(/_(log|stem)$/, '_planks')
+        try {
+          await craft.craftItem(this.bot, planks, required - available, isCancelled)
+          materials = this.buildingMaterials()
+          available = materials.reduce((sum, item) => sum + item.count, 0)
+        } catch (err) {
+          console.log(`[obra] não consegui tábuas para a casa: ${err.message}`)
+        }
+      }
     }
     if (available < required) {
       throw new Error(`preciso de ${required} blocos de construção; tenho ${available}`)

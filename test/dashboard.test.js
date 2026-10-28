@@ -77,7 +77,7 @@ async function finished(verifier) {
   return verifier.scenarioState().history[0]
 }
 
-function makeServer({ scenarios = [scenario()], snapshot = () => ({ main: describeBot({ username: 'eduardo_bot' }) }), views = () => null } = {}) {
+function makeServer({ scenarios = [scenario()], snapshot = () => ({ main: describeBot({ username: 'eduardo_bot' }) }), views = () => null, command = null } = {}) {
   const eventLog = freshLog()
   const runVerifier = new RunVerifier({ eventLog, scenarios })
   runVerifier.setScenarioContext({ bot: { username: 'eduardo_bot' } })
@@ -87,7 +87,7 @@ function makeServer({ scenarios = [scenario()], snapshot = () => ({ main: descri
     projectManager: { status: () => null },
     eventLog,
     port: 0,
-    dashboard: { runVerifier, snapshot, views }
+    dashboard: { runVerifier, snapshot, views, command }
   })
   server.start()
   return { server, runVerifier, eventLog }
@@ -102,6 +102,39 @@ test('painel desligado por padrão: sem rotas /dashboard e /api', async () => {
   assert.equal((await request(port, { path: '/dashboard' })).status, 404)
   assert.equal((await request(port, { path: '/api/snapshot' })).status, 404)
   assert.equal((await request(port, { path: '/health' })).status, 200)
+  server.stop()
+})
+
+test('painel envia comando só com header local e exige !comando', async () => {
+  const calls = []
+  const { server } = makeServer({
+    command: async ({ text, source }) => {
+      calls.push({ text, source })
+      return { ok: true, command: text }
+    }
+  })
+  const port = await listening(server)
+  const url = '/api/command'
+  const json = { 'content-type': 'application/json' }
+  assert.equal((await request(port, { method: 'POST', path: url, headers: json, body: '{"command":"!status"}' })).status, 403)
+  assert.equal(calls.length, 0)
+
+  const ok = await request(port, {
+    method: 'POST', path: url,
+    headers: { ...json, 'x-mbot-dashboard': '1' },
+    body: '{"command":"!status"}'
+  })
+  assert.equal(ok.status, 200)
+  assert.equal(ok.json.command, '!status')
+  assert.deepEqual(calls, [{ text: '!status', source: 'dashboard' }])
+
+  const bad = await request(port, {
+    method: 'POST', path: url,
+    headers: { ...json, 'x-mbot-dashboard': '1' },
+    body: '{"command":"hello"}'
+  })
+  assert.equal(bad.status, 400)
+  assert.deepEqual(calls, [{ text: '!status', source: 'dashboard' }])
   server.stop()
 })
 

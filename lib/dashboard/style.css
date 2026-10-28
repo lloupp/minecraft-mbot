@@ -151,3 +151,13 @@ select, input[type="search"] { font: inherit; font-size: 13px; padding: 3px 6px;
 .loglines .lv-error { color: var(--fail); }
 .loglines .lv-warn { color: var(--warn); }
 .loglines .lv-event { color: var(--run); }
+
+.commands .cmd-form { display: flex; gap: 6px; }
+.commands .cmd-form input { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.cmd-quick { display: grid; gap: 5px; margin-top: 8px; }
+.cmd-quick details { border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+.cmd-quick summary { cursor: pointer; font-size: 12px; font-weight: 600; }
+.cmd-group { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 7px; }
+.cmd-group button { font-size: 12px; padding: 3px 8px; }
+.cmd-group .cmd-danger { color: var(--fail); border-color: var(--fail); }
+#cmd-status { overflow-wrap: anywhere; text-align: right; }

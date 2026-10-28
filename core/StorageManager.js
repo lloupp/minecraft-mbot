@@ -74,6 +74,7 @@ class StorageManager {
     this._botQueues = new WeakMap()
     this._snapshot = {}
     this.lastUpdatedAt = 0
+    this._ensurePromise = null
   }
 
   configured() {
@@ -134,6 +135,25 @@ class StorageManager {
     return block
   }
 
+  async ensureConfigured(bot, createContainer) {
+    if (this.configured()) return this.getPosition()
+    if (this._ensurePromise) return this._ensurePromise
+    this._ensurePromise = (async () => {
+      if (this.configured()) return this.getPosition()
+      const nearby = this.findNearby(bot, 8)
+      if (nearby) return this.setPosition(nearby.position)
+      if (typeof createContainer !== 'function') throw new Error('não há baú próximo e não foi fornecido criador de baú')
+      const position = await createContainer()
+      if (!position) throw new Error('não foi possível criar um baú para o estoque')
+      return this.setPosition(position)
+    })()
+    try {
+      return await this._ensurePromise
+    } finally {
+      this._ensurePromise = null
+    }
+  }
+
   block(bot) {
     if (!this.position) throw new Error('estoque central ainda não foi definido')
     const block = bot.blockAt(new Vec3(this.position.x, this.position.y, this.position.z))
@@ -149,7 +169,9 @@ class StorageManager {
     if (timeoutMs == null) {
       const from = bot.entity?.position
       const distance = from ? Math.hypot(from.x - position.x, from.y - position.y, from.z - position.z) : 0
-      timeoutMs = Math.max(15000, Math.round(distance * 700))
+      // Com 5 workers e caminhos longos, 700 ms/bloco não bastava: o
+      // minerador voltava do subsolo com pedra e era interrompido no meio.
+      timeoutMs = Math.min(360000, Math.max(30000, Math.round(distance * 1500)))
     }
     let timer
     const timeout = new Promise((_, reject) => {
@@ -158,6 +180,12 @@ class StorageManager {
         reject(new Error('demorei demais para chegar ao estoque'))
       }, timeoutMs)
     })
+    // Worker que cavou um poço/fechou-se no subsolo não consegue voltar com
+    // canDig=false. Só neste trajeto até o baú permitimos cavar; os blocos
+    // protegidos (cercas/curral) continuam na lista de evitar.
+    const movements = bot.pathfinder.movements
+    const previousCanDig = movements ? movements.canDig : undefined
+    if (movements) movements.canDig = true
     try {
       await Promise.race([
         bot.pathfinder.goto(new goals.GoalNear(position.x, position.y, position.z, 2)),
@@ -165,6 +193,7 @@ class StorageManager {
       ])
     } finally {
       clearTimeout(timer)
+      if (movements && previousCanDig !== undefined) movements.canDig = previousCanDig
     }
   }
 
@@ -275,10 +304,36 @@ class StorageManager {
     })
   }
 
+  // Deposita quantidades específicas (ex.: só ferro) sem esvaziar a mochila.
+  async depositMany(bot, counts) {
+    if (!this.configured()) return {}
+    const wanted = new Map()
+    for (const [name, count] of Object.entries(counts || {})) {
+      const amount = Math.max(0, Number(count) || 0)
+      if (amount > 0) wanted.set(name, amount)
+    }
+    const deposited = {}
+    if (!wanted.size) return deposited
+    await this.withContainer(bot, async (container) => {
+      for (const item of bot.inventory.items()) {
+        const limit = wanted.get(item.name)
+        if (!limit) continue
+        const amount = Math.min(item.count, limit)
+        if (amount <= 0) continue
+        try {
+          await container.deposit(item.type, null, amount)
+          deposited[item.name] = (deposited[item.name] || 0) + amount
+          wanted.set(item.name, limit - amount)
+        } catch { /* baú cheio: mantém o resto na mochila */ }
+      }
+      this.updateSnapshot(container.containerItems())
+    })
+    return deposited
+  }
+
   reserveFor(bot, item) {
     if (isEquipment(item.name)) return item.count
     if (bot.registry?.foodsByName?.[item.name]) return Math.min(item.count, 8)
-    if (item.name === 'torch') return Math.min(item.count, 16)
     return 0
   }
 

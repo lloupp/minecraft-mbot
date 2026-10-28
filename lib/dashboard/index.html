@@ -48,6 +48,172 @@
       </div>
     </section>
 
+    <section class="panel commands" aria-label="Comandos">
+      <div class="panel-head"><h2>Comandos</h2><span class="muted small" id="cmd-status">—</span></div>
+      <form class="cmd-form" id="cmd-form" autocomplete="off">
+        <input id="cmd-input" type="text" maxlength="200" list="cmd-suggestions" placeholder="!status, !ferro 4, !base status, !projeto status…" aria-label="Comando para o bot">
+        <datalist id="cmd-suggestions">
+          <option value="!construir casa"></option>
+          <option value="!construir fazenda"></option>
+          <option value="!construir mina"></option>
+          <option value="!construir curral vaca"></option>
+          <option value="!construir curral ovelha"></option>
+          <option value="!construir planta cabana"></option>
+          <option value="!projeto casa"></option>
+          <option value="!projeto fazenda"></option>
+          <option value="!projeto mina"></option>
+          <option value="!projeto vila"></option>
+          <option value="!ferro 4"></option>
+          <option value="!minerar oak_log 5"></option>
+          <option value="!fabricar picareta_ferro 2"></option>
+          <option value="!cozinhar raw_iron"></option>
+          <option value="!local salvar casa"></option>
+          <option value="!ir casa"></option>
+          <option value="!patrulha casa mina"></option>
+          <option value="!explorar mina 64"></option>
+          <option value="!lembrar casa aqui"></option>
+          <option value="!onde casa"></option>
+          <option value="!ordem mineradores ferro 64"></option>
+          <option value="!abastecer minerador_01 iron_ingot 16"></option>
+          <option value="!bot criar ajudante 1"></option>
+          <option value="!capturar vaca 2"></option>
+          <option value="!reproduzir vaca 1"></option>
+          <option value="!manejo vaca"></option>
+          <option value="!produto ovos"></option>
+          <option value="!tosquiar ovelha"></option>
+          <option value="!lembrar casa aqui"></option>
+          <option value="!esquecer casa"></option>
+          <option value="!item iron_ingot"></option>
+          <option value="!receita iron_pickaxe 1"></option>
+          <option value="!projeto planta cabana"></option>
+          <option value="!base aqui"></option>
+          <option value="!estoque aqui"></option>
+          <option value="!colonia auto off"></option>
+          <option value="!atacar zombie"></option>
+        </datalist>
+        <button id="cmd-send" type="submit">Enviar</button>
+      </form>
+      <div class="cmd-quick" id="cmd-quick">
+        <details open>
+          <summary>Geral e movimento</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!ajuda">!ajuda</button>
+            <button type="button" data-cmd="!status">!status</button>
+            <button type="button" data-cmd="!status server">!status server</button>
+            <button type="button" data-cmd="!servidor">!servidor</button>
+            <button type="button" data-cmd="!pos">!pos</button>
+            <button type="button" data-cmd="!ver">!ver</button>
+            <button type="button" data-cmd="!seguir">!seguir</button>
+            <button type="button" data-cmd="!ficar">!ficar</button>
+            <button type="button" data-cmd="!autonomo">!autonomo</button>
+            <button type="button" data-cmd="!autônomo">!autônomo</button>
+            <button type="button" data-cmd="!autonomo off">!autonomo off</button>
+            <button type="button" data-cmd="!metas">!metas</button>
+            <button type="button" data-cmd="!local">!local</button>
+            <button type="button" data-cmd="!locais">!locais</button>
+            <button type="button" data-fill="!ir casa" title="Preenche o comando; revise e envie">!ir</button>
+            <button type="button" data-fill="!viajar casa" title="Preenche o comando; revise e envie">!viajar</button>
+            <button type="button" data-cmd="!voltar">!voltar</button>
+            <button type="button" data-fill="!patrulha casa mina" title="Preenche o comando; revise e envie">!patrulha</button>
+            <button type="button" data-fill="!explorar casa 64" title="Preenche o comando; revise e envie">!explorar</button>
+            <button type="button" data-cmd="!cancelar">!cancelar</button>
+          </div>
+        </details>
+        <details>
+          <summary>Sobrevivência e coleta</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!comer">!comer</button>
+            <button type="button" data-cmd="!comida">!comida</button>
+            <button type="button" data-cmd="!ferro 4">!ferro 4</button>
+            <button type="button" data-fill="!minerar oak_log 5" title="Preenche o comando; revise e envie">!minerar</button>
+            <button type="button" data-fill="!cozinhar raw_iron 4" title="Preenche o comando; revise e envie">!cozinhar</button>
+            <button type="button" data-fill="!fabricar torch 16" title="Preenche o comando; revise e envie">!fabricar</button>
+            <button type="button" data-cmd="!cama">!cama</button>
+            <button type="button" data-cmd="!dormir">!dormir</button>
+            <button type="button" data-fill="!atacar zombie" title="Preenche o comando; revise e envie">!atacar</button>
+          </div>
+        </details>
+        <details>
+          <summary>Base, colônia e workers</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!base status">!base status</button>
+            <button type="button" data-fill="!base aqui" title="Preenche o comando; revise e envie">!base aqui</button>
+            <button type="button" data-cmd="!estoque">!estoque</button>
+            <button type="button" data-fill="!estoque aqui" title="Preenche o comando; revise e envie">!estoque aqui</button>
+            <button type="button" data-cmd="!projeto status">!projeto status</button>
+            <button type="button" data-fill="!projeto casa" title="Preenche o comando; revise e envie">!projeto casa</button>
+            <button type="button" data-fill="!projeto planta cabana" title="Preenche o comando; revise e envie">!projeto planta</button>
+            <button type="button" data-cmd="!projetos">!projetos</button>
+            <button type="button" data-cmd="!smoke">!smoke</button>
+            <button type="button" data-cmd="!colonia necessidades">!colonia necessidades</button>
+            <button type="button" data-cmd="!colonia auto">!colonia auto</button>
+            <button type="button" data-fill="!colonia auto off" title="Preenche o comando; revise e envie">!colonia auto off</button>
+            <button type="button" data-fill="!bot criar ajudante 1" title="Preenche o comando; revise e envie">!bot criar</button>
+            <button type="button" data-cmd="!bots">!bots</button>
+            <button type="button" data-fill="!ordem mineradores ferro 64" title="Preenche o comando; revise e envie">!ordem</button>
+            <button type="button" data-fill="!abastecer minerador_01 iron_ingot 16" title="Preenche o comando; revise e envie">!abastecer</button>
+            <button type="button" data-fill="!construir casa" title="Preenche o comando; revise e envie">!construir casa</button>
+            <button type="button" data-fill="!construir fazenda" title="Preenche o comando; revise e envie">!construir fazenda</button>
+            <button type="button" data-fill="!construir mina" title="Preenche o comando; revise e envie">!construir mina</button>
+            <button type="button" data-fill="!construir curral vaca" title="Preenche o comando; revise e envie">!construir curral vaca</button>
+            <button type="button" data-fill="!construir planta cabana" title="Preenche o comando; revise e envie">!construir planta cabana</button>
+            <button type="button" data-fill="!plantas cabana" title="Preenche o comando; revise e envie">!plantas</button>
+            <button type="button" data-cmd="!todos voltar">!todos voltar</button>
+            <button type="button" data-cmd="!tarefas">!tarefas</button>
+            <button type="button" data-fill="!enviar minerador_01 mina" title="Preenche o comando; revise e envie">!enviar</button>
+            <button type="button" data-fill="!bot criar ajudante 1" title="Preenche o comando; revise e envie">!bot criar</button>
+          </div>
+        </details>
+        <details>
+          <summary>Animais</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!animais">!animais</button>
+            <button type="button" data-cmd="!curral">!curral</button>
+            <button type="button" data-fill="!capturar vaca 2" title="Preenche o comando; revise e envie">!capturar</button>
+            <button type="button" data-fill="!reproduzir vaca 1" title="Preenche o comando; revise e envie">!reproduzir</button>
+            <button type="button" data-fill="!recolheranimais vaca 2" title="Preenche o comando; revise e envie">!recolheranimais</button>
+            <button type="button" data-fill="!criaranimais vaca 1" title="Preenche o comando; revise e envie">!criaranimais</button>
+            <button type="button" data-fill="!manejo vaca" title="Preenche o comando; revise e envie">!manejo</button>
+            <button type="button" data-fill="!populacao vaca" title="Preenche o comando; revise e envie">!populacao</button>
+            <button type="button" data-fill="!população vaca" title="Preenche o comando; revise e envie">!população</button>
+            <button type="button" data-fill="!produto ovos" title="Preenche o comando; revise e envie">!produto</button>
+            <button type="button" data-fill="!produtoanimal ovos" title="Preenche o comando; revise e envie">!produtoanimal</button>
+            <button type="button" data-fill="!tosquiar ovelha" title="Preenche o comando; revise e envie">!tosquiar</button>
+            <button type="button" data-fill="!tosquia ovelha" title="Preenche o comando; revise e envie">!tosquia</button>
+          </div>
+        </details>
+        <details>
+          <summary>Memória e localização</summary>
+          <div class="cmd-group">
+            <button type="button" data-fill="!lembrar casa aqui" title="Preenche o comando; revise e envie">!lembrar</button>
+            <button type="button" data-fill="!esquecer casa" title="Preenche o comando; revise e envie">!esquecer</button>
+            <button type="button" data-cmd="!memoria">!memoria</button>
+            <button type="button" data-cmd="!memória">!memória</button>
+            <button type="button" data-fill="!onde casa" title="Preenche o comando; revise e envie">!onde</button>
+            <button type="button" data-cmd="!mundo">!mundo</button>
+          </div>
+        </details>
+        <details>
+          <summary>Auditoria e controle</summary>
+          <div class="cmd-group">
+            <button type="button" data-cmd="!verify">!verify</button>
+            <button type="button" data-cmd="!events">!events</button>
+            <button type="button" data-fill="!freeze dashboard-check" title="Preenche o comando; revise e envie">!freeze</button>
+            <button type="button" data-fill="!item iron_ingot" title="Preenche o comando; revise e envie">!item</button>
+            <button type="button" data-fill="!receita iron_pickaxe 1" title="Preenche o comando; revise e envie">!receita</button>
+            <button type="button" class="cmd-danger" data-cmd="!parar">!parar</button>
+          </div>
+        </details>
+      </div>
+      <p class="error small" id="cmd-error" hidden></p>
+    </section>
+
+    <section class="panel" aria-label="Fila de pedidos">
+      <div class="panel-head"><h2>Fila de pedidos</h2></div>
+      <p class="muted small">Ordens de coleta enfileiradas. Para cancelar um pedido pendente: !tarefas cancelar ID.</p>
+      <ul class="runs" id="request-queue"></ul>
+    </section>
+
     <section class="panel inventory" aria-label="Inventário">
       <div class="panel-head">
         <h2>Inventário <span class="muted small" id="inv-owner"></span></h2>
