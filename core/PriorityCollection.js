@@ -7,6 +7,7 @@ const { normalizeWord, resolveBlockNames, isMineralGroup, mineralResourcesFor } 
 const MAX_TARGET = 4096
 const BATCH_SIZE = 12
 const MAX_FAILURES = 3
+const MAX_QUEUE = 100
 const FOOD_NAMES = new Set(['comida', 'alimento', 'alimentos', 'food'])
 const NON_PREEMPTIBLE = new Set([
   'fabricar', 'retirar_estoque', 'depositar', 'sincronizar_estoque',
@@ -14,13 +15,118 @@ const NON_PREEMPTIBLE = new Set([
 ])
 
 class PriorityCollection {
-  constructor({ controllers, logger = console, onFinished = () => {} }) {
+  constructor({ controllers, logger = console, onFinished = () => {}, onChange = () => {} }) {
     this.controllers = controllers
     this.logger = logger
     this.onFinished = onFinished
+    this.onChange = onChange
+    this.pending = []
+    this.paused = false
     this.current = null
     this.last = null
     this.sequence = 0
+  }
+
+  notifyChange() {
+    try { this.onChange() } catch (err) { this.logger.log?.('[fila] persistência: ' + err.message) }
+  }
+
+  queueState() {
+    return {
+      paused: this.paused,
+      active: this.current ? this.status() : null,
+      pending: this.pending.map(({ id, resource, target }) => ({ id, resource, target })),
+      last: this.last ? this.status() : null
+    }
+  }
+
+  exportState() {
+    const current = this.current
+    // Só salvar itens não confirmados; tarefas interrompidas não devem ser
+    // cobradas duas vezes após o restart. Trabalho em voo requer reconciliação.
+    const active = current ? [{ id: current.id, resource: current.resource,
+      target: Math.max(1, current.target - current.gathered) }] : []
+    return { paused: this.paused, nextId: this.sequence,
+      tasks: [...active, ...this.pending].slice(0, MAX_QUEUE) }
+  }
+
+  restore(state) {
+    this.paused = Boolean(state?.paused)
+    this.pending = []
+    this.sequence = Number.isSafeInteger(state?.nextId) && state.nextId >= 0 ? state.nextId : 0
+    for (const row of Array.isArray(state?.tasks) ? state.tasks.slice(0, MAX_QUEUE) : []) {
+      const resource = normalizeWord(row?.resource)
+      const target = Number(row?.target)
+      if (!resource || !Number.isSafeInteger(target) || target < 1 || target > MAX_TARGET) continue
+      const id = Number.isSafeInteger(row.id) && row.id > 0 ? row.id : ++this.sequence
+      this.sequence = Math.max(this.sequence, id)
+      this.pending.push({ id, resource, target })
+    }
+    return this.queueState()
+  }
+
+  validate(resource, count) {
+    const name = normalizeWord(resource)
+    const target = Number(count)
+    if (!name || name.length > 80) throw new Error('informe um recurso (ex.: ferro, diamante, minerais, madeira)')
+    if (!Number.isSafeInteger(target) || target < 1 || target > MAX_TARGET) {
+      throw new Error('quantidade deve ser um inteiro entre 1 e ' + MAX_TARGET)
+    }
+    return { resource: name, target }
+  }
+
+  enqueue(resource, count = 64, front = false) {
+    if (this.pending.length >= MAX_QUEUE) throw new Error('fila cheia (máximo ' + MAX_QUEUE + ')')
+    const entry = { id: ++this.sequence, ...this.validate(resource, count) }
+    if (front) this.pending.unshift(entry)
+    else this.pending.push(entry)
+    this.notifyChange()
+    this.tick()
+    return entry
+  }
+
+  remove(id) {
+    const index = this.pending.findIndex(entry => entry.id === Number(id))
+    if (index < 0) throw new Error('tarefa não encontrada na fila: ' + id)
+    const [removed] = this.pending.splice(index, 1)
+    this.notifyChange()
+    return removed
+  }
+
+  move(id, targetIndex = 0) {
+    const index = this.pending.findIndex(entry => entry.id === Number(id))
+    if (index < 0) throw new Error('tarefa não encontrada na fila: ' + id)
+    const place = Number(targetIndex)
+    if (!Number.isSafeInteger(place) || place < 0 || place >= this.pending.length) throw new Error('posição inválida')
+    const [entry] = this.pending.splice(index, 1)
+    this.pending.splice(place, 0, entry)
+    this.notifyChange()
+    return entry
+  }
+
+  pause() {
+    this.paused = true
+    if (this.current) {
+      const order = this.current
+      const remaining = Math.max(0, order.target - order.gathered)
+      if (remaining > 0) this.pending.unshift({ id: order.id, resource: order.resource, target: remaining })
+      this.stop('pausada')
+    }
+    this.notifyChange()
+    return this.queueState()
+  }
+
+  resume() {
+    this.paused = false
+    this.notifyChange()
+    this.tick()
+    return this.queueState()
+  }
+
+  clearPending() {
+    this.pending = []
+    this.notifyChange()
+    return this.queueState()
   }
 
   status() {
@@ -43,13 +149,8 @@ class PriorityCollection {
     }
   }
 
-  start(resource, count = 64) {
-    const name = normalizeWord(resource)
-    const target = Number(count)
-    if (!name || name.length > 80) throw new Error('informe um recurso (ex.: ferro, madeira, diamante, comida ou oak_log)')
-    if (!Number.isSafeInteger(target) || target < 1 || target > MAX_TARGET) {
-      throw new Error('quantidade deve ser um inteiro entre 1 e ' + MAX_TARGET)
-    }
+  start(resource, count = 64, fromQueue = null) {
+    const { resource: name, target } = this.validate(resource, count)
     const workers = this.controllers()
     if (!workers.length) throw new Error('não há auxiliares na colônia')
     const isFood = FOOD_NAMES.has(name)
@@ -62,7 +163,7 @@ class PriorityCollection {
 
     if (this.current) this.stop('substituida')
     const order = {
-      id: ++this.sequence, resource: name, group, type: isFood ? 'fazenda' : 'coletar_blocos',
+      id: fromQueue?.id || ++this.sequence, resource: name, group, type: isFood ? 'fazenda' : 'coletar_blocos',
       target, gathered: 0, status: 'executando', nextMineralIndex: 0, byMineral: new Map(),
       excludedResources: new Map(),
       startedAt: new Date().toISOString(), finishedAt: null,
@@ -88,6 +189,7 @@ class PriorityCollection {
         if (this.current === order) this.tick()
       })
     }
+    this.notifyChange()
     this.tick()
     return this.status()
   }
@@ -99,11 +201,13 @@ class PriorityCollection {
     this.last = order
     this.current = null
     const snapshot = this.status()
+    this.notifyChange()
     this.logger.log?.('[prioridade] ' + status + ': ' + order.resource +
       ' ' + order.gathered + '/' + order.target)
     try { this.onFinished(snapshot) } catch (err) {
       this.logger.log?.('[prioridade] notificação falhou: ' + err.message)
     }
+    if (status === 'concluida' && !this.paused) this.tick()
   }
 
   stop(reason = 'cancelada') {
@@ -154,7 +258,18 @@ class PriorityCollection {
 
   tick() {
     const order = this.current
-    if (!order) return false
+    if (!order) {
+      if (this.paused || !this.pending.length || !this.controllers().length) return false
+      const next = this.pending[0]
+      try {
+        this.start(next.resource, next.target, next)
+        this.pending.shift()
+        this.notifyChange()
+      } catch (err) {
+        this.logger.log?.('[fila] não iniciei #' + next.id + ': ' + err.message)
+      }
+      return true
+    }
     if (order.gathered >= order.target && order.inFlight.size === 0) {
       this.finish(order, 'concluida')
       return true
@@ -165,7 +280,8 @@ class PriorityCollection {
           order.failed.has(worker.name) || (order.retryAt.get(worker.name) || 0) > Date.now()) return false
       if (!controller.bot?.entity || !controller.isIdle?.() || controller.currentTask ||
           controller.defending || controller.eating || controller.diggingOut ||
-          controller.bot.isSleeping || controller._preparationDrain || controller._toolDrain) return false
+          controller.bot.isSleeping || controller._preparationDrain || controller._toolDrain ||
+          controller.activeTaskPromise) return false
       if (order.group) {
         const excluded = order.excludedResources.get(worker.name) || new Set()
         return mineralResourcesFor(controller.bot).some(name => !excluded.has(name))
