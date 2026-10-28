@@ -115,6 +115,20 @@ test('WorkerController interrompe a tarefa e foge ao apanhar de creeper', async 
   assert.equal(worker.state, 'ocioso')
 })
 
+test('WorkerController ferido se alimenta com fome 15–17 para poder regenerar', () => {
+  const bot = fakeBot()
+  const worker = readyWorker(bot)
+  bot.health = 12
+  bot.food = 16
+  let meals = 0
+  worker.eat = () => { meals++ }
+  worker.survivalTick()
+  assert.equal(meals, 1)
+  bot.health = 20
+  worker.survivalTick()
+  assert.equal(meals, 1)
+})
+
 test('WorkerController come quando tem fome', async () => {
   const bot = fakeBot()
   bot.food = 10

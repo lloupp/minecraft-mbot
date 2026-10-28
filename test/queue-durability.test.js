@@ -21,6 +21,7 @@ test('concurrent enqueue failure cannot remove a different request', async () =>
   const a = q.enqueue('minerador', { type: 'coletar_blocos', count: 1 })
   const b = q.enqueue('lenhador', { type: 'coletar_blocos', count: 2 })
   const failure = assert.rejects(a, /disk failed/)
+  await flush()
   rejectFirst(new Error('disk failed'))
   await failure
   await b

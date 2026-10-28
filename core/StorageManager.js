@@ -75,6 +75,8 @@ class StorageManager {
     this._snapshot = {}
     this.lastUpdatedAt = 0
     this._ensurePromise = null
+    this.recoverContainer = null
+    this.onPositionChanged = null
   }
 
   configured() {
@@ -163,6 +165,24 @@ class StorageManager {
     return block
   }
 
+  async resolveContainer(bot) {
+    try { return this.block(bot) } catch (originalError) {
+      const saved = this.getPosition()
+      const from = bot.entity?.position
+      if (!saved || !from || from.distanceTo(new Vec3(saved.x, saved.y, saved.z)) > 6) throw originalError
+      // Null is an unloaded chunk, not proof that somebody removed the chest.
+      const observed = bot.blockAt(new Vec3(saved.x, saved.y, saved.z))
+      if (!observed) throw originalError
+      const replacement = this.findNearby(bot, 6) || (this.recoverContainer ? await this.recoverContainer(bot, saved) : null)
+      if (!replacement || !CONTAINER_NAMES.includes(replacement.name) || !replacement.position) throw originalError
+      if (from.distanceTo(replacement.position) > 6) throw originalError
+      this.setPosition(replacement.position)
+      this.onPositionChanged?.(this.getPosition())
+      console.log(`[estoque] container recuperado em ${replacement.position.x},${replacement.position.y},${replacement.position.z}`)
+      return replacement
+    }
+  }
+
   async goNear(bot, position, timeoutMs = null) {
     if (!bot.pathfinder) throw new Error('pathfinder indisponível')
     // Longe da base, 15 s não bastam: ~700 ms por bloco, como nas viagens dos workers.
@@ -221,7 +241,7 @@ class StorageManager {
 
       let container
       try {
-        const block = this.block(bot)
+        const block = await this.resolveContainer(bot)
         const beforeOpen = containerInteractionSnapshot(bot, block)
         try {
           container = await bot.openContainer(block)
@@ -340,12 +360,15 @@ class StorageManager {
   async depositCargo(bot) {
     if (!this.configured()) return {}
     const deposited = {}
-    const snapshot = bot.inventory.items().map((item) => ({
-      name: item.name,
-      type: item.type,
-      count: item.count,
-      keep: this.reserveFor(bot, item)
-    }))
+    let foodBudget = 8
+    const snapshot = bot.inventory.items().map((item) => {
+      let keep = this.reserveFor(bot, item)
+      if (!isEquipment(item.name) && bot.registry?.foodsByName?.[item.name]) {
+        keep = Math.min(item.count, foodBudget)
+        foodBudget -= keep
+      }
+      return { name: item.name, type: item.type, count: item.count, keep }
+    })
 
     await this.withContainer(bot, async (container) => {
       for (const item of snapshot) {
