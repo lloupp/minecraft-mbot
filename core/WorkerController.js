@@ -170,7 +170,9 @@ class WorkerController {
       this.workMoves = new Movements(bot)
       // Navegação não escava atalhos (nem pedra à mão, nem construções).
       // Coleta e obras continuam cavando explicitamente com bot.dig.
-      this.workMoves.canDig = false
+      // Exceção: o minerador precisa cavar até o minério; sem isso ele via
+      // candidatos de ferro mas o pathfinder falhava (PATH_FAILED).
+      this.workMoves.canDig = this.role === 'minerador'
       // Subir empilhando blocos (terra/pedregulho do próprio inventário) é o único
       // jeito de sair de um poço 1x1 que o worker cavou minerando para baixo.
       this.workMoves.allow1by1towers = true
@@ -565,6 +567,9 @@ class WorkerController {
           break
         case 'construir_casa':
           result = await this.buildHouse(isCancelled, task.offset)
+          break
+        case 'construir_cerca_base':
+          result = await this.buildBaseFence(isCancelled, task.radius || 8)
           break
         case 'construir_fazenda':
           result = await this.buildFarm(isCancelled, task.offset)
@@ -1122,6 +1127,74 @@ class WorkerController {
       }
     }
     return leveled
+  }
+
+  // Cerca da base: usa o mesmo kit de cercas/portão do curral, mas num
+  // perímetro quadrado em volta da base. O portão fica na face norte.
+  baseFencePlan(home, radius = 8) {
+    const r = Math.max(4, Math.min(24, Number(radius) || 8))
+    const cx = Math.floor(home.x)
+    const cy = Math.floor(home.y)
+    const cz = Math.floor(home.z)
+    const points = []
+    const add = (x, z) => {
+      for (let dy = 4; dy >= -4; dy--) {
+        const here = this.bot.blockAt(new Vec3(x, cy + dy, z))
+        const below = this.bot.blockAt(new Vec3(x, cy + dy - 1, z))
+        if (!here || !below) continue
+        if (here.boundingBox !== 'empty') continue
+        if (below.boundingBox !== 'block' || /water|lava|bubble_column/.test(below.name)) continue
+        points.push({ x, y: cy + dy, z })
+        return
+      }
+    }
+    for (let dx = -r; dx <= r; dx++) {
+      add(cx + dx, cz - r)
+      add(cx + dx, cz + r)
+    }
+    for (let dz = -r + 1; dz <= r - 1; dz++) {
+      add(cx - r, cz + dz)
+      add(cx + r, cz + dz)
+    }
+    const north = points.filter((p) => p.z === cz - r).sort((a, b) => Math.abs(a.x - cx) - Math.abs(b.x - cx))
+    const gate = north[0] || points[0]
+    if (!gate) throw new Error('não achei chão firme para a cerca da base')
+    const fences = points.filter((p) => !(p.x === gate.x && p.y === gate.y && p.z === gate.z))
+    return {
+      origin: { x: cx - r, y: cy, z: cz - r },
+      size: r * 2 + 1,
+      center: { x: cx, y: cy, z: cz },
+      gate,
+      outside: { x: gate.x, y: gate.y, z: gate.z - 2 },
+      fences,
+      fenceCount: fences.length,
+      gateCount: 1
+    }
+  }
+
+  async buildBaseFence(isCancelled, radius = 8) {
+    const home = this.homeProvider?.()
+    if (!home) throw new Error('base da colônia ainda não definida')
+    const plan = this.baseFencePlan(home, radius)
+    const kit = await this.ensurePenKit(plan)
+    if (!kit) throw new Error('não consegui obter cercas e portão para a base')
+
+    let fencesPlaced = 0
+    for (const position of plan.fences) {
+      if (isCancelled()) break
+      if (await this.placeGroundItem(position, kit.fence, isCancelled)) fencesPlaced++
+    }
+    const gatePlaced = !isCancelled() && await this.placePenGate(plan, kit.gate, isCancelled)
+    const ok = !isCancelled() && gatePlaced && fencesPlaced >= plan.fenceCount
+    return {
+      ok,
+      fencesPlaced,
+      fencesExpected: plan.fenceCount,
+      gatePlaced: Boolean(gatePlaced),
+      radius,
+      origin: plan.origin,
+      size: plan.size
+    }
   }
 
   async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
@@ -2846,6 +2919,34 @@ class WorkerController {
       await this.storage.withdrawBuildingMaterial(this.bot, required - available)
       materials = this.buildingMaterials()
       available = materials.reduce((sum, item) => sum + item.count, 0)
+    }
+    // Base inicial: se o estoque ainda não tem pedra suficiente, retira toras
+    // do próprio baú e fabrica tábuas. Coletar madeira no meio de mobs matou o
+    // construtor antes de a casa começar (visto no servidor real).
+    if (available < required && this.storage?.configured()) {
+      let logName = this.bot.inventory.items()
+        .filter((item) => /_(log|stem)$/.test(item.name))
+        .sort((a, b) => b.count - a.count)[0]?.name
+      if (!logName) {
+        const stock = Object.keys(this.storage.cachedSummary() || {})
+          .filter((name) => /_(log|stem)$/.test(name))
+          .sort((a, b) => Number(this.storage.cachedSummary()[b] || 0) - Number(this.storage.cachedSummary()[a] || 0))[0]
+        if (stock) {
+          const needLogs = Math.ceil((required - available) / 4)
+          await this.storage.withdraw(this.bot, stock, needLogs).catch(() => 0)
+          logName = stock
+        }
+      }
+      if (logName) {
+        const planks = logName.replace(/_(log|stem)$/, '_planks')
+        try {
+          await craft.craftItem(this.bot, planks, required - available, isCancelled)
+          materials = this.buildingMaterials()
+          available = materials.reduce((sum, item) => sum + item.count, 0)
+        } catch (err) {
+          console.log(`[obra] não consegui tábuas para a casa: ${err.message}`)
+        }
+      }
     }
     if (available < required) {
       throw new Error(`preciso de ${required} blocos de construção; tenho ${available}`)

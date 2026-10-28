@@ -5,9 +5,10 @@ const { loadPlugins } = require('../lib/plugins')
 
 test('carrega os plugins prontos no bot', () => {
   const loadedFns = []
-  const bot = { loadPlugin: (fn) => loadedFns.push(fn) }
+  const autoEat = { setOpts: () => {}, on: () => {}, enableAuto: () => {}, disableAuto: () => {} }
+  const bot = { loadPlugin: (fn) => loadedFns.push(fn), autoEat }
   const loaded = loadPlugins(bot, { log: () => {} })
-  assert.deepEqual(loaded, ['pvp', 'custompvp', 'tool', 'collectblock', 'hawkeye'])
+  assert.deepEqual(loaded, ['pvp', 'custompvp', 'tool', 'collectblock', 'hawkeye', 'autoeat'])
   assert.ok(loadedFns.every((fn) => typeof fn === 'function'))
 })
 

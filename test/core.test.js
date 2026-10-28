@@ -197,7 +197,7 @@ test('DemandPlanner distribui trabalho conforme falta no estoque', () => {
 
   const result = planner.buildPlan(workers, {})
   assert.equal(result.plan.length, 3)
-  assert.equal(result.plan.find((x) => x.worker.role === 'minerador').task.resource, 'carvao')
+  assert.equal(result.plan.find((x) => x.worker.role === 'minerador').task.resource, 'ferro')
   assert.equal(result.plan.find((x) => x.worker.role === 'lenhador').task.resource, 'madeira')
   assert.equal(result.plan.find((x) => x.worker.role === 'fazendeiro').task.resource, 'comida')
 })

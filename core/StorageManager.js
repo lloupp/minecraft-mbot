@@ -149,7 +149,9 @@ class StorageManager {
     if (timeoutMs == null) {
       const from = bot.entity?.position
       const distance = from ? Math.hypot(from.x - position.x, from.y - position.y, from.z - position.z) : 0
-      timeoutMs = Math.max(15000, Math.round(distance * 700))
+      // Com 5 workers e caminhos longos, 700 ms/bloco não bastava: o
+      // minerador voltava do subsolo com pedra e era interrompido no meio.
+      timeoutMs = Math.min(360000, Math.max(30000, Math.round(distance * 1500)))
     }
     let timer
     const timeout = new Promise((_, reject) => {
@@ -158,6 +160,12 @@ class StorageManager {
         reject(new Error('demorei demais para chegar ao estoque'))
       }, timeoutMs)
     })
+    // Worker que cavou um poço/fechou-se no subsolo não consegue voltar com
+    // canDig=false. Só neste trajeto até o baú permitimos cavar; os blocos
+    // protegidos (cercas/curral) continuam na lista de evitar.
+    const movements = bot.pathfinder.movements
+    const previousCanDig = movements ? movements.canDig : undefined
+    if (movements) movements.canDig = true
     try {
       await Promise.race([
         bot.pathfinder.goto(new goals.GoalNear(position.x, position.y, position.z, 2)),
@@ -165,6 +173,7 @@ class StorageManager {
       ])
     } finally {
       clearTimeout(timer)
+      if (movements && previousCanDig !== undefined) movements.canDig = previousCanDig
     }
   }
 
@@ -273,6 +282,33 @@ class StorageManager {
       this.updateSnapshot(container.containerItems())
       return amount
     })
+  }
+
+  // Deposita quantidades específicas (ex.: só ferro) sem esvaziar a mochila.
+  async depositMany(bot, counts) {
+    if (!this.configured()) return {}
+    const wanted = new Map()
+    for (const [name, count] of Object.entries(counts || {})) {
+      const amount = Math.max(0, Number(count) || 0)
+      if (amount > 0) wanted.set(name, amount)
+    }
+    const deposited = {}
+    if (!wanted.size) return deposited
+    await this.withContainer(bot, async (container) => {
+      for (const item of bot.inventory.items()) {
+        const limit = wanted.get(item.name)
+        if (!limit) continue
+        const amount = Math.min(item.count, limit)
+        if (amount <= 0) continue
+        try {
+          await container.deposit(item.type, null, amount)
+          deposited[item.name] = (deposited[item.name] || 0) + amount
+          wanted.set(item.name, limit - amount)
+        } catch { /* baú cheio: mantém o resto na mochila */ }
+      }
+      this.updateSnapshot(container.containerItems())
+    })
+    return deposited
   }
 
   reserveFor(bot, item) {

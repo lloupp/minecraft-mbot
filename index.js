@@ -7,6 +7,16 @@
 // 3. Rode este arquivo: node index.js
 //    A porta LAN e a versão do jogo são detectadas automaticamente.
 
+// Carrega o .env do projeto antes de qualquer leitura de process.env, para que
+// `node index.js` (ou npm start) use a configuração local sem depender de
+// variáveis exportadas no shell. Node 20.12+/22+ expõe process.loadEnvFile.
+const path = require('path')
+try {
+  process.loadEnvFile(path.join(__dirname, '.env'))
+} catch (err) {
+  if (err.code !== 'ENOENT') console.warn(`[env] não foi possível carregar .env: ${err.message}`)
+}
+
 const { execFileSync } = require('child_process')
 const mineflayer = require('mineflayer')
 const { ping } = require('minecraft-protocol')
@@ -26,6 +36,7 @@ const gather = require('./lib/gather')
 const combat = require('./lib/combat')
 const equipment = require('./lib/equipment')
 const night = require('./lib/night')
+const bedLib = require('./lib/bed')
 const husbandry = require('./lib/husbandry')
 const animalProducts = require('./lib/animalProducts')
 const { Autonomy } = require('./lib/autonomy')
@@ -101,7 +112,7 @@ function pingServer(port) {
     const timer = setTimeout(() => resolve(null), 3000)
     ping({ host: HOST, port }, (err, res) => {
       clearTimeout(timer)
-      resolve(err || !res?.version ? null : { port, version: res.version.name, motd: motdText(res.description) })
+      resolve(err || !res?.version ? null : { port, version: res.version.name, motd: motdText(res.description), forgeData: res.forgeData })
     })
   })
 }
@@ -137,6 +148,8 @@ async function main() {
   // ========== CONFIGURAÇÃO ==========
   const requestedVersion = process.env.MINECRAFT_VERSION || server.version
   const serverProfile = detectProfile(requestedVersion)
+  // Necessário para escolher o handshake FML3 correto (Forge 1.20.1).
+  serverProfile.forgeData = server.forgeData
   const CONFIG = {
     host: HOST,
     port: server.port,
@@ -383,6 +396,163 @@ async function main() {
   colony.start()
   setInterval(() => persistState().catch(() => {}), 15000).unref?.()
 
+  // Ferro na mochila vai para o baú central sem esperar uma meta de autonomia.
+  // Só ferro (minério/bruto/lingote/bloco/nugget); ferramentas e armadura ficam.
+  const IRON_DEPOSIT_NAMES = new Set(['raw_iron', 'iron_ore', 'deepslate_iron_ore', 'iron_ingot', 'iron_block', 'iron_nugget'])
+  let ironDepositBusy = false
+  let lastIronDeposit = 0
+  const ironInInventory = () => bot.inventory.items()
+    .filter((item) => IRON_DEPOSIT_NAMES.has(item.name))
+    .reduce((sum, item) => sum + item.count, 0)
+  async function depositIron() {
+    const counts = {}
+    for (const item of bot.inventory.items()) {
+      if (!IRON_DEPOSIT_NAMES.has(item.name)) continue
+      counts[item.name] = (counts[item.name] || 0) + item.count
+    }
+    if (!Object.keys(counts).length) return {}
+    return storage.depositMany(bot, counts)
+  }
+
+  // Baú de campo: quando o baú central está longe/bloqueado (subsolo), coloca
+  // um baú ao lado do bot e deposita ali. O ferro fica em um baú identificado.
+  async function depositIronInField(counts, isCancelled) {
+    const chestId = bot.registry.blocksByName.chest?.id
+    let chest = chestId ? bot.findBlock({ matching: chestId, maxDistance: 8 }) : null
+    if (!chest) {
+      if (!bot.inventory.items().some((item) => item.name === 'chest')) {
+        await craft.craftItem(bot, 'chest', 1, isCancelled).catch((err) => {
+          console.log(`[ferro] não fabriquei baú: ${err.message}`)
+        })
+      }
+      if (isCancelled() || !bot.inventory.items().some((item) => item.name === 'chest')) {
+        throw new Error('sem baú para o depósito de campo')
+      }
+      const base = bot.entity.position.floored()
+      let placed = null
+      for (let dx = -3; dx <= 3 && !placed; dx++) {
+        for (let dz = -3; dz <= 3 && !placed; dz++) {
+          if (!dx && !dz) continue
+          for (const dy of [0, 1, -1, 2, -2]) {
+            const ground = new Vec3(base.x + dx, base.y + dy - 1, base.z + dz)
+            const position = ground.offset(0, 1, 0)
+            const floor = bot.blockAt(ground)
+            const here = bot.blockAt(position)
+            const above = bot.blockAt(position.offset(0, 1, 0))
+            if (!floor || !here || !above) continue
+            if (floor.boundingBox !== 'block' || /water|lava/.test(floor.name)) continue
+            if (here.boundingBox !== 'empty' || above.boundingBox !== 'empty') continue
+            try {
+              await food.goTo(bot, new goals.GoalNear(position.x, position.y, position.z, 2), 10000).catch(() => {})
+              if (isCancelled()) return { deposited: {}, chest: null }
+              await bot.lookAt(position.offset(0.5, 0.5, 0.5), true)
+              const item = bot.inventory.items().find((entry) => entry.name === 'chest')
+              if (!item) break
+              await bot.equip(item, 'hand')
+              const reference = bot.blockAt(ground)
+              if (!reference) continue
+              await bot.placeBlock(reference, new Vec3(0, 1, 0))
+              placed = bot.blockAt(position)
+              if (placed?.name === 'chest') { chest = placed; break }
+            } catch { /* tenta outro ponto */ }
+          }
+        }
+      }
+    }
+    if (!chest) throw new Error('não achei lugar para o baú de campo')
+    const deposited = {}
+    const container = await bot.openContainer(chest)
+    try {
+      for (const item of bot.inventory.items()) {
+        const limit = counts[item.name]
+        if (!limit) continue
+        const amount = Math.min(item.count, limit)
+        if (amount > 0) {
+          await container.deposit(item.type, null, amount)
+          deposited[item.name] = (deposited[item.name] || 0) + amount
+        }
+      }
+    } finally {
+      try { container.close() } catch {}
+    }
+    console.log(`[ferro] baú de campo em ${chest.position.x}, ${chest.position.y}, ${chest.position.z}`)
+    return { deposited, chest: chest.position }
+  }
+
+  // Lote dedicado: cava ferro, funde o bruto e deposita todo o ferro no baú.
+  async function mineIronBatch(wanted, isCancelled) {
+    if (!storage.configured()) throw new Error('estoque central não configurado')
+    console.log(`[ferro] lote de ${wanted} iniciado`)
+    // Minera onde está e usa baú de campo; não tenta voltar a uma base
+    // bloqueada no subsolo (isso fazia o lote ser cancelado no caminho).
+    const names = ['iron_ore', 'deepslate_iron_ore']
+    const mined = await gather.mineBlocks(bot, (name) => names.includes(name), wanted, isCancelled).catch((err) => {
+      console.log(`[ferro] mineração: ${err.message}`)
+      return 0
+    })
+    if (isCancelled()) return { mined, smelted: 0, deposited: {} }
+    const raw = bot.inventory.items()
+      .filter((item) => item.name === 'raw_iron')
+      .reduce((sum, item) => sum + item.count, 0)
+    let smelted = 0
+    if (raw > 0) {
+      smelted = await craft.smeltItem(bot, 'raw_iron', raw, isCancelled).catch((err) => {
+        console.log(`[ferro] fornalha: ${err.message}`)
+        return 0
+      })
+    }
+    if (isCancelled()) return { mined, smelted, deposited: {} }
+    const counts = {}
+    for (const item of bot.inventory.items()) {
+      if (!IRON_DEPOSIT_NAMES.has(item.name)) continue
+      counts[item.name] = (counts[item.name] || 0) + item.count
+    }
+    if (!Object.keys(counts).length) return { mined, smelted, deposited: {}, chest: null }
+    const central = storage.getPosition()
+    const far = !central || bot.entity.position.distanceTo(new Vec3(central.x, central.y, central.z)) > 12
+    let deposited = {}
+    let chest = null
+    if (far) {
+      const field = await depositIronInField(counts, isCancelled).catch((err) => {
+        console.log(`[ferro] baú de campo falhou: ${err.message}`)
+        return null
+      })
+      if (field) { deposited = field.deposited; chest = field.chest }
+    } else {
+      deposited = await storage.depositMany(bot, counts).catch((err) => {
+        console.log(`[ferro] baú central falhou: ${err.message}`)
+        return {}
+      })
+    }
+    if (!Object.keys(deposited).length) {
+      const field = await depositIronInField(counts, isCancelled).catch((err) => {
+        console.log(`[ferro] baú de campo (reserva) falhou: ${err.message}`)
+        return null
+      })
+      if (field) { deposited = field.deposited; chest = field.chest }
+    }
+    return { mined, smelted, deposited, chest }
+  }
+  setInterval(() => {
+    if (ironDepositBusy || ironBatchBusy || !bot.entity || !storage.configured() || sheltered || bot.isSleeping) return
+    if (Date.now() - lastIronDeposit < 120000) return
+    if (ironInInventory() < 4) return
+    ironDepositBusy = true
+    lastIronDeposit = Date.now()
+    runTask('guardar ferro', async (isCancelled) => {
+      try {
+        const deposited = await depositIron()
+        const text = Object.entries(deposited).map(([name, quantity]) => `${quantity}x ${name}`).join(', ')
+        if (!isCancelled() && text) {
+          console.log(`[ferro] guardei no baú: ${text}`)
+          bot.chat(`Guardei no baú: ${text}`)
+        }
+      } catch (err) {
+        if (!isCancelled()) console.log(`[ferro] não guardei: ${err.message}`)
+      }
+    }).finally(() => { ironDepositBusy = false })
+  }, 30000).unref?.()
+
   // ========== ESTADO ==========
   let mode = 'seguir'       // 'seguir' | 'ficar' | 'tarefa'
   let taskName = null       // descrição da tarefa em andamento
@@ -405,7 +575,7 @@ async function main() {
   let patrolActive = false
   let patrolRoute = []
   let patrolVersion = 0
-  const autonomy = new Autonomy(bot)
+  const autonomy = new Autonomy(bot, { storage })
 
   function ownerName() {
     if (resolvedOwner) return resolvedOwner
@@ -860,6 +1030,12 @@ async function main() {
 
   // ========== EVENTOS ==========
   let restoredWorkers = false
+  let autoSetupTimer = null
+  let autoSetupBusy = false
+  let autoStorageRetryAt = 0
+  let autoProjectRetryAt = 0
+  let autoIronRetryAt = 0
+  let ironBatchBusy = false
   bot.once('spawn', () => { webViews = startWebViews(bot) })
 
   // Contexto dos cenários do painel: só ações já existentes, com o bot real.
@@ -957,6 +1133,7 @@ async function main() {
       if (projectManager.isActive()) console.log(`[estado] projeto restaurado: ${projectManager.active.type}`)
       persistSoon()
     }
+    scheduleAutoSetup()
   })
 
   bot.once('health', () => {
@@ -1020,7 +1197,10 @@ async function main() {
 
     // Fome: come se tiver comida; senão, sai para buscar (só quando está livre).
     const needsFood = bot.food <= HUNGRY || (bot.food < 18 && bot.health < 20)
-    if (needsFood && !eating && (mode !== 'tarefa' || bot.food <= 6) && food.hasFood(bot)) {
+    // Com mineflayer-auto-eat ativo ele é o único que come sozinho; aqui só
+    // buscamos comida quando não há nenhuma no inventário.
+    const autoEat = Boolean(bot.autoEat?.enabled)
+    if (!autoEat && needsFood && !eating && (mode !== 'tarefa' || bot.food <= 6) && food.hasFood(bot)) {
       eatNow()
     } else if (bot.food <= HUNGRY && mode === 'seguir' && !food.hasFood(bot) &&
         Date.now() - lastFoodSearch > FOOD_RETRY_MS) {
@@ -1159,7 +1339,7 @@ async function main() {
   function projectStatusLines() {
     const report = colony.demandReport()
     const status = projectManager.status(report)
-    if (!status) return ['Nenhum projeto ativo. Tipos: casa, fazenda, mina, vila, planta <nome>.']
+    if (!status) return ['Nenhum projeto ativo. Tipos: base, casa, fazenda, mina, vila, planta <nome>.']
 
     const actionDone = status.actions.filter((a) => a.status === 'concluido').length
     const actionTotal = status.actions.length
@@ -1214,6 +1394,209 @@ async function main() {
       created.push(...workers.map((worker) => worker.name))
     }
     return created
+  }
+
+  // ========== BOOTSTRAP AUTÔNOMO DA BASE ==========
+  // Sem o dono online, o bot define uma base em céu aberto, cria um baú de
+  // estoque e inicia o projeto "base" (casa + cerca com portão). Só roda de dia,
+  // fora do abrigo, e respeita o limite de jogadores do servidor.
+  function openSky(position) {
+    for (let y = 1; y <= 10; y++) {
+      const block = bot.blockAt(position.offset(0, y, 0))
+      if (!block || block.boundingBox === 'block') return false
+    }
+    return true
+  }
+
+  function setBaseHere() {
+    const position = bot.entity.position.floored()
+    if (!openSky(position)) return false
+    const entry = waypointManager.save('base', position, currentDimension())
+    memory.lembrarLugar('base', dito(bot.username), 'base definida automaticamente')
+    persistSoon()
+    console.log(`[base] definida automaticamente em ${entry.position.x}, ${entry.position.y}, ${entry.position.z}`)
+    bot.chat(`Base definida em X=${entry.position.x}, Y=${entry.position.y}, Z=${entry.position.z}.`)
+    return true
+  }
+
+  async function autoStorage(isCancelled) {
+    try {
+      const block = storage.configureNearest(bot, 8)
+      console.log(`[estoque] usando ${block.name} em ${block.position.x}, ${block.position.y}, ${block.position.z}`)
+      persistSoon()
+      return true
+    } catch { /* sem baú perto: fabrica um */ }
+
+    if (!bot.inventory.items().some((item) => item.name === 'chest')) {
+      await craft.craftItem(bot, 'chest', 1, isCancelled)
+    }
+    if (isCancelled()) return false
+    if (!bot.inventory.items().some((item) => item.name === 'chest')) return false
+
+    const base = homeProvider() || bot.entity.position.floored()
+    // Fica na base (não em cima do futuro baú) para ter alcance e linha de visão.
+    // O bot pode ter ido minerar no subsolo; 60s cobrem a subida e o caminho.
+    const baseVec = new Vec3(base.x, base.y, base.z)
+    if (bot.entity.position.distanceTo(baseVec) > 4) {
+      console.log(`[estoque] voltando à base para colocar o baú (${Math.round(bot.entity.position.distanceTo(baseVec))} blocos)`)
+      await food.goTo(bot, new goals.GoalNear(base.x, base.y, base.z, 1), 60000).catch(() => {})
+    }
+    if (isCancelled()) return false
+    if (bot.entity.position.distanceTo(baseVec) > 6) {
+      console.log(`[estoque] ainda longe da base (${Math.round(bot.entity.position.distanceTo(baseVec))} blocos); tento depois`)
+      return false
+    }
+    const spots = []
+    for (let dx = -5; dx <= 5; dx++) {
+      for (let dz = -5; dz <= 5; dz++) {
+        if (dx === 0 && dz === 0) continue
+        // A casa do projeto fica no quadrante x>=0, z>=0; não coloque o baú lá.
+        if (dx > 0 && dz > 0) continue
+        for (const dy of [0, 1, -1, 2, -2, 3, -3]) {
+          const ground = new Vec3(Math.floor(base.x) + dx, Math.floor(base.y) + dy - 1, Math.floor(base.z) + dz)
+          const position = ground.offset(0, 1, 0)
+          const above = position.offset(0, 1, 0)
+          const floor = bot.blockAt(ground)
+          const here = bot.blockAt(position)
+          const top = bot.blockAt(above)
+          if (!floor || !here || !top) continue
+          if (floor.boundingBox !== 'block' || /water|lava|bubble_column/.test(floor.name)) continue
+          if (here.boundingBox !== 'empty' || top.boundingBox !== 'empty') continue
+          const distance = position.distanceTo(bot.entity.position)
+          if (distance < 1.3 || distance > 5) continue
+          spots.push({ ground, position, dist: distance })
+        }
+      }
+    }
+    spots.sort((a, b) => a.dist - b.dist)
+    console.log(`[estoque] ${spots.length} lugar(es) candidato(s) perto da base`)
+    let lastError = null
+    for (const spot of spots.slice(0, 12)) {
+      if (isCancelled()) return false
+      try {
+        await food.goTo(bot, new goals.GoalNear(spot.position.x, spot.position.y, spot.position.z, 2), 10000).catch(() => {})
+        if (isCancelled()) return false
+        await bot.lookAt(spot.position.offset(0.5, 0.5, 0.5), true)
+        const item = bot.inventory.items().find((entry) => entry.name === 'chest')
+        if (!item) return false
+        await bot.equip(item, 'hand')
+        const reference = bot.blockAt(spot.ground)
+        if (!reference) throw new Error('bloco de apoio do baú não carregado')
+        await bot.placeBlock(reference, new Vec3(0, 1, 0))
+      } catch (err) {
+        lastError = err
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      const placed = bot.blockAt(spot.position)
+      if (!placed || (placed.name !== 'chest' && placed.name !== 'barrel')) {
+        console.log(`[estoque] tentativa em ${spot.position.x},${spot.position.y},${spot.position.z}: ${placed?.name || 'nada'}`)
+      }
+      if (placed?.name === 'chest' || placed?.name === 'barrel') {
+        storage.setPosition(placed.position)
+        persistSoon()
+        console.log(`[estoque] baú colocado em ${placed.position.x}, ${placed.position.y}, ${placed.position.z}`)
+        bot.chat('Estoque central criado.')
+        return true
+      }
+    }
+    if (lastError) console.log(`[estoque] baú não colocado: ${lastError.message}`)
+    return false
+  }
+
+  async function autoStartProject() {
+    const type = process.env.MBOT_AUTO_PROJECT
+    if (!type || projectManager.isActive()) return false
+    if (!homeProvider() || !storage.configured()) return false
+    // Um projeto automático por tipo: reinícios não constroem outra casa/cerca
+    // por cima da primeira. Para repetir, apague o marcador em .data/.
+    const marker = path.join(__dirname, '.data', `auto-project-${type}.started`)
+    try {
+      if (require('fs').existsSync(marker)) return false
+    } catch { /* sem marcador: segue */ }
+    const created = await ensureProjectWorkers(type)
+    projectManager.start(type)
+    colony.setAuto(true)
+    try {
+      require('fs').mkdirSync(path.dirname(marker), { recursive: true })
+      require('fs').writeFileSync(marker, new Date().toISOString())
+    } catch (err) {
+      console.log(`[projeto] não gravei o marcador: ${err.message}`)
+    }
+    persistSoon()
+    console.log(`[projeto] ${type} iniciado automaticamente (auto=true)${created.length ? `; workers: ${created.join(', ')}` : ''}`)
+    bot.chat(`Projeto ${type} iniciado automaticamente.`)
+    return true
+  }
+
+  async function autoSetupTick() {
+    if (autoSetupBusy || !bot.entity || !bot.time?.isDay || sheltered) return
+    autoSetupBusy = true
+    try {
+      if (!homeProvider()) {
+        setBaseHere()
+        return
+      }
+      if (!storage.configured()) {
+        if (Date.now() < autoStorageRetryAt) return
+        let stored = false
+        await runTask('preparar estoque', async (isCancelled) => {
+          stored = await autoStorage(isCancelled)
+          if (!stored && !isCancelled()) {
+            console.log('[estoque] não achei lugar para o baú; tentando de novo em 60s')
+          }
+        })
+        if (!stored) autoStorageRetryAt = Date.now() + 60000
+        return
+      }
+      if (!projectManager.isActive() && process.env.MBOT_AUTO_PROJECT) {
+        if (Date.now() < autoProjectRetryAt) return
+        try {
+          await autoStartProject()
+        } catch (err) {
+          autoProjectRetryAt = Date.now() + 60000
+          throw err
+        }
+      }
+      // Lote único de ferro para o baú; depois o marcador evita repetir.
+      const ironBatch = Number(process.env.MBOT_AUTO_IRON_BATCH) || 0
+      if (ironBatch > 0 && !ironBatchBusy && Date.now() >= autoIronRetryAt && bot.time.timeOfDay <= 14000) {
+        const marker = path.join(__dirname, '.data', 'auto-iron-batch.done')
+        if (!require('fs').existsSync(marker)) {
+          ironBatchBusy = true
+          let ok = false
+          try {
+            await runTask('minerar ferro para o baú', async (isCancelled) => {
+              const result = await mineIronBatch(Math.min(128, ironBatch), isCancelled)
+              const text = Object.entries(result.deposited || {}).map(([name, quantity]) => `${quantity}x ${name}`).join(', ')
+              if (!isCancelled() && text) {
+                ok = true
+                console.log(`[ferro] lote guardado: ${text}`)
+                const where = result.chest ? ` em ${result.chest.x}, ${result.chest.y}, ${result.chest.z}` : ''
+                bot.chat(`Ferro guardado no baú${where}: ${text}`)
+              }
+            })
+          } finally {
+            ironBatchBusy = false
+          }
+          if (ok) {
+            try { require('fs').writeFileSync(marker, new Date().toISOString()) } catch {}
+          } else {
+            autoIronRetryAt = Date.now() + 120000
+          }
+        }
+      }
+    } catch (err) {
+      console.log(`[auto] ${err.message}`)
+    } finally {
+      autoSetupBusy = false
+    }
+  }
+
+  function scheduleAutoSetup() {
+    if (autoSetupTimer) return
+    if (process.env.MBOT_AUTO_BASE !== '1' && !process.env.MBOT_AUTO_PROJECT) return
+    autoSetupTimer = setInterval(() => { autoSetupTick() }, 5000)
+    autoSetupTimer.unref?.()
   }
 
   // Ponto de origem da planta: onde o dono está (ou o próprio bot, com "aqui").
@@ -2259,6 +2642,55 @@ async function main() {
       case '!comida':
         searchFood(true)
         break
+      case '!ferro': {
+        const amount = Math.max(1, Math.min(128, Number.parseInt(args[0], 10) || Number(process.env.MBOT_AUTO_IRON_BATCH) || 32))
+        runTask('minerar ferro para o baú', async (isCancelled) => {
+          try {
+            const result = await mineIronBatch(amount, isCancelled)
+            const text = Object.entries(result.deposited || {}).map(([name, quantity]) => `${quantity}x ${name}`).join(', ')
+            if (!isCancelled()) bot.chat(`Ferro: minerei ${result.mined}, fundi ${result.smelted}${text ? `, guardei ${text}` : ', nada guardado'}.`)
+          } catch (err) {
+            if (!isCancelled()) bot.chat(`Não consegui o lote de ferro: ${err.message}`)
+          }
+        })
+        break
+      }
+      case '!cama':
+        runTask('fazer cama', async (isCancelled) => {
+          try {
+            const bed = await bedLib.ensureBed(bot, isCancelled, {
+              allowHunt: true,
+              log: (msg) => console.log(msg),
+              say: (msg) => bot.chat(msg)
+            })
+            if (!bed || isCancelled()) return
+            const p = bed.position.floored()
+            bot.chat(`Cama pronta em X=${p.x}, Y=${p.y}, Z=${p.z}.`)
+            if (night.isNight(bot)) {
+              const how = await bedLib.useBed(bot, bed, isCancelled)
+              if (!isCancelled()) bot.chat(how === 'dormi' ? 'Bom dia! Dormi bem.' : 'Cama usada; ponto de renascimento registrado.')
+            }
+          } catch (err) {
+            if (!isCancelled()) bot.chat(`Não consegui fazer a cama: ${err.message}`)
+          }
+        })
+        break
+      case '!dormir': {
+        if (!night.isNight(bot)) {
+          bot.chat('Só durmo à noite. Use !cama para eu deixar uma pronta.')
+          break
+        }
+        const bed = night.findBed(bot)
+        if (!bed) {
+          bot.chat('Não vejo cama perto. Use !cama para eu fazer uma.')
+          break
+        }
+        runTask('dormir', async (isCancelled) => {
+          const how = await bedLib.useBed(bot, bed, isCancelled)
+          if (how === 'dormi' && !isCancelled()) bot.chat('Bom dia! Dormi bem.')
+        })
+        break
+      }
       case '!ver':
         if (!bot.entity) return
         for (const line of perception.describe(bot)) bot.chat(line)
@@ -2372,7 +2804,7 @@ async function main() {
         break
       case '!ajuda':
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
-        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !ver, !status, !pos, !cancelar, !parar')
+        bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !cama, !dormir, !ferro [qtd], !ver, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')
         bot.chat('Auditoria: !verify, !events [n], !freeze [nome], !status server')
         break
