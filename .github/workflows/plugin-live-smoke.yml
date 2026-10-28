@@ -1,0 +1,47 @@
+name: Mineflayer individual real-world plugin smoke
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  plugin-live-smoke:
+    if: github.head_ref == 'test/mineflayer-plugin-isolation-20261028'
+    name: Minecraft 1.20.1 / ${{ matrix.plugin }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: [pvp, custompvp, tool, collectblock, hawkeye]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Download and verify official server 1.20.1
+        run: python3 scripts/download-vanilla-server.py --version 1.20.1 --output .cache/vanilla-1.20.1.jar
+      - name: Exercise exactly one plugin against disposable server
+        env:
+          MBOT_TEST_SERVER_JAR: .cache/vanilla-1.20.1.jar
+          MBOT_TEST_EULA_ACCEPTED: '1'
+          MBOT_PLUGIN_EVIDENCE_DIR: plugin-live-evidence
+        run: node scripts/plugin-live-smoke.js ${{ matrix.plugin }}
+      - name: Upload text evidence only (exclude world and jar)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-live-${{ matrix.plugin }}-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            plugin-live-evidence/*.json
+            plugin-live-evidence/*-server.log

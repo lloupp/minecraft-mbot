@@ -1,0 +1,75 @@
+name: Mineflayer chosen plugins - real Minecraft 1.20.1
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  chosen:
+    if: github.head_ref == 'test/mineflayer-plugin-isolation-20261028'
+    name: Requested / ${{ matrix.plugin }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - plugin: statemachine
+            package: mineflayer-statemachine@1.7.0
+          - plugin: autoeat
+            package: mineflayer-auto-eat@5.0.3
+          - plugin: movement
+            package: mineflayer-movement@0.4.2
+          - plugin: panorama
+            package: mineflayer-panorama@0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Install candidate only on CI, without lockfile changes
+        env:
+          MBOT_PLUGIN_EVIDENCE_DIR: chosen-evidence
+        run: |
+          if [ "${{ matrix.plugin }}" = "panorama" ]; then
+            # A known gl/node-gyp failure is recorded as XFAIL, not as a PASS.
+            set +e
+            timeout 240s npm install --no-save --package-lock=false ${{ matrix.package }} > panorama-install.log 2>&1
+            install_status=$?
+            set -e
+            if [ "$install_status" -ne 0 ]; then
+              tail -n 35 panorama-install.log
+              node scripts/plugin-panorama-install-report.js "$install_status" panorama-install.log
+              echo "PANORAMA_BLOCKED=1" >> "$GITHUB_ENV"
+            fi
+          else
+            npm install --no-save --package-lock=false --ignore-scripts ${{ matrix.package }}
+          fi
+      - name: Download official 1.20.1 server with pinned SHA-1
+        run: python3 scripts/download-vanilla-server.py --version 1.20.1 --output .cache/vanilla-1.20.1.jar
+      - name: Test physical behavior against an isolated disposable world
+        if: env.PANORAMA_BLOCKED != '1'
+        env:
+          MBOT_TEST_SERVER_JAR: .cache/vanilla-1.20.1.jar
+          MBOT_TEST_EULA_ACCEPTED: '1'
+          MBOT_PLUGIN_EVIDENCE_DIR: chosen-evidence
+        run: node scripts/plugin-requested-smoke.js ${{ matrix.plugin }}
+      - name: Preserve text evidence, not worlds or server JAR
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chosen-${{ matrix.plugin }}-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            chosen-evidence/*.json
+            chosen-evidence/*-server.log
+            panorama-install.log
