@@ -132,3 +132,19 @@ test('degrau inalcançável: desiste do caminho após o prazo e não fica preso'
   assert.match(result.reason, /chegar ao degrau/)
   assert.equal(stopped, 4)
 })
+
+test('cercado de líquido: o pathfinder acha a descida e a escada continua', async () => {
+  // Lava sob todos os degraus e nas laterais: sem degrau nem passo lateral possível.
+  const blocks = {}
+  for (const [x, z] of [[11, -6], [9, -6], [10, -5], [10, -7]]) { blocks[`${x},63,${z}`] = 'lava'; blocks[`${x},62,${z}`] = 'lava' }
+  const bot = fakeBot({ at: { x: 10.5, y: 64, z: -5.5 }, blocks })
+  let pathDown = 0
+  bot.pathfinder.goto = async (goal) => {
+    if (goal.constructor.name === 'GoalY') { pathDown++; bot.entity.position = { x: 30.5, y: goal.y, z: 30.5 }; return }
+    bot.entity.position = { x: goal.x + 0.5, y: goal.y, z: goal.z + 0.5 }
+  }
+  const result = await deepmine.digStair(bot, { steps: 2, stepTimeoutMs: 5 })
+  assert.equal(pathDown, 1)
+  assert.equal(result.ok, true)
+  assert.equal(result.steps, 2)
+})
