@@ -320,3 +320,26 @@ test('picareta de ferro: sem ferro na mochila nem sai atrás de madeira', async 
   assert.equal(await worker.makeIronPickaxe(() => false), false)
   assert.deepEqual(calls, [])
 })
+
+test('sem árvore perto da base: vai até o tronco mais próximo que dá para ver', async () => {
+  const { worker, calls, items } = woodWorker({ nearby: false, atBase: false })
+  const { Vec3 } = require('vec3')
+  worker.bot.registry.blocksArray = [{ id: 5, name: 'acacia_log' }]
+  worker.bot.findBlocks = () => [new Vec3(60, 70, 10)]
+  worker.goTo = async (goal) => { calls.push(`ir:${goal.x},${goal.z}`) }
+  const gather = worker.gatherBlocks
+  worker.gatherBlocks = async (resource, n) => {
+    const r = await gather(resource, n)
+    if (calls.some((c) => c.startsWith('ir:'))) items.push({ name: 'acacia_log', count: n })
+    return r
+  }
+  assert.equal(await worker.fetchWood(() => false), true)
+  assert.deepEqual(calls, ['gather:madeira:aqui', 'subir', 'gather:madeira:base', 'ir:60,10', 'gather:madeira:base'])
+})
+
+test('nenhuma árvore à vista nem lembrada: desiste', async () => {
+  const { worker } = woodWorker({ nearby: false, atBase: false })
+  worker.bot.registry.blocksArray = [{ id: 5, name: 'acacia_log' }]
+  worker.bot.findBlocks = () => []
+  assert.equal(await worker.fetchWood(() => false), false)
+})

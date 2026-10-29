@@ -26,6 +26,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
+const FAR_WOOD_RANGE = 128 // busca de árvore longe da base (chunks carregados)
 const FLEE_MS = 4000      // tempo fugindo
 const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
 // Blocos naturais que podem ser cavados para abrir a linha do curral.
@@ -2679,7 +2680,29 @@ class WorkerController {
     await this.returnHome(isCancelled, { verify: true }).catch((err) => this.logger.log?.(`[minérios] ${this.name} subir: ${err.message}`))
     if (isCancelled()) return false
     await this.gatherBlocks('madeira', logs, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} madeira na base: ${err.message}`))
+    if (this.hasWood() || isCancelled()) return this.hasWood()
+    // Nenhuma árvore perto da base: vai até a mais próxima que dá para ver (ou uma floresta lembrada).
+    const target = this.farWood()
+    if (!target) return false
+    this.logger.log?.(`[minérios] ${this.name} indo cortar árvore em ${Math.floor(target.x)},${Math.floor(target.y)},${Math.floor(target.z)}`)
+    const goal = new goals.GoalNear(Math.floor(target.x), Math.floor(target.y), Math.floor(target.z), 3)
+    await this.goTo(goal, travelTimeoutMs(this.bot.entity?.position, target)).catch((err) => this.logger.log?.(`[minérios] ${this.name} até a árvore: ${err.message}`))
+    if (isCancelled()) return false
+    await this.gatherBlocks('madeira', logs, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} madeira longe: ${err.message}`))
     return this.hasWood()
+  }
+
+  // Tronco mais próximo num raio grande (chunks carregados), ou região de madeira da memória do mundo.
+  farWood(maxDistance = FAR_WOOD_RANGE) {
+    const bot = this.bot
+    const ids = (bot.registry?.blocksArray || []).filter((b) => /_(log|stem)$/.test(b.name)).map((b) => b.id)
+    const seen = ids.length && typeof bot.findBlocks === 'function'
+      ? (bot.findBlocks({ matching: ids, maxDistance, count: 1 }) || [])[0]
+      : null
+    if (seen) return seen
+    const from = bot.entity?.position
+    const known = from && this.worldMemory?.suggest?.('wood', worldObserver.dimensionOf(bot), from, { limit: 1 })?.[0]?.place
+    return known ? { x: known.x, y: known.y, z: known.z } : null
   }
 
   // Ferro bruto (mochila ou baú) -> fornalha -> lingotes -> picareta de ferro.
