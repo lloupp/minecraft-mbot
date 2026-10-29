@@ -947,7 +947,8 @@ async function main() {
     try {
       const worn = await equipment.equipBestArmor(bot)
       if (worn.length) console.log(`Vesti ${worn.join(', ')}`)
-      const upgrades = equipment.pendingUpgrades(bot)
+      // Com missão de minérios pendente, só picareta: espada gastaria os diamantes da missão.
+      const upgrades = equipment.pendingUpgrades(bot, resumeTaskRecord?.kind === 'minerios' ? ['pickaxe'] : undefined)
       if (upgrades.length && mode === 'seguir') {
         runTask('melhorar equipamento', async (isCancelled) => {
           for (const item of upgrades) {

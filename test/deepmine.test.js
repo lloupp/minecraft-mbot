@@ -159,3 +159,22 @@ test('escada usa a picareta mais barata na pedra e guarda a de ferro para o min�
   assert.equal(deepmine.cheapestPickaxe(bot, diamond).name, 'iron_pickaxe')
   assert.equal(deepmine.cheapestPickaxe(bot, dirt), null)
 })
+
+test('mochila quase cheia: joga fora pedra comum e guarda um pacote de pedregulho', async () => {
+  const items = [
+    { name: 'granite', count: 35 }, { name: 'cobblestone', count: 64 }, { name: 'cobblestone', count: 40 },
+    { name: 'diamond', count: 11 }, { name: 'iron_pickaxe', count: 1 }, { name: 'calcite', count: 6 }
+  ]
+  const tossed = []
+  const bot = {
+    inventory: { items: () => items.filter((i) => !tossed.includes(i)), emptySlotCount: () => 1 },
+    tossStack: async (item) => { tossed.push(item) }
+  }
+  assert.equal(await deepmine.dropJunk(bot), 3)
+  assert.deepEqual(tossed.map((i) => `${i.name}:${i.count}`), ['granite:35', 'cobblestone:40', 'calcite:6'])
+})
+
+test('com espaço na mochila não joga nada fora', async () => {
+  const bot = { inventory: { items: () => [{ name: 'granite', count: 64 }], emptySlotCount: () => 20 }, tossStack: async () => { throw new Error('não deveria') } }
+  assert.equal(await deepmine.dropJunk(bot), 0)
+})
