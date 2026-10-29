@@ -13,8 +13,37 @@ const RESOURCE_ALIASES = {
   lapis: ['lapis_ore', 'deepslate_lapis_ore'],
   esmeralda: ['emerald_ore', 'deepslate_emerald_ore'],
   emerald: ['emerald_ore', 'deepslate_emerald_ore'],
+  quartzo: ['nether_quartz_ore'],
+  quartz: ['nether_quartz_ore'],
+  quartzo_do_nether: ['nether_quartz_ore'],
+  ouro_do_nether: ['nether_gold_ore'],
+  nether_gold: ['nether_gold_ore'],
+  detritos_ancestrais: ['ancient_debris'],
+  detrito_ancestral: ['ancient_debris'],
+  ancient_debris: ['ancient_debris'],
+  netherita: ['ancient_debris'],
+  netherite: ['ancient_debris'],
+  ametista: ['amethyst_cluster'],
+  amethyst: ['amethyst_cluster'],
+  obsidiana: ['obsidian'],
   pedra: ['stone', 'deepslate'],
   stone: ['stone', 'deepslate']
+}
+
+// Mineral catalog adapted from PR #96; catalog is discovery, not permission
+// to mine everything or travel to another dimension.
+const MINERAL_FAMILIES = ['carvao', 'ferro', 'cobre', 'ouro', 'redstone', 'lapis', 'diamante', 'esmeralda', 'ametista', 'quartzo', 'ouro_do_nether', 'detritos_ancestrais']
+const NETHER_FAMILIES = new Set(['quartzo', 'ouro_do_nether', 'detritos_ancestrais'])
+function mineralResourcesFor(bot) {
+  const dimension = String(bot?.game?.dimension?.name || bot?.game?.dimension || 'overworld').toLowerCase()
+  if (dimension.includes('end')) return []
+  const nether = dimension.includes('nether')
+  const families = MINERAL_FAMILIES.filter(name => NETHER_FAMILIES.has(name) === nether && resolveBlockNames(bot, name).length)
+  const covered = new Set(MINERAL_FAMILIES.flatMap(name => RESOURCE_ALIASES[name] || []))
+  const extras = Object.keys(bot?.registry?.blocksByName || {}).filter(name =>
+    !covered.has(name) && (name.endsWith('_ore') || name.startsWith('ore_')) &&
+    (nether ? /nether|netherrack/.test(name) : !/nether|netherrack/.test(name)))
+  return [...families, ...extras].sort()
 }
 
 function normalizeWord(value) {
@@ -52,4 +81,4 @@ function resolveBlockNames(bot, resource, role = null) {
   return []
 }
 
-module.exports = { RESOURCE_ALIASES, normalizeWord, resolveBlockNames }
+module.exports = { RESOURCE_ALIASES, MINERAL_FAMILIES, normalizeWord, resolveBlockNames, mineralResourcesFor }

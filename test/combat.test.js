@@ -38,9 +38,21 @@ test('com espada aceita lutar com menos vida', () => {
   assert.equal(combat.decide(sword, sword.entities[0]), 'lutar')
 })
 
-test('avança sobre esqueletos (fugir de flechas não adianta)', () => {
-  const bot = fakeBot({ health: 7, mobs: [{ name: 'skeleton', dist: 8 }] })
+test('avança sobre esqueletos somente com arma e vida suficiente', () => {
+  const bot = fakeBot({ health: 7, items: ['stone_sword'], mobs: [{ name: 'skeleton', dist: 8 }] })
   assert.equal(combat.decide(bot, bot.entities[0]), 'lutar')
+})
+
+test('desarmado foge de atiradores mesmo com vida cheia', () => {
+  for (const name of ['skeleton', 'stray', 'pillager']) {
+    const bot = fakeBot({ health: 20, mobs: [{ name, dist: 8 }] })
+    assert.equal(combat.decide(bot, bot.entities[0]), 'fugir')
+  }
+})
+
+test('armado ainda recua de atiradores com vida baixa', () => {
+  const bot = fakeBot({ health: 6, items: ['iron_sword'], mobs: [{ name: 'skeleton', dist: 8 }] })
+  assert.equal(combat.decide(bot, bot.entities[0]), 'fugir')
 })
 
 test('foge quando cercado', () => {
