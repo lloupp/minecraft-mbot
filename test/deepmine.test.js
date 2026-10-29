@@ -148,3 +148,14 @@ test('cercado de líquido: o pathfinder acha a descida e a escada continua', asy
   assert.equal(result.ok, true)
   assert.equal(result.steps, 2)
 })
+
+test('escada usa a picareta mais barata na pedra e guarda a de ferro para o minério', () => {
+  const items = [{ name: 'iron_pickaxe', type: 794 }, { name: 'stone_pickaxe', type: 789 }]
+  const bot = { inventory: { items: () => items } }
+  const stone = { name: 'stone', material: 'mineable/pickaxe', canHarvest: () => true }
+  const diamond = { name: 'diamond_ore', material: 'mineable/pickaxe', canHarvest: (t) => t === 794 }
+  const dirt = { name: 'dirt', material: 'mineable/shovel', canHarvest: () => true }
+  assert.equal(deepmine.cheapestPickaxe(bot, stone).name, 'stone_pickaxe')
+  assert.equal(deepmine.cheapestPickaxe(bot, diamond).name, 'iron_pickaxe')
+  assert.equal(deepmine.cheapestPickaxe(bot, dirt), null)
+})

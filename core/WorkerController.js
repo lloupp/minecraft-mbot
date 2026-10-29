@@ -2651,6 +2651,11 @@ class WorkerController {
       if (isCancelled()) return cancelled()
       if (!made) return { ok: false, code: 'NO_TOOL', retry: true, reason: 'sem picareta de ferro' }
     }
+    // Picareta de pedra de reserva para a escada (poupa a de ferro); só se já tiver material.
+    if (task.tool === 'iron' && !has('stone_pickaxe') && count('cobblestone') + count('cobbled_deepslate') >= 3 && this.hasWood()) {
+      await craft.craftItem(bot, 'stone_pickaxe', 1, isCancelled).catch(() => {})
+      if (isCancelled()) return cancelled()
+    }
 
     const before = count(task.item)
     const need = Math.max(1, Number(task.count) || 1)
