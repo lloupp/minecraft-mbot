@@ -2689,6 +2689,11 @@ class WorkerController {
     await this.goTo(goal, travelTimeoutMs(this.bot.entity?.position, target)).catch((err) => this.logger.log?.(`[minérios] ${this.name} até a árvore: ${err.message}`))
     if (isCancelled()) return false
     await this.gatherBlocks('madeira', logs, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} madeira longe: ${err.message}`))
+    // Árvore que não rendeu (caminho recusado, área protegida): não volta nela.
+    if (!this.hasWood() && !isCancelled()) {
+      if (!this._unreachableWood) this._unreachableWood = new Set()
+      this._unreachableWood.add(`${Math.floor(target.x)},${Math.floor(target.y)},${Math.floor(target.z)}`)
+    }
     return this.hasWood()
   }
 
@@ -2696,8 +2701,9 @@ class WorkerController {
   farWood(maxDistance = FAR_WOOD_RANGE) {
     const bot = this.bot
     const ids = (bot.registry?.blocksArray || []).filter((b) => /_(log|stem)$/.test(b.name)).map((b) => b.id)
+    const bad = this._unreachableWood || new Set()
     const seen = ids.length && typeof bot.findBlocks === 'function'
-      ? (bot.findBlocks({ matching: ids, maxDistance, count: 1 }) || [])[0]
+      ? (bot.findBlocks({ matching: ids, maxDistance, count: 16 }) || []).find((p) => !bad.has(`${p.x},${p.y},${p.z}`))
       : null
     if (seen) return seen
     const from = bot.entity?.position

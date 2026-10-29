@@ -343,3 +343,17 @@ test('nenhuma árvore à vista nem lembrada: desiste', async () => {
   worker.bot.findBlocks = () => []
   assert.equal(await worker.fetchWood(() => false), false)
 })
+
+test('árvore que não deu para alcançar fica de lado na próxima viagem', async () => {
+  const { worker } = woodWorker({ nearby: false, atBase: false })
+  const { Vec3 } = require('vec3')
+  const far = new Vec3(60, 70, 10)
+  const other = new Vec3(-40, 70, 5)
+  worker.bot.registry.blocksArray = [{ id: 5, name: 'acacia_log' }]
+  worker.bot.findBlocks = () => [far, other]
+  const visited = []
+  worker.goTo = async (goal) => { visited.push(`${goal.x},${goal.z}`) }
+  assert.equal(await worker.fetchWood(() => false), false)
+  assert.equal(await worker.fetchWood(() => false), false)
+  assert.deepEqual(visited, ['60,10', '-40,5'])
+})
