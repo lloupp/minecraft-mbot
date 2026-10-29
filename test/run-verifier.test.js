@@ -148,3 +148,24 @@ test('proof is saved to file', () => {
   verifier.verify()
   assert.ok(fs.existsSync(proofPath))
 })
+
+test('mission_consistency falha quando nó iniciado não tem terminal', () => {
+  try { fs.unlinkSync(testLogPath) } catch {}
+  const eventLog = new EventLog(testLogPath)
+  eventLog.log('mission_node_started', { missionId: 'm1', nodeId: 'n1' })
+  const verifier = new RunVerifier({ eventLog, storage: null })
+  verifier._findSourceManifest = () => null
+  const proof = verifier.verify()
+  assert.equal(proof.checks.find((check) => check.name === 'mission_consistency').ok, false)
+})
+
+test('mission_consistency passa quando o nó chegou ao terminal', () => {
+  try { fs.unlinkSync(testLogPath) } catch {}
+  const eventLog = new EventLog(testLogPath)
+  eventLog.log('mission_node_started', { missionId: 'm1', nodeId: 'n1' })
+  eventLog.log('mission_node_completed', { missionId: 'm1', nodeId: 'n1' })
+  const verifier = new RunVerifier({ eventLog, storage: null })
+  verifier._findSourceManifest = () => null
+  const proof = verifier.verify()
+  assert.equal(proof.checks.find((check) => check.name === 'mission_consistency').ok, true)
+})
