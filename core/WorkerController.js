@@ -2638,10 +2638,8 @@ class WorkerController {
     if (isCancelled()) return cancelled()
     if (!STONE_UP.some(has)) {
       // Picareta de pedra: 3 pedregulhos + 2 gravetos; sem madeira, busca troncos.
-      if (!bot.inventory.items().some((i) => /_(log|planks)$/.test(i.name)) && count('stick') < 2) {
-        await this.gatherBlocks('madeira', 2, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} madeira: ${err.message}`))
-        if (isCancelled()) return cancelled()
-      }
+      await this.fetchWood(isCancelled)
+      if (isCancelled()) return cancelled()
       await craft.craftItem(bot, 'stone_pickaxe', 1, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} picareta de pedra: ${err.message}`))
       if (isCancelled()) return cancelled()
     }
@@ -2664,6 +2662,26 @@ class WorkerController {
     return { ok: gained >= need, item: task.item, gained, steps: res?.steps ?? 0, reason: res?.reason || null }
   }
 
+  // Madeira para gravetos: no subsolo não há árvore, então tenta por perto e, se
+  // não achar, sobe até a base (superfície) e corta lá. Junta um pouco a mais
+  // para as próximas picaretas (a de ferro quebra depois de ~250 usos).
+  hasWood() {
+    return this.bot.inventory.items().some((i) => /_(log|planks|stem)$/.test(i.name)) ||
+      this.bot.inventory.items().filter((i) => i.name === 'stick').reduce((sum, i) => sum + i.count, 0) >= 2
+  }
+
+  async fetchWood(isCancelled, logs = 4) {
+    if (this.hasWood()) return true
+    await this.gatherBlocks('madeira', logs, isCancelled).catch(() => null)
+    if (this.hasWood() || isCancelled()) return this.hasWood()
+    if (!this.homeProvider?.()) return false
+    this.logger.log?.(`[minérios] ${this.name} sem madeira aqui; subindo até a base para cortar árvore`)
+    await this.returnHome(isCancelled, { verify: true }).catch((err) => this.logger.log?.(`[minérios] ${this.name} subir: ${err.message}`))
+    if (isCancelled()) return false
+    await this.gatherBlocks('madeira', logs, isCancelled).catch((err) => this.logger.log?.(`[minérios] ${this.name} madeira na base: ${err.message}`))
+    return this.hasWood()
+  }
+
   // Ferro bruto (mochila ou baú) -> fornalha -> lingotes -> picareta de ferro.
   async makeIronPickaxe(isCancelled) {
     const bot = this.bot
@@ -2673,6 +2691,13 @@ class WorkerController {
         await this.storage.withdraw(bot, 'iron_ingot', 3).catch(() => 0)
         if (count('iron_ingot') < 3) await this.storage.withdraw(bot, 'raw_iron', 3 - count('iron_ingot')).catch(() => 0)
       }
+      if (count('iron_ingot') + count('raw_iron') < 3) return false
+      // Madeira primeiro: vira gravetos e, sem carvão, também serve de combustível.
+      if (!(await this.fetchWood(isCancelled))) {
+        this.logger.log?.(`[minérios] ${this.name} picareta de ferro: sem madeira para gravetos`)
+        return false
+      }
+      if (isCancelled()) return false
       if (count('iron_ingot') < 3) {
         if (!bot.inventory.items().some((i) => /_(log|planks)$|^coal$|^charcoal$/.test(i.name)) && this.storage?.configured()) {
           await this.storage.withdrawFirst(bot, ['coal', 'charcoal', 'oak_planks', 'oak_log'], 2).catch(() => 0)
@@ -2680,9 +2705,6 @@ class WorkerController {
         await craft.smeltItem(bot, 'raw_iron', 3 - count('iron_ingot'), isCancelled)
       }
       if (isCancelled()) return false
-      if (count('stick') < 2 && !bot.inventory.items().some((i) => /_(log|planks)$/.test(i.name))) {
-        await this.gatherBlocks('madeira', 1, isCancelled).catch(() => {})
-      }
       await craft.craftItem(bot, 'iron_pickaxe', 1, isCancelled)
     } catch (err) {
       this.logger.log?.(`[minérios] ${this.name} picareta de ferro: ${err.message}`)

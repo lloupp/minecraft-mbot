@@ -3014,6 +3014,14 @@ async function main() {
             mine: async (family, need, cancel) => {
               const hasIronPick = () => bot.inventory.items().some((item) => ['iron_pickaxe', 'diamond_pickaxe', 'netherite_pickaxe'].includes(item.name))
               if (family.tool === 'iron' && !hasIronPick()) {
+                // Sem madeira (subsolo): sobe até a base; o craft corta as árvores por perto.
+                const hasWood = () => bot.inventory.items().some((i) => /_(log|planks|stem)$/.test(i.name)) || count('stick') >= 2
+                const home = homeProvider()
+                if (!hasWood() && home) {
+                  console.log('[minérios] sem madeira aqui; subindo até a base')
+                  await food.goTo(bot, new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), 120000).catch((err) => console.log(`[minérios] subir: ${err.message}`))
+                  if (cancel()) return { ok: false, retry: true, reason: 'interrompido' }
+                }
                 const ingots = () => oreMission.countItem(bot, 'iron_ingot')
                 if (ingots() < 3 && count('raw_iron') > 0) {
                   await craft.smeltItem(bot, 'raw_iron', Math.min(count('raw_iron'), 3 - ingots()), cancel).catch((err) => console.log(`[minérios] fundir ferro: ${err.message}`))
@@ -3060,9 +3068,8 @@ async function main() {
             const items = member.bot?.inventory?.items?.() || []
             const n = (name) => items.filter((i) => i.name === name).reduce((sum, i) => sum + i.count, 0)
             if (['iron_pickaxe', 'diamond_pickaxe', 'netherite_pickaxe'].some((name) => n(name) > 0)) return true
-            // Para fazer uma: 3 de ferro e 2 gravetos (ou madeira para eles). Sem madeira no subsolo não dá.
-            const sticks = n('stick') >= 2 || items.some((i) => /_(log|planks|stem)$/.test(i.name))
-            return n('raw_iron') + n('iron_ingot') >= 3 && sticks
+            // Para fazer uma: 3 de ferro. A madeira dos gravetos o bot busca na superfície se faltar.
+            return n('raw_iron') + n('iron_ingot') >= 3
           },
           log: (text) => console.log(`[minérios] ${text}`),
           onProgress: (family, have) => bot.chat(`${family.label}: ${Math.min(have, target)}/${target}`)

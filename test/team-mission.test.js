@@ -273,3 +273,50 @@ test('ferro, cobre e ouro contam o bruto e o lingote', () => {
   assert.deepEqual(itemsFor('coal'), ['coal'])
   assert.deepEqual(itemsFor('qualquer'), ['qualquer'])
 })
+
+// ---------- madeira para as picaretas ----------
+function woodWorker({ nearby = false, atBase = true, home = { x: 0, y: 64, z: 0 } } = {}) {
+  const items = []
+  const worker = workerWith(items)
+  const calls = []
+  worker.homeProvider = () => home
+  let surfaced = false
+  worker.gatherBlocks = async (resource, n) => {
+    calls.push(`gather:${resource}:${surfaced ? 'base' : 'aqui'}`)
+    if (nearby || (surfaced && atBase)) items.push({ name: 'acacia_log', count: n })
+    return { ok: true }
+  }
+  worker.returnHome = async () => { calls.push('subir'); surfaced = true; return { ok: true } }
+  return { worker, calls, items }
+}
+
+test('madeira por perto: corta ali mesmo, sem subir', async () => {
+  const { worker, calls } = woodWorker({ nearby: true })
+  assert.equal(await worker.fetchWood(() => false), true)
+  assert.deepEqual(calls, ['gather:madeira:aqui'])
+})
+
+test('sem madeira no subsolo: sobe até a base e corta lá', async () => {
+  const { worker, calls } = woodWorker({ nearby: false, atBase: true })
+  assert.equal(await worker.fetchWood(() => false), true)
+  assert.deepEqual(calls, ['gather:madeira:aqui', 'subir', 'gather:madeira:base'])
+})
+
+test('já tem gravetos: não sai para buscar madeira', async () => {
+  const { worker, calls, items } = woodWorker()
+  items.push({ name: 'stick', count: 2 })
+  assert.equal(await worker.fetchWood(() => false), true)
+  assert.deepEqual(calls, [])
+})
+
+test('sem base definida e sem árvore perto: desiste sem subir', async () => {
+  const { worker, calls } = woodWorker({ nearby: false, home: null })
+  assert.equal(await worker.fetchWood(() => false), false)
+  assert.deepEqual(calls, ['gather:madeira:aqui'])
+})
+
+test('picareta de ferro: sem ferro na mochila nem sai atrás de madeira', async () => {
+  const { worker, calls } = woodWorker()
+  assert.equal(await worker.makeIronPickaxe(() => false), false)
+  assert.deepEqual(calls, [])
+})
