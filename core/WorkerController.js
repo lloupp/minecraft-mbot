@@ -27,6 +27,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const HUNGRY = 14         // abaixo disso come o que tiver
 const FLEE_DISTANCE = 16  // distância que tenta manter da ameaça
 const FAR_WOOD_RANGE = 128 // busca de árvore longe da base (chunks carregados)
+const UNREACHABLE_WOOD_RADIUS = 8 // em volta de uma árvore que falhou
 const FLEE_MS = 4000      // tempo fugindo
 const CREEPER_RANGE = 5   // creeper mais perto que isso: foge
 // Blocos naturais que podem ser cavados para abrir a linha do curral.
@@ -2701,9 +2702,11 @@ class WorkerController {
   farWood(maxDistance = FAR_WOOD_RANGE) {
     const bot = this.bot
     const ids = (bot.registry?.blocksArray || []).filter((b) => /_(log|stem)$/.test(b.name)).map((b) => b.id)
-    const bad = this._unreachableWood || new Set()
+    // A árvore inteira (e a área, se for protegida) fica de lado, não só o tronco que falhou.
+    const bad = [...(this._unreachableWood || [])].map((k) => k.split(',').map(Number))
+    const isBad = (p) => bad.some(([x, y, z]) => Math.hypot(p.x - x, p.y - y, p.z - z) <= UNREACHABLE_WOOD_RADIUS)
     const seen = ids.length && typeof bot.findBlocks === 'function'
-      ? (bot.findBlocks({ matching: ids, maxDistance, count: 16 }) || []).find((p) => !bad.has(`${p.x},${p.y},${p.z}`))
+      ? (bot.findBlocks({ matching: ids, maxDistance, count: 64 }) || []).find((p) => !isBad(p))
       : null
     if (seen) return seen
     const from = bot.entity?.position

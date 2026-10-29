@@ -357,3 +357,15 @@ test('árvore que não deu para alcançar fica de lado na próxima viagem', asyn
   assert.equal(await worker.fetchWood(() => false), false)
   assert.deepEqual(visited, ['60,10', '-40,5'])
 })
+
+test('troncos da mesma árvore que falhou também ficam de lado', async () => {
+  const { worker } = woodWorker({ nearby: false, atBase: false })
+  const { Vec3 } = require('vec3')
+  worker.bot.registry.blocksArray = [{ id: 5, name: 'acacia_log' }]
+  worker.bot.findBlocks = () => [new Vec3(-71, 73, -12), new Vec3(-69, 75, -9), new Vec3(-68, 76, -8), new Vec3(-20, 70, 30)]
+  const visited = []
+  worker.goTo = async (goal) => { visited.push(`${goal.x},${goal.z}`) }
+  await worker.fetchWood(() => false)
+  await worker.fetchWood(() => false)
+  assert.deepEqual(visited, ['-71,-12', '-20,30'])
+})
