@@ -24,6 +24,7 @@ const food = require('./lib/food')
 const { WorldMemory } = require('./lib/world-memory')
 const perception = require('./lib/perception')
 const situation = require('./lib/situation')
+const climb = require('./lib/climb')
 const { detectProfile, configureClient, describeProfile } = require('./lib/serverProfile')
 const { announceLan, motdText } = require('./lib/lan')
 const { CommandRouter } = require('./core/CommandRouter')
@@ -215,6 +216,7 @@ async function main() {
   }
   console.log(`[memória] ${memory.items.length} item(ns) carregado(s)`)
   if (savedState.storage) storage.setPosition(savedState.storage)
+  if (savedState.storage) storage.setExtras(savedState.storageExtras)
   const waypointManager = new WaypointManager(savedState.waypoints)
   // Migra o campo legado uma vez; depois disso o WaypointManager é a fonte canônica.
   waypointManager.restoreLegacyBase(savedState.home, savedState.homeDimension)
@@ -347,6 +349,33 @@ async function main() {
       ? controller.taskVersion !== ownerVersion : taskId !== ownerVersion)
   }
 
+  // Baús cheios: quem está guardando faz um baú (pega tábua/tronco do estoque,
+  // senão corta madeira) e o coloca ao lado do último baú.
+  storage.expandContainer = async (client, anchor) => {
+    const controller = client.colonyController
+    const ownerVersion = controller ? controller.taskVersion : taskId
+    const isCancelled = () => controller ? controller.taskVersion !== ownerVersion : taskId !== ownerVersion
+    const hasChest = () => client.inventory.items().some((item) => item.name === 'chest')
+    const wood = () => client.inventory.items()
+      .filter((item) => /_(planks|log|stem)$/.test(item.name))
+      .reduce((sum, item) => sum + item.count * (/_planks$/.test(item.name) ? 1 : 4), 0)
+    if (!hasChest() && wood() < 8) {
+      await storage.withdrawFirst(client, ['oak_planks', 'spruce_planks', 'birch_planks', 'jungle_planks', 'acacia_planks', 'dark_oak_planks', 'mangrove_planks', 'cherry_planks'], 8).catch(() => null) ||
+        await storage.withdrawFirst(client, ['oak_log', 'spruce_log', 'birch_log', 'jungle_log', 'acacia_log', 'dark_oak_log', 'mangrove_log', 'cherry_log'], 3).catch(() => null)
+    }
+    if (!hasChest() && wood() < 8) {
+      console.log(`[estoque] ${client.username} vai cortar madeira para fazer outro baú`)
+      if (controller?.fetchWood) await controller.fetchWood(isCancelled, 3)
+      else await gather.mineBlocks(client, (name) => /_(log|stem)$/.test(name), 3, isCancelled).catch(() => 0)
+    }
+    if (isCancelled()) throw new Error('criação do baú cancelada')
+    // Mesa: o craft acha ou coloca uma (precisa de 2 baús de madeira = 8 tábuas + 4 da mesa se não houver).
+    if (!hasChest()) await craft.craftItem(client, 'chest', 1, isCancelled)
+    if (!hasChest()) throw new Error('não consegui fabricar o baú')
+    await storage.goNear(client, anchor)
+    return createReplacementChest(client, anchor, isCancelled)
+  }
+
   // ========== AUDITABILIDADE E RESILIÊNCIA ==========
   const eventLog = getEventLog()
   const statusPort = Number(process.env.STATUS_PORT || 3080)
@@ -422,6 +451,7 @@ async function main() {
       home: null,
       homeDimension: null,
       storage: storage.getPosition(),
+      storageExtras: storage.getExtras(),
       auto: colony.auto,
       companionAuto: autonomous,
       waypoints: waypointManager.exportState(),
@@ -761,12 +791,19 @@ async function main() {
     const z = Math.floor(Number(position.z))
     if (![x, y, z].every(Number.isFinite)) throw new Error('posição inválida')
 
+    // Fundo no subsolo o pathfinder desiste de rotas longas: sobe primeiro.
+    if (climb.needsClimb(bot, y)) {
+      await climb.climbOut(bot, y, { isCancelled, log: console.log })
+      if (isCancelled()) return false
+    }
+    const here = bot.entity?.position
+    const distance = here ? Math.hypot(here.x - x, here.y - y, here.z - z) : 0
     let timer
     const timeout = new Promise((_, reject) => {
       timer = setTimeout(() => {
         bot.pathfinder.setGoal(null)
         reject(new Error('caminho demorou demais'))
-      }, 60000)
+      }, Math.max(60000, Math.round(distance * 700)))
     })
 
     try {

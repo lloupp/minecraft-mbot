@@ -15,6 +15,7 @@ const night = require('../lib/night')
 const bedLib = require('../lib/bed')
 const craft = require('../lib/craft')
 const deepmine = require('../lib/deepmine')
+const climb = require('../lib/climb')
 const fear = require('../lib/fear-mode')
 const { realStateSnapshot } = require('../lib/real-state')
 const worldObserver = require('../lib/world-observer')
@@ -2508,6 +2509,22 @@ class WorkerController {
     }
   }
 
+  // Fundo no subsolo o pathfinder desiste de rotas longas: sobe em trechos antes da viagem.
+  async climbFor(targetY, isCancelled) {
+    if (!climb.needsClimb(this.bot, targetY)) return null
+    const moves = climb.climbMovements(this.bot)
+    protectPenBlocks(moves, this.bot.registry)
+    try {
+      return await climb.climbOut(this.bot, targetY, {
+        isCancelled,
+        movements: moves,
+        log: (line) => this.logger.log?.(line.replace('[subir]', `[subir] ${this.name}`))
+      })
+    } finally {
+      if (this.workMoves) this.bot.pathfinder.setMovements(this.workMoves)
+    }
+  }
+
   async goToPoint(position, isCancelled) {
     const x = Number(position?.x)
     const y = Number(position?.y)
@@ -2515,7 +2532,8 @@ class WorkerController {
     if (![x, y, z].every(Number.isFinite)) throw new Error('posição de destino inválida')
     const target = { x: Math.floor(x), y: Math.floor(y), z: Math.floor(z) }
     const center = new Vec3(target.x + 0.5, target.y, target.z + 0.5)
-    const deadline = Date.now() + 45000
+    if (climb.needsClimb(this.bot, target.y)) await this.climbFor(target.y, isCancelled)
+    const deadline = Date.now() + Math.max(45000, travelTimeoutMs(this.bot.entity?.position, center))
     let finalDistance = null
     // GoalNear encerra usando coordenadas discretas: goto resolvido não confirma
     // o raio físico. Uma única aproximação mais curta pode corrigir esse desvio.
@@ -2589,6 +2607,10 @@ class WorkerController {
   async returnHome(isCancelled, { verify = false } = {}) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
+    if (climb.needsClimb(this.bot, home.y)) {
+      await this.climbFor(home.y, isCancelled)
+      if (isCancelled()) return { ok: false }
+    }
     const timeoutMs = travelTimeoutMs(this.bot.entity?.position, home)
     const goal = new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3)
     try {
