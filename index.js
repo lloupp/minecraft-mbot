@@ -3005,6 +3005,7 @@ async function main() {
       if (storage.configured()) await storage.summary(bot).catch((err) => console.log(`[minérios] não li o baú: ${err.message}`))
       if (isCancelled()) return
 
+      const mainBadWood = [] // árvores que o principal não conseguiu cortar nesta missão
       const members = () => {
         const list = []
         if (!creative && bot.entity && bot.health > 0) {
@@ -3022,6 +3023,23 @@ async function main() {
                   await food.goTo(bot, new goals.GoalNear(Math.floor(home.x), Math.floor(home.y), Math.floor(home.z), 3), 120000).catch((err) => console.log(`[minérios] subir: ${err.message}`))
                   if (cancel()) return { ok: false, retry: true, reason: 'interrompido' }
                 }
+                // Sem árvore perto da base: vai até o tronco mais próximo à vista (fora de áreas que já falharam).
+                // 6 troncos: gravetos e, sem carvão, combustível da fornalha.
+                const isLog = (name) => /_(log|stem)$/.test(name)
+                if (!hasWood()) await gather.mineBlocks(bot, isLog, 6, cancel).catch(() => 0)
+                if (!hasWood() && !cancel()) {
+                  const logIds = bot.registry.blocksArray.filter((b) => isLog(b.name)).map((b) => b.id)
+                  const isBad = (p) => mainBadWood.some((q) => p.distanceTo(q) <= 8)
+                  const tree = (bot.findBlocks({ matching: logIds, maxDistance: 128, count: 64 }) || []).find((p) => !isBad(p))
+                  if (tree) {
+                    console.log(`[minérios] indo cortar árvore em ${tree.x},${tree.y},${tree.z}`)
+                    await food.goTo(bot, new goals.GoalNear(tree.x, tree.y, tree.z, 3), 120000).catch((err) => console.log(`[minérios] até a árvore: ${err.message}`))
+                    if (!cancel()) await gather.mineBlocks(bot, isLog, 6, cancel).catch(() => 0)
+                    if (!hasWood()) mainBadWood.push(tree)
+                  }
+                  if (cancel()) return { ok: false, retry: true, reason: 'interrompido' }
+                }
+                if (!hasWood()) return { ok: false, retry: true, reason: 'sem madeira para gravetos' }
                 const ingots = () => oreMission.countItem(bot, 'iron_ingot')
                 if (ingots() < 3 && count('raw_iron') > 0) {
                   await craft.smeltItem(bot, 'raw_iron', Math.min(count('raw_iron'), 3 - ingots()), cancel).catch((err) => console.log(`[minérios] fundir ferro: ${err.message}`))
