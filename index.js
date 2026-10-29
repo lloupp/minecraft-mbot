@@ -3059,6 +3059,7 @@ async function main() {
           list.push({
             name: worker.name,
             bot: worker.bot,
+            stop: () => { if (controller.currentTask?.type === 'minerar_fundo') controller.cancel() },
             mine: (family, need) => controller.run({
               type: 'minerar_fundo', blocks: family.blocks, item: family.item, tool: family.tool, count: need
             })

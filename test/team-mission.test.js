@@ -369,3 +369,16 @@ test('troncos da mesma árvore que falhou também ficam de lado', async () => {
   await worker.fetchWood(() => false)
   assert.deepEqual(visited, ['-71,-12', '-20,30'])
 })
+
+test('família batida pela equipe: quem ainda estava nela é parado', async () => {
+  const t = team()
+  const families = [{ key: 'ferro', label: 'ferro', item: 'raw_iron' }]
+  let release
+  const slowDone = new Promise((resolve) => { release = resolve })
+  let stopped = 0
+  const slow = { name: 'lento', stop: () => { stopped++; release() }, mine: async () => { await slowDone } }
+  const fast = { name: 'rápido', mine: async (family, need) => { t.add(family.item, need) } }
+  const result = await teamMission({ target: 3, families, members: [slow, fast], teamCount: t.count, sleep: noSleep })
+  assert.equal(result.ok, true)
+  assert.equal(stopped, 1)
+})
