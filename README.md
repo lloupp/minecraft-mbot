@@ -132,6 +132,13 @@ Para funcionalidade completa (movimentação, blocos, inventário), aguarde `min
 |---|---|
 | `!seguir` | Segue o dono (padrão ao entrar) |
 | `!ficar` | Fica parado onde está |
+| `!missao pegar <item> <qtd> [guardar]` | Coleta, confere no inventário e opcionalmente deposita no estoque central |
+| `!missao fabricar <item> <qtd> [guardar]` | Fabrica pela cadeia de produção e confere o resultado |
+| `!missao entregar <item> <qtd> [bau\|mao]` | Entrega no baú combinado ou na mão do dono, confirmando nas duas pontas |
+| `!missao ir <local>` | Vai até um local salvo e confirma a posição |
+| `!missao status` | Lista as últimas missões, estado e etapa |
+| `!missao cancelar <id>` | Cancela uma missão em andamento |
+| `!missao retomar <id>` | Retoma uma missão interrompida após restart |
 | `!minerar <bloco> [qtd]` | Minera blocos próximos, ex.: `!minerar oak_log 5` |
 | `!fabricar <item> [qtd]` | Fabrica o item, coletando madeira/pedra e fazendo a mesa se precisar, ex.: `!fabricar wooden_pickaxe` |
 | `!cozinhar [item] [qtd]` | Sem item: cozinha a comida crua. Com item: usa a fornalha, ex.: `!cozinhar raw_iron` |
@@ -758,6 +765,40 @@ Use no chat:
 ```
 
 para ver versão, perfil e protocolo atualmente conectados. O `!smoke` também inclui o perfil do servidor nas verificações.
+
+## Missões do dono (`!missao`)
+
+Uma missão é decomposta em um grafo durável (`core/MissionStore.js`) e executada
+nó a nó (`core/MissionRunner.js`). O estado fica em `.data/missions.json`
+(altere com `MBOT_MISSION_FILE`), separado do estado da colônia.
+
+```text
+!missao pegar carvão 32 guardar
+!missao fabricar iron_pickaxe 1
+!missao entregar pao 8 bau
+!missao ir base
+!missao status
+!missao cancelar <id>
+!missao retomar <id>
+```
+
+Regras:
+
+- "Pegar/fabricar N" significa **ter pelo menos N**, não ganhar N: item que já
+  está na mochila conta. "Entregar" exige prova de que o item **saiu** da mochila.
+- Nenhuma missão termina `completed` sem o verificador reler inventário, posição
+  ou contêiner. Aceite de HTTP/chat não conta.
+- Falha de navegação/coleta é classificada (`PATH_TIMEOUT`, `PATH_NO_PATH`,
+  `RESOURCE_NOT_FOUND`, `PROTECTED_AREA` etc.) antes de decidir retry.
+- Reinício converte `running` em `interrupted`; nada é reexecutado
+  automaticamente. Use `!missao retomar <id>`.
+- A missão não dispara o depósito automático do `runTask`: quem entrega é o nó
+  `deposit`/`deliver`, com verificação própria.
+- A arbitragem global com preempção (Fase 1c) ainda não está ligada; uma missão
+  só começa se o principal e os workers estiverem livres.
+
+Telemetria do pathfinder (`noPath`, `timeout`, `stuck`, `dig_error`,
+`place_error`) é registrada por `lib/nav-telemetry.js` em todos os bots.
 
 ## Autonomia do companheiro
 

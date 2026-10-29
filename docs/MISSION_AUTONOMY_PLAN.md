@@ -1,7 +1,32 @@
 # Plano — autonomia de missões (Fases 0 e 1)
 
-Status: plano aprovado para execução. Base: `feat/missao-minerios-equipe` (8e8e718).
+Status: **Fases 0 e 1 implementadas** nesta branch. A Fase 1c (arbitragem global
+com preempção) permanece explicitamente pendente, como o plano exige.
+Base: `feat/missao-minerios-equipe` (8e8e718).
 Sem dependência nova, sem autoridade de modelo, sem alteração do servidor Minecraft.
+
+## Implementação nesta PR
+
+Arquivos novos: `lib/nav-telemetry.js`, `lib/failure.js`, `lib/preflight.js`,
+`lib/mission-spec.js`, `lib/verifiers.js`, `core/MissionStore.js`,
+`core/Capabilities.js`, `core/MissionRunner.js`, `core/mission-executors.js`.
+
+Integrações: `lib/plugins.js` (telemetria em todos os bots), `core/TaskGraph.js`
+(status validado e metadados do nó), `core/RunVerifier.js`
+(`mission_consistency`), `index.js` (`!missao`, store/runner, `runTask` com
+`deposit:false` para missões), `.env.example` e `README.md`.
+
+Verificação executada:
+
+- `npm run check`: 112 arquivos.
+- `npm test`: **1015/1015**.
+- Servidor real (Forge 1.20.1), bot isolado `mission_smoke`:
+  - `!missao pegar dirt 2` concluiu com `before=1, after=2, mined=1` e voltou a `ficar`;
+  - `!missao cancelar` marcou o nó como `cancelled` e restaurou `ficar`;
+  - missão interrompida com `!parar` voltou como `interrupted` no restart e
+    `!missao retomar` concluiu com verificação absoluta (`after=15 >= 12`).
+- O servidor Minecraft não foi reiniciado nem alterado; o bot principal em
+  execução não foi tocado.
 
 ## Objetivo
 

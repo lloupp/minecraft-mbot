@@ -29,6 +29,6 @@ test('describe devolve cópia, não referência mutável', () => {
   const descriptor = caps.describe('gather')
   descriptor.name = 'alterado'
   assert.equal(caps.describe('gather').name, 'gather')
-  assert.equal(caps.describe('gather').verifier, 'inventory_delta')
+  assert.equal(caps.describe('gather').verifier, 'inventory_at_least')
   assert.equal(caps.describe('nao_existe'), null)
 })

@@ -78,6 +78,13 @@ const { RunVerifier } = require('./core/RunVerifier')
 const { startToolApiRuntime } = require('./lib/tool-api-runtime')
 const { describeBot, describeWorkers, ConsoleBuffer } = require('./lib/dashboard-snapshot')
 const { RequestQueue } = require('./core/RequestQueue')
+const preflight = require('./lib/preflight')
+const missionSpec = require('./lib/mission-spec')
+const { VERIFIERS } = require('./lib/verifiers')
+const capabilities = require('./core/Capabilities')
+const { MissionStore } = require('./core/MissionStore')
+const { MissionRunner } = require('./core/MissionRunner')
+const { createExecutors } = require('./core/mission-executors')
 
 const HOST = CONNECTION.host
 const DEFAULT_PORT = 25565
@@ -468,6 +475,147 @@ async function main() {
   // Baú combinado para entregas; o estado guarda o endereço atual.
   let deliveryChest = handover.positionOf(savedState.deliveryChest) || { ...handover.DELIVERY_CHEST }
   let resumeTaskRecord = resumeTask.pending(savedState.resumeTask)
+
+  // Missões: estado próprio em .data/missions.json. Restaura sem executar nada:
+  // o dono decide quando retomar (!missao retomar), como nas outras tarefas.
+  const missionStore = new MissionStore()
+  await missionStore.load()
+  if (missionStore.lastLoadError) {
+    console.log(`[missões] ${missionStore.lastLoadError.message}; arquivo preservado e autosave bloqueado`)
+  }
+  missionStore.prune()
+  const missionRunner = new MissionRunner({
+    store: missionStore,
+    bot,
+    storage,
+    capabilities,
+    executors: createExecutors({
+      bot,
+      storage,
+      production,
+      gather,
+      craft,
+      handover,
+      goals,
+      waypointManager,
+      ownerProvider: () => ownerEntity(),
+      deliveryChestProvider: () => deliveryChest,
+      logger: console
+    }),
+    verifiers: VERIFIERS,
+    eventLog,
+    logger: console,
+    preflight: (node) => preflight.check(bot, {
+      action: node.action,
+      item: node.args?.item,
+      quantity: node.args?.quantity,
+      requiresQuantity: node.args?.quantity != null,
+      requiresStorage: node.action === 'deposit',
+      longTask: node.action === 'move_to',
+      dimension: null
+    }, { storage, registry: bot.registry })
+  })
+
+  const missionShortId = (id) => String(id).slice(0, 8)
+  const missionLine = (mission) => `${missionShortId(mission.id)} ${mission.status} — ${missionSpec.describe(mission.spec)}`
+
+  async function runMission(mission) {
+    bot.chat(`Missão ${missionShortId(mission.id)}: ${missionSpec.describe(mission.spec)}.`)
+    await runTask(`missão ${missionShortId(mission.id)}`, async (isCancelled) => {
+      const result = await missionRunner.run(mission.id, {
+        isCancelled,
+        onProgress: ({ node, status }) => {
+          if (status === 'completed') bot.chat(`[missão ${missionShortId(mission.id)}] ${node?.objective || node?.id || 'etapa'} concluído.`)
+        }
+      })
+      if (result.status === 'completed') bot.chat(`Missão ${missionShortId(mission.id)} concluída.`)
+      else if (result.status === 'cancelled') bot.chat(`Missão ${missionShortId(mission.id)} cancelada.`)
+      else if (result.status === 'interrupted') bot.chat(`Missão ${missionShortId(mission.id)} interrompida; use !missao retomar ${missionShortId(mission.id)}.`)
+      else bot.chat(`Missão ${missionShortId(mission.id)} falhou: ${result.failure?.code || 'erro'}${result.failure?.detail ? ` (${result.failure.detail})` : ''}.`)
+    }, { resume: 'ficar', deposit: false })
+  }
+
+  commandRouter.register('missao', async (_context, args) => {
+    if (!bot.entity) { bot.chat('Ainda estou entrando no mundo; tente de novo em instantes.'); return }
+    const action = String(args[0] || '').toLowerCase()
+
+    if (action === 'status') {
+      const missions = missionStore.list().slice(-8).reverse()
+      if (!missions.length) { bot.chat('Nenhuma missão registrada.'); return }
+      for (const mission of missions) bot.chat(missionLine(mission))
+      return
+    }
+
+    if (action === 'cancelar') {
+      const wanted = String(args[1] || '').toLowerCase()
+      const matches = missionStore.list().filter((mission) => mission.id.startsWith(wanted))
+      if (!wanted || matches.length !== 1) { bot.chat(matches.length ? 'Identificador ambíguo.' : 'Uso: !missao cancelar <id>'); return }
+      const mission = matches[0]
+      if (missionRunner.isRunning(mission.id)) {
+        await missionRunner.cancel(mission.id)
+        cancelTask()
+        // cancelTask não restaura o modo; a missão usa 'ficar' como retomada.
+        mode = 'ficar'
+        bot.pathfinder.setGoal(null)
+      } else {
+        await missionRunner.cancel(mission.id)
+      }
+      bot.chat(`Missão ${missionShortId(mission.id)} cancelada.`)
+      return
+    }
+
+    if (action === 'retomar') {
+      const wanted = String(args[1] || '').toLowerCase()
+      const matches = missionStore.list().filter((mission) => mission.id.startsWith(wanted))
+      if (!wanted || matches.length !== 1) { bot.chat(matches.length ? 'Identificador ambíguo.' : 'Uso: !missao retomar <id>'); return }
+      const mission = matches[0]
+      if (!['interrupted', 'paused', 'pending'].includes(mission.status)) { bot.chat(`Missão ${missionShortId(mission.id)} está ${mission.status}.`); return }
+      if (mode === 'tarefa' || taskName) { bot.chat(`Estou ocupado: ${taskName || 'tarefa em andamento'}.`); return }
+      const byId = new Map(mission.graph.map((node) => [node.id, node]))
+      const nodes = mission.graph.map((node) => {
+        if (['running', 'interrupted'].includes(node.status)) return { ...node, status: 'pending' }
+        if (node.status === 'blocked' && (node.dependsOn || []).every((id) => byId.get(id)?.status === 'completed')) {
+          return { ...node, status: 'pending' }
+        }
+        return node
+      })
+      missionStore.update(mission.id, { graph: nodes, status: 'pending', nodeAttempts: {}, recoveryRequired: false })
+      await missionStore.save()
+      missionRunner.resume(mission.id)
+      await runMission(missionStore.get(mission.id))
+      return
+    }
+
+    const parsed = missionSpec.parse(args)
+    if (!parsed.ok) { bot.chat(parsed.error); return }
+    const spec = parsed.spec
+    if (mode === 'tarefa' || taskName) { bot.chat(`Estou ocupado: ${taskName || 'tarefa em andamento'}. Use !missao status.`); return }
+    const active = missionStore.active()
+    if (active.length) { bot.chat(`Já tenho missão ativa (${missionShortId(active[0].id)}). Use !missao status.`); return }
+    if (spec.verb === 'ir' && !waypointManager.get(spec.local)) { bot.chat(`Local desconhecido: ${spec.local}.`); return }
+
+    const pre = preflight.check(bot, {
+      action: spec.verb,
+      item: spec.item,
+      quantity: spec.quantity,
+      requiresQuantity: spec.quantity != null,
+      requiresStorage: spec.delivery === 'chest',
+      longTask: spec.verb === 'ir',
+      dimension: spec.verb === 'ir' ? waypointManager.get(spec.local)?.dimension : null
+    }, { storage, registry: bot.registry })
+    if (!pre.ok) {
+      const blocker = pre.blockers[0]
+      bot.chat(`Não posso começar: ${blocker.detail || blocker.code} (${blocker.code}).`)
+      return
+    }
+
+    let nodes
+    try { nodes = missionSpec.graphForSpec(spec) } catch (err) { bot.chat(`Missão inválida: ${err.message}`); return }
+    const mission = missionStore.create({ spec, graph: nodes })
+    await missionStore.save()
+    await runMission(mission)
+  })
+
   let resumeAttempts = 0
   let resumeNextAt = 0
   function setResumeTask(task) {
@@ -881,7 +1029,7 @@ async function main() {
   // (fuga, !cancelar, outra tarefa). Preserva !ficar, inclusive ao substituir uma
   // tarefa; só retoma seguir se já seguia ou se o chamador pedir explicitamente.
   let taskResumeMode = 'seguir'
-  async function runTask(name, fn, { resume = mode === 'tarefa' ? taskResumeMode : mode === 'ficar' ? 'ficar' : 'seguir' } = {}) {
+  async function runTask(name, fn, { resume = mode === 'tarefa' ? taskResumeMode : mode === 'ficar' ? 'ficar' : 'seguir', deposit = true } = {}) {
     taskResumeMode = resume
     if (!workMoves || !pathGuard.ready(bot)) {
       bot.chat('Ainda estou entrando no mundo; tente de novo em instantes.')
@@ -899,7 +1047,7 @@ async function main() {
       if (!isCancelled()) bot.chat(`Não consegui ${name}: ${err.message}`)
     }
     if (isCancelled()) return
-    const hasCargo = bot.inventory.items().some((item) => item.count > storage.reserveFor(bot, item))
+    const hasCargo = deposit && bot.inventory.items().some((item) => item.count > storage.reserveFor(bot, item))
     if (hasCargo) {
       try {
         if (!storage.configured()) await autoStorage(isCancelled)
@@ -3549,6 +3697,7 @@ async function main() {
         bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
         break
       case '!ajuda':
+        bot.chat('Missões: !missao pegar|coletar <item> <qtd> [guardar], !missao fabricar <item> <qtd> [guardar], !missao entregar <item> <qtd> [bau|mao], !missao ir <local>, !missao status, !missao cancelar <id>, !missao retomar <id>')
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')
         bot.chat('Comandos: !seguir, !ficar, !autonomo [off], !metas, !local, !ir, !voltar, !patrulha, !explorar, !enviar, !animais, !curral, !capturar, !reproduzir, !manejo, !produto, !tosquiar, !servidor, !minerar, !fabricar, !cozinhar, !atacar, !comer, !comida, !cama, !dormir, !ferro [qtd], !lapis [qtd], !dar <item> [qtd] [mao], !trigo [qtd], !pao [qtd], !guardar [item] [qtd], !bau, !bolos, !sair, !minerios [qtd], !ver, !ondeestou, !status, !pos, !cancelar, !parar')
         bot.chat('Colônia: !base aqui, !estoque aqui, !projeto <casa|fazenda|mina|vila>, !projeto planta <nome>, !projeto status, !smoke, !colonia auto, !colonia necessidades, !bot, !bots, !ordem, !abastecer, !construir <casa|fazenda|mina|curral|planta>, !plantas, !todos voltar, !tarefas')

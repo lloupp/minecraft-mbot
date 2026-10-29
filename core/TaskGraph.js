@@ -26,7 +26,9 @@ class TaskGraph {
       dependsOn: deps,
       status,
       assignedWorker: node.assignedWorker || null,
-      result: node.result || null
+      result: node.result || null,
+      verify: node.verify || null,
+      maxAttempts: Number.isInteger(node.maxAttempts) ? node.maxAttempts : null
     })
     return this.get(id)
   }

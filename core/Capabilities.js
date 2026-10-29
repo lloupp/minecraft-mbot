@@ -23,7 +23,7 @@ const DESCRIPTORS = Object.freeze({
     argsSchema: { item: 'name', quantity: 'count' },
     preconditions: ['spawned', 'free_slots', 'resource_known'],
     effects: ['inventory_contains'],
-    verifier: 'inventory_delta',
+    verifier: 'inventory_at_least',
     failureCodes: ['RESOURCE_NOT_FOUND', 'RESOURCE_UNREACHABLE', 'PATH_NO_PATH', 'INVENTORY_FULL', 'VERIFICATION_FAILED'],
     cost: 'medium',
     risk: 'low'
@@ -35,7 +35,7 @@ const DESCRIPTORS = Object.freeze({
     argsSchema: { item: 'name', quantity: 'count' },
     preconditions: ['spawned', 'recipe_known'],
     effects: ['inventory_contains'],
-    verifier: 'inventory_delta',
+    verifier: 'inventory_at_least',
     failureCodes: ['TOOL_MISSING', 'RESOURCE_NOT_FOUND', 'VERIFICATION_FAILED'],
     cost: 'medium',
     risk: 'low'
@@ -47,7 +47,7 @@ const DESCRIPTORS = Object.freeze({
     argsSchema: { item: 'name', quantity: 'count' },
     preconditions: ['spawned', 'recipe_known', 'fuel_available'],
     effects: ['inventory_contains'],
-    verifier: 'inventory_delta',
+    verifier: 'inventory_at_least',
     failureCodes: ['TOOL_MISSING', 'RESOURCE_NOT_FOUND', 'VERIFICATION_FAILED'],
     cost: 'medium',
     risk: 'low'
@@ -71,7 +71,7 @@ const DESCRIPTORS = Object.freeze({
     argsSchema: { item: 'name', quantity: 'count' },
     preconditions: ['spawned', 'storage_configured'],
     effects: ['inventory_contains'],
-    verifier: 'inventory_delta',
+    verifier: 'inventory_at_least',
     failureCodes: ['CONTAINER_UNREACHABLE', 'RESOURCE_NOT_FOUND', 'VERIFICATION_FAILED'],
     cost: 'low',
     risk: 'low'
@@ -94,8 +94,8 @@ const DESCRIPTORS = Object.freeze({
     role: null,
     argsSchema: { item: 'name', quantity: 'count' },
     preconditions: ['spawned'],
-    effects: ['inventory_delta'],
-    verifier: 'inventory_delta',
+    effects: ['inventory_removed'],
+    verifier: 'inventory_removed',
     failureCodes: ['RESOURCE_NOT_FOUND', 'TOOL_MISSING', 'PROTECTED_AREA', 'VERIFICATION_FAILED'],
     cost: 'medium',
     risk: 'medium'
