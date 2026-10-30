@@ -28,6 +28,19 @@ Verificação executada:
 - O servidor Minecraft não foi reiniciado nem alterado; o bot principal em
   execução não foi tocado.
 
+## Teste E2E em servidor real (Python)
+
+`test/test_mission_server.py` sobe um vanilla 1.20.1 descartável, usa RCON para ler o inventário no
+lado do servidor e cobre:
+
+- `!missao pegar dirt 2` conclui e o servidor vê o item na mochila;
+- `!missao cancelar` marca o nó como cancelado e restaura `ficar`;
+- `!missao pegar dirt 24` interrompida com `!parar` volta como `interrupted` e `!missao retomar`
+  conclui sem reexecutar trabalho já verificado.
+
+O job `mission-server-e2e` executa a suíte em PRs. Localmente, defina `MBOT_TEST_SERVER_JAR` e
+`MBOT_TEST_EULA_ACCEPTED=1`; Java 17+ é obrigatório.
+
 ## Objetivo
 
 Permitir que o dono peça uma tarefa em uma única mensagem e o bot a execute de ponta a

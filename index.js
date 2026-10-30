@@ -409,6 +409,7 @@ async function main() {
         snapshot: () => ({
           profile: { id: serverProfile.id, version: bot.version || serverProfile.version, server: `${CONFIG.host}:${CONFIG.port}` },
           main: describeBot(bot, { role: 'orquestrador', status: bot.entity ? 'conectado' : 'desconectado', mode, task: taskName, owner: ownerName() || null }),
+          ready: Boolean(workMoves && pathGuard.ready(bot)),
           workers: describeWorkers(botManager),
           requests: requestQueue.list().slice(-30),
           views: publicViews(webViews),
@@ -536,7 +537,7 @@ async function main() {
   }
 
   commandRouter.register('missao', async (_context, args) => {
-    if (!bot.entity) { bot.chat('Ainda estou entrando no mundo; tente de novo em instantes.'); return }
+    if (!bot.entity || !workMoves || !pathGuard.ready(bot)) { bot.chat('Ainda estou entrando no mundo; tente de novo em instantes.'); return }
     const action = String(args[0] || '').toLowerCase()
 
     if (action === 'status') {

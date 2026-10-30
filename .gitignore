@@ -6,3 +6,5 @@ node_modules/
 
 logs/
 *-tmp.js
+.cache/
+__pycache__/

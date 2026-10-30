@@ -620,6 +620,23 @@ Exemplo de preparação:
 
 Esse comando é o smoke test E2E disponível para o ambiente real. Ele precisa ser executado no seu mundo porque o GitHub Actions não possui acesso ao servidor LAN da sua máquina.
 
+### Missões em servidor descartável (Python)
+
+`test/test_mission_server.py` sobe um servidor vanilla 1.20.1 oficial em diretório temporário, inicia
+`index.js` com estado isolado, envia `!missao` pelo dashboard e confere o inventário **pelo RCON do
+servidor** — não só pelo relatório do bot. Cobre coleta, cancelamento e retomada após restart.
+
+```bash
+python3 scripts/download-vanilla-server.py --version 1.20.1 --output .cache/vanilla-1.20.1.jar
+MBOT_TEST_SERVER_JAR="$PWD/.cache/vanilla-1.20.1.jar" \
+MBOT_TEST_EULA_ACCEPTED=1 \
+python3 -m unittest discover -s test -p 'test_mission_server.py' -v
+```
+
+Requer Java 17+ (`MBOT_TEST_SERVER_JAVA` aponta outro binário). Sem o JAR ou sem o aceite da EULA,
+os testes são pulados. O job `mission-server-e2e` do CI baixa o JAR com SHA-1 fixado e executa a
+mesma suíte em cada PR. Os logs ficam em `logs/mission-server-e2e/`.
+
 
 ## Roadmap
 

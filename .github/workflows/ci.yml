@@ -32,6 +32,43 @@ jobs:
       - run: npm test
       - run: npm run gauntlet:player-loop > /tmp/player-loop-v2.json
 
+  mission-server-e2e:
+    name: Mission autonomy on real 1.20.1 server
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: npm ci
+      - name: Download official Minecraft 1.20.1 and verify pinned SHA-1
+        run: python3 scripts/download-vanilla-server.py --version 1.20.1 --output .cache/vanilla-1.20.1.jar
+      - name: Mission lifecycle on a disposable server, verified by RCON
+        env:
+          MBOT_TEST_SERVER_JAR: .cache/vanilla-1.20.1.jar
+          MBOT_TEST_EULA_ACCEPTED: '1'
+        run: python -m unittest discover -s test -p 'test_mission_server.py' -v
+      - name: Preserve mission E2E logs (never upload world or server jar)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mission-server-e2e-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: logs/mission-server-e2e
+
   natural-survival-e2e:
     name: Minecraft 1.20.1 natural survival 20m/arm (2 workers)
     # Run only on this opt-in experimental PR. Never runs on main.
