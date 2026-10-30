@@ -15,6 +15,8 @@ class TaskGraph {
     if (!/^[a-zA-Z0-9._:-]{1,120}$/.test(id)) throw new Error('task id inválido')
     if (this.nodes.has(id)) throw new Error(`task duplicada: ${id}`)
     const deps = [...new Set((node.dependsOn || []).map(String))]
+    const status = node.status || 'pending'
+    if (!VALID_STATUS.has(status)) throw new Error(`status inválido: ${status}`)
     this.nodes.set(id, {
       id,
       action: node.action,
@@ -22,9 +24,11 @@ class TaskGraph {
       objective: node.objective || null,
       role: node.role || null,
       dependsOn: deps,
-      status: node.status || 'pending',
+      status,
       assignedWorker: node.assignedWorker || null,
-      result: node.result || null
+      result: node.result || null,
+      verify: node.verify || null,
+      maxAttempts: Number.isInteger(node.maxAttempts) ? node.maxAttempts : null
     })
     return this.get(id)
   }

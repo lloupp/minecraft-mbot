@@ -271,6 +271,23 @@ class RunVerifier {
         projects.length ? `${projects.length} projects` : 'no active projects to verify')
     }
 
+    // 9. Mission nodes: todo nó iniciado precisa de um estado terminal.
+    // Sem eventos de missão (instalações antigas), o check é pulado, não aprovado.
+    const missionStarted = this.eventLog.getEvents({ type: 'mission_node_started' })
+    if (!missionStarted.length) {
+      add('mission_consistency', null, 'no mission events recorded')
+    } else {
+      const keyOf = (event) => `${event.missionId || '?'}:${event.nodeId || '?'}`
+      const terminal = new Set([
+        ...this.eventLog.getEvents({ type: 'mission_node_completed' }),
+        ...this.eventLog.getEvents({ type: 'mission_node_failed' }),
+        ...this.eventLog.getEvents({ type: 'mission_cancelled' })
+      ].map(keyOf))
+      const missing = [...new Set(missionStarted.map(keyOf))].filter((key) => !terminal.has(key))
+      add('mission_consistency', missing.length === 0,
+        `${missionStarted.length} started, ${missing.length} without terminal state`)
+    }
+
     this.proof = {
       runId: process.env.RUN_ID || 'colony-' + Date.now(),
       verifiedAt: new Date().toISOString(),
