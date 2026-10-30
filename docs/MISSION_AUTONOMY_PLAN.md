@@ -41,6 +41,9 @@ lado do servidor e cobre:
 O job `mission-server-e2e` executa a suíte em PRs. Localmente, defina `MBOT_TEST_SERVER_JAR` e
 `MBOT_TEST_EULA_ACCEPTED=1`; Java 17+ é obrigatório.
 
+Resultado local (Java 21, servidor vanilla 1.20.1): **3/3 em 112 s** — coleta, cancelamento e
+retomada pós-restart, com inventário conferido por RCON.
+
 ## Objetivo
 
 Permitir que o dono peça uma tarefa em uma única mensagem e o bot a execute de ponta a
