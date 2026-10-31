@@ -1,6 +1,6 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { LayaShadowObserver } = require('../lib/laya-shadow')
+const { JuliaShadowObserver } = require('../lib/julia-shadow')
 
 const silentLogger = { log() {} }
 const candidates = [
@@ -21,7 +21,7 @@ async function flush(times = 8) {
 
 test('desabilitado por padrão: observe() não faz nada e não lança', () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({ eventLog, logger: silentLogger })
+  const observer = new JuliaShadowObserver({ eventLog, logger: silentLogger })
   assert.equal(observer.enabled(), false)
   const result = observer.observe({
     state: {}, candidates, executedChoice: 'x', resultPromise: Promise.resolve({ ok: true })
@@ -32,14 +32,14 @@ test('desabilitado por padrão: observe() não faz nada e não lança', () => {
 
 test('habilitado sem endpoint continua desabilitado', () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({ enabled: true, endpoint: null, eventLog, logger: silentLogger })
+  const observer = new JuliaShadowObserver({ enabled: true, endpoint: null, eventLog, logger: silentLogger })
   assert.equal(observer.enabled(), false)
 })
 
 test('menos de 2 candidatos: nada a observar, não chama a rede', async () => {
   const eventLog = fakeLog()
   let calledFetch = false
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog,
@@ -54,7 +54,7 @@ test('menos de 2 candidatos: nada a observar, não chama a rede', async () => {
 
 test('decisão bem-sucedida é registrada com o formato esperado, sem afetar o chamador', async () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog,
@@ -83,11 +83,11 @@ test('decisão bem-sucedida é registrada com o formato esperado, sem afetar o c
 
   assert.equal(eventLog.calls.length, 1)
   const { type, data, worker } = eventLog.calls[0]
-  assert.equal(type, 'laya_shadow_decision')
+  assert.equal(type, 'julia_shadow_decision')
   assert.equal(worker, 'lenhador_01')
-  assert.equal(data.layaChoice, 'gather_materials')
-  assert.equal(data.layaConfidence, 0.8)
-  assert.equal(data.layaError, null)
+  assert.equal(data.juliaChoice, 'gather_materials')
+  assert.equal(data.juliaConfidence, 0.8)
+  assert.equal(data.juliaError, null)
   assert.equal(data.executedChoice, 'coletar_blocos')
   assert.deepEqual(data.candidates, ['gather_materials', 'continue_objective'])
   assert.deepEqual(data.result, { ok: true, gathered: 3 })
@@ -96,9 +96,9 @@ test('decisão bem-sucedida é registrada com o formato esperado, sem afetar o c
   assert.equal(observer.getStats().completed, 1)
 })
 
-test('escolha do Laya fora dos candidatos vira invalid_choice, nunca é executada', async () => {
+test('escolha do modelo fora dos candidatos vira invalid_choice, nunca é executada', async () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog,
@@ -107,15 +107,15 @@ test('escolha do Laya fora dos candidatos vira invalid_choice, nunca é executad
   })
   observer.observe({ state: {}, candidates, executedChoice: 'continue_objective', resultPromise: Promise.resolve({ ok: true }) })
   await flush()
-  assert.equal(eventLog.calls[0].data.layaChoice, null)
-  assert.equal(eventLog.calls[0].data.layaAttemptedChoice, 'fly_away')
-  assert.equal(eventLog.calls[0].data.layaError, 'invalid_choice')
+  assert.equal(eventLog.calls[0].data.juliaChoice, null)
+  assert.equal(eventLog.calls[0].data.juliaAttemptedChoice, 'fly_away')
+  assert.equal(eventLog.calls[0].data.juliaError, 'invalid_choice')
   assert.equal(observer.getStats().invalidChoice, 1)
 })
 
 test('resposta malformada (sem choice) é rejeitada sem derrubar nada', async () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog,
@@ -124,12 +124,12 @@ test('resposta malformada (sem choice) é rejeitada sem derrubar nada', async ()
   })
   observer.observe({ state: {}, candidates, executedChoice: 'x', resultPromise: Promise.resolve({ ok: true }) })
   await flush()
-  assert.equal(eventLog.calls[0].data.layaError, 'malformed_response')
+  assert.equal(eventLog.calls[0].data.juliaError, 'malformed_response')
 })
 
 test('erro HTTP do sidecar vira registro de falha, não lança', async () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog,
@@ -138,13 +138,13 @@ test('erro HTTP do sidecar vira registro de falha, não lança', async () => {
   })
   observer.observe({ state: {}, candidates, executedChoice: 'x', resultPromise: Promise.resolve({ ok: true }) })
   await flush()
-  assert.equal(eventLog.calls[0].data.layaError, 'http_500')
+  assert.equal(eventLog.calls[0].data.juliaError, 'http_500')
   assert.equal(observer.getStats().failed, 1)
 })
 
 test('timeout aborta a chamada e é registrado como timeout', async () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     timeoutMs: 5,
@@ -157,12 +157,12 @@ test('timeout aborta a chamada e é registrado como timeout', async () => {
   observer.observe({ state: {}, candidates, executedChoice: 'x', resultPromise: Promise.resolve({ ok: true }) })
   await new Promise((resolve) => setTimeout(resolve, 30))
   await flush()
-  assert.equal(eventLog.calls[0].data.layaError, 'timeout')
+  assert.equal(eventLog.calls[0].data.juliaError, 'timeout')
 })
 
 test('crash/exceção do fetch (sidecar fora do ar) não escapa do observer', async () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog,
@@ -171,7 +171,7 @@ test('crash/exceção do fetch (sidecar fora do ar) não escapa do observer', as
   })
   observer.observe({ state: {}, candidates, executedChoice: 'x', resultPromise: Promise.resolve({ ok: true }) })
   await flush()
-  assert.equal(eventLog.calls[0].data.layaError, 'ECONNREFUSED')
+  assert.equal(eventLog.calls[0].data.juliaError, 'ECONNREFUSED')
 })
 
 test('concorrência é limitada: chamada além de maxConcurrent é descartada, não enfileirada', async () => {
@@ -181,7 +181,7 @@ test('concorrência é limitada: chamada além de maxConcurrent é descartada, n
   let releaseFirst
   const firstGate = new Promise((resolve) => { releaseFirst = resolve })
 
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     maxConcurrent: 1,
@@ -205,8 +205,8 @@ test('concorrência é limitada: chamada além de maxConcurrent é descartada, n
 
   assert.equal(maxObservedInFlight, 1)
   assert.equal(observer.getStats().skippedConcurrency, 2)
-  const decisions = eventLog.calls.filter((c) => c.type === 'laya_shadow_decision')
-  const skips = eventLog.calls.filter((c) => c.type === 'laya_shadow_skip')
+  const decisions = eventLog.calls.filter((c) => c.type === 'julia_shadow_decision')
+  const skips = eventLog.calls.filter((c) => c.type === 'julia_shadow_skip')
   assert.equal(decisions.length, 1) // só a primeira decisão foi observada de verdade
   assert.equal(skips.length, 2) // as outras duas ficam registradas como descarte, não como se nunca tivessem existido
   assert.ok(skips.every((s) => s.data.reason === 'max_concurrency'))
@@ -215,7 +215,7 @@ test('concorrência é limitada: chamada além de maxConcurrent é descartada, n
 test('disjuntor abre depois de falhas seguidas e para de chamar a rede', async () => {
   const eventLog = fakeLog()
   let fetchCalls = 0
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     breakerThreshold: 2,
@@ -232,13 +232,13 @@ test('disjuntor abre depois de falhas seguidas e para de chamar a rede', async (
 
   assert.equal(fetchCalls, 2) // o disjuntor abre na 2ª falha e evita as próximas
   assert.equal(observer.getStats().breakerOpen, true)
-  const skips = eventLog.calls.filter((c) => c.type === 'laya_shadow_skip' && c.data.reason === 'breaker_open')
+  const skips = eventLog.calls.filter((c) => c.type === 'julia_shadow_skip' && c.data.reason === 'breaker_open')
   assert.equal(skips.length, 2) // as 2 tentativas bloqueadas pelo disjuntor também ficam visíveis no log
 })
 
 test('resultPromise rejeitada é registrada como falha, sem lançar e sem afetar quem mais consome a promise', async () => {
   const eventLog = fakeLog()
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog,
@@ -257,7 +257,7 @@ test('resultPromise rejeitada é registrada como falha, sem lançar e sem afetar
 })
 
 test('falha ao registrar no log não escapa do observer', async () => {
-  const observer = new LayaShadowObserver({
+  const observer = new JuliaShadowObserver({
     enabled: true,
     endpoint: 'http://local/choose',
     eventLog: { log() { throw new Error('disco cheio') } },

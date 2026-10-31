@@ -43,10 +43,8 @@ const { DemandPlanner } = require('./core/DemandPlanner')
 const { ProjectManager } = require('./core/ProjectManager')
 const { StateStore } = require('./core/StateStore')
 const { SmokeTest } = require('./core/SmokeTest')
-const { LayaShadowObserver } = require('./lib/laya-shadow')
 const { JuliaShadowObserver } = require('./lib/julia-shadow')
 const { JuliaAuthority } = require('./lib/julia-authority')
-const { combineShadows } = require('./lib/shadow-fanout')
 const { WaypointManager, normalizeWaypointName } = require('./core/WaypointManager')
 const { Memory, TIPOS, dito, inferido, tipoDe, normalizarChave, parseValor, fmtPos, fmtOrigem } = require('./core/Memory')
 const { resolveReference, blockVariants, searchTerms } = require('./core/References')
@@ -224,14 +222,9 @@ async function main() {
   })
   projectManager.restore(savedState.project)
 
-  // Shadow mode do Laya: desligado por padrão (MBOT_LAYA_SHADOW=1 para ligar).
-  // Só observa em paralelo (ver lib/laya-shadow.js e docs/LAYA_SHADOW_MODE.md);
-  // nunca decide nem executa nada no bot real.
-  const layaShadow = new LayaShadowObserver({ logger: console })
-  // Shadow mode da Julia-1 (MBOT_JULIA_SHADOW=1 + JULIA_PLAYER_LOOP_URL): mesma
-  // regra, sem autoridade de execução (lib/julia-shadow.js).
+  // Shadow mode da Julia-1 (MBOT_JULIA_SHADOW=1 + JULIA_PLAYER_LOOP_URL): só
+  // observa em paralelo, sem autoridade de execução (lib/julia-shadow.js).
   const juliaShadow = new JuliaShadowObserver({ logger: console })
-  const shadowObservers = combineShadows(layaShadow, juliaShadow)
   // Autoridade da Julia-1 (MBOT_JULIA_AUTHORITY=1 + JULIA_PLAYER_LOOP_URL): escolhe entre os candidatos do
   // player loop do explorador; guardrails e executor determinístico continuam valendo (lib/julia-authority.js).
   const juliaAuthority = new JuliaAuthority({ logger: console })
@@ -254,7 +247,7 @@ async function main() {
       ownerProvider: () => ownerEntity(),
       storage,
       production,
-      shadow: shadowObservers,
+      shadow: juliaShadow,
       worldMemory,
       juliaAuthority
     })

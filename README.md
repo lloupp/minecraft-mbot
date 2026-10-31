@@ -1061,15 +1061,10 @@ Com um fazendeiro e currais funcionais:
 Essas tarefas não abatem animais e não reduzem metas populacionais. Carne e couro permanecem fora desta etapa até existir política explícita de reserva mínima.
 
 
-## Laya como motor de decisão experimental
+## Motor de decisão por modelo (Julia-1, opcional)
 
-A branch experimental possui cliente Node, sidecar local Laya e suporte no
-`DecisionCoordinator`, mas **ainda não liga o modelo ao runtime real**. Nesta
-fase o Laya deve ser validado pelo Minecraft Decision Gauntlet, sem executar
-ações no mundo.
-
-Veja [`docs/LAYA_DECISION_ENGINE.md`](docs/LAYA_DECISION_ENGINE.md).
-
-Há também um shadow mode opcional (`MBOT_LAYA_SHADOW=1`) que observa decisões
-reais da colônia em paralelo e só registra logs — ele nunca decide nem
-executa nada. Veja [`docs/LAYA_SHADOW_MODE.md`](docs/LAYA_SHADOW_MODE.md).
+O padrão é a política determinística. A Julia-1 pode observar em shadow mode
+(`MBOT_JULIA_SHADOW=1`) ou escolher entre os candidatos do player loop com os
+guardrails ativos (`MBOT_JULIA_AUTHORITY=1`). Veja
+[`docs/JULIA_SHADOW_MODE.md`](docs/JULIA_SHADOW_MODE.md). Laya, Andy-4 e
+NanoAndy foram arquivados: [`docs/ARCHIVED_EXPERIMENTS.md`](docs/ARCHIVED_EXPERIMENTS.md).

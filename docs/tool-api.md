@@ -37,18 +37,7 @@ HTTP clients must use `localhost` or `127.0.0.1` at the actual bound port, send 
 
 Disconnect/removal detaches that worker's layer. SIGINT/SIGTERM and main-bot disconnect close HTTP connections and cancel API-owned actions. Shutdown waits briefly for actions/checkpoints to settle; still-running checkpoints are treated as interrupted at the next startup. Already submitted physical actions such as crafting cannot be rolled back.
 
-## Decision benchmark
-
-With decision servers running:
-
-```bash
-CONVERSA_DECISION_URL=http://127.0.0.1:8766/v1/minecraft/decision \
-JULIA_DECISION_URL=http://127.0.0.1:8767/v1/minecraft/decision \
-MBOT_GAUNTLET_OUT=.data/decision-gauntlet.json \
-node scripts/decision-gauntlet.js
-```
-
-The Tool API dispatches only to the deterministic worker executor. It does not call Julia or change model authority. This experimental branch also contains a separate Julia-authority opt-in; leave `MBOT_JULIA_AUTHORITY=0` when testing this API. Decision benchmarks do not grant API permissions.
+The Tool API dispatches only to the deterministic worker executor. It does not call Julia or change model authority. This experimental branch also contains a separate Julia-authority opt-in; leave `MBOT_JULIA_AUTHORITY=0` when testing this API. Benchmarks do not grant API permissions.
 
 A successful local/CI benchmark does not validate Minecraft runtime behavior. The final gate must be repeated on a real Java 1.20.1 server and must verify world/inventory effects.
 

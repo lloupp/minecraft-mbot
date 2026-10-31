@@ -1,6 +1,6 @@
 # Minecraft Player Loop Gauntlet V2
 
-Objetivo: testar o Laya como um jogador que reavalia continuamente o estado,
+Objetivo: testar um modelo (hoje a Julia-1) como um jogador que reavalia continuamente o estado,
 em vez de classificar uma decisão isolada.
 
 ## Modelo mental
@@ -42,9 +42,9 @@ Reações óbvias e críticas são determinísticas:
 
 Esses casos geram um único candidato e não consomem chamada do modelo.
 
-## O que o Laya decide
+## O que o modelo decide
 
-Quando existem alternativas razoáveis, o Laya escolhe uma intenção estratégica,
+Quando existem alternativas razoáveis, o modelo escolhe uma intenção estratégica,
 por exemplo:
 
 - preparar combate;
@@ -114,23 +114,21 @@ autônomo do servidor.
 
 ## Rodar
 
-Primeiro inicie o sidecar Laya:
+Primeiro inicie o sidecar da Julia-1 (ver `docs/JULIA_SHADOW_MODE.md`):
 
 ```bash
-USE_TF=0 python scripts/laya-decision-server.py
+JULIA_MODEL=<pasta-ou-id-do-modelo> python scripts/julia-decision-server.py
 ```
-
-Espere o warm-up terminar e o serviço anunciar `/decision, /choose`.
 
 Depois:
 
 ```bash
-LAYA_PLAYER_LOOP_URL=http://127.0.0.1:8765/choose \
+JULIA_PLAYER_LOOP_URL=http://127.0.0.1:8768/choose \
 MBOT_PLAYER_LOOP_OUT=.data/player-loop-v2.json \
 npm run gauntlet:player-loop
 ```
 
-Sem `LAYA_PLAYER_LOOP_URL`, o mesmo comando executa somente o baseline
+Sem `JULIA_PLAYER_LOOP_URL`, o mesmo comando executa somente o baseline
 determinístico e é usado pela CI.
 
 ## Próximo passo
@@ -138,7 +136,7 @@ determinístico e é usado pela CI.
 Somente se o V2 passar o gate, implementar shadow mode no runtime real:
 
 ```text
-estado real → candidatos reais → Laya escolhe → registrar escolha
+estado real → candidatos reais → modelo escolhe → registrar escolha
                                   ↓
                          NÃO executar escolha
                                   ↓

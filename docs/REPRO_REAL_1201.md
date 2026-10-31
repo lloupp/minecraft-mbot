@@ -19,7 +19,7 @@ Não é um simulador de entidades, mock do executor nem uma cena fabricada.
 - Ambos os braços executam `index.js` real: um controle com Tool API só para
   telemetria e outro com tarefas API sobre dois workers reais. A automação da
   colônia, ownership, `worker_busy`, `stop`, coleta e checkpoints são exercitados.
-- Julia/Laya/modelos ficam desligados; isto mede robustez física e concorrência,
+- Julia/modelos ficam desligados; isto mede robustez física e concorrência,
   **não** prova que uma IA já decide sozinha.
 
 ## Reproduzir em Linux/macOS
@@ -118,7 +118,7 @@ journalctl --user -u minecraft-mbot.service -f
 ```
 
 O arquivo de ambiente cria `MBOT_COLONY_AUTOSTART=1` e
-`MBOT_COMPANION_AUTOSTART=1`, com Julia/Laya sem autoridade, API externa
+`MBOT_COMPANION_AUTOSTART=1`, com Julia sem autoridade, API externa
 desligada e interfaces de rede desativadas por padrão. Reinício por
 `systemd` ocorre 30 s depois de o processo terminar; se o servidor ainda
 não estiver ligado, o serviço volta a tentar. Não ligue portas a

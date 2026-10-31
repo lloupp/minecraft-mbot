@@ -10,7 +10,7 @@ const {
 const scenarios = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../data/player-loop-gauntlet-v2.json'), 'utf8'))
 const REPEATS = Math.max(1, Math.min(100, Number(process.env.PLAYER_LOOP_REPEATS || 5)))
 const TIMEOUT_MS = Number(process.env.PLAYER_LOOP_TIMEOUT_MS || 4000)
-const MODEL_ENGINES = ['laya', 'julia', 'andy', 'nanoandy']
+const MODEL_ENGINES = ['julia']
 
 function endpoint(env, fallback) { return process.env[env] || fallback }
 function compactState(s) {
@@ -93,12 +93,9 @@ async function runPolicy(scenario, engine, choose) {
 
 async function run() {
   const urls = {
-    laya: endpoint('LAYA_PLAYER_LOOP_URL', process.env.LAYA_DECISION_URL?.replace(/\/decision\/?$/, '/choose')),
-    julia: endpoint('JULIA_PLAYER_LOOP_URL', process.env.JULIA_DECISION_URL?.replace(/\/decision\/?$/, '/choose')),
-    andy: endpoint('ANDY_PLAYER_LOOP_URL', null),
-    nanoandy: endpoint('NANOANDY_PLAYER_LOOP_URL', null)
+    julia: endpoint('JULIA_PLAYER_LOOP_URL', process.env.JULIA_DECISION_URL?.replace(/\/decision\/?$/, '/choose'))
   }
-  const results = { rules: [], laya: [], julia: [], andy: [], nanoandy: [] }
+  const results = { rules: [], julia: [] }
   for (let repeat = 0; repeat < REPEATS; repeat++) {
     for (const scenario of scenarios) {
       results.rules.push(await runPolicy(scenario, 'rules', async (state, candidates) => ({

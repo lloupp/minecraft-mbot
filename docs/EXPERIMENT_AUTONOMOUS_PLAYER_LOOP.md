@@ -10,7 +10,7 @@ Branch limpa baseada na `main`. Herda da antiga PR #78 (`experiment/julia-laya-a
 | #84 | Estabilidade do runtime: backoff por interrupção, `collectDrops` (fallback/nudge seguro), cancelamento preserva item entregue |
 | #85 | Guardrails determinísticos do player loop + runner pareado do Gauntlet V2 |
 | #86 | Julia-1 shadow (observe-only) |
-| #87 | Adaptadores de benchmark Andy-4 / NanoAndy |
+| #87 | Adaptadores de benchmark Andy-4 / NanoAndy (arquivados, ver `docs/ARCHIVED_EXPERIMENTS.md`) |
 Antes da #78: #72, #73, #74, #81, #83.
 
 ## Ainda experimental (este branch)
@@ -22,7 +22,6 @@ Antes da #78: #72, #73, #74, #81, #83.
 | Evidência de alvo alternativo / recuperação de gather | `gather.js` (campos de evidência), `summarizeGatherRecovery` | — |
 | Recuperação de drop com guarda de ownership | `collectDrops({ beforeMove })` | usado só pelo executor experimental |
 | **WorldMemory** (memória espacial persistente) | `lib/world-memory.js`, `lib/world-observer.js`, `docs/WORLD_MEMORY.md` | `MBOT_WORLD_MEMORY=1`, `MBOT_WORLD_MEMORY_GUIDE=1` |
-| Helper sem consumidor | `lib/parallel-shadow.js` | — |
 
 ## Evidências (índice em [EVIDENCE.md](EVIDENCE.md))
 As pastas saíram da árvore principal e estão no commit `b00cb6d`. Cada pasta tem README. Logs brutos grandes (>60 KB) foram omitidos daqui e listados em `OMITTED.txt`; ficam preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na

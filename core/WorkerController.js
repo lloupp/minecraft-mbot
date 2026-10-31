@@ -130,8 +130,8 @@ class WorkerController {
     this.storage = storage
     this.production = production
     this.logger = logger
-    // Shadow mode do Laya (opcional): só observa em paralelo, nunca decide
-    // nada aqui. Ver a chamada em run() e lib/laya-shadow.js.
+    // Shadow mode da Julia-1 (opcional): só observa em paralelo, nunca decide
+    // nada aqui. Ver a chamada em run() e lib/shadow-observer.js.
     this.shadow = shadow
     // Memória espacial compartilhada (conhecimento, nunca executor): o mundo real continua sendo a verdade.
     this.worldMemory = worldMemory
@@ -639,8 +639,8 @@ class WorkerController {
     })
   }
 
-  // Shadow mode do Laya: só observa, nunca decide. Nunca lança e nunca é
-  // `await`ado por run() — ver lib/laya-shadow.js para as garantias.
+  // Shadow mode: só observa, nunca decide. Nunca lança e nunca é
+  // `await`ado por run() — ver lib/shadow-observer.js para as garantias.
   _observeShadow(task, isCancelled, taskPromise) {
     try { if (!this.shadow?.enabled?.()) return } catch { return }
     // Retomada: a tarefa anterior foi interrompida (ainda rodava quando esta
@@ -666,7 +666,7 @@ class WorkerController {
       this._shadowPrev = entry
       this._shadowFailureEntry = entry
     } catch (error) {
-      this.logger.log?.(`[laya-shadow] ${this.name}: falha ao registrar linhagem: ${error.message}`)
+      this.logger.log?.(`[shadow] ${this.name}: falha ao registrar linhagem: ${error.message}`)
       return
     }
     try {
@@ -687,7 +687,7 @@ class WorkerController {
         })
       }
     } catch (error) {
-      this.logger.log?.(`[laya-shadow] ${this.name}: falha ao preparar observação: ${error.message}`)
+      this.logger.log?.(`[shadow] ${this.name}: falha ao preparar observação: ${error.message}`)
     }
 
     taskPromise.then(

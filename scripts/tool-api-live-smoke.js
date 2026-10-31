@@ -67,7 +67,7 @@ async function main() {
       ...inherited, MINECRAFT_VERSION: '1.20.1', MINECRAFT_BOT_NAME: 'tool_main', MINECRAFT_OWNER: 'absent_smoke_owner',
       MBOT_TOOL_API: enabled ? '1' : '0', MBOT_TOOL_API_PORT: String(apiPort), MBOT_TASK_CHECKPOINT_FILE: checkpointFile,
       COLONY_STATE_FILE: stateFile, MEMORY_FILE: path.join(appDir, 'memory.json'), COLONY_EVENT_LOG: path.join(appDir, 'events.jsonl'),
-      MBOT_JULIA_AUTHORITY: '0', MBOT_JULIA_SHADOW: '0', MBOT_LAYA_SHADOW: '0', MBOT_WORLD_MEMORY: '0', MBOT_EXPLORE_PREPARATION: '0', MBOT_DETERMINISTIC_PREPARATION: '0', MBOT_PLUGINS: '0', MBOT_VIEWER_PORT: '0', MBOT_INVENTORY_PORT: '0', MBOT_DASHBOARD: '0', STATUS_SERVER: '0', MINECRAFT_LAN_ANNOUNCE: '0'
+      MBOT_JULIA_AUTHORITY: '0', MBOT_JULIA_SHADOW: '0', MBOT_WORLD_MEMORY: '0', MBOT_EXPLORE_PREPARATION: '0', MBOT_DETERMINISTIC_PREPARATION: '0', MBOT_PLUGINS: '0', MBOT_VIEWER_PORT: '0', MBOT_INVENTORY_PORT: '0', MBOT_DASHBOARD: '0', STATUS_SERVER: '0', MINECRAFT_LAN_ANNOUNCE: '0'
     } })
     app.stdout.on('data', chunk => { appLog += chunk })
     app.stderr.on('data', chunk => { appLog += chunk })

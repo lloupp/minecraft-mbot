@@ -1,9 +1,9 @@
 # Shadow mode da Julia-1
 
 A Julia-1 observa as decisões reais do runtime **sem autoridade de execução**.
-É o mesmo padrão do Laya (`docs/LAYA_SHADOW_MODE.md`): `lib/julia-shadow.js`
-estende `LayaShadowObserver`, herdando fire-and-forget, timeout, limite de
-concorrência, disjuntor e validação da escolha contra a máscara de candidatos.
+`lib/julia-shadow.js` estende `ShadowObserver` (`lib/shadow-observer.js`),
+herdando fire-and-forget, timeout, limite de concorrência, disjuntor e
+validação da escolha contra a máscara de candidatos.
 
 ## Como ligar
 
@@ -14,7 +14,7 @@ JULIA_MODEL=<pasta-ou-id-do-modelo> python scripts/julia-decision-server.py
 MBOT_JULIA_SHADOW=1 JULIA_PLAYER_LOOP_URL=http://127.0.0.1:8768/choose npm start
 ```
 
-Desligado por padrão. Laya e Julia são independentes (`lib/shadow-fanout.js`).
+Desligado por padrão.
 
 ## Garantias
 
@@ -43,7 +43,7 @@ estado registrado), `wouldAbandonObjective`/`unjustifiedAbandon`,
 
 ## Concorrência, aquecimento e reinício
 
-- `JULIA_SHADOW_MAX_CONCURRENT` (padrão 1, herdado do Laya) **descarta** decisões
+- `JULIA_SHADOW_MAX_CONCURRENT` (padrão 1) **descarta** decisões
   que chegam com uma chamada em voo. Com vários workers despachando juntos isso
   derrubou a disponibilidade para ~65 % numa sessão real; com `=4` foi 100 %
   (o sidecar serializa, então o excesso vira fila curta). Use 4 com 5+ workers.
