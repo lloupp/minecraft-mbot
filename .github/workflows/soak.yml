@@ -1,0 +1,86 @@
+name: Soak real (Minecraft 1.20.1)
+
+# Roda o bot de verdade contra o servidor vanilla oficial e reprova por
+# comportamento (scripts/soak-gate.js): mortes, worker parado, nenhum trabalho.
+on:
+  schedule:
+    - cron: '17 5 * * *'   # toda noite: 5 min por braço, noite acelerada
+    - cron: '43 6 * * 0'   # domingo: 20 min por braço, ciclo natural
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: Duração por braço (s)
+        default: '300'
+      night_mode:
+        description: accelerated | natural
+        default: accelerated
+
+permissions:
+  contents: read
+
+concurrency:
+  group: soak
+  cancel-in-progress: false
+
+jobs:
+  soak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Escolher duração
+        id: plan
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "seconds=${{ inputs.seconds }}" >> "$GITHUB_OUTPUT"
+            echo "night=${{ inputs.night_mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "43 6 * * 0" ]; then
+            echo "seconds=1200" >> "$GITHUB_OUTPUT"
+            echo "night=natural" >> "$GITHUB_OUTPUT"
+          else
+            echo "seconds=300" >> "$GITHUB_OUTPUT"
+            echo "night=accelerated" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/cache@v4
+        with:
+          path: .cache/vanilla-1.20.1.jar
+          key: vanilla-server-1.20.1
+      - name: Baixar Minecraft 1.20.1 oficial (SHA-1 conferido)
+        run: test -f .cache/vanilla-1.20.1.jar || python3 scripts/download-vanilla-server.py --version 1.20.1 --output .cache/vanilla-1.20.1.jar
+      - name: Soak com servidor real e dois workers
+        env:
+          MBOT_TEST_SERVER_JAR: .cache/vanilla-1.20.1.jar
+          MBOT_TEST_EULA_ACCEPTED: '1'
+          MBOT_SOAK_SECONDS: ${{ steps.plan.outputs.seconds }}
+          MBOT_SOAK_SEED: '42'
+          MBOT_SOAK_NIGHT_MODE: ${{ steps.plan.outputs.night }}
+          MBOT_SOAK_AUTONOMOUS: '1'
+          MBOT_SOAK_OUTPUT_DIR: e2e-evidence
+        # O gate abaixo decide; um soak que quebra no meio também reprova lá.
+        run: node scripts/tool-api-natural-soak.js || echo "soak terminou com erro; o gate avalia o report"
+      - name: Gate de comportamento
+        run: node scripts/soak-gate.js e2e-evidence
+      - name: Guardar evidências (inclusive de falhas; nunca o mundo nem o jar)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minecraft-soak-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            e2e-evidence/report.json
+            e2e-evidence/*-samples.jsonl
+            e2e-evidence/*-app.log
+            e2e-evidence/*-server.log
+            e2e-evidence/*-observer.log
+            e2e-evidence/*/checkpoints.json
+            e2e-evidence/*/events.jsonl
