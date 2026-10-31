@@ -1,3 +1,4 @@
+// @ts-check
 // core/worker/construction.js
 // Obras: casa, fazenda, mina e regiões de planta (blueprint).
 // Métodos do WorkerController (aplicados ao prototype em core/WorkerController.js).
@@ -10,6 +11,7 @@ const { buildBlueprint } = require('../../lib/blueprintBuilder')
 const { sleep } = require('./shared')
 
 class ConstructionBehavior {
+  /** @this {import('./shared').Worker} */
   buildingMaterials() {
     const allowed = new Set(this.storage?.buildingMaterialNames?.() || [
       'cobblestone', 'stone', 'deepslate', 'cobbled_deepslate',
@@ -22,10 +24,12 @@ class ConstructionBehavior {
       .sort((a, b) => b.count - a.count)
   }
 
+  /** @this {import('./shared').Worker} */
   buildingMaterial(minimum = 23) {
     return this.buildingMaterials().find((item) => item.count >= minimum) || null
   }
 
+  /** @this {import('./shared').Worker} */
   async placeAt(position, material, isCancelled) {
     if (isCancelled()) return false
     const current = this.bot.blockAt(position)
@@ -52,6 +56,7 @@ class ConstructionBehavior {
   }
 
 
+  /** @this {import('./shared').Worker} */
   async ensureHoe() {
     let hoe = this.bot.inventory.items().find((item) => item.name.endsWith('_hoe'))
     if (hoe) return hoe
@@ -75,6 +80,7 @@ class ConstructionBehavior {
     return null
   }
 
+  /** @this {import('./shared').Worker} */
   async ensureWaterAt(position, isCancelled) {
     const existing = this.bot.blockAt(position)
     if (existing?.name === 'water') return true
@@ -115,6 +121,7 @@ class ConstructionBehavior {
     return this.bot.blockAt(position)?.name === 'water'
   }
 
+  /** @this {import('./shared').Worker} */
   async farmSeedStack() {
     const names = ['wheat_seeds', 'carrot', 'potato', 'beetroot_seeds']
     let item = this.bot.inventory.items().find((entry) => names.includes(entry.name))
@@ -132,6 +139,7 @@ class ConstructionBehavior {
     return null
   }
 
+  /** @this {import('./shared').Worker} */
   async buildFarm(isCancelled, offset = null) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
@@ -220,6 +228,7 @@ class ConstructionBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async buildMine(isCancelled, length = 12) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
@@ -302,6 +311,7 @@ class ConstructionBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async buildHouse(isCancelled, offset = null) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')
@@ -361,6 +371,7 @@ class ConstructionBehavior {
 
   // Constrói a fatia `task.region` da planta `task.planta` com origem em
   // `task.origin`, levando do estoque central o material da fatia.
+  /** @this {import('./shared').Worker} */
   async buildBlueprintRegion(isCancelled, task) {
     if (!task.planta || !task.origin) throw new Error('ordem de planta sem nome ou origem')
     const plan = await blueprint.loadBlueprint(task.planta, { version: this.bot.version || blueprint.DEFAULT_VERSION })
@@ -423,6 +434,7 @@ class ConstructionBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   blockMatches(origin, step) {
     const block = this.bot.blockAt(new Vec3(origin.x + step.x, origin.y + step.y, origin.z + step.z))
     return block?.name === step.name

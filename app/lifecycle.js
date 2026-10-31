@@ -1,3 +1,4 @@
+// @ts-check
 // app/lifecycle.js
 // Entrada no mundo (log e restauração da colônia salva), sinais do sistema e
 // queda da conexão. Queda inesperada sai com código 1 para o supervisor

@@ -1,3 +1,4 @@
+// @ts-check
 const { stockMetrics } = require('./DemandPlanner')
 
 const PROJECT_DEFINITIONS = {

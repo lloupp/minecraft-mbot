@@ -1,3 +1,4 @@
+// @ts-check
 // app/dashboard.js
 // Painel de testes local (MBOT_DASHBOARD=1, só 127.0.0.1) e o contexto dos
 // cenários do RunVerifier: só ações já existentes, com o bot real.

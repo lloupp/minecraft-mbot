@@ -1,3 +1,4 @@
+// @ts-check
 const MAX_WAYPOINTS = 64
 
 function normalizeWaypointName(value) {

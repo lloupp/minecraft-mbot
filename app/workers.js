@@ -1,3 +1,4 @@
+// @ts-check
 // app/workers.js
 // Criação dos bots auxiliares da colônia e reforço de workers por projeto.
 

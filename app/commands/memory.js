@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/memory.js
 // Memória do dono: lugares, preferências, anotações e "onde fica".
 

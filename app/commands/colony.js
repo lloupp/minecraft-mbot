@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/colony.js
 // Comandos da colônia: resumo, modo automático, ordens, workers e smoke test.
 

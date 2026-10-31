@@ -1,3 +1,4 @@
+// @ts-check
 // core/worker/player-loop.js
 // Player loop do explorador e preparação determinística (staging local, retorno ao sítio).
 // Métodos do WorkerController (aplicados ao prototype em core/WorkerController.js).
@@ -14,6 +15,7 @@ const { preparationRadius, preparationIntegrationPreflight, preparationIntegrati
 const { HUNGRY, FLEE_DISTANCE, PREPARATION_SITE_TTL_MS, PREPARATION_SITE_MAX_DISTANCE, PREPARATION_STAGING_MAX_DISTANCE, PREPARATION_STAGING_SAFETY_POLL_MS, EXPLORE_FAR_MARGIN, FAILED_HUNT_MS, BASE_UNREACHABLE_MS, SHELTER_BLOCKED_MS, INVENTORY_DESYNC, COOKABLE, PHYSICAL_PREPARATION_REFUSALS, travelTimeoutMs } = require('./shared')
 
 class PlayerLoopBehavior {
+  /** @this {import('./shared').Worker} */
   nearbyPreparationAllowlist(maxDistance = preparationRadius(), maxTargets = 32) {
     if (typeof this.bot.findBlocks !== 'function') return []
     const blocks = this.bot.registry?.blocksArray || []
@@ -47,6 +49,7 @@ class PlayerLoopBehavior {
 
   // Depois de uma ameaça interromper a preparação, a defesa pode deslocar o bot para fora da janela
   // local. Uma única volta ao local validado (nunca busca nova); o resto é reavaliado pelo snapshot real.
+  /** @this {import('./shared').Worker} */
   async returnToPreparationSite(task, isCancelled) {
     const site = this._preparationSite
     if (!site || isCancelled()) return
@@ -62,6 +65,7 @@ class PlayerLoopBehavior {
     } catch { /* sem caminho: segue com o snapshot real da posição atual */ }
   }
 
+  /** @this {import('./shared').Worker} */
   async tryLocalPreparationStaging(isCancelled) {
     if (isCancelled() || !this.production?.findCraftingTable || !this.bot?.entity?.position) return false
 
@@ -132,6 +136,7 @@ class PlayerLoopBehavior {
     return this.bot.entity.position.distanceTo(table.position) <= 2
   }
 
+  /** @this {import('./shared').Worker} */
   async runExplorePlayerLoop(task, isCancelled) {
     if (!this.juliaAuthority?.enabled?.()) return this._runExplorePlayerLoop(task, isCancelled)
     let result = null
@@ -147,11 +152,13 @@ class PlayerLoopBehavior {
   }
 
   // Escolha do player loop: Julia (se autorizada) entre os candidatos dados, senão a política determinística.
+  /** @this {import('./shared').Worker} */
   async _playerLoopChoice(state, candidates, isCancelled) {
     if (!this.juliaAuthority?.enabled?.()) return { choice: deterministicPlayerPolicy(state, candidates), source: 'deterministic' }
     return this.juliaAuthority.decide({ state, candidates, isCancelled, meta: { worker: this.name, taskVersion: this.taskVersion } })
   }
 
+  /** @this {import('./shared').Worker} */
   _settleJuliaDecision(task, result, action = null) {
     if (!this.juliaAuthority?.enabled?.()) return
     let nextState = null
@@ -162,6 +169,7 @@ class PlayerLoopBehavior {
     this.juliaAuthority.settle(this.name, { action: executed, result, nextState })
   }
 
+  /** @this {import('./shared').Worker} */
   async _runExplorePlayerLoop(task, isCancelled) {
     if (process.env.MBOT_EXPLORE_PREPARATION !== '1') {
       return this.explore(task.radius || 64, isCancelled, task.center || null)

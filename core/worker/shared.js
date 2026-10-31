@@ -1,3 +1,4 @@
+// @ts-check
 // core/worker/shared.js
 // Constantes e funções usadas por vários comportamentos do WorkerController.
 
@@ -103,5 +104,16 @@ function protectPenBlocks(moves, registry) {
   }
   return moves
 }
+
+/**
+ * O WorkerController com todos os comportamentos de core/worker/ aplicados.
+ * @typedef {import('../WorkerController').WorkerController
+ *   & import('./survival').SurvivalBehavior
+ *   & import('./pens').PensBehavior
+ *   & import('./player-loop').PlayerLoopBehavior
+ *   & import('./exploration').ExplorationBehavior
+ *   & import('./navigation').NavigationBehavior
+ *   & import('./construction').ConstructionBehavior} Worker
+ */
 
 module.exports = { sleep, HUNGRY, FLEE_DISTANCE, FLEE_MS, CREEPER_RANGE, NATURAL_TERRAIN, PATH_TICK_MS, PATH_THINK_MS, MS_PER_BLOCK, POINT_ARRIVAL_RADIUS, PREPARATION_SITE_TTL_MS, PREPARATION_SITE_MAX_DISTANCE, PREPARATION_STAGING_MAX_DISTANCE, PREPARATION_STAGING_SAFETY_POLL_MS, EXPLORE_FAR_MARGIN, BASE_BED_TRAVEL, NO_PROGRESS_MS, NO_PROGRESS_RADIUS, NO_PROGRESS_IDLE_RESET_MS, THREAT_IGNORE_MS, FAILED_HUNT_MS, BASE_UNREACHABLE_MS, SHELTER_BLOCKED_MS, DEATH_DROPS_MS, INVENTORY_DESYNC, COOKABLE, DEATH_DROPS_RANGE, DIG_ESCAPE_MS, GOTO_REJECTED_MOVES, UNREACHED_MOVE, PHYSICAL_PREPARATION_REFUSALS, NAVIGATION_POSITION_NOT_CONFIRMED, travelTimeoutMs, summarizeGatherRecovery, shadowObjectiveKey, protectPenBlocks }

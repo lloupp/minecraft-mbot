@@ -1,3 +1,4 @@
+// @ts-check
 // core/worker/exploration.js
 // Exploração, memória do mundo e fatos de cama/comida/ovelha para o player loop.
 // Métodos do WorkerController (aplicados ao prototype em core/WorkerController.js).
@@ -17,6 +18,7 @@ class ExplorationBehavior {
   // Superfície caminhável em (x, z) perto de nearY a partir dos chunks já carregados. Água/lava na superfície
   // (oceano, lago) ou nenhum chão => inválido; copas de árvore são atravessadas até o chão. unknown: chunk
   // não carregado (mantém o alvo original).
+  /** @this {import('./shared').Worker} */
   surfaceAt(x, z, nearY) {
     const top = Math.floor(nearY) + 24
     for (let y = top; y >= Math.floor(nearY) - 32; y--) {
@@ -29,10 +31,12 @@ class ExplorationBehavior {
   }
 
   // ---------- memória espacial (conhecimento; nada aqui autoriza ação) ----------
+  /** @this {import('./shared').Worker} */
   memoryGuideOn() {
     return Boolean(this.worldMemory) && process.env.MBOT_WORLD_MEMORY_GUIDE === '1'
   }
 
+  /** @this {import('./shared').Worker} */
   observeWorld() {
     if (!this.worldMemory) return null
     try {
@@ -44,6 +48,7 @@ class ExplorationBehavior {
   }
 
   // Vai até uma lembrança e CONFERE no mundo real. Só devolve present=true se o mundo confirmou.
+  /** @this {import('./shared').Worker} */
   async approachRemembered(place, isCancelled, { radius = 3 } = {}) {
     const memory = this.worldMemory
     const from = this.bot.entity?.position
@@ -64,6 +69,7 @@ class ExplorationBehavior {
 
   // Lembrança de mesa+madeira+pedra: navega até a mesa conhecida; depois o fluxo normal (snapshot real,
   // preflight físico, executor) decide tudo. Uma única viagem por tarefa.
+  /** @this {import('./shared').Worker} */
   async tryRememberedPreparationSite(isCancelled) {
     if (!this.memoryGuideOn() || !this.bot.entity?.position) return false
     const dim = worldObserver.dimensionOf(this.bot)
@@ -80,6 +86,7 @@ class ExplorationBehavior {
 
   // Recurso não está à vista: usa a memória só para decidir ONDE olhar; a coleta segue pelo mesmo
   // caminho real (findBlocks + cavar + confirmação de inventário). Até 2 hipóteses por tarefa.
+  /** @this {import('./shared').Worker} */
   async rememberedResourceDetour(kind, isCancelled) {
     const memory = this.worldMemory
     const dim = worldObserver.dimensionOf(this.bot)
@@ -98,6 +105,7 @@ class ExplorationBehavior {
 
   // Destino de exploração: com a flag, a memória escolhe entre os pontos do anel clássico o menos visitado.
   // Memória vazia (ou flag desligada) mantém exatamente o padrão geométrico.
+  /** @this {import('./shared').Worker} */
   exploreCandidates(home, radius, y) {
     const directions = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
     const out = []
@@ -117,6 +125,7 @@ class ExplorationBehavior {
     return out
   }
 
+  /** @this {import('./shared').Worker} */
   async explore(radius, isCancelled, center = null, { groundAware = false } = {}) {
     const home = center || this.homeProvider?.()
     if (!home) throw new Error('base/centro de exploração ainda não definido')
@@ -192,6 +201,7 @@ class ExplorationBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async exploreTo({ x, y, z, distance }, isCancelled, { memory = null, dim = 'overworld', digEscape = false } = {}) {
 
     const target = { x, y, z, radius: distance }
@@ -244,6 +254,7 @@ class ExplorationBehavior {
 
   // Percepção da cama da base (só fatos do mundo): existe? há material? ovelha alcançável à vista? À noite, a cama da
   // base a até BASE_BED_TRAVEL conta como abrigo executável.
+  /** @this {import('./shared').Worker} */
   bedFacts(state) {
     const home = this.homeProvider?.()
     if (!state || !home || !this.bot.entity?.position) return
@@ -288,6 +299,7 @@ class ExplorationBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   nearestSheep() {
     const position = this.bot.entity?.position
     if (!position || typeof this.bot.nearestEntity !== 'function') return null
@@ -304,6 +316,7 @@ class ExplorationBehavior {
     return this.bot.nearestEntity(usable(wanted || 'white_wool')) || (wanted ? null : this.bot.nearestEntity(usable(null))) || null
   }
 
+  /** @this {import('./shared').Worker} */
   rememberedSheep() {
     if (!this.worldMemory || !this.memoryGuideOn() || !this.bot.entity?.position) return null
     const wanted = bedLib.wantedWool(this.bot)
@@ -320,6 +333,7 @@ class ExplorationBehavior {
     return nearest(['sheep:white_wool']) || nearest(bedLib.WOOL_COLORS.map((c) => `sheep:${c}_wool`))
   }
 
+  /** @this {import('./shared').Worker} */
   async makeBaseBed(isCancelled, remembered = null) {
     if (!bedLib.hasBedMaterials(this.bot)) {
       let sheep = this.nearestSheep()
@@ -367,6 +381,7 @@ class ExplorationBehavior {
 
   // Com fome, sem comida e sem nada caçável a 48 blocos: um rebanho lembrado (WorldMemory, até 160) conta como comida
   // alcançável. Só percepção; a ida e a caça são confirmadas no mundo e a lembrança é invalidada se não houver animal.
+  /** @this {import('./shared').Worker} */
   rememberedFoodHint(state) {
     if (!this.memoryGuideOn() || state?.nearby?.food || Number(state?.food) > 8 || !this.bot.entity?.position) return null
     if (Object.keys(state.inventory || {}).some((name) => this.bot.registry?.foodsByName?.[name])) return null
@@ -380,6 +395,7 @@ class ExplorationBehavior {
     return state.nearby.foodRemembered
   }
 
+  /** @this {import('./shared').Worker} */
   async huntRememberedFood(place, hunt, isCancelled) {
     const goal = new goals.GoalNear(place.x, place.y, place.z, 6)
     try {
@@ -392,6 +408,7 @@ class ExplorationBehavior {
     const gathered = await hunt()
     // Só conta animal que o executor caçaria (poupa os últimos de cada espécie). Visto no Minecraft: rebanho lembrado com
     // 2 galinhas poupadas nunca era invalidado ('caça=nada animais=true') e o explorador voltava lá 57 vezes.
+    /** @type {boolean} */
     let animalsHere = false
     try {
       const here = this.bot.entity.position

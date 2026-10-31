@@ -1,3 +1,4 @@
+// @ts-check
 // core/Clarifier.js
 // Perguntas de esclarecimento: o bot pergunta curto no chat, com opções
 // numeradas, e a PRÓXIMA mensagem do dono vira a resposta (número ou nome).
@@ -19,6 +20,7 @@ const norm = (value) => String(value || '')
 const optionName = (label) => norm(label).replace(/\s*[([].*$/, '').trim()
 
 class Clarifier {
+  /** @param {{ say?: (text: string) => void, timeoutMs?: number }} [options] */
   constructor({ say = () => {}, timeoutMs = TIMEOUT_MS } = {}) {
     this.say = say
     this.timeoutMs = timeoutMs

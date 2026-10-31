@@ -1,3 +1,4 @@
+// @ts-check
 // app/places.js
 // Lugares conhecidos (waypoints + memória) e resolução de referências ditas
 // no chat ("casa", "ferro"), perguntando ao dono quando há ambiguidade.

@@ -1,3 +1,4 @@
+// @ts-check
 // app/persistence.js
 // Salva o estado da colônia (debounce de 250 ms para mudanças e um salvamento
 // periódico). `companionAuto` é lido na hora: o companheiro nasce depois.

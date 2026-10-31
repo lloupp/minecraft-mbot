@@ -1,3 +1,4 @@
+// @ts-check
 // core/worker/survival.js
 // Sobrevivência do worker: comer, fugir, lutar, sair de soterramento/água, vigia de progresso.
 // Métodos do WorkerController (aplicados ao prototype em core/WorkerController.js).
@@ -10,6 +11,7 @@ const { sleep, HUNGRY, FLEE_DISTANCE, FLEE_MS, CREEPER_RANGE, NO_PROGRESS_MS, NO
 
 class SurvivalBehavior {
   // Sobrevivência entre e durante tarefas: come quando tem fome e foge de creepers.
+  /** @this {import('./shared').Worker} */
   survivalTick() {
     if (!this.bot.entity || this.defending) return
     const creeper = this.bot.nearestEntity((e) => combat.EXPLOSIVE.has(e.name) &&
@@ -27,6 +29,7 @@ class SurvivalBehavior {
 
   // Vigia genérico de falta de progresso: não decide nada sobre o jogo, só registra o que o worker fazia e o libera
   // (cancel → ocioso; quem dá tarefas assume de novo, com estado novo).
+  /** @this {import('./shared').Worker} */
   progressTick(now = Date.now()) {
     const position = this.bot.entity?.position
     if (!position || this._sheltered || this.bot.isSleeping) {
@@ -56,6 +59,7 @@ class SurvivalBehavior {
   }
 
   // Bloco sólido e cavável na altura dos olhos: o bot está sufocando.
+  /** @this {import('./shared').Worker} */
   headBlock() {
     const position = this.bot.entity?.position
     if (!position) return null
@@ -63,6 +67,7 @@ class SurvivalBehavior {
     return block && block.boundingBox === 'block' && block.diggable !== false ? block : null
   }
 
+  /** @this {import('./shared').Worker} */
   async digOut() {
     if (this.diggingOut) return
     this.diggingOut = true
@@ -84,6 +89,7 @@ class SurvivalBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async eat() {
     if (this.eating || !food.hasFood(this.bot)) return null
     this.eating = true
@@ -98,6 +104,7 @@ class SurvivalBehavior {
 
   // Luta ou foge (conforme combat.decide). Cancela a tarefa atual; o modo
   // automático vê o worker ocupado ('defendendo') e só redistribui depois.
+  /** @this {import('./shared').Worker} */
   async defend(attacker) {
     const bot = this.bot
     const living = attacker && attacker !== bot.entity && attacker.isValid !== false
@@ -147,6 +154,7 @@ class SurvivalBehavior {
   }
 
   // Chão firme mais próximo fora d'água (até 16 blocos): bloco sólido com 2 de ar livre (sem líquido) em cima.
+  /** @this {import('./shared').Worker} */
   dryLand(radius = 16) {
     const here = this.bot.entity.position.floored()
     const free = (b) => b && b.boundingBox === 'empty' && !['water', 'lava', 'bubble_column'].includes(b.name)
@@ -165,6 +173,7 @@ class SurvivalBehavior {
     return null
   }
 
+  /** @this {import('./shared').Worker} */
   async escapeWater(isCancelled) {
     const land = this.dryLand()
     this.bot.setControlState?.('jump', true)
@@ -177,25 +186,30 @@ class SurvivalBehavior {
     return !this.bot.entity?.isInWater
   }
 
+  /** @this {import('./shared').Worker} */
   async flee(threat, isCancelled) {
     this.bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(threat, FLEE_DISTANCE)), true)
     const until = Date.now() + FLEE_MS
     while (Date.now() < until && !isCancelled()) await sleep(200)
   }
 
+  /** @this {import('./shared').Worker} */
   hostileNear(range = 16) {
     const position = this.bot.entity?.position
     return Boolean(position && this.bot.nearestEntity?.((e) => e?.type === 'hostile' && e.position?.distanceTo(position) <= range))
   }
 
+  /** @this {import('./shared').Worker} */
   huntFailed(entity) {
     return this._failedHunts?.get(entity?.id) > Date.now()
   }
 
+  /** @this {import('./shared').Worker} */
   ignoreThreat(entity, ms = THREAT_IGNORE_MS) {
     if (entity?.id != null) (this._ignoredThreats ||= new Map()).set(entity.id, Date.now() + ms)
   }
 
+  /** @this {import('./shared').Worker} */
   threatIgnored(entity) {
     const until = this._ignoredThreats?.get(entity?.id)
     if (!until) return false

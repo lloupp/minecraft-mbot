@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/projects.js
 // Projetos da colônia (casa, fazenda, mina, vila, planta) e construção.
 

@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/parse.js
 
 // Quantidade dita no chat, limitada a 1..64.

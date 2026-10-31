@@ -1,3 +1,4 @@
+// @ts-check
 const RESOURCE_ALIASES = {
   ferro: ['iron_ore', 'deepslate_iron_ore'],
   iron: ['iron_ore', 'deepslate_iron_ore'],

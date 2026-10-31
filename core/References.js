@@ -1,3 +1,4 @@
+// @ts-check
 // core/References.js
 // Resolve referências do jogador ("casa", "ferro") para algo concreto. Quando
 // há mais de uma leitura possível, devolve as opções para o bot PERGUNTAR em

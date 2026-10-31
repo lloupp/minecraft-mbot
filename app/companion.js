@@ -1,3 +1,4 @@
+// @ts-check
 // app/companion.js
 // O bot principal como companheiro do dono: segue, foge, luta, come, passa a
 // noite, executa tarefas longas (uma por vez, canceláveis) e o modo autônomo.

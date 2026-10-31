@@ -11,7 +11,10 @@
     "gauntlet:player-loop": "node scripts/player-loop-gauntlet-v2.js",
     "julia-shadow:report": "node scripts/julia-shadow-report.js",
     "serve:julia": "python3 scripts/julia-decision-server.py",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc -p .",
+    "mcp": "node scripts/mcp-server.js",
+    "soak:gate": "node scripts/soak-gate.js"
   },
   "keywords": [
     "minecraft",
@@ -46,7 +49,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
     "eslint": "^10.14.0",
-    "globals": "^17.13.0"
+    "globals": "^17.13.0",
+    "typescript": "^5.9.3"
   }
 }

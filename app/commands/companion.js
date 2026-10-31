@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/companion.js
 // Comandos do companheiro (seguir, ficar, comer, lutar, minerar...) e de
 // diagnóstico. Os argumentos chegam em minúsculas, como no chat original.

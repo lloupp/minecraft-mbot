@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/production.js
 // Estoque central, fabricação e consulta de itens/receitas.
 

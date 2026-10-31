@@ -1,3 +1,4 @@
+// @ts-check
 const { goals } = require('mineflayer-pathfinder')
 const { Vec3 } = require('vec3')
 
@@ -172,6 +173,7 @@ class StorageManager {
     // Um bot faz uma operação de baú por vez: duas ao mesmo tempo trocariam o
     // objetivo do pathfinder uma da outra ("The goal was changed...").
     const previousOwn = this._botQueues.get(bot) || Promise.resolve()
+    /** @type {(value?: any) => void} */
     let releaseOwn
     const own = new Promise((resolve) => { releaseOwn = resolve })
     this._botQueues.set(bot, own)
@@ -186,6 +188,7 @@ class StorageManager {
       await this.goNear(bot, this.position)
 
       const previous = this._lock
+      /** @type {(value?: any) => void} */
       let release
       this._lock = new Promise((resolve) => { release = resolve })
       await previous

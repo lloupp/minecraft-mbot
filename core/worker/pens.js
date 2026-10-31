@@ -1,3 +1,4 @@
+// @ts-check
 // core/worker/pens.js
 // Currais e animais: construir, entrar/sair, portão, atrair, capturar, reproduzir, produtos.
 // Métodos do WorkerController (aplicados ao prototype em core/WorkerController.js).
@@ -12,6 +13,7 @@ const { sleep, NATURAL_TERRAIN } = require('./shared')
 
 class PensBehavior {
   // Currais construídos (com portão) em volta da base.
+  /** @this {import('./shared').Worker} */
   builtPens() {
     const home = this.homeProvider?.()
     if (!home) return []
@@ -20,6 +22,7 @@ class PensBehavior {
       .filter((plan) => inspectAnimalPen(this.bot, plan).gatePresent)
   }
 
+  /** @this {import('./shared').Worker} */
   async farm(count, isCancelled) {
     // Os animais do curral são o rebanho: caçar comida não pode abatê-los
     // (visto no 1.20.1: !colonia auto esvaziou o curral de vacas com meta 6).
@@ -37,6 +40,7 @@ class PensBehavior {
     return { ok: gathered > 0, gathered, requested: count, resource: 'comida', exhausted: gathered < count, deposited }
   }
 
+  /** @this {import('./shared').Worker} */
   penContext(species) {
     const canonical = husbandry.normalizeSpecies(species) || species
     const home = this.homeProvider?.()
@@ -47,6 +51,7 @@ class PensBehavior {
   }
 
   // Limita a seleção de animais aos que estão dentro do curral.
+  /** @this {import('./shared').Worker} */
   penScope(pen) {
     return {
       center: new Vec3(pen.plan.center.x, pen.plan.center.y, pen.plan.center.z),
@@ -57,12 +62,14 @@ class PensBehavior {
 
   // Busca a ração ANTES de entrar no curral: lá dentro, ir ao baú faria o
   // pathfinder abrir caminho pela cerca (o portão fica fechado atrás do bot).
+  /** @this {import('./shared').Worker} */
   async penFeed(canonical, count) {
     const config = husbandry.SPECIES[canonical]
     if (!config || count < 2) return null
     return husbandry.ensureFeed(this.bot, config, count, this.storage)
   }
 
+  /** @this {import('./shared').Worker} */
   penPopulation(species) {
     const pen = this.penContext(species)
     if (!pen) return { species, built: false, inside: 0, status: null }
@@ -75,6 +82,7 @@ class PensBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async breedAnimals(species, pairs, isCancelled) {
     const pen = this.penContext(species)
     if (!pen?.status?.built) {
@@ -95,6 +103,7 @@ class PensBehavior {
       husbandry.breed(this.bot, species, pairs, isCancelled, scope))
   }
 
+  /** @this {import('./shared').Worker} */
   async shearSheep(count, isCancelled) {
     return husbandry.shearSheep(this.bot, count, isCancelled, {
       storage: this.storage,
@@ -102,6 +111,7 @@ class PensBehavior {
     })
   }
 
+  /** @this {import('./shared').Worker} */
   async collectAnimalProduct(product, count, isCancelled) {
     const normalized = animalProducts.normalizeProduct(product)
     if (!normalized) throw new Error(`produto animal desconhecido: ${product}`)
@@ -150,6 +160,7 @@ class PensBehavior {
     throw new Error(`produto animal sem executor: ${normalized}`)
   }
 
+  /** @this {import('./shared').Worker} */
   async manageAnimalPopulation(species, target, isCancelled) {
     const pen = this.penContext(species)
     if (!pen?.status?.built) {
@@ -175,6 +186,7 @@ class PensBehavior {
     return { ...result, penScoped: true }
   }
 
+  /** @this {import('./shared').Worker} */
   async ensurePenKit(plan) {
     const woods = [
       'oak', 'spruce', 'birch', 'jungle', 'acacia',
@@ -195,6 +207,7 @@ class PensBehavior {
     return null
   }
 
+  /** @this {import('./shared').Worker} */
   async placeGroundItem(position, itemName, isCancelled) {
     if (isCancelled()) return false
     const pos = new Vec3(position.x, position.y, position.z)
@@ -236,6 +249,7 @@ class PensBehavior {
   // O portão fica virado para onde o bot olha ao colocá-lo. O portão fica na
   // parede norte: precisa estar virado norte/sul, senão fica atravessado e deixa
   // fresta. Coloca estando em plan.outside, olhando para o curral, e confere.
+  /** @this {import('./shared').Worker} */
   async placePenGate(plan, itemName, isCancelled) {
     const pos = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z)
     const facing = (block) => block?.getProperties?.().facing
@@ -266,6 +280,7 @@ class PensBehavior {
 
   // Nivela o interior: um bloco na altura da cerca, encostado nela, vira degrau
   // e os animais pulavam para fora com o portão fechado.
+  /** @this {import('./shared').Worker} */
   async levelPenInterior(plan, isCancelled) {
     let leveled = 0
     for (let dx = 1; dx < plan.size - 1 && !isCancelled(); dx++) {
@@ -279,6 +294,7 @@ class PensBehavior {
     return leveled
   }
 
+  /** @this {import('./shared').Worker} */
   async buildAnimalPen(isCancelled, species = 'cow', offset = null) {
     const home = this.homeProvider?.()
     const canonical = husbandry.normalizeSpecies(species) || species
@@ -327,6 +343,7 @@ class PensBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async enterAnimalPen(plan, isCancelled) {
     await this.bot.unequip?.('hand').catch?.(() => {})
     if (!(await this.setPenGate(plan, true, isCancelled))) return false
@@ -340,6 +357,7 @@ class PensBehavior {
     return !isCancelled() && pointInsidePen(this.bot.entity?.position, plan)
   }
 
+  /** @this {import('./shared').Worker} */
   async withAnimalPen(pen, isCancelled, work) {
     this.useMoves(this.penMoves)
     try {
@@ -360,6 +378,7 @@ class PensBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async waitUntil(check, isCancelled, timeoutMs) {
     const deadline = Date.now() + timeoutMs
     while (!isCancelled()) {
@@ -370,11 +389,13 @@ class PensBehavior {
     return false
   }
 
+  /** @this {import('./shared').Worker} */
   lureDistance(entity) {
     return entity.position.distanceTo(this.bot.entity.position)
   }
 
   // Espera o animal atraído chegar perto antes de começar a andar.
+  /** @this {import('./shared').Worker} */
   async waitForAnimal(entity, isCancelled) {
     return this.waitUntil(
       () => entity.isValid !== false && this.lureDistance(entity) <= this.lure.near,
@@ -386,6 +407,7 @@ class PensBehavior {
   // Anda em trechos curtos até `target` com o animal atrás: se ele ficar a mais
   // de `near` blocos, para e espera ele alcançar. Animal atraído perde o
   // interesse a mais de ~10 blocos, e aí não há o que fazer.
+  /** @this {import('./shared').Worker} */
   async leadAnimal(entity, target, isCancelled) {
     const goal = new goals.GoalNear(target.x, target.y, target.z, 1)
     const deadline = Date.now() + this.lure.timeoutMs
@@ -415,6 +437,7 @@ class PensBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async lureFeed(species) {
     const canonical = husbandry.normalizeSpecies(species) || species
     const config = husbandry.SPECIES[canonical]
@@ -435,6 +458,7 @@ class PensBehavior {
     return null
   }
 
+  /** @this {import('./shared').Worker} */
   async setPenGate(plan, open, isCancelled = () => false) {
     const position = new Vec3(plan.gate.x, plan.gate.y, plan.gate.z)
     let gate = this.bot.blockAt(position)
@@ -459,11 +483,13 @@ class PensBehavior {
 
   // Lembra do curral enquanto o portão está aberto ou o bot está dentro, para
   // a próxima tarefa sair/fechar se esta for cancelada no meio.
+  /** @this {import('./shared').Worker} */
   trackPen(plan, open) {
     if (open || pointInsidePen(this.bot.entity?.position, plan)) this.activePen = plan
     else if (this.activePen === plan) this.activePen = null
   }
 
+  /** @this {import('./shared').Worker} */
   async leaveAnimalPen(plan, isCancelled) {
     await this.bot.unequip?.('hand').catch?.(() => {})
     // Os animais acabaram de seguir o fazendeiro e ficam colados nele: abrir o
@@ -482,6 +508,7 @@ class PensBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async captureAnimals(species, count, isCancelled) {
     const pen = this.penContext(species)
     if (!pen) throw new Error('base da colônia ainda não definida')
@@ -581,11 +608,13 @@ class PensBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   useMoves(moves) {
     if (moves && typeof this.bot.pathfinder?.setMovements === 'function') this.bot.pathfinder.setMovements(moves)
   }
 
   // Curral construído (com portão) que contém a posição, entre os das espécies conhecidas.
+  /** @this {import('./shared').Worker} */
   penAt(position) {
     const home = this.homeProvider?.()
     if (!home || !position) return null
@@ -599,6 +628,7 @@ class PensBehavior {
   // Uma tarefa cancelada no meio do manejo pode deixar o bot dentro do curral
   // ou o portão aberto: sai pelo portão (abrir → sair → fechar) antes de seguir,
   // senão o pathfinder tentaria atravessar a cerca.
+  /** @this {import('./shared').Worker} */
   async leaveLeftoverPen(isCancelled) {
     const plan = this.activePen || this.penAt(this.bot.entity?.position)
     if (!plan) return

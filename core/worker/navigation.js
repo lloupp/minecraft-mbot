@@ -1,3 +1,4 @@
+// @ts-check
 // core/worker/navigation.js
 // Navegação: goTo com timeout, chegada confirmada, cavar para sair, guarda e volta à base.
 // Métodos do WorkerController (aplicados ao prototype em core/WorkerController.js).
@@ -7,6 +8,7 @@ const { Vec3 } = require('vec3')
 const { sleep, POINT_ARRIVAL_RADIUS, DIG_ESCAPE_MS, GOTO_REJECTED_MOVES, UNREACHED_MOVE, NAVIGATION_POSITION_NOT_CONFIRMED, travelTimeoutMs, protectPenBlocks } = require('./shared')
 
 class NavigationBehavior {
+  /** @this {import('./shared').Worker} */
   async goTo(goal, timeoutMs = 20000) {
     let timer
     let onForcedMove = null
@@ -40,12 +42,14 @@ class NavigationBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   arrivedAt(goal) {
     const position = this.bot.entity?.position
     if (!position || typeof goal?.isEnd !== 'function') return true
     return goal.isEnd(position.floored()) || goal.isEnd(position.floored().offset(0, 1, 0))
   }
 
+  /** @this {import('./shared').Worker} */
   async goToWithDigging(goal, timeoutMs) {
     const escape = new Movements(this.bot)
     escape.canDig = true
@@ -63,6 +67,7 @@ class NavigationBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async goToPoint(position, isCancelled) {
     const x = Number(position?.x)
     const y = Number(position?.y)
@@ -114,6 +119,7 @@ class NavigationBehavior {
     }
   }
 
+  /** @this {import('./shared').Worker} */
   async guard(durationMs, isCancelled) {
     await this.ensureRoleTool()
     const deadline = Date.now() + durationMs
@@ -141,6 +147,7 @@ class NavigationBehavior {
     return { ok: true }
   }
 
+  /** @this {import('./shared').Worker} */
   async returnHome(isCancelled, { verify = false } = {}) {
     const home = this.homeProvider?.()
     if (!home) throw new Error('base da colônia ainda não definida')

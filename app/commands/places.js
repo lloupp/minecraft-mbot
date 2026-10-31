@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/places.js
 // Lugares: base, locais salvos, viagem, patrulha e envio de workers.
 

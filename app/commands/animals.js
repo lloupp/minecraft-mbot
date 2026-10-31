@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/animals.js
 // Animais: currais, metas de população, captura, reprodução e produtos.
 

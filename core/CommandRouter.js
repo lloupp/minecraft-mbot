@@ -1,3 +1,4 @@
+// @ts-check
 class CommandRouter {
   constructor(prefix = '!') {
     this.prefix = prefix

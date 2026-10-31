@@ -1,3 +1,4 @@
+// @ts-check
 const fs = require('fs')
 const path = require('path')
 
@@ -52,7 +53,7 @@ class StateStore {
       const raw = await fs.promises.readFile(this.filePath, 'utf8')
       const parsed = JSON.parse(raw)
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || parsed.version !== 1) {
-        const err = new Error('Estado incompatível: esperado version=1; migração explícita necessária')
+        const err = /** @type {NodeJS.ErrnoException} */ (new Error('Estado incompatível: esperado version=1; migração explícita necessária'))
         err.code = 'STATE_SCHEMA_UNSUPPORTED'
         throw err
       }
@@ -81,7 +82,7 @@ class StateStore {
   async save(state) {
     // Não apagar a única evidência de corrupção/incompatibilidade no próximo autosave.
     if (this.lastLoadError) {
-      const err = new Error('Salvamento bloqueado: preserve e recupere o arquivo de estado inválido antes de reiniciar')
+      const err = /** @type {NodeJS.ErrnoException} */ (new Error('Salvamento bloqueado: preserve e recupere o arquivo de estado inválido antes de reiniciar'))
       err.code = 'STATE_RECOVERY_REQUIRED'
       throw err
     }

@@ -1,3 +1,4 @@
+// @ts-check
 const { Movements } = require('mineflayer-pathfinder')
 const food = require('../lib/food')
 const gather = require('../lib/gather')
@@ -10,6 +11,8 @@ const { sleep, HUNGRY, PATH_TICK_MS, PATH_THINK_MS, PREPARATION_SITE_TTL_MS, COO
 
 class WorkerController {
   constructor({ bot, name, role, homeProvider, ownerProvider, storage = null, production = null, logger = console, shadow = null, worldMemory = null, juliaAuthority = null }) {
+    // Os comportamentos de core/worker/ entram no prototype depois da classe.
+    const self = /** @type {import('./worker/shared').Worker} */ (/** @type {unknown} */ (this))
     this.bot = bot
     this.name = name
     this.role = role
@@ -53,6 +56,7 @@ class WorkerController {
     this._progressAnchor = null
     this._loopIntent = null
     this._ignoredThreats = new Map() // id -> até quando (luta que expirou sem alcançar o monstro)
+    this._toolDrain = null           // ação da Tool API em curso (MinecraftToolLayer)
 
     bot.once('spawn', () => {
       this.workMoves = new Movements(bot)
@@ -76,7 +80,7 @@ class WorkerController {
       bot.pathfinder.tickTimeout = PATH_TICK_MS
       bot.pathfinder.thinkTimeout = PATH_THINK_MS
       this.state = 'ocioso'
-      this.survivalTimer = setInterval(() => this.survivalTick(), 1000)
+      this.survivalTimer = setInterval(() => self.survivalTick(), 1000)
       this.survivalTimer.unref?.()
     })
 
@@ -95,12 +99,12 @@ class WorkerController {
     // Tomou dano: interrompe a tarefa para lutar ou fugir.
     bot.on('health', () => {
       if (this.lastHealth !== null && bot.health < this.lastHealth && bot.health > 0) {
-        if (this.headBlock()) {
+        if (self.headBlock()) {
           // Sufocando (areia/cascalho caiu na cabeça): cava para sair, não é ataque.
-          this.digOut().catch((err) => this.logger.log(`[colônia] ${this.name} soterrado: ${err.message}`))
+          self.digOut().catch((err) => this.logger.log(`[colônia] ${this.name} soterrado: ${err.message}`))
           this.lastAttacker = null
         } else if (!this.defending) {
-          this.defend(this.lastAttacker).catch((err) => this.logger.log(`[colônia] ${this.name} defesa: ${err.message}`))
+          self.defend(this.lastAttacker).catch((err) => this.logger.log(`[colônia] ${this.name} defesa: ${err.message}`))
           this.lastAttacker = null
         }
       }
@@ -111,12 +115,13 @@ class WorkerController {
       // Onde caíram os itens (somem em 5 min): base para a opção recover_items depois de renascer.
       if (this.bot.entity?.position) this._deathDrops = { position: this.bot.entity.position.clone(), at: Date.now() }
       this.logger.log(`[colônia] ${this.name} morreu.`)
-      this.cancel()
+      self.cancel()
       this.lastHealth = null
     })
   }
 
   // Defesa com o explorador desarmado e recursos ao alcance: lembra o local para uma volta única depois.
+  /** @this {import('./worker/shared').Worker} */
   rememberPreparationSiteWhenUnarmed() {
     if (process.env.MBOT_EXPLORE_PREPARATION !== '1') return
     const site = this._preparationSite
@@ -132,6 +137,7 @@ class WorkerController {
     } catch { /* melhor esforço: nunca atrasa a defesa */ }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   buildPreparationResumeTask(interruptedTask) {
     if (!interruptedTask?.objective || typeof interruptedTask.objective !== 'object') return null
     const state = preparationStateSnapshot(this.bot, interruptedTask.objective, {
@@ -147,6 +153,7 @@ class WorkerController {
     })
   }
 
+  /** @this {import('./worker/shared').Worker} */
   pendingPreparationResume() {
     if (!this._preparationResumeCandidate) return null
     return {
@@ -158,6 +165,7 @@ class WorkerController {
     }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   snapshot() {
     return {
       state: this.state,
@@ -165,10 +173,12 @@ class WorkerController {
     }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   isIdle() {
     return this.state === 'ocioso' && !this._toolReservation && !this._toolDrain
   }
 
+  /** @this {import('./worker/shared').Worker} */
   reserveTool() {
     if (!this.isIdle() || this.currentTask || this.defending || this.eating || this.diggingOut || this._preparationDrain || !this.bot.entity || this.bot.health <= 0) return null
     const token = { version: this.taskVersion }
@@ -176,14 +186,17 @@ class WorkerController {
     return token
   }
 
+  /** @this {import('./worker/shared').Worker} */
   ownsTool(token) {
     return this._toolReservation === token && token.version === this.taskVersion && this.state === 'ocioso' && !this.currentTask && !this.defending && !this.eating && !this.diggingOut && Boolean(this.bot.entity) && this.bot.health > 0
   }
 
+  /** @this {import('./worker/shared').Worker} */
   releaseTool(token) {
     if (this._toolReservation === token) this._toolReservation = null
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async waitReady(timeoutMs = 15000) {
     if (this.bot.entity && this.workMoves) return
     await new Promise((resolve, reject) => {
@@ -209,6 +222,7 @@ class WorkerController {
     })
   }
 
+  /** @this {import('./worker/shared').Worker} */
   cancel() {
     this.taskVersion++
     this._toolReservation = null
@@ -218,6 +232,7 @@ class WorkerController {
     if (this.state !== 'desconectado') this.state = this.bot.entity ? 'ocioso' : 'conectando'
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async run(task, { canStart = null } = {}) {
     await this.waitReady()
     // HTTP tools reserve an idle worker before checkpoint I/O. An owner command,
@@ -332,6 +347,7 @@ class WorkerController {
     return taskPromise
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async runDeterministicPreparation(task, isCancelled) {
     const objective = task?.objective
     if (!objective || typeof objective !== 'object' || !objective.type) {
@@ -355,6 +371,7 @@ class WorkerController {
 
   // Shadow mode: só observa, nunca decide. Nunca lança e nunca é
   // `await`ado por run() — ver lib/shadow-observer.js para as garantias.
+  /** @this {import('./worker/shared').Worker} */
   _observeShadow(task, isCancelled, taskPromise) {
     try { if (!this.shadow?.enabled?.()) return } catch { return }
     // Retomada: a tarefa anterior foi interrompida (ainda rodava quando esta
@@ -427,10 +444,12 @@ class WorkerController {
   }
 
   // Mesma coleta do food: espera o item aparecer (até 1,5 s) e passa mais de uma vez.
+  /** @this {import('./worker/shared').Worker} */
   async collectDrops(center, isCancelled) {
     await food.collectDrops(this.bot, center, isCancelled)
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async gatherBlocks(resource, count, isCancelled) {
     await this.ensureRoleTool()
     const names = resolveBlockNames(this.bot, resource, this.role)
@@ -475,12 +494,14 @@ class WorkerController {
     return { ok, verified: ok, code, gathered, requested: count, resource, exhausted: gathered < count, deposited, recovery, evidence }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   inventoryCountByName(name) {
     return this.bot.inventory.items()
       .filter((item) => item.name === name)
       .reduce((sum, item) => sum + (item.count || 0), 0)
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async ensureItemAmount(name, count) {
     const wanted = Math.max(1, Number.parseInt(count, 10) || 1)
     let have = this.inventoryCountByName(name)
@@ -505,6 +526,7 @@ class WorkerController {
   }
 
   // Dá para cozinhar agora: ≥2 carnes cruas, combustível na mochila e fornalha a ≤24 (ou 8 pedregulhos para fazer uma).
+  /** @this {import('./worker/shared').Worker} */
   canCook() {
     try {
       const items = this.bot.inventory?.items?.() || []
@@ -518,12 +540,14 @@ class WorkerController {
     } catch { return false }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async resyncInventory() {
     if (this.bot.currentWindow) { try { this.bot.closeWindow(this.bot.currentWindow) } catch { /* nada a fechar */ } }
     if (typeof this.bot._syncWindow !== 'function') return
     await Promise.race([this.bot._syncWindow(this.bot.inventory).catch(() => {}), sleep(2000)])
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async ensureRoleTool() {
     const kind = this.role === 'minerador'
       ? 'pickaxe'
@@ -560,24 +584,28 @@ class WorkerController {
     return null
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async withdrawFromStorage(item, count) {
     if (!this.storage?.configured()) throw new Error('estoque central não configurado')
     const withdrawn = await this.storage.withdraw(this.bot, item, count)
     return { ok: withdrawn > 0, item, withdrawn, requested: count }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async depositCargo() {
     if (!this.storage?.configured()) throw new Error('estoque central não configurado')
     const deposited = await this.storage.depositCargo(this.bot)
     return { ok: true, deposited }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async syncStorage() {
     if (!this.storage?.configured()) throw new Error('estoque central não configurado')
     const stock = await this.storage.summary(this.bot)
     return { ok: true, stock }
   }
 
+  /** @this {import('./worker/shared').Worker} */
   async craft(item, count) {
     if (!this.production) throw new Error('produção não configurada')
     return this.production.craftToStorage(this.bot, item, count)

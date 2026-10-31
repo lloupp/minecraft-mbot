@@ -1,3 +1,4 @@
+// @ts-check
 // app/discovery.js
 // Encontra o servidor Minecraft: MINECRAFT_PORT, senão portas Java locais, senão 25565.
 
@@ -31,7 +32,10 @@ function pingServer(host, port) {
     const timer = setTimeout(() => resolve(null), 3000)
     ping({ host, port }, (err, res) => {
       clearTimeout(timer)
-      resolve(err || !res?.version ? null : { port, version: res.version.name, motd: motdText(res.description) })
+      if (err || !res?.version) return resolve(null)
+      // Servidores antigos respondem o ping legado: version é texto e o MOTD vem em `motd`.
+      if (typeof res.version === 'string') return resolve({ port, version: res.version, motd: motdText('motd' in res ? res.motd : '') })
+      resolve({ port, version: res.version.name, motd: motdText('description' in res ? res.description : '') })
     })
   })
 }
@@ -42,6 +46,10 @@ function candidatePorts(connection, localPorts = javaListeningPorts) {
   return [...new Set(candidates)]
 }
 
+/**
+ * @param {{ host?: string, port?: number | null, local?: boolean }} connection
+ * @param {{ ping?: (host: string, port: number) => Promise<any>, localPorts?: () => number[] }} [options]
+ */
 async function findServer(connection, { ping: pingFn = pingServer, localPorts } = {}) {
   for (const port of candidatePorts(connection, localPorts)) {
     const server = await pingFn(connection.host, port)

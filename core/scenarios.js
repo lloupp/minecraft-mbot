@@ -1,3 +1,4 @@
+// @ts-check
 // core/scenarios.js
 // Catálogo fixo de cenários de teste ao vivo usados pelo painel.
 //

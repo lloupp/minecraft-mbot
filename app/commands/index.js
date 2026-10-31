@@ -1,3 +1,4 @@
+// @ts-check
 // app/commands/index.js
 // Registra todos os comandos de chat no router.
 

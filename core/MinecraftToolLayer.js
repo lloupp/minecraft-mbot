@@ -1,3 +1,4 @@
+// @ts-check
 'use strict'
 
 const crypto = require('node:crypto')
@@ -153,7 +154,7 @@ class MinecraftToolLayer {
       if (this.worker.reserveTool && !reservation) {
         return this.record(action, { success: false, rejected: true, reason: 'worker_busy' })
       }
-      owner = { action, reservation, version: reservation?.version ?? this.worker.taskVersion, cancelled: false, lifecycle: null }
+      owner = /** @type {any} */ ({ action, reservation, version: reservation?.version ?? this.worker.taskVersion, cancelled: false, lifecycle: null })
       owner.done = new Promise(resolve => { owner.resolveDone = resolve })
       this._active = owner
       this.worker._toolDrain = owner
@@ -229,6 +230,7 @@ class MinecraftToolLayer {
       // A native operation can reject after stop/death/disconnect. Preserve
       // cancellation ownership as well as the underlying physical error.
       const reason = ownershipFailure(Boolean(owner?.claimed || (owner?.dispatched && !owner?.reservation)))
+      /** @type {Record<string, any>} */
       const payload = { success: false, error: error.message, ...(reason ? { reason } : {}), duration_ms: Date.now() - started, task_id: checkpoint?.id || decision.task_id || null }
       if (checkpoint) {
         try {
