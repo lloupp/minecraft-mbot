@@ -307,7 +307,7 @@ class RunVerifier {
     try {
       return JSON.parse(fs.readFileSync(candidates[0], 'utf8'))
     } catch (err) {
-      throw new Error(`invalid source manifest: ${err.message}`)
+      throw new Error(`invalid source manifest: ${err.message}`, { cause: err })
     }
   }
 

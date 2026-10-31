@@ -212,7 +212,7 @@ class StorageManager {
         }
         return await fn(container)
       } finally {
-        try { container?.close() } catch {}
+        try { container?.close() } catch { /* o container pode já ter sido fechado pelo servidor */ }
         release()
       }
     } finally {

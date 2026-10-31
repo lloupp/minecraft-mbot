@@ -12,7 +12,7 @@ const { StatusServer } = require('../lib/status-server')
 const testLogPath = path.resolve('.data/test-status-events.jsonl')
 
 test('StatusServer constructs with port 0', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   const server = new StatusServer({
     botManager: { list: () => [], get: () => null },
@@ -26,7 +26,7 @@ test('StatusServer constructs with port 0', () => {
 })
 
 test('StatusServer starts and stops without error', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   const server = new StatusServer({
     botManager: { list: () => [], get: () => null },
@@ -42,7 +42,7 @@ test('StatusServer starts and stops without error', () => {
 })
 
 test('StatusServer port defaults to 3080', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   const server = new StatusServer({
     botManager: { list: () => [], get: () => null },

@@ -1016,7 +1016,9 @@ class WorkerController {
     if (this.production) {
       try {
         await this.production.craftInternal(this.bot, name, wanted - have)
-      } catch {}
+      } catch (err) {
+        this.logger.log?.(`[colônia] ${this.name} não fabricou ${name}: ${err.message}`)
+      }
       have = this.inventoryCountByName(name)
     }
 
@@ -2138,7 +2140,7 @@ class WorkerController {
         // "No path" e ele só sai morrendo. Uma única nova tentativa da mesma perna podendo cavar (curral protegido).
         if (!digEscape || isCancelled() || !UNREACHED_MOVE.test(err?.message || '')) throw err
         await this.goToWithDigging(goal, DIG_ESCAPE_MS)
-        if (!isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (nem cavando)')
+        if (!isCancelled() && !this.arrivedAt(goal)) throw new Error('No path to the goal! (nem cavando)', { cause: err })
       }
     } catch (err) {
       // Rota que falha repetidamente vira evidência local (afasta destinos futuros), nunca ordem.
@@ -2516,7 +2518,7 @@ class WorkerController {
         try {
           const made = await this.production.craftInternal(this.bot, item, 1)
           if (made) return { name: item, count: 1, crafted: true }
-        } catch {}
+        } catch { /* sem material para esta opção; tenta a próxima */ }
       }
     }
 
@@ -2604,7 +2606,7 @@ class WorkerController {
           await this.production.craftInternal(this.bot, name, 1)
           hoe = this.bot.inventory.items().find((item) => item.name === name)
           if (hoe) return hoe
-        } catch {}
+        } catch { /* sem material para esta enxada; tenta a próxima */ }
       }
     }
 
@@ -2742,7 +2744,7 @@ class WorkerController {
         try {
           await this.bot.placeBlock(block, new Vec3(0, 1, 0))
           planted++
-        } catch {}
+        } catch { /* bloco não aceitou a semente; segue para o próximo */ }
       }
     }
 

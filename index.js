@@ -216,7 +216,7 @@ async function main() {
   if (worldMemory) {
     const s = worldMemory.summary()
     console.log(`[world-memory] ${worldMemory.loadStatus}: ${s.places} lugar(es), ${s.explored} chunk(s) explorado(s); guia=${process.env.MBOT_WORLD_MEMORY_GUIDE === '1' ? 'on' : 'off'}`)
-    process.on('exit', () => { try { worldMemory.flushSync() } catch {} })
+    process.on('exit', () => { try { worldMemory.flushSync() } catch (err) { console.log(`[world-memory] falha ao salvar: ${err.message}`) } })
   }
   const projectManager = new ProjectManager({
     storage,
@@ -282,12 +282,12 @@ async function main() {
   if (toolApiRuntime) {
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
       quitRequested = true
-      try { worldMemory?.flushSync() } catch {}
+      try { worldMemory?.flushSync() } catch (err) { console.log(`[world-memory] falha ao salvar: ${err.message}`) }
       toolApiRuntime.close().catch(error => console.log(`[tool-api] shutdown: ${error.message}`))
       bot.quit()
     })
   } else if (worldMemory) {
-    for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { try { worldMemory.flushSync() } catch {} process.exit(0) })
+    for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { try { worldMemory.flushSync() } catch (err) { console.log(`[world-memory] falha ao salvar: ${err.message}`) } process.exit(0) })
   }
   const colony = new ColonyOrchestrator({
     botManager,
@@ -1068,8 +1068,8 @@ async function main() {
   bot.on('end', async (reason) => {
     colony.stop()
     try { await toolApiRuntime?.close() } catch (error) { console.log(`[tool-api] shutdown: ${error.message}`) }
-    try { await persistState() } catch {}
-    try { await memory.save() } catch {}
+    try { await persistState() } catch (err) { console.log(`[estado] falha ao salvar: ${err.message}`) }
+    try { await memory.save() } catch (err) { console.log(`[memória] falha ao salvar: ${err.message}`) }
     memoryCapture?.stop()
     botManager.stopAll()
     statusServer.stop()
@@ -2363,16 +2363,20 @@ async function main() {
           return
         }
         bot.chat(`HP: ${Math.round(bot.health * 10) / 10}/20 | Fome: ${bot.food}/20 | Itens: ${bot.inventory.items().length} | Modo: ${taskName ?? mode}`)
-        const pos = bot.entity.position
-        bot.chat(`Posição: X=${pos.x.toFixed(1)}, Y=${pos.y.toFixed(1)}, Z=${pos.z.toFixed(1)}`)
+        {
+          const pos = bot.entity.position
+          bot.chat(`Posição: X=${pos.x.toFixed(1)}, Y=${pos.y.toFixed(1)}, Z=${pos.z.toFixed(1)}`)
+        }
         break
       case '!pos':
         if (!bot.entity) {
           bot.chat('Ainda estou entrando no mundo.')
           return
         }
-        const p = bot.entity.position
-        bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
+        {
+          const p = bot.entity.position
+          bot.chat(`X=${p.x.toFixed(1)}, Y=${p.y.toFixed(1)}, Z=${p.z.toFixed(1)}`)
+        }
         break
       case '!ajuda':
         bot.chat('Memória: !lembrar <nome> aqui, !lembrar <chave> = <valor>, !esquecer <nome>, !memoria [tipo], !onde <coisa>')

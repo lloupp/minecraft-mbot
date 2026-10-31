@@ -11,7 +11,7 @@ const { InventorySync } = require('../lib/inventory-sync')
 const testLogPath = path.resolve('.data/test-inv-sync-events.jsonl')
 
 test('start and stop work', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const sync = new InventorySync({
     storage: {
       setPosition: () => {},
@@ -61,7 +61,7 @@ test('sync mantém snapshot local e não sobrescreve o estoque central', () => {
 })
 
 test('stop clears timer', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const sync = new InventorySync({
     storage: {
       setPosition: () => {},

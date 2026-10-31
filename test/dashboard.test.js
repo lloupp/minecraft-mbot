@@ -19,7 +19,7 @@ const { startViewer, startInventory } = require('../lib/web-views')
 const logPath = path.resolve('.data/test-dashboard-events.jsonl')
 
 function freshLog() {
-  try { fs.unlinkSync(logPath) } catch {}
+  fs.rmSync(logPath, { force: true })
   return new EventLog(logPath)
 }
 
@@ -30,7 +30,7 @@ function request(port, { method = 'GET', path: urlPath = '/', headers = {}, body
       res.on('data', (chunk) => { data += chunk })
       res.on('end', () => {
         let json = null
-        try { json = JSON.parse(data) } catch {}
+        try { json = JSON.parse(data) } catch { /* resposta não-JSON: o teste confere o texto */ }
         resolve({ status: res.statusCode, headers: res.headers, body: data, json })
       })
     })

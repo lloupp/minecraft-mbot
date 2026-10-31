@@ -8,13 +8,13 @@ const path = require('node:path')
 
 // Mock the module path to avoid needing node_modules for EventLog
 // We'll test by directly requiring the module
-const { EventLog, LOG_FILE } = require('../lib/event-log')
+const { EventLog } = require('../lib/event-log')
 
 const testLogPath = path.resolve('.data/test-events.jsonl')
 
 test('logs events with timestamp and type', () => {
   // Clean up
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
 
   const event = log.log('test_event', { foo: 'bar' }, 'worker_01')
@@ -26,7 +26,7 @@ test('logs events with timestamp and type', () => {
 })
 
 test('persists events to file', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('persist_test', { value: 42 })
 
@@ -38,7 +38,7 @@ test('persists events to file', () => {
 })
 
 test('getEvents returns all events', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('alpha')
   log.log('beta')
@@ -50,7 +50,7 @@ test('getEvents returns all events', () => {
 })
 
 test('getEvents filters by type', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('filter_a')
   log.log('filter_b')
@@ -62,7 +62,7 @@ test('getEvents filters by type', () => {
 })
 
 test('getEvents filters by worker', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('w', {}, 'alice')
   log.log('w', {}, 'bob')
@@ -73,7 +73,7 @@ test('getEvents filters by worker', () => {
 })
 
 test('getEvents filters by limit', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('e1')
   log.log('e2')
@@ -84,7 +84,7 @@ test('getEvents filters by limit', () => {
 })
 
 test('getRecent returns most recent events', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('first')
   log.log('second')
@@ -95,7 +95,7 @@ test('getRecent returns most recent events', () => {
 })
 
 test('checkTaskConsistency detects missing tasks', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('task_started', { taskId: 'task_1' })
   log.log('task_completed', { taskId: 'task_1' })
@@ -108,7 +108,7 @@ test('checkTaskConsistency detects missing tasks', () => {
 })
 
 test('size reflects event count', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   assert.equal(log.size, 0)
   log.log('e')
@@ -116,7 +116,7 @@ test('size reflects event count', () => {
 })
 
 test('clear removes all events', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   log.log('e1')
   log.log('e2')
@@ -139,7 +139,7 @@ test('falha ao gravar no disco não interrompe o chamador', () => {
 })
 
 test('limita payload e remove campos sensíveis', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const log = new EventLog(testLogPath)
   const redacted = log.log('safe_event', {
     password: 'do-not-store',

@@ -13,7 +13,8 @@
     "shadow:report": "node scripts/laya-shadow-report.js",
     "serve:andy": "node scripts/ollama-decision-server.js",
     "julia-shadow:report": "node scripts/julia-shadow-report.js",
-    "serve:julia": "python3 scripts/julia-decision-server.py"
+    "serve:julia": "python3 scripts/julia-decision-server.py",
+    "lint": "eslint ."
   },
   "keywords": [
     "minecraft",
@@ -45,5 +46,10 @@
   },
   "optionalDependencies": {
     "canvas": "^3.2.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "globals": "^17.13.0"
   }
 }

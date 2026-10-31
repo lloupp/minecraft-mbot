@@ -130,10 +130,6 @@ async function run() {
         median_scenario_ms: percentile(matching.map(r => r.scenario_time_ms), .5) }]
     })
   )]))
-  const latencies = Object.fromEntries(Object.entries(results).map(([engine, runs]) => [engine, {
-    p50_ms: summary[engine].p50_ms, p95_ms: summary[engine].p95_ms,
-    median_scenario_ms: percentile(runs.map(r => r.scenario_time_ms), .5)
-  }]))
   const report = {
     schemaVersion: 2, design: 'player_loop_v2_paired_comparison', repeats: REPEATS,
     sameScenarioOrder: true, modelExecutionAuthority: false,

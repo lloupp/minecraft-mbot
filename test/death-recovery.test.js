@@ -11,7 +11,7 @@ const { DeathRecovery } = require('../lib/death-recovery')
 const testLogPath = path.resolve('.data/test-death-events.jsonl')
 
 test('records death with position and inventory', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const recovery = new DeathRecovery({
     storage: { summary: () => ({}) },
     eventLog: { log: () => {} },

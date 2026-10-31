@@ -13,8 +13,8 @@ const testLogPath = path.resolve('.data/test-verifier-events.jsonl')
 const proofPath = path.resolve('.data/colony-proof.json')
 
 test('verify reports missing evidence instead of claiming complete success', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
-  try { fs.unlinkSync(proofPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
+  fs.rmSync(proofPath, { force: true })
 
   const eventLog = new EventLog(testLogPath)
   eventLog.log('task_started', { taskId: 't1' })
@@ -38,7 +38,7 @@ test('verify reports missing evidence instead of claiming complete success', () 
 })
 
 test('storage without verify contract is skipped, not marked consistent', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   eventLog.log('colony_start')
   const verifier = new RunVerifier({ eventLog, storage: { cachedSummary: () => ({}) } })
@@ -72,7 +72,7 @@ test('finds freeze manifests under .data/sessions and checks source hashes', () 
 })
 
 test('task_consistency fails when tasks incomplete', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   eventLog.log('task_started', { taskId: 't1' })
   eventLog.log('task_completed', { taskId: 't1' })
@@ -90,7 +90,7 @@ test('task_consistency fails when tasks incomplete', () => {
 })
 
 test('worker_deaths check passes with no deaths', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   const verifier = new RunVerifier({
     eventLog,
@@ -104,7 +104,7 @@ test('worker_deaths check passes with no deaths', () => {
 })
 
 test('event_log_exists fails with no events', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   const verifier = new RunVerifier({
     eventLog,
@@ -118,7 +118,7 @@ test('event_log_exists fails with no events', () => {
 })
 
 test('checkEventCount works', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   eventLog.log('task_started', {})
   eventLog.log('task_started', {})
@@ -134,8 +134,8 @@ test('checkEventCount works', () => {
 })
 
 test('proof is saved to file', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
-  try { fs.unlinkSync(proofPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
+  fs.rmSync(proofPath, { force: true })
   const eventLog = new EventLog(testLogPath)
   eventLog.log('task_started', { taskId: 't1' })
 

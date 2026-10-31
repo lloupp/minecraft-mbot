@@ -303,7 +303,7 @@ class ProductionManager {
       }
       throw new Error(`tempo esgotado fundindo ${outputName}`)
     } finally {
-      try { furnaceWindow?.close() } catch {}
+      try { furnaceWindow?.close() } catch { /* a janela pode já ter sido fechada pelo servidor */ }
       release()
     }
   }
