@@ -10,6 +10,8 @@ MBOT_TOOL_API=1 MBOT_TOOL_API_PORT=3091 node index.js
 
 The server binds to `127.0.0.1` only.
 
+An optional MCP server over this API lives in `scripts/mcp-server.js`; see [MCP.md](MCP.md).
+
 ## Inspect
 
 ```bash
