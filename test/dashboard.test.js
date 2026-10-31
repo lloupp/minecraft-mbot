@@ -451,7 +451,7 @@ test('viewer e inventário ficam desligados sem porta', () => {
 
 test('viewer e inventário escutam só em 127.0.0.1', async () => {
   const { EventEmitter } = require('node:events')
-  const bot = Object.assign(new EventEmitter(), { version: '1.20.1', inventory: { slots: [] }, entity: null })
+  const bot = Object.assign(new EventEmitter(), { version: '1.20.1', inventory: Object.assign(new EventEmitter(), { slots: [] }), entity: null })
   const [vp, ip] = [await freePort(), await freePort()]
   const viewer = startViewer(bot, { port: vp, log: () => {} })
   const inventory = startInventory(bot, { port: ip, log: () => {} })
@@ -467,7 +467,7 @@ test('viewer e inventário escutam só em 127.0.0.1', async () => {
 
 test('fim da conexão não gera rejeição sem tratamento no inventário web', async () => {
   const { EventEmitter } = require('node:events')
-  const bot = Object.assign(new EventEmitter(), { version: '1.20.1', inventory: { slots: [] }, entity: null })
+  const bot = Object.assign(new EventEmitter(), { version: '1.20.1', inventory: Object.assign(new EventEmitter(), { slots: [] }), entity: null })
   const rejections = []
   const onRejection = (err) => rejections.push(err)
   process.on('unhandledRejection', onRejection)
