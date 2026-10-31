@@ -1,37 +1,43 @@
 # Minecraft Bot Companheiro e Orquestrador
 
-Bot companheiro e orquestrador para **Minecraft Java 1.20.1** com compatibilidade adicional para Forge 26.3, usando **mineflayer**.
+Bot para **Minecraft Java 1.20.1** feito com [mineflayer](https://github.com/PrismarineJS/mineflayer).
+O bot principal acompanha o dono (segue, luta, come, passa a noite) e
+orquestra uma colônia de bots auxiliares (lenhadores, mineradores,
+fazendeiros, construtores) com estoque central, projetos e persistência.
 
-## Status Atual
+## Status
 
-O `eduardo_bot` agora também funciona como **orquestrador da colônia**. Ele pode criar e remover bots auxiliares, consultar o registro de itens/blocos do Minecraft e montar planos simples de crafting a partir das receitas disponíveis no Mineflayer.
+O que está marcado como validado foi medido contra o servidor vanilla
+oficial, sem OP e sem cheats.
 
+| Área | Status | Como foi verificado |
+|---|---|---|
+| Conexão, chat, comandos do dono | ✅ validado | Roteiro real de 20 comandos no 1.20.1 (20/20) e `test/app-commands.test.js` |
+| Colônia com 2 workers no modo automático | ✅ validado | Soak real de 5 min por braço: 0 mortes, vida mínima 14/20, trabalho automático registrado |
+| Soak contínuo | ✅ no CI | `.github/workflows/soak.yml`: 5 min toda noite, 20 min aos domingos, reprovado por `scripts/soak-gate.js` |
+| Testes, lint, tipos | ✅ no CI | `npm test` (Node), `npm run lint`, `npm run typecheck` |
+| Julia-1 (decisão por modelo) | 🧪 opcional | Desligada por padrão; ver [JULIA_SHADOW_MODE.md](docs/JULIA_SHADOW_MODE.md) |
+| Servidor MCP | 🧪 opcional | Desligado por padrão; ver [MCP.md](docs/MCP.md) |
+| Forge 26.3 (protocolo 777) | ⚠️ compatibilidade | Perfil `forge263` via forks do mineflayer; sem teste automatizado |
+| Login Microsoft (servidor online-mode) | ❌ não suportado | Só identidade offline |
 
-| Item | Status |
-|------|--------|
-| **Perfil recomendado** | Minecraft Java 1.20.1 ✅ |
-| **Compatibilidade legada** | Forge 26.3 / protocolo 777 ✅ |
-| **Conexão / chat / spawn** | Implementados ✅ |
-| **Movimentação e pathfinder** | Implementados ✅ |
-| **Colônia / projetos / persistência** | Implementados ✅ |
-| **Smoke E2E 1.20.1** | Pronto via `!smoke`; validar no servidor real ⏳ |
+Evidências de execuções reais anteriores: [docs/EVIDENCE.md](docs/EVIDENCE.md).
 
-## Pré-requisitos
+## Início rápido
 
-- Java compatível com o servidor Minecraft ✅
-- Node.js 22+ ✅
-- Servidor Minecraft Java 1.20.1 recomendado ✅
-- Forge 26.3 continua disponível como perfil de compatibilidade
+Requisitos: Node.js 22+ e um servidor Minecraft Java 1.20.1 (ou um mundo
+aberto para LAN). O bot não precisa de OP nem de cheats.
 
-## Como usar
+```bash
+npm install
+cp .env.example .env    # ajuste MINECRAFT_HOST, MINECRAFT_PORT e MINECRAFT_OWNER
+npm start
+```
 
-### 1. Use um servidor ativo ou abra um mundo para LAN
-O bot se conecta a um servidor Minecraft Java já existente. Não é necessário
-dar OP ao bot nem habilitar cheats. Para um mundo individual, use **Esc >
-Abrir para LAN** e anote a porta mostrada pelo jogo.
+Confirme **Bot conectado** no terminal e diga `!seguir` no chat do jogo.
+`!ajuda` lista os comandos.
 
-### 2. Configure a conexão
-Copie `.env.example` para `.env` na pasta do projeto e ajuste:
+### Conexão
 
 ```dotenv
 MINECRAFT_HOST=192.168.0.74
@@ -42,89 +48,83 @@ MINECRAFT_PROFILE=vanilla1201
 MINECRAFT_LAN_ANNOUNCE=0
 ```
 
-O exemplo é para Java **1.20.1**; use o endereço e porta do seu servidor.
-O `.env` é carregado tanto por `npm start` quanto por `node index.js`, usando
-Node.js 22+. Variáveis já definidas no terminal/serviço têm prioridade.
-O arquivo `.env` é local e não deve ser commitado. Uma porta explícita inválida
-interrompe a inicialização com erro; não há tentativa silenciosa em outra porta.
+O `.env` é carregado por `npm start` e por `node index.js`; variáveis já
+definidas no ambiente têm prioridade. Uma porta explícita inválida interrompe a
+inicialização com erro, sem tentar outra porta.
 
-Sem porta configurada, o bot tenta detectar portas Java locais no Linux e
-depois 25565. Para um servidor em outra máquina, configure a porta explicitamente;
-não é feita varredura de portas remotas. O servidor precisa responder ao ping
-de status. Também é possível passar as variáveis pelo terminal (exemplo Bash):
+Sem porta configurada, o bot tenta as portas de processos Java locais (Linux) e
+depois 25565. Para servidor em outra máquina, configure `MINECRAFT_HOST` e
+`MINECRAFT_PORT`: não há varredura de portas remotas. O servidor precisa
+responder ao ping de status.
 
-```bash
-MINECRAFT_PORT=25565 MINECRAFT_VERSION=1.20.1 MINECRAFT_PROFILE=vanilla1201 node index.js
-```
-
-Se o servidor estiver em outra máquina, configure `MINECRAFT_HOST` e
-`MINECRAFT_PORT` (a detecção automática só funciona para servidor local).
-
-### 3. Rode o bot
-```bash
-npm install
-npm start
-```
-
-Confirme a mensagem **Bot conectado** e a presença do bot no jogo. Pelo chat,
-use `!ajuda`, `!seguir` e `!cancelar`. Para validar base/estoque e a colônia,
-veja o procedimento `!smoke` abaixo. O tempo de execução de um processo sozinho
-não comprova spawn ou funcionamento das ações.
-
-O runtime atual usa identidade offline: servidores que exigem autenticação
-Microsoft precisam de integração de login antes do uso. Não desligue a
-autenticação de um servidor público para contornar isso. Mods que exigem um
-cliente modificado também precisam de validação específica.
+O runtime usa identidade offline. Não desligue a autenticação de um servidor
+público para contornar isso.
 
 ## Servidor 24h
 
-Para deixar o bot jogando sempre, num servidor dedicado na rede local (com
+Para deixar o bot jogando sempre num servidor dedicado da rede local (com
 reconexão automática e serviços do systemd), veja [deploy/README.md](deploy/README.md).
 
 ## Estrutura
 
 ```
 minecraft-mbot/
-├── index.js          # Conexão, estados, fuga e comandos
-├── lib/
-│   ├── food.js       # Comer e buscar comida
-│   ├── craft.js      # Fabricar (com mesa) e usar a fornalha
-│   ├── gather.js     # Coletar blocos (pula os inalcançáveis)
-│   ├── combat.js     # Lutar ou fugir, arma e recarga do golpe
-│   ├── perception.js # Reconhecer blocos e entidades em volta
-│   ├── blueprint.js  # Ler plantas, materiais, ordem e divisão entre construtores
-│   ├── blueprintBuilder.js # Construir a planta e conferir bloco a bloco
-│   └── memoryCapture.js # Captura limitada de eventos e contexto
-├── plantas/          # Plantas de exemplo (.schem) e gerador
-├── core/
-│   ├── Memory.js     # Memória tipada com proveniência (.data/memory.json)
-│   ├── References.js # Resolve nomes e detecta ambiguidade
-│   └── Clarifier.js  # Perguntas de esclarecimento com opções numeradas
-├── package.json      # Dependências
-├── node_modules/     # Pacotes instalados
-└── README.md         # Este arquivo
+├── index.js            # Ponto de entrada: conecta e monta as peças
+├── app/                # Runtime do bot principal
+│   ├── companion.js    # Seguir, fugir, lutar, comer, noite, tarefas, autônomo
+│   ├── places.js       # Lugares (waypoints + memória) e perguntas de ambiguidade
+│   ├── commands/       # Comandos de chat, um módulo por assunto
+│   └── …               # descoberta do servidor, persistência, workers, painel, ciclo de vida
+├── core/               # Domínio da colônia
+│   ├── ColonyOrchestrator.js, BotManager.js, DemandPlanner.js, ProjectManager.js
+│   ├── StorageManager.js, ProductionManager.js, StateStore.js, Memory.js
+│   ├── WorkerController.js   # Worker: tarefas, estoque, reservas
+│   └── worker/         # Comportamentos do worker (sobrevivência, currais, player loop,
+│                       #   exploração, navegação, obras)
+├── lib/                # Ações de jogo e infraestrutura (coleta, combate, comida,
+│                       #   plantas, Tool API, painel, Julia-1)
+├── scripts/            # Gauntlet, soak real, gate do soak, servidor MCP, sidecar Julia
+├── test/               # node --test (e testes Python do sidecar)
+└── docs/               # Guias e registros de experimentos
 ```
 
-## Notas Técnicas
+## Desenvolvimento
 
-O Forge 26.3 usa o protocolo **777**, que é muito recente e ainda não tem suporte nativo em `minecraft-data`. O `minecraft-data` (versão 3.117.0) lista `26.1` como a última versão suportada.
+```bash
+npm test                     # testes (sem Minecraft)
+npm run lint                 # ESLint
+npm run typecheck            # tsc sobre core/ e app/ (// @ts-check)
+npm run gauntlet:player-loop # benchmark offline de decisões
+```
 
-Foram feitas as seguintes modificações para enable o bot:
-- Adicionada entrada `26.3` ao `data.js` do `minecraft-data`
-- Criada pasta `data/pc/26.3/` baseada em `26.1`
-- Adicionado `26.3` ao `testedVersions` do `mineflayer`
-- Adicionado `26.3` ao `prismarine-chunk`
+Soak com servidor real (baixa o jar oficial e confere o SHA-1):
 
-Para funcionalidade completa (movimentação, blocos, inventário), aguarde `minecraft-data` adicionar suporte nativo ao protocolo 26.3.
+```bash
+python3 scripts/download-vanilla-server.py --version 1.20.1 --output .cache/vanilla-1.20.1.jar
+MBOT_TEST_SERVER_JAR=.cache/vanilla-1.20.1.jar MBOT_TEST_EULA_ACCEPTED=1 \
+MBOT_SOAK_SECONDS=300 MBOT_SOAK_AUTONOMOUS=1 MBOT_SOAK_OUTPUT_DIR=e2e-evidence \
+node scripts/tool-api-natural-soak.js
+npm run soak:gate -- e2e-evidence
+```
+
+Dependências fora do npm oficial (forks para o 26.3) estão explicadas em
+[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
+
+## Limitações conhecidas
+
+- **`!ajuda` pode derrubar o bot por spam** no vanilla: são 4 linhas longas que
+  o mineflayer divide em várias mensagens, e o anti-spam do servidor expulsa o
+  bot (reproduzido no 1.20.1). O supervisor (`npm run sempre`/systemd) reconecta.
+- Sem login Microsoft (ver Status).
+- O perfil Forge 26.3 depende dos forks `@wp2508` e não é testado no CI.
 
 ## Troubleshooting
 
-- **"name_taken"**: O username do bot já está em uso. Use um nome diferente.
-- **"ECONNREFUSED"**: O servidor LAN não está ativo. Abra o mundo em LAN no jogo.
-- **Porta diferente / detecção falhou**: use `MINECRAFT_PORT=<porta exibida pelo Minecraft> node index.js`.
+- **"name_taken"**: o nome do bot já está em uso. Use outro `MINECRAFT_BOT_NAME`.
+- **"ECONNREFUSED"**: nenhum servidor na porta. Abra o mundo em LAN ou confira `MINECRAFT_PORT`.
+- **Detecção de porta falhou**: defina `MINECRAFT_PORT=<porta exibida pelo Minecraft>`.
 - **Bot conecta mas não entra no mundo**: não use `version: false` nem desative os plugins `physics`/`blocks`; sem eles o servidor nunca completa o spawn.
-- **"chunk size" warnings**: Esperado — protocolo incompleto, não é fatal para chat.
-- **"unsupported protocol version"**: defina `MINECRAFT_VERSION=26.3`.
+- **"unsupported protocol version"** num servidor 26.3: defina `MINECRAFT_VERSION=26.3`.
 
 ## Comandos no chat
 
@@ -318,7 +318,7 @@ eduardo_bot
         └── ...
 ```
 
-- **CommandRouter**: interpreta os novos comandos da colônia.
+- **CommandRouter**: interpreta todos os comandos de chat (registrados em `app/commands/`).
 - **MinecraftKnowledge**: consulta itens, blocos, alimentos e receitas do registro carregado pelo Minecraft.
 - **Planner**: calcula o que já pode ser fabricado e quais ingredientes ainda faltam.
 - **BotManager**: cria, acompanha e encerra os bots auxiliares.
