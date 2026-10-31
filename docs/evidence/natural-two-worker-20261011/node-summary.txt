@@ -1,9 +1,0 @@
-✔ lava vira hazard e caverna vira mine_entry (0.321235ms)
-ℹ tests 711
-ℹ suites 0
-ℹ pass 711
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 18059.087392

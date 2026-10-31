@@ -24,8 +24,8 @@ Antes da #78: #72, #73, #74, #81, #83.
 | **WorldMemory** (memória espacial persistente) | `lib/world-memory.js`, `lib/world-observer.js`, `docs/WORLD_MEMORY.md` | `MBOT_WORLD_MEMORY=1`, `MBOT_WORLD_MEMORY_GUIDE=1` |
 | Helper sem consumidor | `lib/parallel-shadow.js` | — |
 
-## Evidências (`docs/evidence/`)
-Cada pasta tem README. Logs brutos grandes (>60 KB) foram omitidos daqui e listados em `OMITTED.txt`; ficam preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na
+## Evidências (índice em [EVIDENCE.md](EVIDENCE.md))
+As pastas saíram da árvore principal e estão no commit `b00cb6d`. Cada pasta tem README. Logs brutos grandes (>60 KB) foram omitidos daqui e listados em `OMITTED.txt`; ficam preservados na branch archive/pr-78-julia-laya-andy-player-loop-v2 e na
 branch antiga. Pastas `julia-*` mantêm só o README (experimentos de modelo; o código já está na `main`).
 `world-memory-1201/` documenta descoberta → restart real → reuso por outro worker → confirmação; invalidação sem loop; comparação de exploração
 com/sem memória após restart; e `failed-and-superseded/` (inclui o bug do chunk-alvo nunca visitado).

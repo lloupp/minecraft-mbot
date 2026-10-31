@@ -1,9 +1,0 @@
-✔ external run wins while tool run awaits readiness without being cancelled by stale tool (0.919132ms)
-ℹ tests 42
-ℹ suites 0
-ℹ pass 42
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 230.301613

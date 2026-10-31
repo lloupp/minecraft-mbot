@@ -40,7 +40,7 @@ O teste é curto e dirigido: comparação de snapshot não torna mobs/tempos det
 - `npm run check` e sintaxe do harness: aprovados. `npm test`: 711/711; suites direcionadas: 42/42.
 - Par final real: 120 s por braço, cópias idênticas do snapshot, 62/59 amostras, HP/fome mínimos 20, zero mortes. Busy e stop isolado entre workers passaram. Stop seguido de windowOpen timeout agora preservou checkpoint cancelado.
 - Inventário terminal: controle A=1 log/B=0; experimento A=5 logs/B=9. A ação API de B confirmou oito itens antes do cancelamento final; objetivo de 64 não concluído. Não há atribuição causal de produtividade entre braços.
-- Evidências e fracassos preservados: [registro](evidence/natural-two-worker-20261011/README.md).
+- Evidências e fracassos preservados: [registro](https://github.com/lloupp/minecraft-mbot/blob/b00cb6d875ed541b04e04bf655a77d8bb7b0fbe1/docs/evidence/natural-two-worker-20261011/README.md).
 - Pendências comprovadas: timeouts intermitentes windowOpen de estoque e `pos.floored is not a function` em uma tentativa de pickup. Nenhuma causa raiz foi afirmada ou escondida. Próxima prioridade: reproduzir e instrumentar esses dois erros físicos, começando pela interação de estoque.
 
 ## Ciclo 19/10/2026 — regressões de interação física

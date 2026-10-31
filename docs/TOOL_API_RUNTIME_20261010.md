@@ -14,7 +14,7 @@ Base `cdb848d3c432b9c2a0a99d3f96d51099a275a707` da PR #90 (CI confirmada verde a
 
 ## Validação
 
-[evidências](evidence/tool-api-runtime-20261010/README.md): suíte completa Node, testes Python, sintaxe, gauntlet determinístico, logs do servidor/clientes e harness reproduzível `scripts/tool-api-live-smoke.js`.
+[evidências](https://github.com/lloupp/minecraft-mbot/blob/b00cb6d875ed541b04e04bf655a77d8bb7b0fbe1/docs/evidence/tool-api-runtime-20261010/README.md): suíte completa Node, testes Python, sintaxe, gauntlet determinístico, logs do servidor/clientes e harness reproduzível `scripts/tool-api-live-smoke.js`.
 
 Smoke com **index.js completo**, Minecraft Java 1.20.1 real, survival/peaceful, mundo descartável e terreno controlado pelo console. Verifica flag desligada, worker real, HTTP → coleta → delta de inventário, movimento → posição confirmada, replay, bloqueio de origem, busy/stop, SIGTERM e replay após reinício. Não substitui o soak natural.
 
