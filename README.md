@@ -14,6 +14,7 @@ oficial, sem OP e sem cheats.
 |---|---|---|
 | Conexão, chat, comandos do dono | ✅ validado | Roteiro real de 20 comandos no 1.20.1 (20/20) e `test/app-commands.test.js` |
 | Colônia com 2 workers no modo automático | ✅ validado | Soak real de 5 min por braço: 0 mortes, vida mínima 14/20, trabalho automático registrado |
+| Uso como jogador (12 cenários) | ✅ 11/12 | [Teste de campo](docs/FIELD_TEST_20261101.md): seguir, minerar, fabricar, comer, lutar, fugir de creeper, viajar, noite, reinício |
 | Soak contínuo | ✅ no CI | `.github/workflows/soak.yml`: 5 min toda noite, 20 min aos domingos, reprovado por `scripts/soak-gate.js` |
 | Testes, lint, tipos | ✅ no CI | `npm test` (Node), `npm run lint`, `npm run typecheck` |
 | Julia-1 (decisão por modelo) | 🧪 opcional | Desligada por padrão; ver [JULIA_SHADOW_MODE.md](docs/JULIA_SHADOW_MODE.md) |
@@ -97,6 +98,12 @@ npm run typecheck            # tsc sobre core/ e app/ (// @ts-check)
 npm run gauntlet:player-loop # benchmark offline de decisões
 ```
 
+Teste de campo (12 cenários de uso real; ver [FIELD_TEST_20261101.md](docs/FIELD_TEST_20261101.md)):
+
+```bash
+MBOT_TEST_SERVER_JAR=.cache/vanilla-1.20.1.jar MBOT_TEST_EULA_ACCEPTED=1 node scripts/field-trial.js
+```
+
 Soak com servidor real (baixa o jar oficial e confere o SHA-1):
 
 ```bash
@@ -112,9 +119,8 @@ Dependências fora do npm oficial (forks para o 26.3) estão explicadas em
 
 ## Limitações conhecidas
 
-- **`!ajuda` pode derrubar o bot por spam** no vanilla: são 4 linhas longas que
-  o mineflayer divide em várias mensagens, e o anti-spam do servidor expulsa o
-  bot (reproduzido no 1.20.1). O supervisor (`npm run sempre`/systemd) reconecta.
+- **Lenhadores rendem pouco**: ~1,5 tronco/min por lenhador numa floresta, e
+  só procuram árvores a até 48 blocos (ver [teste de campo](docs/FIELD_TEST_20261101.md)).
 - Sem login Microsoft (ver Status).
 - O perfil Forge 26.3 depende dos forks `@wp2508` e não é testado no CI.
 
