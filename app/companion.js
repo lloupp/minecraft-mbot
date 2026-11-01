@@ -456,6 +456,7 @@ function createCompanion({ bot, memory, botManager, places, owner: OWNER = null,
     // Laço principal: termina fugas, foge preventivamente e mantém o bot perto do dono.
     setInterval(() => {
       if (!bot.entity || !followMoves) return
+      autonomy.observe()
       if (fleeingUntil) {
         if (Date.now() < fleeingUntil) return
         fleeingUntil = 0
