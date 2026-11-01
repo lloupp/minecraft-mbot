@@ -17,6 +17,7 @@ const { Planner } = require('./core/Planner')
 const { BotManager } = require('./core/BotManager')
 const { loadPlugins, startWebViews } = require('./lib/plugins')
 const { createBot } = require('./lib/botFactory')
+const { throttleChat } = require('./lib/chat-throttle')
 const { ColonyOrchestrator } = require('./core/ColonyOrchestrator')
 const { StorageManager } = require('./core/StorageManager')
 const { ProductionManager } = require('./core/ProductionManager')
@@ -69,6 +70,8 @@ async function main() {
 
   const bot = createBot(mineflayer, CONFIG)
   configureClient(bot, serverProfile)
+  // Respostas longas (ex.: !ajuda) não podem estourar o anti-spam do servidor.
+  throttleChat(bot)
 
   // Servidor dedicado neste PC não aparece sozinho em "Jogos em LAN"; o bot anuncia.
   let stopLan = () => {}
