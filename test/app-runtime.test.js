@@ -139,3 +139,17 @@ test('lifecycle: requestQuit marca saída limpa', () => {
   lifecycle.requestQuit()
   assert.equal(lifecycle.quitRequested, true)
 })
+
+test('morrer no meio de uma tarefa não deixa o companheiro travado ao renascer', async () => {
+  const bot = companionBot()
+  const companion = companionFor(bot)
+  companion.start()
+  const task = companion.runTask('minerar ferro', (isCancelled) => new Promise((resolve) => {
+    const timer = setInterval(() => { if (isCancelled()) { clearInterval(timer); resolve() } }, 5)
+  }))
+  assert.equal(companion.mode, 'tarefa')
+  bot.emit('death')
+  await task
+  assert.equal(companion.mode, 'seguir')
+  assert.equal(companion.taskName, null)
+})

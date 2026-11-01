@@ -448,6 +448,9 @@ function createCompanion({ bot, memory, botManager, places, owner: OWNER = null,
     bot.on('death', () => {
       console.log('O bot morreu.')
       cancelTask()
+      // A tarefa cancelada retorna sem restaurar o modo; sem isto o bot ficava
+      // em 'tarefa' para sempre e não fazia mais nada depois de renascer.
+      mode = 'seguir'
       sheltered = false
       lastHealth = null
       fleeingUntil = 0
@@ -513,7 +516,7 @@ function createCompanion({ bot, memory, botManager, places, owner: OWNER = null,
 
       const owner = ownerEntity()
       if (owner && bot.pathfinder.goal?.entity !== owner) follow()
-    }, 500)
+    }, 500).unref?.()
   }
 
   return {
