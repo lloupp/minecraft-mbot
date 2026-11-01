@@ -11,7 +11,7 @@ const { describeProfile } = require('../../lib/serverProfile')
 const { parseCount } = require('./parse')
 
 function registerCompanionCommands(commandRouter, ctx) {
-  const { bot, CONFIG, serverProfile, botManager, runVerifier, eventLog, statusServer, persistState, persistSoon, requestQuit, companion, places } = ctx
+  const { bot, CONFIG, serverProfile, runVerifier, eventLog, statusServer, persistState, persistSoon, requestQuit, companion, places } = ctx
   const { autonomy, follow, cancelTask, clearPatrolState, defend, mine, eatNow, searchFood, runTask, ownerEntity } = companion
   const { resolveBlocks } = places
 
@@ -31,7 +31,8 @@ function registerCompanionCommands(commandRouter, ctx) {
     console.log(`Comando !parar recebido de ${context.username}. Encerrando bot e colônia...`)
     requestQuit()
     await persistState().catch(() => {})
-    botManager.stopAll()
+    // Os workers param no encerramento (evento 'end'), depois de salvar a escala:
+    // parar aqui zerava a escala e o save final apagava a colônia.
     bot.quit()
   })
 

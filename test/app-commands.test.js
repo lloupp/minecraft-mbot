@@ -185,12 +185,14 @@ test('!autonomo liga e !autonomo OFF desliga (argumento em maiúsculas)', async 
   assert.equal(companion.autonomous, false)
 })
 
-test('!parar pede saída limpa, salva e desconecta', async () => {
-  const { say, bot, quit, calls } = harness()
+test('!parar pede saída limpa, salva e desconecta sem zerar a escala da colônia', async () => {
+  const { say, bot, quit, calls, saves } = harness()
   await say('!parar')
   assert.equal(quit(), true)
   assert.equal(bot.quitCalled, true)
-  assert.ok(calls.some(([name]) => name === 'botManager.stopAll'))
+  assert.ok(saves() >= 1)
+  // stopAll() limpa a escala; ele roda no encerramento, depois do último save.
+  assert.ok(!calls.some(([name]) => name === 'botManager.stopAll'))
 })
 
 test('!base aqui salva a posição do dono e !base status mostra', async () => {
