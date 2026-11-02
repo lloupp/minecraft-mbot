@@ -43,3 +43,45 @@ sem picareta nenhuma** (as de pedra gastaram) e **fome 6/20 sem comida**
    ferro e escudo; daí em diante o bot só explora ao acaso.
 5. **A colônia não começa sozinha num mundo novo**: `MBOT_COLONY_AUTOSTART`
    exige base, estoque e workers já salvos, e nada no modo autônomo os cria.
+
+## Correções e sessões seguintes (mesma seed, mesmo perfil, 30 min cada)
+
+| | Sessão 1 (antes) | Sessão 2 | Sessão 4 | Sessão 5 |
+|---|---|---|---|---|
+| Picareta/espada de pedra | 1 min | 1,5 min | 1 min | 1–1,5 min |
+| Comida obtida sozinho | não (carne podre) | não | 9,7 min (vacas, porco, cozinhou) | 8,6 min |
+| Lingote de ferro | 8 min | 5,6 min | 10,7 min | 10,2 min |
+| Picareta de ferro | nunca | 10 min | — (morreu antes) | 15 min |
+| Armadura de ferro | nunca | 20 min | — | — |
+| Mortes | 0 | 1 (creeper numa caverna) | 1 (afogado) | 2 (afogado) |
+| Depois de morrer | — | **parado 8 min** | reconstruiu até pedra + tochas | reconstruiu |
+
+O que mudou entre elas:
+
+1. **Craft na grade 2x2** (`lib/craft.js`): uma unidade por vez, fechando a
+   tela do inventário e sincronizando. Reproduzido isolado: a cadeia tábuas →
+   gravetos → tochas deixava o servidor sem as tochas que o bot achava ter.
+2. **Madeira** (`lib/autonomy.js`): estoque mínimo; volta ao último ponto com
+   céu à vista e, sem árvore, anda procurando.
+3. **Comida**: urgente no topo só com fome; estoque de 4 itens depois das
+   ferramentas de pedra (no topo, a sessão 3 vagou 9 min sem pegar nada e foi
+   interrompida).
+4. **Morrer travava o bot** (bug desde o `index.js` original): o modo ficava
+   em "tarefa". Corrigido; sessões 4 e 5 mostram o bot recomeçando.
+5. **Ar** (`lib/water.js`): abaixo de 14/20 larga a tarefa e vai ao ponto
+   seco mais perto. Num teste dirigido (caixa de água 7x6x7) saiu com vida
+   cheia.
+
+## O que ainda falta
+
+- **Água continua sendo a maior causa de morte.** O guarda de ar dispara
+  (12 vezes na sessão 5), mas o caminho do pathfinder atravessa água: o bot
+  sobe para respirar, a meta o manda de volta e às vezes ele não acha saída
+  (ar −1). O próximo passo é deixar a água cara no pathfinder (`liquidCost`)
+  para ele não mergulhar.
+- **Creeper numa caverna**: a regra é sempre fugir, mesmo com espada de ferro;
+  sem espaço para fugir, ele explode.
+- **Recuperar itens depois de morrer**: `lib/death-recovery.js` existe mas não
+  é usado; hoje tudo se perde.
+- Depois do ferro não há metas (base, cama, fazenda) e a colônia não começa
+  sozinha num mundo novo.
