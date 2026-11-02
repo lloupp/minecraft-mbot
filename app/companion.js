@@ -11,6 +11,7 @@ const gather = require('../lib/gather')
 const combat = require('../lib/combat')
 const equipment = require('../lib/equipment')
 const night = require('../lib/night')
+const water = require('../lib/water')
 const { Autonomy } = require('../lib/autonomy')
 const { inferido } = require('../core/Memory')
 
@@ -409,6 +410,26 @@ function createCompanion({ bot, memory, botManager, places, owner: OWNER = null,
     })
   }
 
+  // Ficando sem ar: larga a tarefa, nada para cima e vai ao ponto seco mais perto.
+  let breathing = false
+  async function breathe() {
+    if (breathing) return
+    breathing = true
+    console.log(`Sem ar (${bot.oxygenLevel}/20): saindo da água`)
+    cancelTask()
+    mode = 'seguir'
+    bot.setControlState('jump', true)
+    try {
+      const land = water.findDryLand(bot)
+      bot.pathfinder.setMovements(workMoves)
+      if (land) await food.goTo(bot, new goals.GoalBlock(land.x, land.y, land.z), 10000).catch(() => {})
+      else await new Promise((resolve) => setTimeout(resolve, 3000))
+    } finally {
+      bot.setControlState('jump', false)
+      breathing = false
+    }
+  }
+
   // Laço e reflexos do companheiro. Chamado uma vez, logo depois de criar.
   function start() {
     bot.on('spawn', () => {
@@ -460,6 +481,11 @@ function createCompanion({ bot, memory, botManager, places, owner: OWNER = null,
     setInterval(() => {
       if (!bot.entity || !followMoves) return
       autonomy.observe()
+      if (breathing) return
+      if (water.runningOutOfAir(bot)) {
+        breathe()
+        return
+      }
       if (fleeingUntil) {
         if (Date.now() < fleeingUntil) return
         fleeingUntil = 0

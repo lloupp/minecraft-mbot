@@ -362,17 +362,17 @@ test('abrigo: equipar que não confirma (inventário dessincronizado) não trava
   assert.equal(syncs, 1)
 })
 
-test('autonomia mantém estoque de comida e de madeira antes das ferramentas', () => {
+test('autonomia: comida só com fome no começo, madeira antes das ferramentas, estoque de comida antes do ferro', () => {
   const { WOOD_STOCK, FOOD_STOCK, woodUnits } = require('../lib/autonomy')
-  const empty = new Autonomy(fakeBot({ food: 20 }))
-  assert.equal(empty.next().name, 'estoque de comida') // mesmo sem fome
-  const fed = new Autonomy(fakeBot({ items: [['cooked_beef', FOOD_STOCK]], food: 20 }))
-  assert.equal(fed.next().name, 'madeira')
+  assert.equal(new Autonomy(fakeBot({ food: 20 })).next().name, 'madeira') // sem fome: ferramentas primeiro
+  assert.equal(new Autonomy(fakeBot({ food: 10 })).next().name, 'comida')  // com fome e sem comida
   const wood = fakeBot({ items: [['oak_log', 1], ['oak_planks', 3], ['stick', 2]] })
   assert.equal(woodUnits(wood), 8)
   assert.ok(woodUnits(wood) >= WOOD_STOCK)
-  const stocked = new Autonomy(fakeBot({ items: [['cooked_beef', FOOD_STOCK], ['oak_log', 2]], food: 20 }))
-  assert.equal(stocked.next().name, 'picareta de madeira')
+  assert.equal(new Autonomy(fakeBot({ items: [['oak_log', 2]], food: 20 })).next().name, 'picareta de madeira')
+  const tooled = [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace'], ['torch', 16], ['oak_log', 2]]
+  assert.equal(new Autonomy(fakeBot({ items: tooled, food: 20 })).next().name, 'estoque de comida')
+  assert.notEqual(new Autonomy(fakeBot({ items: [...tooled, ['cooked_beef', FOOD_STOCK]], food: 20 })).next().name, 'estoque de comida')
 })
 
 test('autonomia reconhece o subsolo pela luz do céu e lembra a última superfície', () => {
