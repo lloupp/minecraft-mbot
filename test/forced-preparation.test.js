@@ -647,7 +647,6 @@ test('failed pickup remains in preparation refusal evidence without crediting th
 
 
 test('recovery interruption preserves a zero-credit recovery step before movement', async () => {
-  const target = new Vec3(2, 64, 0)
   const drop = {
     id: 17,
     name: 'item',
@@ -686,7 +685,6 @@ test('recovery interruption preserves a zero-credit recovery step before movemen
 })
 
 test('recovery never switches to a replacement cobblestone entity after selection', async () => {
-  const target = new Vec3(2, 64, 0)
   const selected = {
     id: 21,
     name: 'item',

@@ -1,3 +1,4 @@
+// @ts-check
 const FOOD_NAMES = new Set([
   'bread', 'baked_potato', 'potato', 'carrot', 'beetroot', 'apple',
   'sweet_berries', 'glow_berries', 'beef', 'porkchop', 'mutton', 'rabbit',

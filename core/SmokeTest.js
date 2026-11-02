@@ -1,3 +1,4 @@
+// @ts-check
 class SmokeTest {
   constructor({ bot, storage, botManager, homeProvider, projectManager, serverProfile = null }) {
     this.bot = bot

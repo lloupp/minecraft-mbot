@@ -14,7 +14,7 @@ A evidência anterior continua classificando a autonomia como **parcial**. O có
 
 ## Evidência
 
-Ver [evidências do ciclo](evidence/shelter-memory-integrity-20261010/README.md). Testes de regressão do abrigo e da memória falham no código base. Smoke dirigido Minecraft real: lava introduzida após navegação causa recusa com zero digs; terreno restaurado permite três escavações, tampa confirmada e saída. Sem modelo, bot sem OP, survival; terreno controlado por console em servidor local descartável e dificuldade peaceful. Não mede sobrevivência natural nem comprova melhoria no soak.
+Ver [evidências do ciclo](https://github.com/lloupp/minecraft-mbot/blob/b00cb6d875ed541b04e04bf655a77d8bb7b0fbe1/docs/evidence/shelter-memory-integrity-20261010/README.md). Testes de regressão do abrigo e da memória falham no código base. Smoke dirigido Minecraft real: lava introduzida após navegação causa recusa com zero digs; terreno restaurado permite três escavações, tampa confirmada e saída. Sem modelo, bot sem OP, survival; terreno controlado por console em servidor local descartável e dificuldade peaceful. Não mede sobrevivência natural nem comprova melhoria no soak.
 
 ## Backlog priorizado
 

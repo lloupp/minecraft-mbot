@@ -125,7 +125,7 @@ test('abrigo não escolhe tronco nem folhas como superfície', () => {
 })
 
 test('autonomia pula metas já cumpridas e respeita cooldown de falha', () => {
-  const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace']], food: 20 })
+  const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace'], ['cooked_beef', 4], ['oak_log', 2]], food: 20 })
   const autonomy = new Autonomy(bot)
   const first = autonomy.next()
   assert.equal(first.name, 'carvão')
@@ -151,7 +151,7 @@ test('abrigo espera a terra cavada entrar no inventário antes de desistir', asy
 })
 
 test('autonomia aumenta backoff progressivamente e zera após sucesso', () => {
-  const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace']], food: 20 })
+  const bot = fakeBot({ items: [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace'], ['cooked_beef', 4], ['oak_log', 2]], food: 20 })
   const autonomy = new Autonomy(bot)
   const goal = autonomy.next()
   const before = Date.now()
@@ -360,4 +360,36 @@ test('abrigo: equipar que não confirma (inventário dessincronizado) não trava
   assert.equal(String(await night.digShelter(bot, ground, () => false)), String(ground))
   assert.ok(Date.now() - started < 10000)
   assert.equal(syncs, 1)
+})
+
+test('autonomia: comida só com fome no começo, madeira antes das ferramentas, estoque de comida antes do ferro', () => {
+  const { WOOD_STOCK, FOOD_STOCK, woodUnits } = require('../lib/autonomy')
+  assert.equal(new Autonomy(fakeBot({ food: 20 })).next().name, 'madeira') // sem fome: ferramentas primeiro
+  assert.equal(new Autonomy(fakeBot({ food: 10 })).next().name, 'comida')  // com fome e sem comida
+  const wood = fakeBot({ items: [['oak_log', 1], ['oak_planks', 3], ['stick', 2]] })
+  assert.equal(woodUnits(wood), 8)
+  assert.ok(woodUnits(wood) >= WOOD_STOCK)
+  assert.equal(new Autonomy(fakeBot({ items: [['oak_log', 2]], food: 20 })).next().name, 'picareta de madeira')
+  const tooled = [['stone_pickaxe'], ['stone_sword'], ['stone_axe'], ['furnace'], ['torch', 16], ['oak_log', 2]]
+  assert.equal(new Autonomy(fakeBot({ items: tooled, food: 20 })).next().name, 'estoque de comida')
+  assert.notEqual(new Autonomy(fakeBot({ items: [...tooled, ['cooked_beef', FOOD_STOCK]], food: 20 })).next().name, 'estoque de comida')
+})
+
+test('autonomia reconhece o subsolo pela luz do céu e lembra a última superfície', () => {
+  const { underground } = require('../lib/autonomy')
+  let sky = 15
+  const bot = fakeBot()
+  bot.entity = { position: new Vec3(10.5, 70, -3.2), onGround: true }
+  bot.blockAt = () => ({ name: 'air', skyLight: sky })
+  const autonomy = new Autonomy(bot)
+  assert.equal(underground(bot), false)
+  autonomy.observe()
+  assert.deepEqual(autonomy.lastSurface, new Vec3(10, 70, -4))
+  sky = 0
+  bot.entity.position = new Vec3(30, 20, 5)
+  assert.equal(underground(bot), true)
+  autonomy.observe() // no subsolo não sobrescreve
+  assert.deepEqual(autonomy.lastSurface, new Vec3(10, 70, -4))
+  bot.blockAt = () => null // chunk sem luz: não conclui nada
+  assert.equal(underground(bot), false)
 })

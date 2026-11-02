@@ -1,3 +1,4 @@
+// @ts-check
 function normalizeName(value) {
   return String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
 }

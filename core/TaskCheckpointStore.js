@@ -1,3 +1,4 @@
+// @ts-check
 'use strict'
 
 const fs = require('node:fs')
@@ -27,7 +28,7 @@ class TaskCheckpointStore {
     try {
       const parsed = JSON.parse(await fs.promises.readFile(this.filePath, 'utf8'))
       if (!parsed || parsed.version !== 1 || !parsed.tasks || typeof parsed.tasks !== 'object' || Array.isArray(parsed.tasks)) {
-        const err = new Error('checkpoint incompatível')
+        const err = /** @type {NodeJS.ErrnoException} */ (new Error('checkpoint incompatível'))
         err.code = 'CHECKPOINT_SCHEMA_UNSUPPORTED'
         throw err
       }
@@ -59,7 +60,7 @@ class TaskCheckpointStore {
     if (!safeId(taskId)) throw new Error('task id inválido')
     if (!safeId(worker)) throw new Error('worker inválido')
     if (Object.hasOwn(this.state.tasks, taskId)) {
-      const err = new Error('task id já existe')
+      const err = /** @type {NodeJS.ErrnoException} */ (new Error('task id já existe'))
       err.code = 'TASK_ID_EXISTS'
       throw err
     }
@@ -137,7 +138,7 @@ class TaskCheckpointStore {
 
   async save() {
     if (this.lastLoadError) {
-      const err = new Error('salvamento bloqueado: arquivo de checkpoint inválido')
+      const err = /** @type {NodeJS.ErrnoException} */ (new Error('salvamento bloqueado: arquivo de checkpoint inválido'))
       err.code = 'CHECKPOINT_RECOVERY_REQUIRED'
       throw err
     }

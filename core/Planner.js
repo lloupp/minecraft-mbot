@@ -1,3 +1,4 @@
+// @ts-check
 class Planner {
   constructor(bot, knowledge) {
     this.bot = bot

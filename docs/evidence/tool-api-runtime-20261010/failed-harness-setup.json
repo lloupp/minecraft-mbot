@@ -1,9 +1,0 @@
-{
-  "minecraft": "1.20.1",
-  "dir": "/tmp/mbot-tool-live-5Sbrm1",
-  "mcPort": 43721,
-  "apiPort": 38949,
-  "phases": [],
-  "status": "FAIL",
-  "error": "Error: smoke phase timed out\n    at waitFor (/workspace/scratch/ed2352955755/minecraft-mbot/scripts/tool-api-live-smoke.js:21:9)\n    at async startApp (/workspace/scratch/ed2352955755/minecraft-mbot/scripts/tool-api-live-smoke.js:64:5)\n    at async main (/workspace/scratch/ed2352955755/minecraft-mbot/scripts/tool-api-live-smoke.js:86:5)"
-}

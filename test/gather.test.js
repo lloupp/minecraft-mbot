@@ -385,7 +385,6 @@ test('clearLeaves cava só as folhas que estão no raio de visada do alvo aprova
   let leaf = { name: 'oak_leaves', position: new Vec3(1, 64, 2) }
   const dug = []
   bot.blockAtCursor = () => (leaf ? leaf : { position: new Vec3(2, 64, 2) })
-  const origDig = bot.dig
   const origAt = bot.blockAt
   bot.blockAt = (p) => (p.equals(new Vec3(2, 65, 2)) ? { name: 'oak_log', position: p } : origAt(p))
   const origDigBase = bot.dig

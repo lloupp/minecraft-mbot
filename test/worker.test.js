@@ -171,7 +171,7 @@ function penWorld({ items = [], cows = 2 } = {}) {
   bot.pathfinder.goto = async (goal) => move(goal)
   bot.pathfinder.setGoal = (goal) => {
     bot.pathfinder.goal = goal
-    if (goal) try { move(goal) } catch {}
+    if (goal) try { move(goal) } catch { /* o mock de movimento pode recusar o objetivo */ }
   }
   for (let i = 0; i < cows; i++) {
     bot.entities[i + 1] = {

@@ -1,3 +1,4 @@
+// @ts-check
 const { goals } = require('mineflayer-pathfinder')
 const { Vec3 } = require('vec3')
 
@@ -257,6 +258,7 @@ class ProductionManager {
   async smelt(bot, outputName, count = 1, depth = 0, trail = new Set()) {
     const wanted = Math.max(1, Number(count) || 1)
     const previous = this._furnaceLock
+    /** @type {(value?: any) => void} */
     let release
     this._furnaceLock = new Promise((resolve) => { release = resolve })
     await previous
@@ -303,7 +305,7 @@ class ProductionManager {
       }
       throw new Error(`tempo esgotado fundindo ${outputName}`)
     } finally {
-      try { furnaceWindow?.close() } catch {}
+      try { furnaceWindow?.close() } catch { /* a janela pode já ter sido fechada pelo servidor */ }
       release()
     }
   }

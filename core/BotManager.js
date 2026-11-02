@@ -1,3 +1,4 @@
+// @ts-check
 const ROLE_ALIASES = {
   minerador: 'minerador',
   mineradores: 'minerador',

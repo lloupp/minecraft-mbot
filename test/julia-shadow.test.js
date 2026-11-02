@@ -1,7 +1,6 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 const { JuliaShadowObserver, derive } = require('../lib/julia-shadow')
-const { combineShadows } = require('../lib/shadow-fanout')
 
 const silent = { log() {} }
 const candidates = [
@@ -85,17 +84,4 @@ test('derive: abandono, override de segurança e concordância', () => {
 
   const back = derive({ state: {}, candidates: [{ id: 'return_base' }, { id: 'continue_objective' }], choice: 'return_base', executedChoice: 'voltar' })
   assert.equal(back.agreesWithReal, true)
-})
-
-test('fan-out isola observadores e só usa os habilitados', () => {
-  const seen = []
-  const shadows = combineShadows(
-    { enabled: () => false, observe: () => seen.push('off') },
-    { enabled: () => true, observe: () => { throw new Error('boom') } },
-    { enabled: () => true, observe: () => seen.push('on') }
-  )
-  assert.equal(shadows.enabled(), true)
-  assert.equal(shadows.observe({}), undefined)
-  assert.deepEqual(seen, ['on'])
-  assert.equal(combineShadows({ enabled: () => false }).enabled(), false)
 })

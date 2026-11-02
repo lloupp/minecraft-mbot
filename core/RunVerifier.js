@@ -1,3 +1,4 @@
+// @ts-check
 // core/RunVerifier.js
 // Verification framework for colony runs.
 // Checks event log consistency, worker safety, source provenance,
@@ -107,6 +108,7 @@ class RunVerifier {
     if (!this.scenarioContext) throw new ScenarioError('unavailable', 'contexto de teste indisponível')
 
     const context = this.scenarioContext
+    /** @type {Record<string, any>} */
     const run = {
       runId: `run-${Date.now()}-${++this._runSeq}`,
       scenarioId: scenario.id,
@@ -307,7 +309,7 @@ class RunVerifier {
     try {
       return JSON.parse(fs.readFileSync(candidates[0], 'utf8'))
     } catch (err) {
-      throw new Error(`invalid source manifest: ${err.message}`)
+      throw new Error(`invalid source manifest: ${err.message}`, { cause: err })
     }
   }
 

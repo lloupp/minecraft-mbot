@@ -1,3 +1,4 @@
+// @ts-check
 const { Vec3 } = require('vec3')
 
 const PEN_SIZE = 7

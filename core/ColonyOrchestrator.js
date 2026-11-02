@@ -1,3 +1,4 @@
+// @ts-check
 const husbandry = require('../lib/husbandry')
 
 const INTERRUPTION_BACKOFF_MS = 5000
@@ -186,7 +187,7 @@ class ColonyOrchestrator {
     const candidates = this.controllers(normalized)
     if (!candidates.length) throw new Error(`não há bots com papel ${normalized}`)
 
-    const total = Math.max(1, Number.parseInt(count, 10) || 1)
+    const total = Math.max(1, Number.parseInt(String(count), 10) || 1)
     const base = Math.floor(total / candidates.length)
     let remainder = total % candidates.length
     const assignments = []
@@ -265,7 +266,7 @@ class ColonyOrchestrator {
   }
 
   async captureAnimals(species, count = 1) {
-    const normalizedCount = Math.max(1, Math.min(16, Number.parseInt(count, 10) || 1))
+    const normalizedCount = Math.max(1, Math.min(16, Number.parseInt(String(count), 10) || 1))
     const name = this.runRoleTask(
       'fazendeiro',
       { type: 'capturar_animais', species, count: normalizedCount },
@@ -275,7 +276,7 @@ class ColonyOrchestrator {
   }
 
   async manageAnimalPopulation(species, target = 6) {
-    const normalizedTarget = Math.max(2, Math.min(32, Number.parseInt(target, 10) || 6))
+    const normalizedTarget = Math.max(2, Math.min(32, Number.parseInt(String(target), 10) || 6))
     const name = this.runRoleTask(
       'fazendeiro',
       { type: 'manejar_populacao', species, target: normalizedTarget },
@@ -285,7 +286,7 @@ class ColonyOrchestrator {
   }
 
   async breedAnimals(species, pairs = 1) {
-    const normalizedPairs = Math.max(1, Math.min(16, Number.parseInt(pairs, 10) || 1))
+    const normalizedPairs = Math.max(1, Math.min(16, Number.parseInt(String(pairs), 10) || 1))
     const name = this.runRoleTask(
       'fazendeiro',
       { type: 'reproduzir_animais', species, pairs: normalizedPairs },
@@ -295,7 +296,7 @@ class ColonyOrchestrator {
   }
 
   async collectAnimalProduct(product, count = 1) {
-    const raw = Number.parseInt(count, 10) || 1
+    const raw = Number.parseInt(String(count), 10) || 1
     const normalizedCount = product === 'milk'
       ? Math.max(1, Math.min(16, raw))
       : product === 'eggs'
@@ -310,7 +311,7 @@ class ColonyOrchestrator {
   }
 
   async shearSheep(count = 1) {
-    const normalizedCount = Math.max(1, Math.min(32, Number.parseInt(count, 10) || 1))
+    const normalizedCount = Math.max(1, Math.min(32, Number.parseInt(String(count), 10) || 1))
     const name = this.runRoleTask(
       'fazendeiro',
       { type: 'tosquiar', count: normalizedCount },
@@ -320,7 +321,7 @@ class ColonyOrchestrator {
   }
 
   async exploreAt(position, radius = 64) {
-    const normalizedRadius = Math.max(16, Math.min(256, Number.parseInt(radius, 10) || 64))
+    const normalizedRadius = Math.max(16, Math.min(256, Number.parseInt(String(radius), 10) || 64))
     const name = this.runRoleTask(
       'explorador',
       { type: 'explorar', center: { ...position }, radius: normalizedRadius },
@@ -346,7 +347,7 @@ class ColonyOrchestrator {
     const artisans = this.controllers('artesao')
     if (!artisans.length) throw new Error('não há artesão na colônia')
     const chosen = artisans.find(({ controller }) => controller.isIdle()) || artisans[0]
-    const task = { type: 'fabricar', item, count: Math.max(1, Number.parseInt(count, 10) || 1) }
+    const task = { type: 'fabricar', item, count: Math.max(1, Number.parseInt(String(count), 10) || 1) }
     chosen.controller.run(task)
       .then((result) => this.logger.log(`[produção] ${chosen.worker.name}:`, result))
       .catch((err) => this.logger.log(`[produção] ${chosen.worker.name} falhou: ${err.message}`))
@@ -356,7 +357,7 @@ class ColonyOrchestrator {
   async supply(workerName, item, count = 1) {
     const worker = this.botManager.get(workerName)
     if (!worker?.bot?.colonyController) throw new Error(`bot não encontrado: ${workerName}`)
-    const task = { type: 'retirar_estoque', item, count: Math.max(1, Number.parseInt(count, 10) || 1) }
+    const task = { type: 'retirar_estoque', item, count: Math.max(1, Number.parseInt(String(count), 10) || 1) }
     worker.bot.colonyController.run(task)
       .then((result) => this.logger.log(`[estoque] ${workerName} recebeu:`, result))
       .catch((err) => this.logger.log(`[estoque] ${workerName} falhou: ${err.message}`))

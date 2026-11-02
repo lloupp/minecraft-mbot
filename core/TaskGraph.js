@@ -1,3 +1,4 @@
+// @ts-check
 'use strict'
 
 const VALID_STATUS = new Set(['pending', 'running', 'completed', 'failed', 'cancelled', 'blocked'])

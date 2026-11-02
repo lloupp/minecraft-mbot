@@ -86,4 +86,4 @@ varredura). `!mundo` imprime o resumo. Métricas persistidas: `created`, `confir
 
 ## Evidência
 
-Ver `docs/evidence/world-memory-1201/README.md`.
+Ver [evidência](EVIDENCE.md) `world-memory-1201`.

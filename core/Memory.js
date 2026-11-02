@@ -1,3 +1,4 @@
+// @ts-check
 // core/Memory.js
 // Memória tipada do bot, com proveniência: cada item diz de onde veio
 // (visto pelo bot, dito por um jogador ou inferido), quando e com que confiança.
@@ -126,6 +127,7 @@ class Memory {
     this.items = []
     this.nextId = 1
     this.lastLoadError = null
+    /** @type {Promise<any>} */
     this._write = Promise.resolve()
     this._timer = null
   }

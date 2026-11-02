@@ -11,7 +11,7 @@ const { ReplanningEngine } = require('../lib/replanning')
 const testLogPath = path.resolve('.data/test-replan-events.jsonl')
 
 test('starts and stops', () => {
-  try { fs.unlinkSync(testLogPath) } catch {}
+  fs.rmSync(testLogPath, { force: true })
   const engine = new ReplanningEngine({
     storage: { cachedSummary: () => ({}) },
     eventLog: { log: () => {}, size: 0, getEvents: () => [] },
